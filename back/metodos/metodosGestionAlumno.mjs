@@ -75,11 +75,11 @@ export const deshabilitarAlumno = async (req,res) =>{
     }
 }
 
-export const modificarAlumno = async (req,res) => {
-    try{
-        const {dnialumno} = req.params;
-        const {nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, 
-            idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio} = req.body; 
+export const modificarAlumno = async (req, res) => {
+    try {
+        const { dnialumno } = req.params;
+        const { nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, 
+            idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso, edificio } = req.body; 
 
         const valores = [];
         const columnas = [];
@@ -96,12 +96,11 @@ export const modificarAlumno = async (req,res) => {
             fechanacimiento,
             idlocalidad,
             idestadoalumno,
+            telefonopersonal,
             telefonomadre,
             telefonopadre,
             emailpersonal,
             emailfamiliar,
-            telefonopersonal,
-            idcurso,
             edificio
         };
 
@@ -112,22 +111,31 @@ export const modificarAlumno = async (req,res) => {
                 valores.push(valor);
             }
         }
-        
+
         if (valores.length === 0) {
             return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
         }
 
+        // Actualizar la tabla alumno
         valores.push(dnialumno);
-
-        const respuesta = await pool.query('UPDATE alumno SET ' + columnas.join(', ') + ' WHERE dnialumno = $' + (valores.length), valores);
+        const respuestaAlumno = await pool.query('UPDATE alumno SET ' + columnas.join(', ') + ' WHERE dnialumno = $' + (valores.length), valores);
         
-        if (respuesta.rowCount === 0) {
+        if (respuestaAlumno.rowCount === 0) {
             return res.status(404).json({ error: 'Alumno no encontrado' });
         }
+
+        // Si se proporciona un nuevo idcurso, actualizar la tabla alumnocurso
+        if (idcurso) {
+            const respuestaCurso = await pool.query('UPDATE alumnocurso SET idcurso = $1 WHERE dnialumno = $2', [idcurso, dnialumno]);
+            if (respuestaCurso.rowCount === 0) {
+                return res.status(404).json({ error: 'Curso no encontrado para el alumno' });
+            }
+        }
+
         console.log("Alumno actualizado exitosamente");
         res.status(200).json({ message: 'Alumno actualizado exitosamente' }); 
-    }catch{
-        console.log('Error al actualizar el alumno');
+    } catch (error) {
+        console.log('Error al actualizar el alumno:', error);
         res.status(500).json({ error: 'Error al actualizar el alumno' });
     }
 }
