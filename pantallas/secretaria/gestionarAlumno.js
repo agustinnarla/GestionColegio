@@ -198,8 +198,8 @@ export default function GestionarAlumno() {
                 return;
             }
     
-            const response = await modificarAlumno(dni, formData); // Pasa el DNI y formData
-            console.log('Alumno modificado:', response);
+            const respuesta = await modificarAlumno(dni, formData); 
+            console.log('Alumno modificado:', respuesta);
             Alert.alert('Éxito', 'Alumno modificado exitosamente');
         } catch (error) {
             console.log('Error al modificar un alumno:', error.message);
