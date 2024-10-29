@@ -78,11 +78,11 @@ export const deshabilitarAlumno = async (req,res) =>{
 export const modificarAlumno = async (req,res) => {
     try{
         const {dnialumno} = req.params;
-        const {nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonomadre, telefonopadre, emailpersonal, emailfamiliar } = req.body; 
+        const {nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, 
+            idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio} = req.body; 
 
-      
         const valores = [];
-        const columnas = {};
+        const columnas = [];
 
         // Crear un objeto con los campos que se pueden actualizar
         const camposActualizables = {
@@ -99,7 +99,10 @@ export const modificarAlumno = async (req,res) => {
             telefonomadre,
             telefonopadre,
             emailpersonal,
-            emailfamiliar
+            emailfamiliar,
+            telefonopersonal,
+            idcurso,
+            edificio
         };
 
         // Iterar sobre el objeto y construir las columnas y valores

@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno } from '../../scripts/secretaria/scriptGestionAlumno';
+import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno } from '../../scripts/secretaria/scriptGestionAlumno';
 
 
 
@@ -188,7 +188,25 @@ export default function GestionarAlumno() {
         }
     };
 
-   
+    const handleModificar = async () => {
+        try {
+            const dni = formData.dnialumno; 
+            console.log('DNI a modificar:', dni); 
+    
+            if (!dni) {
+                Alert.alert('Error', 'Por favor, consulta primero al alumno.');
+                return;
+            }
+    
+            const response = await modificarAlumno(dni, formData); // Pasa el DNI y formData
+            console.log('Alumno modificado:', response);
+            Alert.alert('Éxito', 'Alumno modificado exitosamente');
+        } catch (error) {
+            console.log('Error al modificar un alumno:', error.message);
+            Alert.alert('Error', error.message);
+        }
+    }
+
     const handleDeshabilitar = async () => {
         try {
             
@@ -377,7 +395,7 @@ export default function GestionarAlumno() {
             <View style={styles.contenidoBotones}>
                 <TouchableOpacity style={styles.botonAlta} onPress={handleAgregar}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonModificar}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonLimpiar}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
         </View>

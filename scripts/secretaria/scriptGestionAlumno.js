@@ -1,6 +1,7 @@
 const api_urlAlumno = 'http://localhost:5000/alumnos'
 const api_url = 'http://localhost:5000'
 const api_urlEliminar = 'http://localhost:5000/alumnos/deshabilitar'
+const api_urlModificar = 'http://localhost:5000/alumnos/modificar'
 
 export const obtenerAlumnoFiltrado = async (dni) => {
     try {
@@ -66,6 +67,34 @@ export const deshabilitarAlumno = async(dni) => {
     
     
 }
+
+export const modificarAlumno = async (dni, formData) => {
+    try {
+        const url = `${api_urlModificar}/${dni}`; // Verifica la URL
+        console.log('URL a la que se está haciendo la solicitud:', url);
+        
+        const respuesta = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData),
+        });
+
+        const data = await respuesta.json();
+
+        if (respuesta.ok) {
+            console.log("Se modificó el alumno");
+            return data;  
+        } else {
+            throw new Error(data.error || 'Error desconocido al modificar el alumno');
+        }
+    } catch (error) {
+        console.error('Error en modificarAlumno:', error.message); 
+        throw new Error("Error al modificar el alumno: " + error.message);
+    }
+}
+
 export const obtenerSexo = async () => {
     try{
         const respuesta = await fetch(`${api_url}/sexo`)

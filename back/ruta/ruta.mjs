@@ -17,7 +17,7 @@ ruta.get('/alumnos', obtenerAlumno)
 ruta.get('/alumnos/:dnialumno', obtenerAlumnoFiltrado)
 ruta.post('/alumnos', agregarAlumno)
 ruta.put('/alumnos/deshabilitar/:dnialumno',deshabilitarAlumno)
-ruta.put('/alumnos/:dnialumno',modificarAlumno);
+ruta.put('/alumnos/modificar/:dnialumno',modificarAlumno);
 //Sexo
 ruta.get('/sexo',obtenerSexo)
 //Curso
