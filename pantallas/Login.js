@@ -1,13 +1,35 @@
-import { Text, StyleSheet, View,Image,TextInput,TouchableOpacity,ImageBackground} from 'react-native'
+import { Text, StyleSheet, View,Image,TextInput,TouchableOpacity,ImageBackground,Alert} from 'react-native'
 import React, { useState } from 'react'
-import { useNavigation } from '@react-navigation/native';
+
 import { FontAwesome5 } from '@expo/vector-icons';
+
+import appFirebase from '../credenciales.js'
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 import bg from '../assets/bg1.jpg'
 import logo from '../assets/logo_huerto.png'
 
-export default function Login(){
-    const navegacion = useNavigation()
+
+const auth = getAuth(appFirebase)
+
+
+export default function Login(props){
+    //Creamos login 
+    const [email, SetEmail] = useState()
+    const [contraseña, SetContraseña] = useState()
+
+    const login = async()=>{
+        try{
+            await signInWithEmailAndPassword(auth,email,contraseña)   
+            Alert.alert('Iniciando sesion','Accediendo..') 
+            props.navigation.navigate("Home")
+        }catch(err){
+            console.log(err)
+            Alert.alert('Error','El usuario o la contraseña son incorrectos')
+        }
+    }
+
+    
     return (
         <View style={styles.padre}>
             <ImageBackground source={bg} style={styles.bg}>
@@ -17,11 +39,13 @@ export default function Login(){
                 <View style={styles.tarjeta}>
                     <View style={styles.cajaTexto}>
                         <FontAwesome5 name="user" size={15} color="black" style={styles.icon} />
-                        <TextInput placeholder='Usuario' style={styles.textInput}/>
+                        <TextInput placeholder='Usuario' style={styles.textInput}
+                        onChangeText={(text)=>SetEmail(text)}/>
                     </View>
                     <View style={styles.cajaTexto}>
                         <FontAwesome5 name="lock" size={15} color="black" style={styles.icon} />
-                        <TextInput placeholder='Contraseña' style={styles.textInput}/>
+                        <TextInput placeholder='Contraseña' secureTextEntry={true} style={styles.textInput}
+                        onChangeText={(text)=> SetContraseña(text)}/>
                     </View>
                     <TouchableOpacity>
                         <Text style={styles.textoOlvide}>
@@ -29,7 +53,7 @@ export default function Login(){
                         </Text>
                     </TouchableOpacity>
                     <View style={styles.padreBoton}>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Home')}>
+                        <TouchableOpacity style={styles.cajaBoton} onPress={login}>
                             <Text style={styles.textoBoton}>Ingresar</Text>
                         </TouchableOpacity>
                     </View>
@@ -54,8 +78,6 @@ const styles = StyleSheet.create({
     tarjeta:{
         margin:20,
         borderRadius:10,
-        borderColor:'#000AFF',
-        borderWidth:0.5,
         width:'70%',
         padding:20,
     },

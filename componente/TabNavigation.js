@@ -1,15 +1,21 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { StyleSheet,View} from 'react-native';
+import { StyleSheet,View,Image} from 'react-native';
 import React from "react";
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 
 //Rutas de navegación 
-import Home from "../pantallas/Home";
+import HomePreceptor from "../pantallas/preceptores/HomePreceptor";
 import Calendario from "../pantallas/Calendario";
-import Herramientas from "../pantallas/Herramientas";
 import Perfil from "../pantallas/Perfil";
+import HomeProfesor from "../pantallas/profesor/HomeProfesor";
+import HomeAlumno from "../pantallas/alumno/HomeAlumno";
+import HomeSecretaria from "../pantallas/secretaria/HomeSecretaria";
+import HomeAdmin from "../pantallas/admin/HomeAdmin";
+
+
+
 
 const Tab = createBottomTabNavigator()
 
@@ -20,24 +26,22 @@ export const BottomTab = () => {
         tabBarIcon: ({focused, color, size }) => {
           let iconName;
           let iconColor = focused ? 'black' : color;
-          if (route.name === "HOME") {
+          if (route.name === "MENU") {
             iconName = "home";
           } else if (route.name === "CALENDARIO") {
             iconName = "calendar";
-          } else if (route.name === "HERRAMIENTAS") {
-            iconName = "wrench";
           } else if (route.name === "PERFIL") {
             iconName = "user";
           }
 
           return (
-            <View style={styles.tabBarIconContainer}>
+          <View style={styles.tabBarIconContainer}>
             <View style={[styles.circle, { backgroundColor: focused ? '#ECECEC' : 'transparent', top: focused ? -40 : -20 }]}>
-                <FontAwesome
-                name={iconName}
-                size={size}
-                color={iconColor}
-                />
+                  <FontAwesome
+                  name={iconName}
+                  size={size}
+                  color={iconColor}
+                  />
             </View>
           </View>
           );
@@ -49,10 +53,10 @@ export const BottomTab = () => {
       }}
     >
       <Tab.Screen
-        name="HOME"
-        component={Home}
+        name="MENU"
+        component={HomeSecretaria}
         options={{
-          title: "HOME",
+          title: "MENÚ",
           headerTintColor: "white",
           headerTitleAlign: "center",
           headerBackground: () => (
@@ -83,23 +87,6 @@ export const BottomTab = () => {
         }}
       />
       <Tab.Screen
-        name="HERRAMIENTAS"
-        component={Herramientas}
-        options={{
-          title: "HERRAMIENTAS",
-          headerTintColor: "white",
-          headerTitleAlign: "center",
-          headerBackground: () => (
-            <LinearGradient
-              colors={["rgba(10, 18, 49, 0.8)", "rgba(45, 85, 228, 0.8)"]}
-              style={{ flex: 1 }}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="PERFIL"
         component={Perfil}
         options={{
@@ -116,6 +103,7 @@ export const BottomTab = () => {
           ),
         }}
       />
+      
     </Tab.Navigator>
   );
 };
@@ -123,9 +111,11 @@ export const BottomTab = () => {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: "#000000",
-    borderTopWidth: 0,
-    height: 60,
-    paddingBottom: 5,
+    height:60,
+    position:'absolute',
+    bottom: 16,
+    right: 16,
+    left: 16,
   },
     tabBarIconContainer: {
       width: '100%',
