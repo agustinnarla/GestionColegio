@@ -21,33 +21,47 @@ export const obtenerAlumnoFiltrado = async (dni) => {
 
 export const agregarAlumno = async (formData, files) => {
     try {
-        const formDataToSend = new FormData();
-        
-        Object.keys(formData).forEach((key) => {
-            if (formData[key] && typeof formData[key] === 'string') {
-                formDataToSend.append(key, formData[key]);
-            }
-        });
-    
-        // Agregar archivos PDF como blobs
-        ['dniFoto', 'fichaMedica', 'partidaNacimiento'].forEach((field) => {
-            if (formData[field]) {
-                formDataToSend.append(field, {
-                    uri: formData[field],
-                    name: `${field}.pdf`,
-                    type: 'application/pdf',
-                });
-            }
-        });
+        const dataToSend = new FormData();
+
+        // Agregar los datos del alumno al FormData
+        for (const key in formData) {
+            dataToSend.append(key, formData[key]);
+        }
+
+        // Agregar los archivos al FormData
+        if (files.dniFoto) {
+            dataToSend.append('dniFoto', {
+                uri: files.dniFoto.uri,
+                name: files.dniFoto.name,
+                type: files.dniFoto.type,
+            });
+        }
+
+        if (files.fichaMedica) {
+            dataToSend.append('fichaMedica', {
+                uri: files.fichaMedica.uri,
+                name: files.fichaMedica.name,
+                type: files.fichaMedica.type,
+            });
+        }
+
+        if (files.partidaNacimiento) {
+            dataToSend.append('partidaNacimiento', {
+                uri: files.partidaNacimiento.uri,
+                name: files.partidaNacimiento.name,
+                type: files.partidaNacimiento.type,
+            });
+        }
 
         const respuesta = await fetch(api_urlAlumno, {
             method: 'POST',
-            body: formDataToSend
-            
+            body: dataToSend,
         });
 
+        const text = await respuesta.text(); // Obtén la respuesta como texto
+        console.log('Respuesta del servidor:', text); // Imprime la respuesta
 
-        const data = await response.json();
+        const data = JSON.parse(text);
 
         if (respuesta.ok) {
             console.log("Se agregó el alumno");
