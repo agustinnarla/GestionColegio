@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno } from '../../scripts/secretaria/scriptGestionAlumno';
-
+import * as DocumentPicker from 'expo-document-picker';
 
 
 
@@ -26,9 +26,9 @@ export default function GestionarAlumno() {
         emailfamiliar: '',
         edificio: false,
         idcurso: '',
-        //legajo: '',
-        //fichaMedica: '',
-        //partidaNacimiento: '',
+        dniFoto: null,
+        fichaMedica: null,
+        partidaNacimiento: null,
     });
 
     //Listas desplegables
@@ -166,8 +166,8 @@ export default function GestionarAlumno() {
             telefonopadre: telefonoPadre,
             emailpersonal: formData.emailpersonal,
             emailfamiliar: formData.emailfamiliar,
-            idcurso: idcurso, // Usar el ID de curso validado
-            edificio: formData.edificio
+            idcurso: idcurso, 
+            edificio: formData.edificio,
             
         };
 
@@ -178,10 +178,17 @@ export default function GestionarAlumno() {
         if (formData.piso) {
             alumnoData.piso = formData.piso;
         }
-        console.log('Datos del alumno a agregar:', alumnoData); // Verifica el contenido
+
+        const files = {
+            dniFoto: formData.dniFoto,
+            fichaMedica: formData.fichaMedica,
+            partidaNacimiento: formData.partidaNacimiento,
+        };
+
+        console.log('Datos del alumno a agregar:', alumnoData,files); // Verifica el contenido
 
         try {
-            const response = await agregarAlumno(alumnoData);
+            const response = await agregarAlumno(alumnoData,files);
             console.log('Alumno agregado:', response);
         } catch (error) {
             console.error('Error al agregar alumno:', error.message);
@@ -226,6 +233,31 @@ export default function GestionarAlumno() {
             Alert.alert('Error', error.message);
         }
     }
+    
+    const handleSelectFile = async (field) => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: 'application/pdf', 
+                copyToCacheDirectory: true,
+            });
+    
+            console.log('Resultado de la selección de archivo:', result); 
+    
+            if (!result.canceled) { 
+                const file = result.assets[0]; 
+                console.log('Archivo seleccionado:', file);
+                setFormData((prevFormData) => ({
+                    ...prevFormData,
+                    [field]: file
+                }));
+            } else {
+                console.log('Selección de archivo cancelada');
+            }
+        } catch (error) {
+            console.error('Error al seleccionar el archivo:', error);
+            Alert.alert('Error', 'No se pudo seleccionar el archivo.');
+        }
+    };
     
     
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
@@ -379,13 +411,22 @@ export default function GestionarAlumno() {
                         <Text style={styles.label}>Teléfono Personal:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefonopersonal} onChangeText={(value) => handleChange('telefonopersonal', value)} />
 
-                        {/* Tercera columna 
                         <Text style={styles.label}>Legajo:</Text>
-                        <TextInput style={styles.inputLegajo} placeholder='DNI' value={formData.legajo} onChangeText={(value) => handleChange('legajo', value)} />
-                        
-                        <TextInput style={styles.inputLegajo} placeholder='Ficha Médica' value={formData.fichaMedica} onChangeText={(value) => handleChange('fichaMedica', value)} />
-                        <TextInput style={styles.inputLegajo} placeholder='Partida de Nacimiento' value={formData.partidaNacimiento} onChangeText={(value) => handleChange('partidaNacimiento', value)} />
-                        */}   
+                            <TouchableOpacity onPress={() => handleSelectFile('dniFoto')}>
+                                <Text style={styles.inputLegajo}>
+                                    {formData.dniFoto ? formData.dniFoto.name : 'Seleccionar PDF de DNI'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleSelectFile('fichaMedica')}>
+                                <Text style={styles.inputLegajo}>
+                                    {formData.fichaMedica ? formData.fichaMedica.name : 'Seleccionar PDF de Ficha Médica'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleSelectFile('partidaNacimiento')}>
+                                <Text style={styles.inputLegajo}>
+                                    {formData.partidaNacimiento ? formData.partidaNacimiento.name : 'Seleccionar PDF de Partida de Nacimiento'}
+                                </Text>
+                            </TouchableOpacity>
                     </View>
                     
                     

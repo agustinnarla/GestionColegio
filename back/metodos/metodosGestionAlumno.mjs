@@ -35,7 +35,7 @@ export const obtenerAlumnoFiltrado = async (req, res) => {
 
 export const agregarAlumno = async (req, res) => {
     try {
-        const { dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio } = req.body;
+        const { dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio} = req.body;
 
         const respuesta = await pool.query(
             'INSERT INTO alumno (dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal,telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
@@ -49,6 +49,21 @@ export const agregarAlumno = async (req, res) => {
             [nuevoDni, idcurso]
         );
 
+        if(req.files){
+            const dniFoto = req.files.dniFoto ? req.files.dniFoto[0] : null;
+            const fichaMedica = req.files.fichaMedica ? req.files.fichaMedica[0] : null;
+            const partidaNacimiento = req.files.partidaNacimiento ? req.files.partidaNacimiento[0] : null;
+
+            await pool.query(
+                'INSERT INTO adjuntolegajo (dnialumno,dnifoto,fichamedica,partidanacimiento) VALUES ($1,$2,$3,$4)',
+                [nuevoDni,
+                    dniFoto ? dniFoto.buffer : null ,
+                    fichaMedica ? fichaMedica.buffer : null,
+                    partidaNacimiento ? partidaNacimiento.buffer : null]
+
+            )
+        }
+        
 
         res.status(210).json(respuesta.rows[0]);
         console.log('Alumno registrado correctamente y curso asignado');
