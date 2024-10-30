@@ -26,9 +26,6 @@ export default function GestionarAlumno() {
         emailfamiliar: '',
         edificio: false,
         idcurso: '',
-        //legajo: '',
-        //fichaMedica: '',
-        //partidaNacimiento: '',
     });
 
     //Listas desplegables
@@ -95,7 +92,7 @@ export default function GestionarAlumno() {
         }
     }
     const handleAgregar = async () => {
-        // Validar el DNI
+
         const dni = parseInt(formData.dnialumno, 10);
         if (isNaN(dni)) {
             Alert.alert('Error', 'El DNI debe ser un número válido.');
@@ -211,7 +208,7 @@ export default function GestionarAlumno() {
         try {
             
             const dni = formData.dnialumno; 
-            console.log('DNI a deshabilitar:', dni); // Verifica el DNI
+            console.log('DNI a deshabilitar:', dni); 
             
             if (!dni) {
                 Alert.alert('Error', 'Por favor, consulta primero al alumno.');
@@ -294,8 +291,7 @@ export default function GestionarAlumno() {
                         <Text style={styles.label}>Email Familiar:</Text>
                         <TextInput style={styles.input} placeholder='Email Familiar' value={formData.emailfamiliar} onChangeText={(value) => handleChange('emailfamiliar', value)} />
                         
-                        <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='--/--/----' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
+                        
                         
                         <PickerField  
                             label="Curso" 
@@ -311,15 +307,17 @@ export default function GestionarAlumno() {
                     {/* Segunda columna */}
                     <View style={styles.columna}>
                         
-                        <PickerField 
-                            label="Localidad" 
-                            selectedValue={formData.idlocalidad} 
-                            onValueChange={(value) => handleChange('idlocalidad', value)} 
-                            items={[
-                                { label: 'Seleccione la localidad', value: '' },
-                                ...localidad.map(localidad => ({ label: localidad.detalle, value: localidad.idlocalidad, key: localidad.idlocalidad })) 
-                            ]} 
-                        />      
+                        <Text style={styles.label}>Fecha de Nacimiento:</Text>
+                        <TextInput style={styles.input} placeholder='--/--/----' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
+                         
+                        <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
+                        <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefonomadre} onChangeText={(value) => handleChange('telefonomadre', value)} />
+
+                        <Text style={styles.label}>Teléfono Padre/Tutor:</Text>
+                        <TextInput style={styles.input} placeholder='Teléfono Padre/Tutor' value={formData.telefonopadre} onChangeText={(value) => handleChange('telefonopadre', value)} />
+                        
+                        <Text style={styles.label}>Teléfono Personal:</Text>
+                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefonopersonal} onChangeText={(value) => handleChange('telefonopersonal', value)} />
 
                         <PickerField 
                             label="Estado Alumno" 
@@ -331,6 +329,23 @@ export default function GestionarAlumno() {
                             ]} 
                         />
                         
+                        
+                        
+                        
+                    </View>
+
+                    
+                    {/* Tercera columna */}
+                    <View style={styles.columna}>
+                        <PickerField 
+                            label="Localidad" 
+                            selectedValue={formData.idlocalidad} 
+                            onValueChange={(value) => handleChange('idlocalidad', value)} 
+                            items={[
+                                { label: 'Seleccione la localidad', value: '' },
+                                ...localidad.map(localidad => ({ label: localidad.detalle, value: localidad.idlocalidad, key: localidad.idlocalidad })) 
+                            ]} 
+                        />     
                         <Text style={styles.label}>Domicilio:</Text>
                         <TextInput style={styles.input} placeholder='Domicilio' value={formData.domicilio} onChangeText={(value) => handleChange('domicilio', value)} />
                         
@@ -363,29 +378,6 @@ export default function GestionarAlumno() {
                             
                         )}
                         
-                        
-                    </View>
-
-                    
-                    {/* Tercera columna */}
-                    <View style={styles.columna}>
-                        
-                    <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefonomadre} onChangeText={(value) => handleChange('telefonomadre', value)} />
-
-                        <Text style={styles.label}>Teléfono Padre/Tutor:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Padre/Tutor' value={formData.telefonopadre} onChangeText={(value) => handleChange('telefonopadre', value)} />
-                        
-                        <Text style={styles.label}>Teléfono Personal:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefonopersonal} onChangeText={(value) => handleChange('telefonopersonal', value)} />
-
-                        {/* Tercera columna 
-                        <Text style={styles.label}>Legajo:</Text>
-                        <TextInput style={styles.inputLegajo} placeholder='DNI' value={formData.legajo} onChangeText={(value) => handleChange('legajo', value)} />
-                        
-                        <TextInput style={styles.inputLegajo} placeholder='Ficha Médica' value={formData.fichaMedica} onChangeText={(value) => handleChange('fichaMedica', value)} />
-                        <TextInput style={styles.inputLegajo} placeholder='Partida de Nacimiento' value={formData.partidaNacimiento} onChangeText={(value) => handleChange('partidaNacimiento', value)} />
-                        */}   
                     </View>
                     
                     
