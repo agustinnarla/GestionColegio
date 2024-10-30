@@ -35,42 +35,56 @@ export const obtenerAlumnoFiltrado = async (req, res) => {
 
 export const agregarAlumno = async (req, res) => {
     try {
-        const { dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio} = req.body;
+        // Verificar si hay archivos
+        if (!req.files) {
+            return res.status(400).json({ 
+                error: 'No se han proporcionado los archivos requeridos' 
+            });
+        }
 
+        const { 
+            dnialumno, nombre, apellido, domicilio, departamento, 
+            piso, idsexo, cuil, fechanacimiento, idlocalidad, 
+            idestadoalumno, telefonopersonal, telefonomadre, 
+            telefonopadre, emailpersonal, emailfamiliar, idcurso, edificio
+        } = req.body;
+
+        // Insertar alumno
         const respuesta = await pool.query(
-            'INSERT INTO alumno (dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal,telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
-            [dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio]
+            'INSERT INTO alumno (dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, edificio) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *',
+            [dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, edificio]
         );
 
         const nuevoDni = respuesta.rows[0].dnialumno;
 
+        // Insertar relación alumno-curso
         await pool.query(
             'INSERT INTO alumnocurso (dnialumno, idcurso) VALUES ($1, $2)',
             [nuevoDni, idcurso]
         );
 
-        if(req.files){
-            const dniFoto = req.files.dniFoto ? req.files.dniFoto[0] : null;
-            const fichaMedica = req.files.fichaMedica ? req.files.fichaMedica[0] : null;
-            const partidaNacimiento = req.files.partidaNacimiento ? req.files.partidaNacimiento[0] : null;
+        // Procesar archivos adjuntos
+        const dniFoto = req.files.dniFoto ? req.files.dniFoto[0].buffer : null;
+        const fichaMedica = req.files.fichaMedica ? req.files.fichaMedica[0].buffer : null;
+        const partidaNacimiento = req.files.partidaNacimiento ? req.files.partidaNacimiento[0].buffer : null;
 
-            await pool.query(
-                'INSERT INTO adjuntolegajo (dnialumno,dnifoto,fichamedica,partidanacimiento) VALUES ($1,$2,$3,$4)',
-                [nuevoDni,
-                    dniFoto ? dniFoto.buffer : null ,
-                    fichaMedica ? fichaMedica.buffer : null,
-                    partidaNacimiento ? partidaNacimiento.buffer : null]
+        // Insertar archivos adjuntos
+        await pool.query(
+            'INSERT INTO adjuntolegajo (dnialumno, dnifoto, fichamedica, partidanacimiento) VALUES ($1, $2, $3, $4)',
+            [nuevoDni, dniFoto, fichaMedica, partidaNacimiento]
+        );
 
-            )
-        }
-        
+        res.status(201).json({
+            mensaje: 'Alumno registrado correctamente',
+            alumno: respuesta.rows[0]
+        });
 
-        res.status(210).json(respuesta.rows[0]);
-        console.log('Alumno registrado correctamente y curso asignado');
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ error: 'Error al cargar un alumno nuevo' });
-        console.log('Error al cargar un alumno');
+    } catch (error) {
+        console.error('Error en agregarAlumno:', error);
+        res.status(500).json({ 
+            error: 'Error al registrar el alumno',
+            detalle: error.message 
+        });
     }
 };
 
