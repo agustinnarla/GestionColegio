@@ -11,21 +11,21 @@ export default function GestionarAlumno() {
         dnialumno: '',
         nombre: '',
         apellido: '',
-        domicilio: '',
-        departamento: '',
-        piso: '',
-        idsexo: '',
         cuil: '',
-        fechaNacimiento: '',
-        idlocalidad: '',
-        idestadoalumno: '',
-        telefonopersonal:'',
-        telefonomadre: '',
-        telefonopadre: '',
+        idsexo: '',
         emailpersonal: '',
         emailfamiliar: '',
-        edificio: false,
         idcurso: '',
+        fechaNacimiento: '',
+        telefonomadre: '',
+        telefonopadre: '',
+        telefonopersonal:'',
+        idestadoalumno: '',
+        idlocalidad: '',
+        domicilio: '',
+        edificio: false,
+        piso: '',
+        departamento: '',
     });
 
     //Listas desplegables
@@ -224,6 +224,32 @@ export default function GestionarAlumno() {
         }
     }
     
+    const handleLimpiar = async() => {
+        try {
+            setFormData({
+                dnialumno: '',
+                nombre: '',
+                apellido: '',
+                domicilio: '',
+                departamento: '',
+                piso: '',
+                idsexo: '',
+                cuil: '',
+                fechaNacimiento: '',
+                idlocalidad: '',
+                idestadoalumno: '',
+                telefonopersonal: '',
+                telefonomadre: '',
+                telefonopadre: '',
+                emailpersonal: '',
+                emailfamiliar: '',
+                edificio: false,
+                idcurso: '',
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
     
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
         useEffect(() => {
@@ -309,7 +335,7 @@ export default function GestionarAlumno() {
                         
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
                         <TextInput style={styles.input} placeholder='--/--/----' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
-                         
+                        
                         <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefonomadre} onChangeText={(value) => handleChange('telefonomadre', value)} />
 
@@ -388,7 +414,7 @@ export default function GestionarAlumno() {
                 <TouchableOpacity style={styles.botonAlta} onPress={handleAgregar}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonLimpiar}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonLimpiar} onPress={handleLimpiar}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
         </View>
     );

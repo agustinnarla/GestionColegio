@@ -3,7 +3,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerAlumno = async (req,res) => {
     try{
-        const respuesta = await pool.query('SELECT * FROM alumno WHERE idestadoalumno=1')
+        const respuesta = await pool.query('SELECT * FROM alumno')
         res.json({alumnos: respuesta.rows})
     }catch{
         console.log('Error al traer los alumnos')
