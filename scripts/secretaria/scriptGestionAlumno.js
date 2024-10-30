@@ -19,52 +19,21 @@ export const obtenerAlumnoFiltrado = async (dni) => {
     }
 }
 
-export const agregarAlumno = async (formData, files) => {
+export const agregarAlumno = async (formData) => {
     try {
-        const dataToSend = new FormData();
-
-        // Agregar los datos del alumno al FormData
-        for (const key in formData) {
-            dataToSend.append(key, formData[key]);
-        }
-
-        // Agregar los archivos al FormData
-        if (files.dniFoto) {
-            dataToSend.append('dniFoto', {
-                uri: files.dniFoto.uri,
-                name: files.dniFoto.name,
-                type: files.dniFoto.type,
-            });
-        }
-
-        if (files.fichaMedica) {
-            dataToSend.append('fichaMedica', {
-                uri: files.fichaMedica.uri,
-                name: files.fichaMedica.name,
-                type: files.fichaMedica.type,
-            });
-        }
-
-        if (files.partidaNacimiento) {
-            dataToSend.append('partidaNacimiento', {
-                uri: files.partidaNacimiento.uri,
-                name: files.partidaNacimiento.name,
-                type: files.partidaNacimiento.type,
-            });
-        }
-
+        
         const respuesta = await fetch(api_urlAlumno, {
             method: 'POST',
-            body: dataToSend,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData),
         });
 
-        const text = await respuesta.text(); // Obtén la respuesta como texto
-        console.log('Respuesta del servidor:', text); // Imprime la respuesta
-
-        const data = JSON.parse(text);
+        const data = await respuesta.json();
 
         if (respuesta.ok) {
-            console.log("Se agregó el alumno");
+            console.log("Se agrego el alumno")
             return data;  
         } else {
             throw new Error(data.error || 'Error desconocido al agregar el alumno');
@@ -74,7 +43,6 @@ export const agregarAlumno = async (formData, files) => {
         throw new Error("Error al agregar el alumno: " + error.message);
     }
 }
-
 export const deshabilitarAlumno = async(dni) => {
     try{
         const respuesta = await fetch(`${api_urlEliminar}/${dni}`,{
