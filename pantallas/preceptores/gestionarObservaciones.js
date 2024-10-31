@@ -5,6 +5,7 @@ import bg from '../../assets/bg1.jpg';
 
 export default function GestionarObservaciones() {
     const Content = (
+
         <View style={styles.contenido}>
             <Text style={styles.label}>Curso:</Text>
             <Picker style={styles.lista}>
@@ -24,7 +25,11 @@ export default function GestionarObservaciones() {
             </Picker>
 
             <Text style={styles.label}>Solicitado Por:</Text>
-            <TextInput style={styles.input} placeholder="Solicitado Por" />
+            <Picker style={styles.lista}>
+                <Picker.Item label="Seleccionar Solicitante" value="" />
+                <Picker.Item label="Solicitante 1" value="s1" />
+                <Picker.Item label="Solicitante 2" value="s2" />
+            </Picker>
 
             <Text style={styles.label}>Motivo:</Text>
             <TextInput style={styles.input} placeholder="Motivo de la observaciones" />

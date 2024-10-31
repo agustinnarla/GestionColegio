@@ -139,3 +139,22 @@ export const modificarAlumno = async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar el alumno' });
     }
 }
+
+export const obtenerAlumnoNombreApellido = async (req,res) => {
+    try{
+        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombrecompleto FROM alumno")
+        res.status(200).json({alumnos: respuesta.rows})
+    }catch(error){
+        console.log(error)
+    }
+}
+
+export const obtenerAlumnoCurso = async (req,res) => {
+    const {idcurso} = req.params
+    try{
+        const respuesta = await pool.query("SELECT CONCAT(nombre,' ',apellido) FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno WHERE idcurso=$1",[idcurso])
+        res.status(200).json({alumnos: respuesta.rows})
+    }catch(error){
+        console.log(error)
+    }
+}
