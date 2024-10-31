@@ -1,38 +1,119 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
-import React from "react";
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
+import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
+import { obtenerAlumnoCurso, obtenerSolicitante } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 
 export default function GestionarObservaciones() {
-    const Content = (
+    const [formData, setFormData] = useState({
+        idcurso: '',
+        dnialumno: '',
+        idsolicitante: '',
+        fecha: '',
+        motivo: ''
+    });
 
+    // Listas desplegables
+    const [cursos, setCursos] = useState([]);
+    const [solicitantes, setSolicitante] = useState([]);
+    const [alumnos, setAlumnos] = useState([]);
+
+    // Cargar cursos y solicitantes
+    useEffect(() => {
+        const cargarDatos = async () => {
+            try {
+                const cursosData = await obtenerCurso();
+                const solicitanteData = await obtenerSolicitante();
+                setCursos(cursosData);
+                setSolicitante(solicitanteData);
+            } catch (error) {
+                Alert.alert('Error', error.message);
+            }
+        };
+        cargarDatos();
+    }, []);
+
+    // Cargar alumnos cuando se selecciona un curso
+    useEffect(() => {
+        const cargarAlumnos = async () => {
+            if (formData.idcurso) {
+                try {
+                    const alumnosData = await obtenerAlumnoCurso(formData.idcurso);
+                    setAlumnos(alumnosData);
+                } catch (error) {
+                    console.error('Error al cargar alumnos:', error);
+                }
+            }
+        };
+        cargarAlumnos();
+    }, [formData.idcurso]);
+
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
+        return (
+            <>
+                <Text style={styles.label}>{label}</Text>
+                <Picker
+                    style={styles.input}
+                    selectedValue={selectedValue}
+                    onValueChange={onValueChange}
+                >
+                    {items.length > 0 ? (
+                        items.map((item) => (
+                            <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
+                        ))
+                    ) : (
+                        <Picker.Item label="Cargando..." value="" />
+                    )}
+                </Picker>
+            </>
+        );
+    });
+
+    const Content = (
         <View style={styles.contenido}>
-            <Text style={styles.label}>Curso:</Text>
-            <Picker style={styles.lista}>
-                <Picker.Item label="Seleccionar Curso" value="" />
-                <Picker.Item label="1 B" value="1b" />
-                <Picker.Item label="2 B" value="2b" />
-            </Picker>
+            <PickerField 
+                label="Curso"
+                style={styles.lista}
+                selectedValue={formData.idcurso} 
+                onValueChange={(value) => handleChange('idcurso', value)} 
+                items={[
+                    { label: 'Seleccione el curso', value: '' },
+                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
+                ]} 
+            />
 
             <Text style={styles.label}>Fecha:</Text>
             <TextInput style={styles.input} placeholder="--/--/----" keyboardType="number-pad" />
 
-            <Text style={styles.label}>Alumno:</Text>
-            <Picker style={styles.lista}>
-                <Picker.Item label="Selecciona Alumno" value="" />
-                <Picker.Item label="Alumno 1" value="alumno1" />
-                <Picker.Item label="Alumno 2" value="alumno2" />
-            </Picker>
+            <PickerField 
+                label="Alumno"
+                style={styles.lista}
+                selectedValue={formData.dnialumno} 
+                onValueChange={(value) => handleChange('dnialumno', value)} 
+                items={[
+                    { label: 'Seleccione el alumno', value: '' },
+                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: alumno.dnialumno, key: alumno.dnialumno }))
+                ]} 
+            />
 
-            <Text style={styles.label}>Solicitado Por:</Text>
-            <Picker style={styles.lista}>
-                <Picker.Item label="Seleccionar Solicitante" value="" />
-                <Picker.Item label="Solicitante 1" value="s1" />
-                <Picker.Item label="Solicitante 2" value="s2" />
-            </Picker>
+            <PickerField 
+                label="Solicitado Por"
+                style={styles.lista}
+                selectedValue={formData.idsolicitante} 
+                onValueChange={(value) => handleChange('idsolicitante', value)} 
+                items={[
+                    { label: 'Seleccione el solicitante', value: '' },
+                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.idsolicitante, key: solicitante.idsolicitante })) 
+                ]} 
+            />
 
             <Text style={styles.label}>Motivo:</Text>
-            <TextInput style={styles.input} placeholder="Motivo de la observaciones" />
+            <TextInput style={styles.input} placeholder="Motivo de las observaciones" />
 
             <View style={styles.botonesContainer}>
                 <TouchableOpacity style={styles.botonRegistrar}>
@@ -109,7 +190,7 @@ const styles = StyleSheet.create({
     },
     lista: {
         width: '100%',
-        marginBottom: 20,
+        marginBottom: 30,
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 8,
