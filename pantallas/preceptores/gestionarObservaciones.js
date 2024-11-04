@@ -1,18 +1,61 @@
+
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
-import { obtenerAlumnoCurso, obtenerSolicitante } from '../../scripts/preceptor/scriptGestionarObservacion.js';
+import { obtenerAlumnoCurso, obtenerSolicitante, registrarObservacion,mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 
 export default function GestionarObservaciones() {
     const [formData, setFormData] = useState({
-        idcurso: '',
         dnialumno: '',
         idsolicitante: '',
         fecha: '',
         motivo: ''
     });
+
+    const limpiarInterfaz = () => {
+        setFormData({
+            dnialumno: '',
+            idsolicitante: '',
+            fecha: '',
+            motivo: ''
+        });
+    };
+
+    const handleRegistrar = async () => {
+        try {
+            // Crear el objeto alumnoData, omitiendo campos no obligatorios
+            const alumnoData = {
+                dnialumno: parseInt(formData.dnialumno),
+                idsolicitante: formData.idsolicitante,
+                fecha: formData.fecha,
+                motivo: formData.motivo
+            }
+
+            // Validar que todos los campos estén completos
+            if (!alumnoData.dnialumno || !alumnoData.idsolicitante || !alumnoData.fecha || !alumnoData.motivo) {
+                await mostrarMensaje('Error', 'Por favor complete todos los campos');
+                return;
+            }
+            console.log('Datos de la observación', alumnoData); 
+            
+            const respuesta = await registrarObservacion(alumnoData);
+            await mostrarMensaje('¡Éxito!', 'La observación se registró correctamente');
+            console.log('Observación Registrado:', respuesta)
+            
+            setFormData({
+                dnialumno: '',
+                idsolicitante: '',
+                fecha: '',
+                motivo: ''
+            });
+            
+        } catch (error) {
+            console.error('Error al registrar la observación:', error.message);
+            await mostrarMensaje('Error', 'No se pudo registrar la observación');
+        }
+    }
 
     // Listas desplegables
     const [cursos, setCursos] = useState([]);
@@ -49,10 +92,12 @@ export default function GestionarObservaciones() {
         cargarAlumnos();
     }, [formData.idcurso]);
 
+    //Ver reutilización
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
 
+    //Ver reutilización
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
         return (
             <>
@@ -88,7 +133,7 @@ export default function GestionarObservaciones() {
             />
 
             <Text style={styles.label}>Fecha:</Text>
-            <TextInput style={styles.input} placeholder="--/--/----" keyboardType="number-pad" />
+            <TextInput style={styles.input} placeholder="----/--/--" keyboardType="number-pad" onChangeText={(value) => handleChange('fecha',value)}/>
 
             <PickerField 
                 label="Alumno"
@@ -113,13 +158,13 @@ export default function GestionarObservaciones() {
             />
 
             <Text style={styles.label}>Motivo:</Text>
-            <TextInput style={styles.input} placeholder="Motivo de las observaciones" />
+            <TextInput style={styles.input} placeholder="Motivo de las observaciones" onChangeText={(value) => handleChange('motivo',value)}/>
 
             <View style={styles.botonesContainer}>
-                <TouchableOpacity style={styles.botonRegistrar}>
+                <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.botonCancelar}>
+                <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
                     <Text style={styles.textoBoton}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonImprimir}>
