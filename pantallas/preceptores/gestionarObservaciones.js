@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
-import { obtenerAlumnoCurso, obtenerSolicitante, registrarObservacion,mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion.js';
+import { obtenerAlumnoCurso, obtenerSolicitante, registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 
 export default function GestionarObservaciones() {
+    //Formulario
     const [formData, setFormData] = useState({
         dnialumno: '',
         idsolicitante: '',
@@ -14,6 +15,13 @@ export default function GestionarObservaciones() {
         motivo: ''
     });
 
+    const validarCampos = () => {
+        return formData.dnialumno && 
+            formData.idsolicitante && 
+            formData.fecha.length >= 10 && 
+            formData.motivo.length >= 3 &&
+            formData.idcurso; 
+    };
     const limpiarInterfaz = () => {
         setFormData({
             dnialumno: '',
@@ -28,7 +36,7 @@ export default function GestionarObservaciones() {
             // Crear el objeto alumnoData, omitiendo campos no obligatorios
             const alumnoData = {
                 dnialumno: parseInt(formData.dnialumno),
-                idsolicitante: formData.idsolicitante,
+                idsolicitante: parseInt(formData.idsolicitante),
                 fecha: formData.fecha,
                 motivo: formData.motivo
             }
@@ -56,6 +64,25 @@ export default function GestionarObservaciones() {
             await mostrarMensaje('Error', 'No se pudo registrar la observación');
         }
     }
+
+    const handleImprimir = async () => {
+        try {
+        
+            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dnialumno) === parseInt(formData.dnialumno));
+            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.idsolicitante) === parseInt(formData.idsolicitante));
+
+    
+            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
+            await mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
+            
+            if (Platform.OS === 'web') {
+                window.open(rutaPDF);
+            }
+        } catch (error) {
+            console.error('Error al imprimir:', error);
+            await mostrarMensaje('Error', 'No se pudo generar el PDF');
+        }
+    };
 
     // Listas desplegables
     const [cursos, setCursos] = useState([]);
@@ -133,8 +160,13 @@ export default function GestionarObservaciones() {
             />
 
             <Text style={styles.label}>Fecha:</Text>
-            <TextInput style={styles.input} placeholder="----/--/--" keyboardType="number-pad" onChangeText={(value) => handleChange('fecha',value)}/>
-
+            <TextInput 
+                style={styles.input} 
+                placeholder="AAAA-MM-DD" 
+                keyboardType="number-pad" 
+                value={formData.fecha}  
+                onChangeText={(value) => handleChange('fecha',value)}
+            />
             <PickerField 
                 label="Alumno"
                 style={styles.lista}
@@ -142,7 +174,7 @@ export default function GestionarObservaciones() {
                 onValueChange={(value) => handleChange('dnialumno', value)} 
                 items={[
                     { label: 'Seleccione el alumno', value: '' },
-                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: alumno.dnialumno, key: alumno.dnialumno }))
+                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dnialumno), key: alumno.dnialumno }))
                 ]} 
             />
 
@@ -158,16 +190,20 @@ export default function GestionarObservaciones() {
             />
 
             <Text style={styles.label}>Motivo:</Text>
-            <TextInput style={styles.input} placeholder="Motivo de las observaciones" onChangeText={(value) => handleChange('motivo',value)}/>
-
+            <TextInput 
+                style={styles.input} 
+                placeholder="Motivo de las observaciones" 
+                value={formData.motivo}  // Agregar esta línea
+                onChangeText={(value) => handleChange('motivo',value)}
+            />
             <View style={styles.botonesContainer}>
-                <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
+                <TouchableOpacity style={[styles.botonRegistrar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar}>
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
                     <Text style={styles.textoBoton}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.botonImprimir}>
+                <TouchableOpacity style={[styles.botonImprimir, !validarCampos() && styles.botonDeshabilitado]} onPress={handleImprimir} disabled={!validarCampos()}>
                     <Text style={styles.textoBoton}>Imprimir</Text>
                 </TouchableOpacity>
             </View>
@@ -282,5 +318,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
     },
 });

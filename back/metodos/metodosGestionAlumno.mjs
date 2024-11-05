@@ -49,6 +49,7 @@ export const agregarAlumno = async (req, res) => {
             [nuevoDni, idcurso]
         );
 
+    
 
         res.status(210).json(respuesta.rows[0]);
         console.log('Alumno registrado correctamente y curso asignado');
@@ -58,6 +59,7 @@ export const agregarAlumno = async (req, res) => {
         console.log('Error al cargar un alumno');
     }
 };
+
 
 export const deshabilitarAlumno = async (req,res) =>{
     try{
