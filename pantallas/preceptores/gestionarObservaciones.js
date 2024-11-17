@@ -22,6 +22,7 @@ export default function GestionarObservaciones() {
             formData.motivo.length >= 3 &&
             formData.idcurso; 
     };
+
     const limpiarInterfaz = () => {
         setFormData({
             dnialumno: '',
@@ -193,7 +194,7 @@ export default function GestionarObservaciones() {
             <TextInput 
                 style={styles.input} 
                 placeholder="Motivo de las observaciones" 
-                value={formData.motivo}  // Agregar esta línea
+                value={formData.motivo}  
                 onChangeText={(value) => handleChange('motivo',value)}
             />
             <View style={styles.botonesContainer}>
