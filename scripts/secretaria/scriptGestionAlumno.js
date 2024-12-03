@@ -2,7 +2,6 @@ const api_urlAlumno = 'http://localhost:5000/alumnos'
 const api_url = 'http://localhost:5000'
 const api_urlEliminar = 'http://localhost:5000/alumnos/deshabilitar'
 const api_urlModificar = 'http://localhost:5000/alumnos/modificar'
-
 export const obtenerAlumnoFiltrado = async (dni) => {
     try {
         const respuesta = await fetch(`${api_urlAlumno}/${dni}`);
@@ -18,7 +17,6 @@ export const obtenerAlumnoFiltrado = async (dni) => {
         throw new Error("Error al traer el alumno");
     }
 }
-
 export const agregarAlumno = async (formData) => {
     try {
         
@@ -52,7 +50,6 @@ export const deshabilitarAlumno = async(dni) => {
                 },
         }) 
         const data = await respuesta.json();
-
         if (respuesta.ok) {
             console.log("Se deshabilito el alumno")
             return data;  
@@ -64,10 +61,7 @@ export const deshabilitarAlumno = async(dni) => {
         console.error('Error en deshabilitarAlumno:', error.message); 
         throw new Error("Error al deshabilitar el alumno: " + error.message);
     }
-    
-    
 }
-
 export const modificarAlumno = async (dni, formData) => {
     try {
         const url = `${api_urlModificar}/${dni}`; // Verifica la URL
@@ -104,14 +98,12 @@ export const obtenerSexo = async () => {
         }else{
             console.log('error')
             throw new Error(data.error)
-
         }
     }catch(error){
         console.log(error)
         throw new Error("Error al obtener los sexos")
     }
 }
-
 export const obtenerCurso = async () => {
     try {
         const respuesta = await fetch(`${api_url}/curso`);
@@ -127,7 +119,6 @@ export const obtenerCurso = async () => {
         throw new Error("Error al obtener los cursos");
     }
 }
-
 export const obtenerLocalidad = async () => {
     try{
         const respuesta = await fetch(`${api_url}/localidad`)

@@ -35,11 +35,16 @@ export const obtenerAlumnoFiltrado = async (req, res) => {
 
 export const agregarAlumno = async (req, res) => {
     try {
-        const { dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio } = req.body;
+        const { dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, 
+            fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre,
+            telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio } = req.body;
 
         const respuesta = await pool.query(
-            'INSERT INTO alumno (dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal,telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
-            [dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio]
+            'INSERT INTO alumno (dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil,'
+            + 'fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal,telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio)'
+            + 'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
+            [dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, 
+                telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio]
         );
 
         const nuevoDni = respuesta.rows[0].dnialumno;
@@ -82,10 +87,8 @@ export const modificarAlumno = async (req, res) => {
         const { dnialumno } = req.params;
         const { nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, 
             idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso, edificio } = req.body; 
-
         const valores = [];
         const columnas = [];
-
         // Crear un objeto con los campos que se pueden actualizar
         const camposActualizables = {
             nombre,
@@ -105,7 +108,6 @@ export const modificarAlumno = async (req, res) => {
             emailfamiliar,
             edificio
         };
-
         // Iterar sobre el objeto y construir las columnas y valores
         for (const [campo, valor] of Object.entries(camposActualizables)) {
             if (valor) {
@@ -154,7 +156,8 @@ export const obtenerAlumnoNombreApellido = async (req,res) => {
 export const obtenerAlumnoCurso = async (req,res) => {
     const {idcurso} = req.params
     try{
-        const respuesta = await pool.query("SELECT a.dnialumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno WHERE idcurso=$1",[idcurso])
+        const respuesta = await pool.query("SELECT a.dnialumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno WHERE idcurso=$1",
+            [idcurso])
         res.status(200).json({alumnos: respuesta.rows})
     }catch(error){
         console.log(error)

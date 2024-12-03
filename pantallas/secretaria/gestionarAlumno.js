@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno } from '../../scripts/secretaria/scriptGestionAlumno';
-
+import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
 
 
 
@@ -25,7 +25,7 @@ export default function GestionarAlumno() {
         domicilio: '',
         edificio: false,
         piso: '',
-        departamento: '',
+        departamento: ''
     });
 
     //Listas desplegables
@@ -149,14 +149,14 @@ export default function GestionarAlumno() {
         
         // Crear el objeto alumnoData, omitiendo campos no obligatorios
         const alumnoData = {
-            dnialumno: dni, // Usar el DNI validado
+            dnialumno: dni, 
             nombre: formData.nombre,
             apellido: formData.apellido,
             domicilio: formData.domicilio,
-            idsexo: idsexo, // Usar el ID de sexo validado
+            idsexo: idsexo, 
             cuil: formData.cuil,
-            fechanacimiento: fechanacimiento.toISOString().split('T')[0], // Convertir a formato ISO
-            idlocalidad: idlocalidad, // Usar el ID de localidad validado
+            fechanacimiento: fechanacimiento.toISOString().split('T')[0], 
+            idlocalidad: idlocalidad, 
             idestadoalumno: idestadoalumno,
             telefonopersonal: telefonoPersonal,
             telefonomadre: telefonoMadre,
@@ -179,7 +179,29 @@ export default function GestionarAlumno() {
 
         try {
             const response = await agregarAlumno(alumnoData);
+            await mostrarMensaje('El alumno se registro correctamente')
             console.log('Alumno agregado:', response);
+
+            setFormData({
+                dnialumno: '',
+                nombre: '',
+                apellido: '',
+                cuil: '',
+                idsexo: '',
+                emailpersonal: '',
+                emailfamiliar: '',
+                idcurso: '',
+                fechaNacimiento: '',
+                telefonomadre: '',
+                telefonopadre: '',
+                telefonopersonal:'',
+                idestadoalumno: '',
+                idlocalidad: '',
+                domicilio: '',
+                edificio: false,
+                piso: '',
+                departamento: ''
+            });
         } catch (error) {
             console.error('Error al agregar alumno:', error.message);
         }
@@ -197,7 +219,27 @@ export default function GestionarAlumno() {
     
             const respuesta = await modificarAlumno(dni, formData); 
             console.log('Alumno modificado:', respuesta);
-            Alert.alert('Éxito', 'Alumno modificado exitosamente');
+            await mostrarMensaje('El alumno modificado correctamente')
+            setFormData({
+                dnialumno: '',
+                nombre: '',
+                apellido: '',
+                cuil: '',
+                idsexo: '',
+                emailpersonal: '',
+                emailfamiliar: '',
+                idcurso: '',
+                fechaNacimiento: '',
+                telefonomadre: '',
+                telefonopadre: '',
+                telefonopersonal:'',
+                idestadoalumno: '',
+                idlocalidad: '',
+                domicilio: '',
+                edificio: false,
+                piso: '',
+                departamento: ''
+            });
         } catch (error) {
             console.log('Error al modificar un alumno:', error.message);
             Alert.alert('Error', error.message);
@@ -215,9 +257,29 @@ export default function GestionarAlumno() {
                 return;
             }
     
-            const response = await deshabilitarAlumno(dni); // Asegúrate de pasar el DNI correcto
+            const response = await deshabilitarAlumno(dni); 
             console.log('Alumno deshabilitado:', response);
-            Alert.alert('Éxito', 'Alumno deshabilitado exitosamente');
+            await mostrarMensaje('El alumno se deshabilito correctamente')
+            setFormData({
+                dnialumno: '',
+                nombre: '',
+                apellido: '',
+                cuil: '',
+                idsexo: '',
+                emailpersonal: '',
+                emailfamiliar: '',
+                idcurso: '',
+                fechaNacimiento: '',
+                telefonomadre: '',
+                telefonopadre: '',
+                telefonopersonal:'',
+                idestadoalumno: '',
+                idlocalidad: '',
+                domicilio: '',
+                edificio: false,
+                piso: '',
+                departamento: ''
+            });
         } catch (error) {
             console.log('Error al deshabilitar un alumno:', error.message);
             Alert.alert('Error', error.message);
@@ -225,30 +287,28 @@ export default function GestionarAlumno() {
     }
     
     const handleLimpiar = async() => {
-        try {
-            setFormData({
-                dnialumno: '',
-                nombre: '',
-                apellido: '',
-                domicilio: '',
-                departamento: '',
-                piso: '',
-                idsexo: '',
-                cuil: '',
-                fechaNacimiento: '',
-                idlocalidad: '',
-                idestadoalumno: '',
-                telefonopersonal: '',
-                telefonomadre: '',
-                telefonopadre: '',
-                emailpersonal: '',
-                emailfamiliar: '',
-                edificio: false,
-                idcurso: '',
-            });
-        } catch (error) {
-            console.log(error);
-        }
+        
+        setFormData({
+            dnialumno: '',
+            nombre: '',
+            apellido: '',
+            domicilio: '',
+            departamento: '',
+            piso: '',
+            idsexo: '',
+            cuil: '',
+            fechaNacimiento: '',
+            idlocalidad: '',
+            idestadoalumno: '',
+            telefonopersonal: '',
+            telefonomadre: '',
+            telefonopadre: '',
+            emailpersonal: '',
+            emailfamiliar: '',
+            edificio: false,
+            idcurso: '',
+        });
+        
     }
     
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
@@ -334,7 +394,7 @@ export default function GestionarAlumno() {
                     <View style={styles.columna}>
                         
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='--/--/----' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
+                        <TextInput style={styles.input} placeholder='AAAA/MM/DD' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
                         
                         <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefonomadre} onChangeText={(value) => handleChange('telefonomadre', value)} />

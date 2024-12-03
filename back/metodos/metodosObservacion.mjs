@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import {pool} from '../dataBase/coneccion.mjs'
 dotenv.config();
 
+//Configuración del email 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -11,9 +12,12 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+//Alta
 export const registrarObservacion = async (req, res) => {
+    //Datos q le vamos a pasar
     const { dnialumno, fecha, idsolicitante, motivo } = req.body; 
     try {
+        //SQL del insert
         const respuesta = await pool.query(
             'INSERT INTO observacion (dnialumno, fecha, idsolicitante, motivo) VALUES ($1, $2, $3, $4)',
             [dnialumno, fecha, idsolicitante, motivo]

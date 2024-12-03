@@ -48,7 +48,7 @@ export default function GestionarAmonestaciones() {
         cargarDatos();
     }, []);
     
-        // Cargar alumnos cuando se selecciona un curso
+    // Cargar alumnos cuando se selecciona un curso
     useEffect(() => {
         const cargarAlumnos = async () => {
             if (formData.idcurso) {
@@ -63,6 +63,7 @@ export default function GestionarAmonestaciones() {
         cargarAlumnos();
     }, [formData.idcurso]); // Solo se ejecuta cuando cambia el curso
 
+    //Cargamos la cantidad de amonestaciones de acuerdo al dni
     useEffect(() => {
         const cargarAmonestacion = async () => {
             if (formData.dnialumno) {
@@ -79,6 +80,7 @@ export default function GestionarAmonestaciones() {
         cargarAmonestacion();
     }, [formData.dnialumno]);
 
+    //Registramos la observación
     const handleRegistrar = async () => {
         try {
             // Crear el objeto alumnoData, omitiendo campos no obligatorios

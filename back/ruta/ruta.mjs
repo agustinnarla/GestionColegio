@@ -8,6 +8,9 @@ import { obtenerLocalidad } from '../metodos/metodosLocalidad.mjs'
 import { obtenerSolicitante } from '../metodos/metodosSolicitante.mjs'
 import { registrarObservacion } from '../metodos/metodosObservacion.mjs'
 import { registrarAmonestacion, obtenerCantidadAmonestaciones} from '../metodos/metodosAmonestacion.mjs'
+import { registrarAsistencia } from '../metodos/metodosAsistencia.mjs'
+import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
+import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 
 // Configuración de multer
 //const storage = multer.memoryStorage()
@@ -38,3 +41,10 @@ ruta.post('/observacion',registrarObservacion)
 //Amonestación
 ruta.post('/amonestacion',registrarAmonestacion)
 ruta.get('/amonestacion/:dnialumno',obtenerCantidadAmonestaciones)
+//Asistencia 
+ruta.post('/asistencia',registrarAsistencia)
+//Notas
+ruta.get('/notas/:dnialumno', obtenerNotas)
+ruta.post('/notas',registrarNota)
+//Materia
+ruta.get('/materia',obtenerMateria)

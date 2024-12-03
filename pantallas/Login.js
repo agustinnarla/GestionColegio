@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     tarjeta:{
         margin:20,
         borderRadius:10,
-        width:'70%',
+        width:'20%',
         padding:20,
     },
     cajaTexto:{

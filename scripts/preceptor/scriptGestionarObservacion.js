@@ -1,4 +1,5 @@
 import { Alert, Platform } from 'react-native';
+//Rutas que utilizamos
 const api_url = 'http://localhost:5000'
 const api_urlAlumnoCurso = 'http://localhost:5000/alumnosPorCurso'
 
