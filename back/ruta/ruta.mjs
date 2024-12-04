@@ -11,6 +11,7 @@ import { registrarAmonestacion, obtenerCantidadAmonestaciones} from '../metodos/
 import { registrarAsistencia } from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
+import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 
 // Configuración de multer
 //const storage = multer.memoryStorage()
@@ -48,3 +49,5 @@ ruta.get('/notas/:dnialumno', obtenerNotas)
 ruta.post('/notas',registrarNota)
 //Materia
 ruta.get('/materia',obtenerMateria)
+//Etapas
+ruta.get('/etapas',obtenerEtapaEvaluativa)
