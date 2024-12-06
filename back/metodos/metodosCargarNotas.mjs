@@ -19,7 +19,7 @@ export const registrarNota = async (req, res) => {
         const promedio = notasValidas.length > 0 ? (notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length) : 0;
 
         // Determinar el estado evaluativo basado en el promedio
-        const idestadoevaluativo = promedio >= 6 ? 1 : 2; /
+        const idestadoevaluativo = promedio >= 6 ? 1 : 2; 
 
         // Verificar si el registro ya existe
         const existeRespuesta = await pool.query(`

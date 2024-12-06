@@ -156,7 +156,7 @@ export const obtenerAlumnoNombreApellido = async (req,res) => {
 export const obtenerAlumnoCurso = async (req,res) => {
     const {idcurso} = req.params
     try{
-        const respuesta = await pool.query("SELECT a.dnialumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno WHERE idcurso=$1",
+        const respuesta = await pool.query("SELECT a.dnialumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno WHERE idcurso=$1 AND a.idestadoalumno=1",
             [idcurso])
         res.status(200).json({alumnos: respuesta.rows})
     }catch(error){

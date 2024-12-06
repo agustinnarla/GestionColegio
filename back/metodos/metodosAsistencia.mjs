@@ -13,7 +13,7 @@ export const registrarAsistencia = async (req,res) => {
     }
 }
 
-//
+//Modificar
 export const modificarAsistencia = async(req,res) => {
     const {idcurso,dnialumno,idestado,fecha} = req.body;
     try{

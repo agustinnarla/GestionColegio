@@ -12,6 +12,10 @@ import { registrarAsistencia } from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
+import { obtenerAlumnoFinal, registrarCurso } from '../metodos/metodosPasarCurso.mjs'
+import { obtenerAlumnosAusentes, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
+import { obtenerCertificado } from '../metodos/metodosCertificados.mjs'
+import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 
 // Configuración de multer
 //const storage = multer.memoryStorage()
@@ -51,3 +55,13 @@ ruta.post('/notas',registrarNota)
 ruta.get('/materia',obtenerMateria)
 //Etapas
 ruta.get('/etapas',obtenerEtapaEvaluativa)
+//Pasaje de curso
+ruta.get('/pasajeCurso/:idcurso',obtenerAlumnoFinal)
+ruta.post('/pasajeCurso',registrarCurso)
+//Justificar Falta
+ruta.get('/justificarFalta/:idcurso', obtenerAlumnosAusentes)
+ruta.post('/justificarFalta',registrarJustificacion)
+//Certificado
+ruta.get('/certificado',obtenerCertificado)
+//Estado Inasistencia
+ruta.get('/estado',obtenerEstadoInasistencia)
