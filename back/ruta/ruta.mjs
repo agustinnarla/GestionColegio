@@ -13,8 +13,8 @@ import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 import { obtenerAlumnoFinal, registrarCurso } from '../metodos/metodosPasarCurso.mjs'
-import { obtenerAlumnosAusentes, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
-import { obtenerCertificado } from '../metodos/metodosCertificados.mjs'
+import {  obtenerAlumnosAusentes, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
+import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 
 // Configuración de multer
@@ -61,7 +61,8 @@ ruta.post('/pasajeCurso',registrarCurso)
 //Justificar Falta
 ruta.get('/justificarFalta/:idcurso', obtenerAlumnosAusentes)
 ruta.post('/justificarFalta',registrarJustificacion)
+
 //Certificado
-ruta.get('/certificado',obtenerCertificado)
+ruta.get('/certificado',obtenerEstadoCertificado)
 //Estado Inasistencia
 ruta.get('/estado',obtenerEstadoInasistencia)

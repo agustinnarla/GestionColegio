@@ -25,4 +25,3 @@ export const registrarJustificacion = async (req,res) => {
     }
 }
 
-//Ver si hacemos un modificar

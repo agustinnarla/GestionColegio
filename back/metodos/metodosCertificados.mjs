@@ -1,7 +1,7 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 
-export const obtenerCertificado = async (req,res) => {
+export const obtenerEstadoCertificado = async (req,res) => {
     try{
 
         const respuesta = await pool.query("SELECT idcertificado,detalle FROM certificado ")
