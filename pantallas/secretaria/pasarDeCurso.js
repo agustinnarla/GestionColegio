@@ -1,73 +1,66 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Picker, TouchableOpacity, FlatList, StyleSheet, Alert,Image } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 
-export default function PromocionAlumnos() {
-  const [cursoSeleccionado, setCursoSeleccionado] = useState('');
-  const [alumnos, setAlumnos] = useState([]);
+export default function PasarDeAño() {
   
-  // Cursos simulados
-  const cursos = ['1º Año', '2º Año', '3º Año', '4º Año', '5º Año', '6º Año'];
+  const[cursos,setCursos] = useState([])
+  useEffect(() => {
+    const cargarDatos = async () => {
+        try {
+            const cursosData = await obtenerCurso();
+            setCursos(cursosData); 
+        } catch (error) {
+            Alert.alert('Error', error.message);
+        }
+    };
 
-  // Datos simulados de alumnos
-  const todosLosAlumnos = [
-    { id: '1', nombre: 'Juan Pérez', curso: '1º Año', finalesPendientes: 1 },
-    { id: '1', nombre: 'Roberto Pérez', curso: '1º Año', finalesPendientes: 0 },
-    { id: '1', nombre: 'Agustin Pérez', curso: '1º Año', finalesPendientes: 0 },
-    { id: '1', nombre: 'Carlos Pérez', curso: '1º Año', finalesPendientes: 0 },
-    { id: '1', nombre: 'Carla Pérez', curso: '1º Año', finalesPendientes: 0 },
-    { id: '1', nombre: 'Roberta Pérez', curso: '1º Año', finalesPendientes: 1 },
-    { id: '2', nombre: 'María Gómez', curso: '6º Año', finalesPendientes: 2 },
-    { id: '3', nombre: 'Carlos Ruiz', curso: '5º Año', finalesPendientes: 0 },
-    { id: '4', nombre: 'Laura Diaz', curso: '6º Año', finalesPendientes: 1 },
-  ];
+    cargarDatos();
+    }, []);
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
 
-  // Filtra los alumnos del curso seleccionado
-  const filtrarAlumnos = (curso) => {
-    const alumnosFiltrados = todosLosAlumnos.filter(alumno => 
-      alumno.curso === curso && alumno.finalesPendientes <= 3 // Alumnos con 3 o menos finales
+  
+  const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
+    useEffect(() => {
+        console.log("Items en PickerField: ", items);
+    }, [items]);
+
+    return (
+        <>
+            <Text style={styles.label}>{label}</Text>
+            <Picker
+                style={styles.input}
+                selectedValue={selectedValue}
+                onValueChange={onValueChange}
+            >
+                {items.length > 0 ? (
+                    items.map((item) => (
+                        <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
+                    ))
+                ) : (
+                    <Picker.Item label="Cargando..." value="" />
+                )}
+            </Picker>
+        </>
     );
-    setAlumnos(alumnosFiltrados);
-  };
-
-  const handleCursoSeleccionado = (curso) => {
-    setCursoSeleccionado(curso);
-    filtrarAlumnos(curso);
-  };
-
-  const pasarDeAño = () => {
-    if (cursoSeleccionado === '6º Año') {
-      Alert.alert('Promoción', 'Los alumnos de 6º año han sido marcados como "Recibidos".');
-      const alumnosActualizados = alumnos.map(alumno => ({
-        ...alumno,
-        estado: 'Recibido'
-      }));
-      setAlumnos(alumnosActualizados);
-    } else {
-      Alert.alert('Promoción', 'Los alumnos han sido promovidos al siguiente año.');
-      const alumnosPromovidos = alumnos.map(alumno => ({
-        ...alumno,
-        curso: (parseInt(alumno.curso) + 1) + 'º Año'
-      }));
-      setAlumnos(alumnosPromovidos);
-    }
-  };
-
+  });
+  
   return (
     <View style={styles.container}>
       <Image source={bg} style={styles.bg} resizeMode="cover" />
 
-      {/* Dropdown de cursos */}
-      <Picker
-        selectedValue={cursoSeleccionado}
-        style={styles.picker}
-        onValueChange={(itemValue) => handleCursoSeleccionado(itemValue)}
-      >
-        <Picker.Item label="Selecciona un curso" value="" />
-        {cursos.map((curso, index) => (
-          <Picker.Item key={index} label={curso} value={curso} />
-        ))}
-      </Picker>
+
+      <PickerField  
+          label="Curso" 
+          selectedValue={formData.idcurso} 
+          onValueChange={(value) => handleChange('idcurso', value)} 
+          items={[
+              { label: 'Seleccione el curso', value: '' },
+              ...cursos.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
+          ]} 
+      />
 
       {/* Lista de alumnos */}
       <FlatList

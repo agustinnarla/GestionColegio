@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import bg from '../../assets/bg1.jpg';
 
 export default function CargarNotas() {
+    
     const [datos, setDatos] = useState([]);
     const [notas, setNotas] = useState({});
 

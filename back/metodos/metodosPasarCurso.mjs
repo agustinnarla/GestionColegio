@@ -10,7 +10,7 @@ export const obtenerAlumnoFinal = async (req,res) => {
         // Comprobar si hay algún promedio menor a 6
         const alumnosConFinales = promedios.rows.map(alumno => ({
             dnialumno: alumno.dnialumno,
-            tieneFinal: alumno.promedio < 6 // Marca si tiene un final pendiente
+            tieneFinal: alumno.promedio < 6 
         }));
 
         const respuesta = await pool.query(
@@ -35,7 +35,7 @@ export const obtenerAlumnoFinal = async (req,res) => {
     }
 }
 
-export const registrarCurso = async(req,res) => {
+export const registrarCursoNuevo = async(req,res) => {
     const {idcurso,dnialumno} = req.body
     try{
         const respuesta = await pool.query('UPDATE alumnocurso SET idcurso = $1 WHERE dnialumno = $2', [idcurso, dnialumno])

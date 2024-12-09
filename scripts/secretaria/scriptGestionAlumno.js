@@ -2,6 +2,7 @@ const api_urlAlumno = 'http://localhost:5000/alumnos'
 const api_url = 'http://localhost:5000'
 const api_urlEliminar = 'http://localhost:5000/alumnos/deshabilitar'
 const api_urlModificar = 'http://localhost:5000/alumnos/modificar'
+
 export const obtenerAlumnoFiltrado = async (dni) => {
     try {
         const respuesta = await fetch(`${api_urlAlumno}/${dni}`);

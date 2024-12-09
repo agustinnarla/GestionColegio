@@ -91,6 +91,8 @@ export default function GestionarAlumno() {
             Alert.alert('Error', error.message);
         }
     }
+
+    //Modificar
     const handleAgregar = async () => {
 
         const dni = parseInt(formData.dnialumno, 10);

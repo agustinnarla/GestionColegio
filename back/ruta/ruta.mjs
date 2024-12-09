@@ -8,11 +8,11 @@ import { obtenerLocalidad } from '../metodos/metodosLocalidad.mjs'
 import { obtenerSolicitante } from '../metodos/metodosSolicitante.mjs'
 import { registrarObservacion } from '../metodos/metodosObservacion.mjs'
 import { registrarAmonestacion, obtenerCantidadAmonestaciones} from '../metodos/metodosAmonestacion.mjs'
-import { registrarAsistencia } from '../metodos/metodosAsistencia.mjs'
+import { modificarAsistencia, registrarAsistencia } from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
-import { obtenerAlumnoFinal, registrarCurso } from '../metodos/metodosPasarCurso.mjs'
+import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasarCurso.mjs'
 import {  obtenerAlumnosAusentes, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
@@ -48,6 +48,7 @@ ruta.post('/amonestacion',registrarAmonestacion)
 ruta.get('/amonestacion/:dnialumno',obtenerCantidadAmonestaciones)
 //Asistencia 
 ruta.post('/asistencia',registrarAsistencia)
+ruta.put('/asistencia', modificarAsistencia)
 //Notas
 ruta.get('/notas/:dnialumno', obtenerNotas)
 ruta.post('/notas',registrarNota)
@@ -57,11 +58,10 @@ ruta.get('/materia',obtenerMateria)
 ruta.get('/etapas',obtenerEtapaEvaluativa)
 //Pasaje de curso
 ruta.get('/pasajeCurso/:idcurso',obtenerAlumnoFinal)
-ruta.post('/pasajeCurso',registrarCurso)
+ruta.post('/pasajeCurso',registrarCursoNuevo)
 //Justificar Falta
 ruta.get('/justificarFalta/:idcurso', obtenerAlumnosAusentes)
 ruta.post('/justificarFalta',registrarJustificacion)
-
 //Certificado
 ruta.get('/certificado',obtenerEstadoCertificado)
 //Estado Inasistencia
