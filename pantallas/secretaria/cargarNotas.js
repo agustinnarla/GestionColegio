@@ -1,71 +1,71 @@
 import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
+import { obtenerEtapasEvaluativas, obtenerMateria } from '../../scripts/secretaria/scriptCargarNotas';
 
 export default function CargarNotas() {
     
-    const [datos, setDatos] = useState([]);
-    const [notas, setNotas] = useState({});
+     //Formulario
+    const [formData, setFormData] = useState({
+        dnialumno: '',
+        idmateria: '',
+        idetapas: '',
+        nota1: '',
+        nota2: '',
+        nota3: '',
+        nota4: '',
+        nota5: '',
+        nota6: ''
+    });
+    
+    const [curso,setCursos] = useState([]);
+    const [etapaEscolar, setEtapaEscolar] = useState([]);
+    const [materias,setMaterias] = useState([]);
 
-    const consultarDatos = () => {
-        // Simulando datos obtenidos
-        const datosSimulados = [
-            { id: '1', materia: 'Matematica', nombre: 'Agustín'},
-            { id: '2', materia: 'Matematica', nombre: 'Roberto' },
-        ];
-        setDatos(datosSimulados);
-    };
-
-    const reiniciarFiltro = () => {
-        setDatos([]);
-        setNotas({});
-    };
-
-    const handleNotaChange = (id, valorNota, numeroEvaluacion) => {
-        // Actualizar las notas ingresadas en el estado
-        setNotas(prevState => ({
-            ...prevState,
-            [id]: {
-                ...prevState[id],
-                [numeroEvaluacion]: parseFloat(valorNota) || 0
+    useEffect(() => {
+        const cargarDatos = async () => {
+            try {
+                const cursosData = await obtenerCurso();
+                const etapaEscolarData = await obtenerEtapasEvaluativas();
+                const materiasData = await obtenerMateria();
+                setCursos(cursosData);
+                setEtapaEscolar(etapaEscolarData);
+                setMaterias(materiasData);
+            } catch (error) {
+                Alert.alert('Error', error.message);
             }
-        }));
+        };
+        cargarDatos();
+    }, []);
+
+      //Ver reutilización
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
     };
 
-    const calcularPromedio = (id) => {
-        const notasEvaluacion = notas[id] || {};
-        const totalNotas = Object.values(notasEvaluacion);
-        if (totalNotas.length === 0) return 0;
-        
-        const suma = totalNotas.reduce((acc, curr) => acc + curr, 0);
-        return (suma / totalNotas.length).toFixed(2);
-    };
-
-    const renderItem = ({ item }) => {
-        const promedio = calcularPromedio(item.id);
-
+    //Ver reutilización
+    const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
         return (
-            <View style={styles.fila}>
-                <Text style={styles.celda}>{item.materia}</Text>
-                <Text style={styles.celda}>{item.nombre}</Text>
-                {/* Inputs para las notas */}
-                <View style={styles.notasContainer}>
-                    {[1, 2, 3,4,5,6].map((evaluacion) => (
-                        <TextInput
-                            key={evaluacion}
-                            style={styles.inputNota}
-                            keyboardType="numeric"
-                            placeholder={`Nota ${evaluacion}`}
-                            onChangeText={valorNota => handleNotaChange(item.id, valorNota, evaluacion)}
-                        />
-                    ))}
-                </View>
-
-                <Text style={styles.promedioText}>Promedio: {promedio}</Text>
-            </View>
+            <>
+                <Text style={styles.label}>{label}</Text>
+                <Picker
+                    style={styles.input}
+                    selectedValue={selectedValue}
+                    onValueChange={onValueChange}
+                >
+                    {items.length > 0 ? (
+                        items.map((item) => (
+                            <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
+                        ))
+                    ) : (
+                        <Picker.Item label="Cargando..." value="" />
+                    )}
+                </Picker>
+            </>
         );
-    };
+    });
 
     return (
         <View style={styles.padre}>
@@ -73,58 +73,57 @@ export default function CargarNotas() {
             
             <View style={styles.contenido}>
                 <View style={styles.filtroContainer}>
-                    <Picker style={styles.curso}>
-                        <Picker.Item label='Selecciona un curso' value="" />
-                        <Picker.Item label='Curso 1' value="curso1" />
-                        <Picker.Item label='Curso 2' value="curso2" />
-                    </Picker>
+                    <PickerField 
+                    label="Curso"
+                    style={styles.lista}
+                    selectedValue={formData.idcurso} 
+                    onValueChange={(value) => handleChange('idcurso', value)} 
+                    items={[
+                        { label: 'Seleccione el curso', value: '' },
+                        ...curso.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
+                    ]} 
+                    />
                 </View>
                 
                 <View style={styles.filtroContainer}>
-                    <Picker style={styles.etapa}>
-                        <Picker.Item label='Selecciona la etapa' value="" />
-                        <Picker.Item label='Primer Etapa' value="pri" />
-                        <Picker.Item label='Segunda Etapa' value="seg" />
-                    </Picker>
+                    <PickerField 
+                        label="Etapas evaluativa"
+                        style={styles.lista}
+                        selectedValue={formData.idetapas} 
+                        onValueChange={(value) => handleChange('idetapas', value)} 
+                        items={[
+                            { label: 'Seleccione una etapa', value: '' },
+                            ...etapaEscolar.map(etapa => ({ label: etapa.detalle, value: etapa.idetapas, key: etapa.idetapas })) 
+                        ]} 
+                    />
                 </View>
 
                 <View style={styles.materia}>
-                    <Picker style={styles.etapa}>
-                        <Picker.Item label='Selecciona la materia' value="" />
-                        <Picker.Item label='Matematica' value="mat" />
-                        <Picker.Item label='Fisica' value="fis" />
-                    </Picker>
+                    <PickerField 
+                        label="Materias"
+                        style={styles.lista}
+                        selectedValue={formData.idmateria} 
+                        onValueChange={(value) => handleChange('idmateria', value)} 
+                        items={[
+                            { label: 'Seleccione una materia', value: '' },
+                            ...materias.map(materia => ({ label: materia.detalle, value: materia.idmateria, key: materia.idmateria })) 
+                        ]} 
+                    />
                 </View>
                 
-                <TouchableOpacity style={styles.botonConsultar} onPress={consultarDatos}>
+                <TouchableOpacity style={styles.botonConsultar} >
                     <Text style={styles.textoBoton}>Consultar</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.botonReiniciar} onPress={reiniciarFiltro}>
+                <TouchableOpacity style={styles.botonReiniciar} >
                     <Text style={styles.textoBoton}>Reiniciar Filtro</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.botonReiniciar} onPress={reiniciarFiltro}>
+                <TouchableOpacity style={styles.botonReiniciar} >
                     <Text style={styles.textoBoton}>📁</Text>
                 </TouchableOpacity>
             </View>
             
-            {/* Grilla para mostrar las notas */}
-            {datos.length > 0 && (
-                <View style={styles.grilla}>
-                    <View style={styles.encabezado}>
-                        <Text style={styles.celdaEncabezado}>Materia</Text>
-                        <Text style={styles.celdaEncabezado}>Nombre</Text>
-                        <Text style={styles.celdaEncabezado}>Notas</Text>
-                        <Text style={styles.celdaEncabezado}>Promedio</Text>
-                    </View>
-                    <FlatList
-                        data={datos}
-                        renderItem={renderItem}
-                        keyExtractor={item => item.id}
-                    />
-                </View>
-            )}
         </View>
     );
 }
@@ -239,5 +238,13 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
         fontWeight: 'bold',
+    },
+    lista: {
+        width: '100%',
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        padding: 12,
     },
 });

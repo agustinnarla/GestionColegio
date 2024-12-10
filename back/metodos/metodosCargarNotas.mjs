@@ -1,9 +1,9 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerNotas = async (req,res) => {
-    const {dnialumno} = req.params
+    const {idcurso} = req.params
     try{
-        const respuesta = await pool.query('SELECT nota1,nota2,nota3,nota4,nota5,nota6 FROM AlumnoMateria WHERE dnialumno = $1',[dnialumno])
+        const respuesta = await pool.query('SELECT nota1,nota2,nota3,nota4,nota5,nota6 FROM AlumnoMateria WHERE idcurso = $1',[idcurso])
         res.status(200).json({nota: respuesta.rows})
     }catch{
         console.log("Error al traer las notas")
