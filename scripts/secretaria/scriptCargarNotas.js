@@ -2,6 +2,7 @@ const api_url = 'http://localhost:5000'
 const api_urlCargarNotas = 'http://localhost:5000/notas'
 const api_urlObtenerMateria = 'http://localhost:5000/materia'
 const api_urlObtenerEtapasEvaluativas = 'http://localhost:5000/etapas'
+const api_urlObtenerAlumnoPorCurso = 'http://localhost:5000/alumnosPorCurso'
 
 
 
@@ -50,5 +51,21 @@ export const obtenerEtapasEvaluativas= async () => {
         return data.etapa; 
     }catch(error){
         console.error('Error en obtenerEtapasEscolares:', error);
+    }
+}
+
+export const obtenerAlumnoPorCurso = async (idcurso) => {
+    try{
+        const respuesta = await fetch(`${api_urlObtenerAlumnoPorCurso}/${idcurso}`)
+
+        if(!respuesta.ok){
+            throw new Error('Error al obtener los alumnos')
+        }
+
+        const data = await respuesta.json()
+        console.log(data);
+        return data.alumnos; 
+    }catch(error){
+        console.error('Error en obtenerAlumnoPorCurso:', error);
     }
 }

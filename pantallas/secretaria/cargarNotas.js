@@ -1,9 +1,9 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput } from 'react-native';
+import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
-import { obtenerEtapasEvaluativas, obtenerMateria } from '../../scripts/secretaria/scriptCargarNotas';
+import { obtenerAlumnoPorCurso, obtenerEtapasEvaluativas, obtenerMateria } from '../../scripts/secretaria/scriptCargarNotas';
 
 export default function CargarNotas() {
     
@@ -11,6 +11,7 @@ export default function CargarNotas() {
     const [formData, setFormData] = useState({
         dnialumno: '',
         idmateria: '',
+        idcurso:'',
         idetapas: '',
         nota1: '',
         nota2: '',
@@ -23,6 +24,7 @@ export default function CargarNotas() {
     const [curso,setCursos] = useState([]);
     const [etapaEscolar, setEtapaEscolar] = useState([]);
     const [materias,setMaterias] = useState([]);
+    const [alumnos, setAlumnos] = useState([]); 
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -39,6 +41,20 @@ export default function CargarNotas() {
         };
         cargarDatos();
     }, []);
+
+    // Cargar alumnos cuando se selecciona un curso
+    const cargarAlumnos = async () => {
+        if (formData.idcurso) {
+            try {
+                const alumnosData = await obtenerAlumnoPorCurso(formData.idcurso);
+                console.log(alumnosData); // Verifica que los datos se estén cargando correctamente
+                setAlumnos(alumnosData); // Actualiza el estado de alumnos
+            } catch (error) {
+                console.error('Error al cargar alumnos:', error);
+            }
+        }
+    };
+
 
       //Ver reutilización
     const handleChange = (name, value) => {
@@ -111,7 +127,9 @@ export default function CargarNotas() {
                     />
                 </View>
                 
-                <TouchableOpacity style={styles.botonConsultar} >
+                
+
+                <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
                     <Text style={styles.textoBoton}>Consultar</Text>
                 </TouchableOpacity>
                 
@@ -122,6 +140,19 @@ export default function CargarNotas() {
                 <TouchableOpacity style={styles.botonReiniciar} >
                     <Text style={styles.textoBoton}>📁</Text>
                 </TouchableOpacity>
+
+                <FlatList
+                    data={alumnos} // Asegúrate de que este sea el estado correcto
+                    keyExtractor={(item) => item.dnialumno.toString()} // Usar dnialumno como clave única
+                    renderItem={({ item }) => (
+                       
+                            <Text style={styles.celda}>{item.nombrecompleto}</Text> 
+                        
+                    )}
+                    ListEmptyComponent={() => (
+                        <Text style={styles.mensajeVacio}>No hay alumnos disponibles</Text>
+                    )}
+                />
             </View>
             
         </View>
