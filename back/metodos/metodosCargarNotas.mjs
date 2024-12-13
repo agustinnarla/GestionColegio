@@ -1,12 +1,30 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
-export const obtenerNotas = async (req,res) => {
-    const {idcurso} = req.params
-    try{
-        const respuesta = await pool.query('SELECT nota1,nota2,nota3,nota4,nota5,nota6 FROM AlumnoMateria WHERE idcurso = $1',[idcurso])
-        res.status(200).json({nota: respuesta.rows})
-    }catch{
-        console.log("Error al traer las notas")
+export const obtenerNotas = async (req, res) => {
+    const {idcurso} = req.params;
+    try {
+        const respuesta = await pool.query(`
+            SELECT 
+                a.dnialumno, 
+                CONCAT(nombre,' ',apellido) as nombre_completo,
+                COALESCE(am.nota1, NULL) AS nota1, 
+                COALESCE(am.nota2, NULL) AS nota2,
+                COALESCE(am.nota3, NULL) AS nota3,
+                COALESCE(am.nota4, NULL) AS nota4,
+                COALESCE(am.nota5, NULL) AS nota5,
+                COALESCE(am.nota6, NULL) AS nota6
+            FROM alumno a
+            LEFT JOIN alumnomateria am 
+                ON a.dnialumno = am.dnialumno
+            INNER JOIN alumnocurso ac 
+                ON a.dnialumno = ac.dnialumno
+            WHERE ac.idcurso = $1 AND a.idestadoalumno = 1
+        `, [idcurso]);
+        
+        res.status(200).json({notas: respuesta.rows});
+    } catch (error) {
+        console.error("Error al traer las notas:", error.message);
+        res.status(500).json({ error: 'Error al obtener las notas' });
     }
 }
 

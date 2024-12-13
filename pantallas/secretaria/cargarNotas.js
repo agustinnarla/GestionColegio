@@ -3,7 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
-import { obtenerAlumnoPorCurso, obtenerEtapasEvaluativas, obtenerMateria } from '../../scripts/secretaria/scriptCargarNotas';
+import { obtenerAlumnoPorCurso, obtenerEtapasEvaluativas, obtenerMateria, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
 export default function CargarNotas() {
     
@@ -46,7 +46,7 @@ export default function CargarNotas() {
     const cargarAlumnos = async () => {
         if (formData.idcurso) {
             try {
-                const alumnosData = await obtenerAlumnoPorCurso(formData.idcurso);
+                const alumnosData = await obtenerNotas(formData.idcurso);
                 console.log(alumnosData); // Verifica que los datos se estén cargando correctamente
                 setAlumnos(alumnosData); // Actualiza el estado de alumnos
             } catch (error) {
@@ -127,7 +127,6 @@ export default function CargarNotas() {
                     />
                 </View>
                 
-                
 
                 <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
                     <Text style={styles.textoBoton}>Consultar</Text>
@@ -142,12 +141,29 @@ export default function CargarNotas() {
                 </TouchableOpacity>
 
                 <FlatList
-                    data={alumnos} // Asegúrate de que este sea el estado correcto
-                    keyExtractor={(item) => item.dnialumno.toString()} // Usar dnialumno como clave única
+                    data={alumnos}
+                    keyExtractor={(item) => item.dnialumno.toString()}
+                    ListHeaderComponent={() => (
+                        <View style={styles.headerRow}>
+                            <Text style={styles.headerCell}>Alumno</Text>
+                            <TextInput style={styles.headerCell}>Nota 1</TextInput>
+                            <Text style={styles.headerCell}>Nota 2</Text>
+                            <Text style={styles.headerCell}>Nota 3</Text>
+                            <Text style={styles.headerCell}>Nota 4</Text>
+                            <Text style={styles.headerCell}>Nota 5</Text>
+                            <Text style={styles.headerCell}>Nota 6</Text>
+                        </View>
+                    )}
                     renderItem={({ item }) => (
-                       
-                            <Text style={styles.celda}>{item.nombrecompleto}</Text> 
-                        
+                        <View style={styles.row}>
+                            <Text style={styles.cellNombre}>{item.nombre_completo}</Text>
+                            <Text style={styles.cellNota}>{item.nota1}</Text>
+                            <Text style={styles.cellNota}>{item.nota2}</Text>
+                            <Text style={styles.cellNota}>{item.nota3}</Text>
+                            <Text style={styles.cellNota}>{item.nota4}</Text>
+                            <Text style={styles.cellNota}>{item.nota5}</Text>
+                            <Text style={styles.cellNota}>{item.nota6}</Text>
+                        </View>
                     )}
                     ListEmptyComponent={() => (
                         <Text style={styles.mensajeVacio}>No hay alumnos disponibles</Text>

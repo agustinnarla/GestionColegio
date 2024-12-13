@@ -15,8 +15,7 @@ export const obtenerNotas = async (idcurso) => {
         }
         
         const data = await respuesta.json();
-
-        return data.curso 
+        return data.notas 
     }catch(error){
         console.error('Error en obtenerNotas:', error);
     }
