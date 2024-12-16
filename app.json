@@ -22,7 +22,8 @@
       "package": "com.agussarla.GestionColegio"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {

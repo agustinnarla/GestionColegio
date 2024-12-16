@@ -50,7 +50,7 @@ ruta.get('/amonestacion/:dnialumno',obtenerCantidadAmonestaciones)
 ruta.post('/asistencia',registrarAsistencia)
 ruta.put('/asistencia', modificarAsistencia)
 //Notas
-ruta.get('/notas/:idcurso', obtenerNotas)
+ruta.get('/notas/:idcurso/:idmateria', obtenerNotas)
 ruta.post('/notas',registrarNota)
 //Materia
 ruta.get('/materia',obtenerMateria)

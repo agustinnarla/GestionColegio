@@ -6,9 +6,9 @@ const api_urlObtenerAlumnoPorCurso = 'http://localhost:5000/alumnosPorCurso'
 
 
 
-export const obtenerNotas = async (idcurso) => {
+export const obtenerNotas = async (idcurso,idmateria) => {
     try{
-        const respuesta = await fetch(`${api_urlCargarNotas}/${idcurso}`)
+        const respuesta = await fetch(`${api_urlCargarNotas}/${idcurso}/${idmateria}`)
 
         if (!respuesta.ok) {
             throw new Error('Error al obtener las notas de los alumnos');
