@@ -1,9 +1,9 @@
 import React, { useState,useEffect } from 'react';
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno } from '../../scripts/secretaria/scriptGestionAlumno';
+import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
 import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
-
+import * as DocumentPicker from 'expo-document-picker';
 
 
 export default function GestionarAlumno() {
@@ -60,6 +60,9 @@ export default function GestionarAlumno() {
     const handleConsultar = async () => {
         try {
             const alumno = await obtenerAlumnoFiltrado(formData.dnialumno); 
+            const legajoDNI = await obtenerDniPdf(formData.dnialumno) || null
+            const legajoFichaMedica = await obtenerFichaMedicaPdf(formData.dnialumno) || null
+            const legajoPartidaNacimiento = await obtenerPartidaNacimientoPdf(formData.dnialumno) || null
             console.log('Alumno consultado:', alumno);
             
             if (alumno) {
@@ -83,6 +86,11 @@ export default function GestionarAlumno() {
                     piso: alumno.piso,
                     edificio: alumno.edificio,
                 });
+                setDocumentos({
+                    dni: legajoDNI,
+                    fichaMedica: legajoFichaMedica,
+                    partidaNacimiento: legajoPartidaNacimiento,
+                  });
             } else {
                 Alert.alert('Error', 'Alumno no encontrado');
             }
@@ -167,8 +175,15 @@ export default function GestionarAlumno() {
             emailfamiliar: formData.emailfamiliar,
             idcurso: idcurso, // Usar el ID de curso validado
             edificio: formData.edificio
-            
         };
+
+        //agregue yo (roma)
+        const obtenerFechaActual = () => {
+            const ahora = new Date();
+            const fecha = ahora.toISOString().split('T')[0]; // Obtiene la fecha en formato YYYY-MM-DD
+            const tiempo = ahora.toISOString().split('T')[1].slice(0, -1); // Obtiene el tiempo en HH:MM:SS.SSS
+            return `${fecha} ${tiempo}`; // Combina fecha y hora en el formato deseado
+        }
 
         // Agregar el departamento y el piso solo si tienen un valor
         if (formData.departamento) {
@@ -179,8 +194,32 @@ export default function GestionarAlumno() {
         }
         console.log('Datos del alumno a agregar:', alumnoData); // Verifica el contenido
 
+        //Agregue yo (roma)
+        const formDataLegajo = new FormData();
+        formDataLegajo.append('dnialumno', dni);
+        formDataLegajo.append('fecha_subida', new Date().toISOString());
+
+        if (documentos.dni) {
+            const response = await fetch(documentos.dni);
+            const blob = await response.blob();
+            formDataLegajo.append('dnifoto', blob, 'dni.jpg');
+        }
+
+        if (documentos.fichaMedica) {
+            const response = await fetch(documentos.fichaMedica);
+            const blob = await response.blob();
+            formDataLegajo.append('fichamedica', blob, 'ficha_medica.jpg');
+        }
+
+        if (documentos.partidaNacimiento) {
+            const response = await fetch(documentos.partidaNacimiento);
+            const blob = await response.blob();
+            formDataLegajo.append('partidanacimiento', blob, 'partida_nacimiento.jpg');
+        }
+
         try {
             const response = await agregarAlumno(alumnoData);
+            const responseLegajo = await agregarLegajo(formDataLegajo);
             await mostrarMensaje('El alumno se registro correctamente')
             console.log('Alumno agregado:', response);
 
@@ -218,8 +257,46 @@ export default function GestionarAlumno() {
                 Alert.alert('Error', 'Por favor, consulta primero al alumno.');
                 return;
             }
+            
+            //agrego roma
+            const formDataLegajo = new FormData();
+            formDataLegajo.append('dnialumno', dni);
+            formDataLegajo.append('fecha_subida', new Date().toISOString());
+
+                // Verificar si el DNI es nuevo o tiene un valor tipo "data:"
+                if (documentos.dni && typeof documentos.dni === 'string' && documentos.dni.startsWith("data:")) {
+                    const response = await fetch(documentos.dni);
+                    const blob = await response.blob();
+                    formDataLegajo.append('dnifoto', blob, 'dni.jpg');
+                    console.log('Nuevo DNI cargado:', documentos.dni);
+                }
+                else {
+                    formDataLegajo.append('dnifoto', documentos.dni, 'dni.jpg')
+                }
     
-            const respuesta = await modificarAlumno(dni, formData); 
+                // Verificar si la Ficha Médica es nueva o tiene un valor tipo "data:"
+                if (documentos.fichaMedica && typeof documentos.fichaMedica === 'string' && documentos.fichaMedica.startsWith("data:")) {
+                    const response = await fetch(documentos.fichaMedica);
+                    const blob = await response.blob();
+                    formDataLegajo.append('fichamedica', blob, 'ficha_medica.jpg');
+                    console.log('Nueva Ficha Médica cargada:', documentos.fichaMedica);
+                }
+                else {
+                    formDataLegajo.append('fichamedica', documentos.fichaMedica, 'ficha_medica.jpg')
+                }
+    
+                // Verificar si la Partida de Nacimiento es nueva o tiene un valor tipo "data:"
+                if (documentos.partidaNacimiento && typeof documentos.partidaNacimiento === 'string' && documentos.partidaNacimiento.startsWith("data:")) {
+                    const response = await fetch(documentos.partidaNacimiento);
+                    const blob = await response.blob();
+                    formDataLegajo.append('partidanacimiento', blob, 'partida_nacimiento.jpg');
+                }
+                else {
+                    formDataLegajo.append('partidanacimiento', documentos.partidaNacimiento, 'partidanacimiento.jpg')
+                }
+
+            const respuesta = await modificarAlumno(dni, formData);
+            const respuesta2 = await modificarLegajo(dni, formDataLegajo);
             console.log('Alumno modificado:', respuesta);
             await mostrarMensaje('El alumno modificado correctamente')
             setFormData({
@@ -310,7 +387,11 @@ export default function GestionarAlumno() {
             edificio: false,
             idcurso: '',
         });
-        
+        setDocumentos({
+            dni: null,
+            fichaMedica: null,
+            partidaNacimiento: null
+        });
     }
     
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
@@ -337,6 +418,82 @@ export default function GestionarAlumno() {
             </>
         );
     });
+
+    const [documentos, setDocumentos] = useState({
+        dni: null,
+        fichaMedica: null,
+        partidaNacimiento: null,
+    });
+    const [formDataLegajo, setFormDataLegajo] = useState(new FormData());
+    
+    const seleccionarArchivo = async (tipoDocumento) => {
+        try {
+            const doc = await DocumentPicker.getDocumentAsync({
+                type: 'image/*',
+            });
+    
+            if (doc.assets && doc.assets[0].uri) {
+                
+                // Actualiza `documentos` con la URI seleccionada
+                setDocumentos((prev) => ({
+                    ...prev,
+                    [tipoDocumento]: doc.assets[0].uri,
+                }));
+    
+                // Convierte el archivo seleccionado en blob y actualiza `formDataLegajo`
+                const response = await fetch(doc.assets[0].uri);
+                const blob = await response.blob();
+    
+                // Crear un nuevo FormData y copiar los datos existentes
+                const updatedFormData = new FormData();
+                formDataLegajo.forEach((value, key) => {
+                    updatedFormData.append(key, value);
+                });
+                // Agregar el nuevo archivo
+                updatedFormData.append(tipoDocumento, blob, `${tipoDocumento}.jpg`);
+    
+                setFormDataLegajo(updatedFormData);
+                console.log(`Archivo ${tipoDocumento} agregado exitosamente`);
+            } else {
+                console.log('No se seleccionó ningún archivo');
+            }
+        } catch (error) {
+            console.error('Error al seleccionar archivo:', error);
+            Alert.alert('Error', 'No se pudo seleccionar el archivo.');
+        }
+    };
+
+    const abrirPDF = async (dni) => {
+        try {
+            let blob;
+    
+            // Si el argumento es un Blob directamente
+            if (dni instanceof Blob) {
+                console.log("hola dni instanceof blob")
+                blob = dni;
+            } 
+            // Si el argumento es una URI, se realiza un fetch para convertirlo en un Blob
+            else if (typeof dni === 'string' && dni.length > 0) {
+                const response = await fetch(dni);  
+                blob = await response.blob();  // Convertir la URI en Blob
+            } else {
+                throw new Error('El archivo no es válido');
+            }
+    
+            // Convertimos el Blob a una URL temporal
+            const url = URL.createObjectURL(blob);
+    
+            // Abrimos el PDF en una nueva pestaña o vista
+            Linking.openURL(url).catch((err) => {
+                console.log('Error', 'No se pudo abrir el archivo: ' + err.message);
+            });
+    
+            // Liberamos la URL temporal después de su uso
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log('Error al abrir el PDF:', error);
+        }
+    };
     
 
     return (
@@ -465,6 +622,95 @@ export default function GestionarAlumno() {
                             </>
                             
                         )}
+                        <Text style={styles.label}>Legajo:</Text>
+                            <View>
+                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('dni')}>
+                                        <Text style={styles.textoBoton}>Ingrese Foto DNI</Text>
+                                    </TouchableOpacity>
+                                    {/* Verifica si documentos.dni está presente y tiene un Blob con tamaño mayor a 0 */}
+                                    {documentos.dni && 
+                                        (documentos.dni instanceof Blob && documentos.dni.size > 0 || 
+                                        (typeof documentos.dni === 'string' && documentos.dni.length > 0)) && (
+                                            <TouchableOpacity
+                                                style={styles.botonVer}
+                                                onPress={async () => {
+                                                    try {
+                                                        console.log('documentos.dni:', documentos.dni);  // Verifica lo que contiene documentos.dni
+                                                        
+                                                        if (documentos.dni instanceof Blob && documentos.dni.size > 0) {
+                                                            abrirPDF(documentos.dni);  // Si es un Blob válido con contenido
+                                                        } else if (typeof documentos.dni === 'string' && documentos.dni.length > 0) {
+                                                            abrirPDF(documentos.dni);  // Si es una URI válida, la pasamos a abrirPDF
+                                                        } else {
+                                                            console.log('El archivo no tiene un formato válido');
+                                                        }
+                                                    } catch (error) {
+                                                        console.log('Error al abrir el PDF:', error);
+                                                    }
+                                                }}
+                                            >
+                                                <Text style={styles.textoBoton}>Ver DNI</Text>
+                                            </TouchableOpacity>
+                                    )}
+                            </View>
+                                <View>
+                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('fichaMedica')}>
+                                        <Text style={styles.textoBoton}>Ingrese Ficha Medica</Text>
+                                    </TouchableOpacity>
+                                    {documentos.fichaMedica && 
+                                        ((documentos.fichaMedica instanceof Blob && documentos.fichaMedica.size > 0) || 
+                                        (typeof documentos.fichaMedica === 'string' && documentos.fichaMedica.length > 0)) && (
+                                            <TouchableOpacity
+                                                style={styles.botonVer}
+                                                onPress={async () => {
+                                                    try {
+                                                        console.log('documentos.fichaMedica:', documentos.fichaMedica);  // Verifica lo que contiene documentos.fichaMedica
+                                                        
+                                                        if (documentos.fichaMedica instanceof Blob && documentos.fichaMedica.size > 0) {
+                                                            abrirPDF(documentos.fichaMedica);  // Si es un Blob válido con contenido
+                                                        } else if (typeof documentos.fichaMedica === 'string' && documentos.fichaMedica.length > 0) {
+                                                            abrirPDF(documentos.fichaMedica);  // Si es una URI válida, la pasamos a abrirPDF
+                                                        } else {
+                                                            console.log('El archivo no tiene un formato válido');
+                                                        }
+                                                    } catch (error) {
+                                                        console.log('Error al abrir el PDF:', error);
+                                                    }
+                                                }}
+                                            >
+                                                <Text style={styles.textoBoton}>Ver Ficha Medica</Text>
+                                            </TouchableOpacity>
+                                    )}
+                                </View>
+                                <View>
+                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('partidaNacimiento')}>
+                                        <Text style={styles.textoBoton}>Ingrese Partida de Nacimiento</Text>
+                                    </TouchableOpacity>
+                                    {documentos.partidaNacimiento && 
+                                        ((documentos.partidaNacimiento instanceof Blob && documentos.partidaNacimiento.size > 0) || 
+                                        (typeof documentos.partidaNacimiento === 'string' && documentos.partidaNacimiento.length > 0)) && (
+                                            <TouchableOpacity
+                                                style={styles.botonVer}
+                                                onPress={async () => {
+                                                    try {
+                                                        console.log('documentos.partidaNacimiento:', documentos.partidaNacimiento);  // Verifica lo que contiene documentos.fichaMedica
+                                                        
+                                                        if (documentos.partidaNacimiento instanceof Blob && documentos.partidaNacimiento.size > 0) {
+                                                            abrirPDF(documentos.partidaNacimiento);  // Si es un Blob válido con contenido
+                                                        } else if (typeof documentos.partidaNacimiento === 'string' && documentos.partidaNacimiento.length > 0) {
+                                                            abrirPDF(documentos.partidaNacimiento);  // Si es una URI válida, la pasamos a abrirPDF
+                                                        } else {
+                                                            console.log('El archivo no tiene un formato válido');
+                                                        }
+                                                    } catch (error) {
+                                                        console.log('Error al abrir el PDF:', error);
+                                                    }
+                                                }}
+                                            >
+                                                <Text style={styles.textoBoton}>Ver Partida Nacimiento</Text>
+                                            </TouchableOpacity>
+                                    )}
+                            </View>
                         
                     </View>
                     
@@ -619,7 +865,29 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    }
+    },
+    boton: {
+        backgroundColor: '#788CC8', // Color azul
+        padding: 15, // Espaciado interno
+        borderRadius: 8, // Bordes redondeados
+        alignItems: 'center', // Centrar el texto
+        marginVertical: 10, // Separación entre botones
+    },
+    webview: {
+        height: 300, // Altura del visor
+        marginVertical: 10,
+    },
+    botonVer: {
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        backgroundColor: '#28a745', // Color de fondo para el botón "Ver"
+        borderRadius: 5,
+    },
+    row: {
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        marginBottom: 10, 
+    },
     
 });
 

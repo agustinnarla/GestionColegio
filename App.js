@@ -47,7 +47,7 @@ const Stack = createStackNavigator();
 function MyStack() {
   return (
       <Stack.Navigator initialRouteName='Login'>
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Login"
           component={Login}
           options={{
@@ -63,7 +63,7 @@ function MyStack() {
               />
             ),
           }}
-          />
+          /> */}
           {/* Principal */}
         <Stack.Screen
           name="Home"

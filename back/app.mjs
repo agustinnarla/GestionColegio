@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 
 app.use('/', ruta)
 
-const port = process.env.PUERTO || 3000 
+const port = process.env.PUERTO || 5000 
 
 app.listen(port,() => {
     console.log(`El servidor se alojo en http://localhost:${port}`)

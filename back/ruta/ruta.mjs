@@ -1,6 +1,6 @@
 import {Router} from 'express'
-//import multer from 'multer'
-import { agregarAlumno, deshabilitarAlumno, modificarAlumno, obtenerAlumno, obtenerAlumnoCurso, obtenerAlumnoFiltrado, obtenerAlumnoNombreApellido } from '../metodos/metodosGestionAlumno.mjs'
+import multer from 'multer'
+import { agregarAlumno,agregarLegajo, deshabilitarAlumno, modificarAlumno, obtenerAlumno, obtenerAlumnoCurso, obtenerAlumnoFiltrado,obtenerLegajoAlumnoFiltrado, obtenerAlumnoNombreApellido, obtenerLegajoAlumno, modificarAdjuntoLegajo } from '../metodos/metodosGestionAlumno.mjs'
 import { obtenerSexo } from '../metodos/metodosSexo.mjs'
 import { obtenerCurso } from '../metodos/metodosCurso.mjs'
 import { obtenerEstadoAlumno } from '../metodos/metodosEstadoAlumno.mjs'
@@ -18,8 +18,8 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 
 // Configuración de multer
-//const storage = multer.memoryStorage()
-//const upload = multer({ storage: storage })
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage })
 
 export const ruta = Router()
 
@@ -28,9 +28,21 @@ ruta.get('/alumnos', obtenerAlumno)
 ruta.get('/alumnos/:dnialumno', obtenerAlumnoFiltrado)
 ruta.get('/alumnosNombreApellido',obtenerAlumnoNombreApellido)
 ruta.get('/alumnosPorCurso/:idcurso',obtenerAlumnoCurso)
+ruta.get('/alumnosLegajo', obtenerLegajoAlumno)
+ruta.get('/alumnosLegajo/:dnialumno/:imagenTipo', obtenerLegajoAlumnoFiltrado);
 ruta.post('/alumnos', agregarAlumno)
+ruta.post('/alumnosLegajo', upload.fields([
+    { name: 'dnifoto', maxCount: 1 },
+    { name: 'fichamedica', maxCount: 1 },
+    { name: 'partidanacimiento', maxCount: 1 }
+]), agregarLegajo);
 ruta.put('/alumnos/deshabilitar/:dnialumno',deshabilitarAlumno)
 ruta.put('/alumnos/modificar/:dnialumno',modificarAlumno);
+ruta.put('/alumnosLegajo/modificar/:dnialumno',  upload.fields([
+    { name: 'dnifoto', maxCount: 1 },
+    { name: 'fichamedica', maxCount: 1 },
+    { name: 'partidanacimiento', maxCount: 1 }
+]), modificarAdjuntoLegajo);
 //Sexo
 ruta.get('/sexo',obtenerSexo)
 //Curso
