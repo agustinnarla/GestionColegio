@@ -7,18 +7,41 @@ dotenv.config()
 
 const app = express()
 
+// Configuración de CORS más específica
+app.use(cors({
+    origin: ['http://localhost:19006', 'http://localhost:8081'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
 app.use(express.json());
-app.use(cors())
-app.use('/',ruta)
 
+// Middleware para manejar tipos MIME
 app.use((req, res, next) => {
-    res.status(404).json({ error: 'Ruta no encontrada' });
-    next()
+    const url = req.url.toLowerCase();
+    
+    if (url.includes('.bundle')) {
+        res.setHeader('Content-Type', 'application/javascript');
+    } else if (url.includes('.chunk')) {
+        res.setHeader('Content-Type', 'application/javascript');
+    } else if (url.includes('.map')) {
+        res.setHeader('Content-Type', 'application/json');
+    } else if (url.includes('.hot-update.json')) {
+        res.setHeader('Content-Type', 'application/json');
+    }
+    
+    // Cabeceras adicionales para desarrollo
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    next();
 });
+
+app.use('/', ruta)
 
 const port = process.env.PUERTO || 3000 
 
-app.listen(port,() =>{
+app.listen(port,() => {
     console.log(`El servidor se alojo en http://localhost:${port}`)
 })

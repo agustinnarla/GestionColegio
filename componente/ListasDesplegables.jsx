@@ -1,104 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import CustomPicker from './CustomPicker';
-import { obtenerCurso } from '../scripts/secretaria/scriptGestionAlumno';
-import { obtenerEtapasEvaluativas, obtenerMateria } from '../scripts/secretaria/scriptCargarNotas';
-import { Alert } from 'react-native';
+import { View } from 'react-native';
+import PickerField from './PickerField';
 
-export const CursoPicker = ({ value, onValueChange, style }) => {
-    const [items, setItems] = useState([]);
+export function CursoSelector({ formData, handleChange, curso, styles }) {
+    const selectorConfig = {
+        label: 'Curso',
+        selectedValue: formData.idcurso,
+        onValueChange: (value) => handleChange('idcurso', value),
+        items: [
+            { label: 'Seleccione curso', value: '' },
+            ...(curso || []).map(item => ({
+                label: item.detalle,
+                value: item.idcurso,
+                key: item.idcurso
+            }))
+        ]
+    };
 
-    useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                const data = await obtenerCurso();
-                setItems(data);
-            } catch (error) {
-                Alert.alert('Error', 'Error al cargar los cursos');
-            }
-        };
-        cargarDatos();
-    }, []);
+    return <PickerField {...selectorConfig} style={styles} />;
+}
 
+export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) {
+    const selectorConfig = {
+        label: 'Etapas evaluativa',
+        selectedValue: formData.idetapas,
+        onValueChange: (value) => handleChange('idetapas', value),
+        items: [
+            { label: 'Seleccione etapa evaluativa', value: '' },
+            ...etapaEscolar.map(item => ({
+                label: item.detalle,
+                value: item.idetapas,
+                key: item.idetapas
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+export function MateriaSelector({ formData, handleChange, materias, styles }) {
+    const selectorConfig = {
+        label: 'Materias',
+        selectedValue: formData.idmateria,
+        onValueChange: (value) => handleChange('idmateria', value),
+        items: [
+            { label: 'Seleccione materia', value: '' },
+            ...materias.map(item => ({
+                label: item.detalle,
+                value: item.idmateria,
+                key: item.idmateria
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+// Componente principal que combina todos los selectores
+function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, styles }) {
     return (
-        <CustomPicker 
-            label="Curso"
-            style={style}
-            selectedValue={value}
-            onValueChange={onValueChange}
-            items={[
-                { label: 'Seleccione el curso', value: '' },
-                ...items.map(item => ({ 
-                    label: item.detalle, 
-                    value: item.idcurso, 
-                    key: item.idcurso 
-                }))
-            ]}
-        />
+        <View style={styles.filtrosContainer}>
+            <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />
+            <EtapaSelector formData={formData} handleChange={handleChange} etapaEscolar={etapaEscolar} styles={styles} />
+            <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />
+        </View>
     );
-};
+}
 
-export const EtapaPicker = ({ value, onValueChange, style }) => {
-    const [items, setItems] = useState([]);
-
-    useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                const data = await obtenerEtapasEvaluativas();
-                setItems(data);
-            } catch (error) {
-                Alert.alert('Error', 'Error al cargar las etapas');
-            }
-        };
-        cargarDatos();
-    }, []);
-
-    return (
-        <CustomPicker 
-            label="Etapa evaluativa"
-            style={style}
-            selectedValue={value}
-            onValueChange={onValueChange}
-            items={[
-                { label: 'Seleccione una etapa', value: '' },
-                ...items.map(item => ({ 
-                    label: item.detalle, 
-                    value: item.idetapas, 
-                    key: item.idetapas 
-                }))
-            ]}
-        />
-    );
-};
-
-export const MateriaPicker = ({ value, onValueChange, style }) => {
-    const [items, setItems] = useState([]);
-
-    useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                const data = await obtenerMateria();
-                setItems(data);
-            } catch (error) {
-                Alert.alert('Error', 'Error al cargar las materias');
-            }
-        };
-        cargarDatos();
-    }, []);
-
-    return (
-        <CustomPicker 
-            label="Materias"
-            style={style}
-            selectedValue={value}
-            onValueChange={onValueChange}
-            items={[
-                { label: 'Seleccione una materia', value: '' },
-                ...items.map(item => ({ 
-                    label: item.detalle, 
-                    value: item.idmateria, 
-                    key: item.idmateria 
-                }))
-            ]}
-        />
-    );
-};
+export default ListasDesplegables; 

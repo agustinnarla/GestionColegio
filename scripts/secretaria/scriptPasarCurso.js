@@ -2,13 +2,13 @@
 const api_urlCurso = 'http://localhost:5000/pasajeCurso'
 
 
-export const obtenerAlumnoPorCurso = async(idcurso) => {
+export const obtenerAlumnoFinal = async(idcurso) => {
     try {
         const respuesta = await fetch(`${api_urlCurso}/${idcurso}`);
         const data = await respuesta.json();
         
         if (respuesta.ok) {
-            return data.alumnos[0]; 
+            return data.alumnos; 
         } else {
             throw new Error(data.error);
         }

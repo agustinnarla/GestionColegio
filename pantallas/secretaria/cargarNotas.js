@@ -4,6 +4,7 @@ import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
 import { obtenerAlumnoPorCurso, obtenerEtapasEvaluativas, obtenerMateria, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
+import ListasDesplegables from '../../componente/ListasDesplegables';
 
 
 
@@ -80,27 +81,7 @@ export default function CargarNotas() {
         setFormData({ ...formData, [name]: value });
     };
 
-    //Ver reutilización
-    const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
-        return (
-            <>
-                <Text style={styles.label}>{label}</Text>
-                <Picker
-                    style={styles.input}
-                    selectedValue={selectedValue}
-                    onValueChange={onValueChange}
-                >
-                    {items.length > 0 ? (
-                        items.map((item) => (
-                            <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
-                        ))
-                    ) : (
-                        <Picker.Item label="Cargando..." value="" />
-                    )}
-                </Picker>
-            </>
-        );
-    });
+ 
 
     return (
         <View style={styles.padre}>
@@ -108,37 +89,14 @@ export default function CargarNotas() {
             
                 <View style={styles.contenedorSuperior}>
                     <View style={styles.filtrosContainer}>
-                    <PickerField 
-                    label="Curso"
-                    style={styles.picker}
-                    selectedValue={formData.idcurso} 
-                    onValueChange={(value) => handleChange('idcurso', value)} 
-                    items={[
-                        { label: 'Seleccione el curso', value: '' },
-                        ...curso.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
-                    ]} 
-                    />
-                
-                    <PickerField 
-                        label="Etapas evaluativa"
-                        style={styles.picker}
-                        selectedValue={formData.idetapas} 
-                        onValueChange={(value) => handleChange('idetapas', value)} 
-                        items={[
-                            { label: 'Seleccione una etapa', value: '' },
-                            ...etapaEscolar.map(etapa => ({ label: etapa.detalle, value: etapa.idetapas, key: etapa.idetapas })) 
-                        ]} />
-
-                    <PickerField 
-                        label="Materias"
-                        style={styles.picker}
-                        selectedValue={formData.idmateria} 
-                        onValueChange={(value) => handleChange('idmateria', value)} 
-                        items={[
-                            { label: 'Seleccione una materia', value: '' },
-                            ...materias.map(materia => ({ label: materia.detalle, value: materia.idmateria, key: materia.idmateria })) 
-                        ]} 
-                    />
+                        <ListasDesplegables 
+                        formData={formData}
+                        handleChange={handleChange}
+                        curso={curso}
+                        etapaEscolar={etapaEscolar}
+                        materias={materias}
+                        styles={styles}
+                        />
                 </View>
                     <View  style={styles.botonesContainer}>
                         <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
@@ -157,6 +115,7 @@ export default function CargarNotas() {
                 
                         {/* Contenedor de la grilla */}
                         <View style={styles.grillaContainer}>
+                            
         <View style={styles.headerRow}>
             <Text style={styles.headerCell}>Alumno</Text>
             <Text style={styles.headerCell}>Nota 1</Text>
@@ -166,24 +125,32 @@ export default function CargarNotas() {
             <Text style={styles.headerCell}>Nota 5</Text>
             <Text style={styles.headerCell}>Nota 6</Text>
         </View>
-        <ScrollView style={styles.scrollView}>
-            {alumnos.map((item) => (
-                <View key={item.dnialumno} style={styles.row}>
-                    <Text style={styles.cellNombre}>{item.nombre_completo}</Text>
-                    {[1,2,3,4,5,6].map((num) => (
-                        <TextInput 
-                            key={num}
-                            style={styles.inputNota}
-                            value={item[`nota${num}`]?.toString()}
-                            inputMode="numeric"
-                            maxLength={2}
-                            onChangeText={(text) => handleNotaChange(item.dnialumno, `nota${num}`, text)}
-                        />
-                    ))}
+        <View style={{ height: 650 }}>
+            <ScrollView 
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+            >
+                {alumnos.map((item) => (
+                    <View key={item.dnialumno} style={styles.row}>
+                        <Text style={styles.cellNombre}>{item.nombre_completo}</Text>
+                        {[1,2,3,4,5,6].map((num) => (
+                            <TextInput 
+                                key={num}
+                                style={styles.inputNota}
+                                value={item[`nota${num}`]?.toString()}
+                                inputMode="numeric"
+                                maxLength={2}
+                                onChangeText={(text) => handleNotaChange(item.dnialumno, `nota${num}`, text)}
+                            />
+                        ))}
+                    </View>
+                ))}
+                <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
+                            <Text style={styles.textoBoton}>Confrimar</Text>
+                </TouchableOpacity>
+            </ScrollView>
                 </View>
-            ))}
-        </ScrollView>
-                </View>
+            </View>
         </View>
     );
 }
@@ -248,10 +215,12 @@ const styles = StyleSheet.create({
     },
     grillaContainer: {
         flex: 1,
-        padding: 20,
         backgroundColor: 'white',
-        overflowY: 'auto',
-        height: '70vh',
+        margin: 20,
+        height: '70%',
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 5,
     },
     headerRow: {
         flexDirection: 'row',
@@ -259,9 +228,6 @@ const styles = StyleSheet.create({
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1,
     },
     headerCell: {
         flex: 1,
@@ -290,6 +256,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     scrollView: {
+        flex: 1,
         width: '100%',
-    }
+    },
+    scrollViewContent: {
+        flexGrow: 1,
+    },
 });

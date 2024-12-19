@@ -22,8 +22,11 @@
       "package": "com.agussarla.GestionColegio"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/logo_huerto.png",
       "bundler": "metro"
+    },
+    "developmentClient": {
+      "silentLaunch": true
     },
     "extra": {
       "eas": {
