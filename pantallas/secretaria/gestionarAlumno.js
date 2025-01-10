@@ -73,7 +73,7 @@ export default function GestionarAlumno() {
                     domicilio: alumno.domicilio,
                     idsexo: alumno.idsexo,
                     cuil: alumno.cuil,
-                    fechaNacimiento: alumno.fechanacimiento,
+                    fechaNacimiento: new Date(alumno.fechanacimiento).toISOString().split('T')[0].replace(/-/g, '/'),
                     idlocalidad: alumno.idlocalidad,
                     idestadoalumno: alumno.idestadoalumno,
                     telefonopersonal: alumno.telefonopersonal,
@@ -110,12 +110,16 @@ export default function GestionarAlumno() {
             return;
         }
 
-        const cuil = parseInt(formData.cuil, 10);
-        if (isNaN(cuil)) {
-            Alert.alert('Error', 'El cuil debe ser un número válido.');
-            console.log('cuil no válido:', formData.cuil);
+        const cuil = formData.cuil;  // CUIL ingresado por el usuario como string
+        if (validarCUIL(cuil, dni)) {
+            console.log('CUIL y DNI válidos');
+            formData.cuil = cuil; 
+        } else {
+            Alert.alert('Error', 'CUIL NO VALIDO.');
+            console.log('El CUIL o DNI no es válido.');
             return;
         }
+
 
         const telefonoPadre = parseInt(formData.telefonopadre, 10);
         const telefonoMadre = parseInt(formData.telefonomadre, 10);
@@ -151,11 +155,10 @@ export default function GestionarAlumno() {
         }
 
         const fechanacimiento = new Date(formData.fechaNacimiento);
-        if (isNaN(fechanacimiento.getTime())) {
-            Alert.alert('Error', 'La fecha de nacimiento no es válida.');
-            console.log('Fecha de nacimiento no válida:', formData.fechaNacimiento);
-            return;
+        if (!validarFechaNacimiento(fechanacimiento)) {
+            return; // Detener el flujo si la fecha no es válida
         }
+        
         
         // Crear el objeto alumnoData, omitiendo campos no obligatorios
         const alumnoData = {
@@ -258,10 +261,37 @@ export default function GestionarAlumno() {
                 return;
             }
             
+            const cuil = formData.cuil;  // CUIL ingresado por el usuario como string
+            if (validarCUIL(cuil, dni)) {
+                console.log('CUIL y DNI válidos');
+                formData.cuil = cuil;  // Asigna el CUIL al formData
+            } else {
+                Alert.alert('Error', 'CUIL NO VALIDO.');
+                console.log('El CUIL o DNI no es válido.');
+                return;
+            }
+            
+            // Validar la fecha de nacimiento directamente desde formData
+            const fechaNacimiento = formData.fechaNacimiento;
+            if (!validarFechaNacimiento(new Date(fechaNacimiento))) {
+                // Si la fecha no es válida, detener el flujo y mostrar un mensaje de error
+                Alert.alert('Error', 'La fecha de nacimiento no es válida.');
+                return;
+            }
+
+            // Formatear la fecha de nacimiento correctamente (YYYY-MM-DD)
+            const fechaNacimientoFormateada = new Date(fechaNacimiento).toISOString().split('T')[0];
+            console.log('Fecha de Nacimiento a modificar:', fechaNacimientoFormateada);
+
+            // Asignar la fecha formateada directamente a formData
+            formData.fechanacimiento = fechaNacimientoFormateada;
+
             //agrego roma
             const formDataLegajo = new FormData();
             formDataLegajo.append('dnialumno', dni);
             formDataLegajo.append('fecha_subida', new Date().toISOString());
+
+
 
                 // Verificar si el DNI es nuevo o tiene un valor tipo "data:"
                 if (documentos.dni && typeof documentos.dni === 'string' && documentos.dni.startsWith("data:")) {
@@ -294,7 +324,7 @@ export default function GestionarAlumno() {
                 else {
                     formDataLegajo.append('partidanacimiento', documentos.partidaNacimiento, 'partidanacimiento.jpg')
                 }
-
+                
             const respuesta = await modificarAlumno(dni, formData);
             const respuesta2 = await modificarLegajo(dni, formDataLegajo);
             console.log('Alumno modificado:', respuesta);
@@ -308,6 +338,7 @@ export default function GestionarAlumno() {
                 emailpersonal: '',
                 emailfamiliar: '',
                 idcurso: '',
+                fechanacimiento: '',
                 fechaNacimiento: '',
                 telefonomadre: '',
                 telefonopadre: '',
@@ -319,6 +350,7 @@ export default function GestionarAlumno() {
                 piso: '',
                 departamento: ''
             });
+            console.log(formData)
         } catch (error) {
             console.log('Error al modificar un alumno:', error.message);
             Alert.alert('Error', error.message);
@@ -466,7 +498,6 @@ export default function GestionarAlumno() {
     const abrirPDF = async (dni) => {
         try {
             let blob;
-    
             // Si el argumento es un Blob directamente
             if (dni instanceof Blob) {
                 console.log("hola dni instanceof blob")
@@ -494,6 +525,66 @@ export default function GestionarAlumno() {
             console.log('Error al abrir el PDF:', error);
         }
     };
+
+    const validarFechaNacimiento = (fecha) =>{
+        const fechaIngresada = new Date(fecha);
+        const fechaActual = new Date(); // Obtiene la fecha actual
+
+        if (isNaN(fechaIngresada.getTime())) {
+            Alert.alert('Error', 'La fecha de nacimiento no es válida.');
+            console.log('Fecha de nacimiento no válida:', fecha);
+            return false;
+        }
+
+        if (fechaIngresada > fechaActual) {
+            Alert.alert('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
+            console.log('Fecha de nacimiento no válida, es mayor que la fecha actual:', fecha);
+            return false;
+        }
+
+        // La fecha es válida
+        return true;
+    }
+
+    function validarCUIL(cuil, dni) {
+        // Asegurarse de que dni es una cadena
+        const dniFormateado = String(dni).trim(); // Convertir el DNI a cadena y eliminar espacios extra
+    
+        // Expresión regular para verificar el formato del CUIL: XX-XXXXXXXX-X
+        const regex = /^(\d{2})-(\d{8})-(\d{1})$/;
+    
+        if (regex.test(cuil)) {
+            // Extraer el bloque del medio (DNI) del CUIL
+            const dniDelCuil = cuil.split('-')[1].trim(); // Remover posibles espacios extra
+            
+            // Asegurarse de que el DNI tenga exactamente 8 dígitos
+            if (dniFormateado.length !== 8 || isNaN(dniFormateado)) {
+                Alert.alert('Error', 'El DNI debe tener 8 dígitos válidos.');
+                console.log('El DNI ingresado no tiene el formato correcto.');
+                return false;
+            }
+    
+            // Verificar que el DNI del CUIL coincida con el DNI ingresado
+            if (dniFormateado === dniDelCuil) {
+                // Si coincide, devolver true
+                console.log('CUIL válido y DNI coincidente.');
+                return true;
+            } else {
+                // Si no coincide, mostrar mensaje de error
+                Alert.alert('Error', 'El número del CUIL debe coincidir con el DNI.');
+                console.log('El DNI del CUIL no coincide con el DNI ingresado.');
+                return false;
+            }
+        } else {
+            // Si el CUIL no tiene el formato correcto
+            Alert.alert('Error', 'El CUIL no tiene el formato correcto. Debe ser XX-XXXXXXXX-X.');
+            console.log('El CUIL no tiene el formato correcto.');
+            return false;
+        }
+    }
+    
+    
+    
     
 
     return (
