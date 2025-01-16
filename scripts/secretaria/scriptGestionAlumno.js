@@ -1,7 +1,7 @@
-const api_urlAlumno = 'http://localhost:5000/alumnos'
-const api_url = 'http://localhost:5000'
-const api_urlEliminar = 'http://localhost:5000/alumnos/deshabilitar'
-const api_urlModificar = 'http://localhost:5000/alumnos/modificar'
+const api_urlAlumno = 'http://192.168.0.22:5000/alumnos'
+const api_url = 'http://192.168.0.22:5000'
+const api_urlEliminar = 'http://192.168.0.22:5000/alumnos/deshabilitar'
+const api_urlModificar = 'http://192.168.0.22:5000/alumnos/modificar'
 
 export const obtenerAlumnoFiltrado = async (dni) => {
     try {

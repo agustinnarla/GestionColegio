@@ -10,7 +10,7 @@ import ListasDesplegables from '../../componente/ListasDesplegables';
 
 export default function CargarNotas() {
     
-     //Formulario
+    //Formulario
     const [formData, setFormData] = useState({
         dnialumno: '',
         idmateria: '',
@@ -81,8 +81,6 @@ export default function CargarNotas() {
         setFormData({ ...formData, [name]: value });
     };
 
- 
-
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
@@ -145,7 +143,7 @@ export default function CargarNotas() {
                         ))}
                     </View>
                 ))}
-                <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
+                <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos}>
                             <Text style={styles.textoBoton}>Confrimar</Text>
                 </TouchableOpacity>
             </ScrollView>
