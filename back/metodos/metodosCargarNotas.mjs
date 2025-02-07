@@ -6,7 +6,7 @@ export const obtenerNotas = async (req, res) => {
         const respuesta = await pool.query(`
             SELECT 
                 a.dnialumno, 
-                CONCAT(nombre,' ',apellido) as nombre_completo,
+                CONCAT(a.nombre,' ',a.apellido) as nombre_completo,
                 am.nota1, 
                 am.nota2,
                 am.nota3,
@@ -19,9 +19,11 @@ export const obtenerNotas = async (req, res) => {
             LEFT JOIN alumnomateria am 
                 ON a.dnialumno = am.dnialumno 
                 AND am.idmateria = $2
+                AND am.idcurso = $1  /* Usamos $1 que corresponde a idcurso */
             WHERE ac.idcurso = $1 
                 AND a.idestadoalumno = 1
-        `, [idcurso,idmateria]);
+            ORDER BY a.apellido, a.nombre
+        `, [idcurso, idmateria]);
         
         res.status(200).json({notas: respuesta.rows});
     } catch (error) {
@@ -31,43 +33,104 @@ export const obtenerNotas = async (req, res) => {
 }
 
 export const registrarNota = async (req, res) => {
-    const { dnialumno, idmateria, idetapas, nota1 = 0, nota2 = 0, nota3 = 0, nota4 = 0, nota5 = 0, nota6 = 0 } = req.body;
-
     try {
-        // Calcular el promedio de las notas directamente
-        const notas = [nota1, nota2, nota3, nota4, nota5, nota6];
-        const notasValidas = notas.filter(nota => nota > 0); 
-        const promedio = notasValidas.length > 0 ? (notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length) : 0;
-
-        // Determinar el estado evaluativo basado en el promedio
-        const idestadoevaluativo = promedio >= 6 ? 1 : 2; 
-
-        // Verificar si el registro ya existe
-        const existeRespuesta = await pool.query(`
-            SELECT * FROM alumnomateria 
-            WHERE dnialumno = $1 AND idmateria = $2 AND idetapas = $3`,
-            [dnialumno, idmateria, idetapas]);
-
-        if (existeRespuesta.rows.length > 0) {
-            // Si existe, actualizar el registro
-            const respuesta = await pool.query(`
-                UPDATE alumnomateria 
-                SET nota1 = $4, nota2 = $5, nota3 = $6, nota4 = $7, nota5 = $8, nota6 = $9, idestadoevaluativo = $10, promedio = $11 
-                WHERE dnialumno = $1 AND idmateria = $2 AND idetapas = $3`,
-                [dnialumno, idmateria, idetapas, nota1, nota2, nota3, nota4, nota5, nota6, idestadoevaluativo, promedio]);
-                
-            console.log("Registro actualizado");
-            res.status(200).json({ nota: respuesta.rows });
-        } else {
-            // Si no existe, insertar el nuevo registro
-            const respuesta = await pool.query('INSERT INTO alumnomateria (dnialumno, idmateria, idetapas, nota1, nota2, nota3, nota4, nota5, nota6, idestadoevaluativo, promedio) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
-                [dnialumno, idmateria, idetapas, nota1, nota2, nota3, nota4, nota5, nota6, idestadoevaluativo, promedio]);
-            console.log("Registro insertado");
-            res.status(200).json({ nota: respuesta.rows });
+        if (!Array.isArray(req.body)) {
+            return res.status(400).json({ error: "El formato de datos debe ser un array" });
         }
+
+        const resultados = [];
+
+        for (const registro of req.body) {
+            const { 
+                dnialumno, 
+                idmateria, 
+                idcurso,
+                nota1 = 0, 
+                nota2 = 0, 
+                nota3 = 0, 
+                nota4 = 0, 
+                nota5 = 0, 
+                nota6 = 0 
+            } = registro;
+
+            // Validar datos obligatorios
+            if (!dnialumno || !idmateria || !idcurso) {
+                resultados.push({
+                    dnialumno,
+                    error: "Faltan datos obligatorios"
+                });
+                continue;
+            }
+
+            try {
+                // Calcular promedio
+                const notas = [nota1, nota2, nota3, nota4, nota5, nota6];
+                const notasValidas = notas.filter(nota => nota > 0);
+                const promedio = notasValidas.length > 0 ? 
+                    (notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length) : 0;
+                const idestadoevaluativo = promedio >= 6 ? 1 : 2;
+
+                // Verificar si existe el registro
+                const existeRegistro = await pool.query(`
+                    SELECT * FROM alumnomateria 
+                    WHERE dnialumno = $1 
+                    AND idmateria = $2 
+                    AND idcurso = $3`,
+                    [dnialumno, idmateria, idcurso]
+                );
+
+                if (existeRegistro.rows.length > 0) {
+                    // Actualizar registro existente
+                    await pool.query(`
+                        UPDATE alumnomateria 
+                        SET nota1 = $4, nota2 = $5, nota3 = $6, nota4 = $7, nota5 = $8, nota6 = $9,
+                            idestadoevaluativo = $10, promedio = $11
+                        WHERE dnialumno = $1 
+                        AND idmateria = $2 
+                        AND idcurso = $3`,
+                        [dnialumno, idmateria, idcurso, 
+                         nota1, nota2, nota3, nota4, nota5, nota6,
+                         idestadoevaluativo, promedio]
+                    );
+                    resultados.push({
+                        dnialumno,
+                        status: "actualizado"
+                    });
+                } else {
+                    // Insertar nuevo registro
+                    await pool.query(`
+                        INSERT INTO alumnomateria 
+                        (dnialumno, idmateria, idcurso, 
+                         nota1, nota2, nota3, nota4, nota5, nota6,
+                         idestadoevaluativo, promedio)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                        [dnialumno, idmateria, idcurso, 
+                         nota1, nota2, nota3, nota4, nota5, nota6,
+                         idestadoevaluativo, promedio]
+                    );
+                    resultados.push({
+                        dnialumno,
+                        status: "insertado"
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error específico:", error);
+                resultados.push({
+                    dnialumno,
+                    error: error.message
+                });
+            }
+        }
+
+        return res.status(200).json({ 
+            message: "Proceso completado", 
+            resultados 
+        });
+
     } catch (error) {
-        console.error("Error al cargar la nota:", error.message);
+        console.error("Error al cargar las notas:", error.message);
         console.error(error.stack);
-        res.status(500).json({ error: 'Algo salió mal en la carga de nota' });
+        res.status(500).json({ error: "Error al procesar las notas" });
     }
-}
+};

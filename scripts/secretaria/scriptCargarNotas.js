@@ -1,8 +1,8 @@
-const api_url = 'http://localhost:5000'
-const api_urlCargarNotas = 'http://localhost:5000/notas'
-const api_urlObtenerMateria = 'http://localhost:5000/materia'
-const api_urlObtenerEtapasEvaluativas = 'http://localhost:5000/etapas'
-const api_urlObtenerAlumnoPorCurso = 'http://localhost:5000/alumnosPorCurso'
+const api_url = 'http://192.168.0.22:5000'
+const api_urlCargarNotas = 'http://192.168.0.22:5000/notas'
+const api_urlObtenerMateria = 'http://192.168.0.22:5000/materia'
+const api_urlObtenerEtapasEvaluativas = 'http://192.168.0.22:5000/etapas'
+const api_urlObtenerAlumnoPorCurso = 'http://192.168.0.22:5000/alumnosPorCurso'
 
 
 
@@ -66,5 +66,27 @@ export const obtenerAlumnoPorCurso = async (idcurso) => {
         return data.alumnos; 
     }catch(error){
         console.error('Error en obtenerAlumnoPorCurso:', error);
+    }
+}
+
+export const registrarNotas= async(formData) => {
+    try{
+        const respuesta = await fetch(api_urlCargarNotas, {
+            method: 'POST',
+            headers: {'Content-Type' : 
+            'application/json'},
+            body: JSON.stringify(formData)
+        })
+        const data =  await respuesta.json()
+
+        if(respuesta.ok){
+            console.log("Se registro las notas nuevas")
+            return data;  
+        } else {
+            throw new Error(data.error || 'Error desconocido al registrar las notas');
+        }
+    }catch(error){
+        console.log(error)
+        throw new Error("Error al cargar las notas")
     }
 }

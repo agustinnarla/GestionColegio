@@ -1,5 +1,4 @@
-
-const api_urlCurso = 'http://localhost:5000/pasajeCurso'
+const api_urlCurso = 'http://192.168.0.22:5000/pasajeCurso'
 
 
 export const obtenerAlumnoFinal = async(idcurso) => {
@@ -18,27 +17,25 @@ export const obtenerAlumnoFinal = async(idcurso) => {
     }
 }
 
-export const registrarCursoNuevo = async(formData) => {
+export const registrarCursoNuevo = async (alumnosData) => {
     try {
-        
-        const respuesta = await fetch(api_urlCurso, {
+        const response = await fetch('http://192.168.0.22:5000/pasajeCurso', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify(alumnosData)
         });
 
-        const data = await respuesta.json();
-
-        if (respuesta.ok) {
-            console.log("Se actualizo el curso de los alumnos")
-            return data;  
-        } else {
-            throw new Error(data.error || 'Error desconocido al actualizar los alumnos');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error en la respuesta del servidor');
         }
+
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error('Error en pasar de curso:', error.message); 
-        throw new Error("Error al pasar de curso al alumno: " + error.message);
+        console.error('Error en pasar de curso:', error);
+        throw error;
     }
-}
+};
