@@ -2,18 +2,18 @@ import {Router} from 'express'
 import multer from 'multer'
 import { agregarAlumno,agregarLegajo, deshabilitarAlumno, modificarAlumno, obtenerAlumno, obtenerAlumnoCurso, obtenerAlumnoFiltrado,obtenerLegajoAlumnoFiltrado, obtenerAlumnoNombreApellido, obtenerLegajoAlumno, modificarAdjuntoLegajo } from '../metodos/metodosGestionAlumno.mjs'
 import { obtenerSexo } from '../metodos/metodosSexo.mjs'
-import { obtenerCurso } from '../metodos/metodosCurso.mjs'
+import { obtenerCurso, obtenerCursoFiltrado } from '../metodos/metodosCurso.mjs'
 import { obtenerEstadoAlumno } from '../metodos/metodosEstadoAlumno.mjs'
 import { obtenerLocalidad } from '../metodos/metodosLocalidad.mjs'
 import { obtenerSolicitante } from '../metodos/metodosSolicitante.mjs'
 import { registrarObservacion } from '../metodos/metodosObservacion.mjs'
 import { registrarAmonestacion, obtenerCantidadAmonestaciones} from '../metodos/metodosAmonestacion.mjs'
-import { modificarAsistencia, registrarAsistencia } from '../metodos/metodosAsistencia.mjs'
+import { modificarAsistencia, registrarAsistenciaBackend, validarFechaAsistencia, obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas } from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasarCurso.mjs'
-import {  obtenerAlumnosAusentes, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
+import {  obtenerAlumnosAusentes, obtenerEstadosFalta, obtenerJustificarFalta, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 
@@ -47,6 +47,7 @@ ruta.put('/alumnosLegajo/modificar/:dnialumno',  upload.fields([
 ruta.get('/sexo',obtenerSexo)
 //Curso
 ruta.get('/curso',obtenerCurso)
+ruta.get('/curso/:idcurso', obtenerCursoFiltrado)
 //EstadoAlumno
 ruta.get('/estadoAlumno',obtenerEstadoAlumno)
 //Localidad
@@ -59,8 +60,12 @@ ruta.post('/observacion',registrarObservacion)
 ruta.post('/amonestacion',registrarAmonestacion)
 ruta.get('/amonestacion/:dnialumno',obtenerCantidadAmonestaciones)
 //Asistencia 
-ruta.post('/asistencia',registrarAsistencia)
+// Asegúrate de que esta línea esté definida correctamente en el backend
+ruta.post('/asistencia', registrarAsistenciaBackend);
 ruta.put('/asistencia', modificarAsistencia)
+ruta.get('/asistencia/curso/:idcurso/fecha/:fecha', validarFechaAsistencia)
+ruta.get('/asistencia/curso/:idcurso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes)
+ruta.get('/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) //ACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 //Notas
 ruta.get('/notas/:idcurso/:idmateria', obtenerNotas)
 ruta.post('/notas',registrarNota)
@@ -72,8 +77,12 @@ ruta.get('/etapas',obtenerEtapaEvaluativa)
 ruta.get('/pasajeCurso/:idcurso',obtenerAlumnoFinal)
 ruta.post('/pasajeCurso',registrarCursoNuevo)
 //Justificar Falta
-ruta.get('/justificarFalta/:idcurso', obtenerAlumnosAusentes)
+ruta.get('/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) 
+ruta.get('/justificarFalta/estadoalumnos/:fechadesde/:fechahasta', obtenerJustificarFalta);
+ruta.get('/justificarFalta/estadofalta', obtenerEstadosFalta)
+ruta.get('/justificarFalta', obtenerJustificarFalta)
 ruta.post('/justificarFalta',registrarJustificacion)
+
 //Certificado
 ruta.get('/certificado',obtenerEstadoCertificado)
 //Estado Inasistencia
