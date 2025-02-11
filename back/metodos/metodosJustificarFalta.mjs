@@ -118,5 +118,37 @@ export const obtenerJustificarFalta = async (req, res) => {
     }
 };
 
+export const ActualizarEstadoLibreAlumno = async (req, res) => {
+    const { dnialumno } = req.body;  // Solo recibimos el dnialumno
+
+    try {
+        // Verificamos que se reciba el dnialumno
+        if (!dnialumno) {
+            return res.status(400).json({ error: "Falta el parámetro dnialumno" });
+        }
+
+        // Realizamos el UPDATE en la tabla alumno, estableciendo idestadoalumno a 2
+        const query = `
+            UPDATE alumno
+            SET idestadoalumno = 2
+            WHERE dnialumno = $1
+        `;
+        
+        // Ejecutamos la consulta
+        const resultado = await pool.query(query, [dnialumno]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({ error: "Alumno no encontrado" });
+        }
+
+        console.log("Estado actualizado correctamente:", resultado);
+        res.status(200).json({ message: "Estado actualizado correctamente a 2" });
+    } catch (error) {
+        console.error("Error al actualizar el estado:", error);
+        res.status(500).json({ error: "Error al actualizar el estado del alumno" });
+    }
+};
+
+
 
 

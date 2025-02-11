@@ -13,7 +13,7 @@ import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasarCurso.mjs'
-import {  obtenerAlumnosAusentes, obtenerEstadosFalta, obtenerJustificarFalta, registrarJustificacion } from '../metodos/metodosJustificarFalta.mjs'
+import {  obtenerAlumnosAusentes, obtenerEstadosFalta, obtenerJustificarFalta, registrarJustificacion, ActualizarEstadoLibreAlumno} from '../metodos/metodosJustificarFalta.mjs'
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 
@@ -43,6 +43,7 @@ ruta.put('/alumnosLegajo/modificar/:dnialumno',  upload.fields([
     { name: 'fichamedica', maxCount: 1 },
     { name: 'partidanacimiento', maxCount: 1 }
 ]), modificarAdjuntoLegajo);
+ruta.put('/alumnos/actualizarEstadoAlumno', ActualizarEstadoLibreAlumno) //cambiar a metodosAlumno
 //Sexo
 ruta.get('/sexo',obtenerSexo)
 //Curso
@@ -65,7 +66,7 @@ ruta.post('/asistencia', registrarAsistenciaBackend);
 ruta.put('/asistencia', modificarAsistencia)
 ruta.get('/asistencia/curso/:idcurso/fecha/:fecha', validarFechaAsistencia)
 ruta.get('/asistencia/curso/:idcurso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes)
-ruta.get('/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) //ACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ruta.get('/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) 
 //Notas
 ruta.get('/notas/:idcurso/:idmateria', obtenerNotas)
 ruta.post('/notas',registrarNota)
@@ -82,7 +83,6 @@ ruta.get('/justificarFalta/estadoalumnos/:fechadesde/:fechahasta', obtenerJustif
 ruta.get('/justificarFalta/estadofalta', obtenerEstadosFalta)
 ruta.get('/justificarFalta', obtenerJustificarFalta)
 ruta.post('/justificarFalta',registrarJustificacion)
-
 //Certificado
 ruta.get('/certificado',obtenerEstadoCertificado)
 //Estado Inasistencia

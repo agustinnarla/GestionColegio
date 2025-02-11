@@ -1,6 +1,6 @@
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerAlumnosAusentes, obtenerEstadoFalta, obtenerCertificado, actualizarJustificarFalta, obtenerEstadoAlumnos} from '../../scripts/preceptor/scriptGestionJustificarFalta';
+import { obtenerAlumnosAusentes, obtenerEstadoFalta, obtenerCertificado, actualizarJustificarFalta, obtenerEstadoAlumnos, obtenerAlumnosConFaltasSuperadas, actualizarEstadoAlumno} from '../../scripts/preceptor/scriptGestionJustificarFalta';
 
 import React, {useState, useEffect} from "react";
 import bg from '../../assets/bg1.jpg';
@@ -15,6 +15,8 @@ export default function JustificarFalta() {
     const [certificadoSeleccionado, setCertificadoSeleccionado] = useState(null);
     const [estadoFaltaPorAlumno, setEstadoFaltaPorAlumno] = useState({});
     const [certificadoPorAlumno, setCertificadoPorAlumno] = useState({});
+    const [faltasSuperadas, setFaltasSuperadas] = useState({});
+
 
 
     const [alumnos, setAlumnos] = useState([]); // Definimos el estado para almacenar los alumnos
@@ -117,7 +119,7 @@ export default function JustificarFalta() {
         }
     };
 
-    const actualizarDatosEnBaseDeDatos = (tipo, valor, dnialumno, fecha) => {
+    const actualizarDatosEnBaseDeDatos = async (tipo, valor, dnialumno, fecha) => {
         console.log("Datos para actualizar:", tipo, valor, dnialumno);
         console.log("estadoFaltaSeleccionado:", estadoFaltaSeleccionado);
         console.log("certificadoSeleccionado:", certificadoSeleccionado);
@@ -130,10 +132,45 @@ export default function JustificarFalta() {
         };
     
         console.log("datosForm:", datosForm);
-        
-        // Llamamos a la función para enviar la actualización de la justificación de falta
-        actualizarJustificarFalta(datosForm);
+    
+        // Llamamos a la función para obtener los alumnos con faltas superadas
+        const datosFaltas = await obtenerDatosFaltasSuperadas();
+    
+        // Si obtenemos datos de faltas superadas, procesamos cada uno
+        if (Array.isArray(datosFaltas) && datosFaltas.length > 0) {
+            for (const dnialumnoFalta of datosFaltas) {
+                // Llamamos a la función actualizarEstadoAlumno para cada dnialumno
+                await actualizarEstadoAlumno(dnialumnoFalta);
+                console.log(`Estado actualizado para el alumno ${dnialumnoFalta}`);
+            }
+        } else {
+            console.error("No se encontraron datos de faltas superadas.");
+        }
     };
+    
+
+    const obtenerDatosFaltasSuperadas = async () => {
+        try {
+            const response = await obtenerAlumnosConFaltasSuperadas();
+            console.log("✅ Respuesta obtenida:", response);
+    
+            if (Array.isArray(response)) {
+                const dnialumnoArray = response.map((item) => item.dnialumno);
+    
+                setFaltasSuperadas(dnialumnoArray); // Actualizamos el estado con el array
+                return dnialumnoArray; // 🔥 Ahora devuelve un array de dnialumno
+            } else {
+                console.error("Error al obtener datos:", response.error);
+                return [];
+            }
+        } catch (error) {
+            console.error("Error en la solicitud:", error);
+            return [];
+        }
+    };
+    
+    
+    
     
     const obtenerDatosJustificacion = async () => {
         if (!fechaDesde || !fechaHasta) return;

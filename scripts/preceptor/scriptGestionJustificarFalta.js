@@ -1,5 +1,7 @@
 const api_url = 'http://localhost:5000'
 const api_urlAsistencia = 'http://localhost:5000/justificarFalta'
+const api_urlAlumnoAsistencia = 'http://localhost:5000/asistencia'
+
 
 export const obtenerAlumnosAusentes = async (fechadesde, fechahasta) => {
     try {
@@ -131,6 +133,63 @@ export const actualizarJustificarFalta = async (formData) => {
         console.error('Error al insertar la justificación de falta:', error);
     }
 };
+
+export const obtenerAlumnosConFaltasSuperadas = async () => {
+    try {
+        const url = `${api_urlAlumnoAsistencia}/ausenciaSuperadas`; // Ajusta la URL según tu backend
+        console.log("URL que se va a consumir:", url); 
+
+        const respuesta = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await respuesta.json();
+        console.log('Respuesta de la API:', data);
+        return data;
+    } catch (error) {
+        console.log("Error al obtener las faltas superadas:", error.message);
+        throw new Error("Error al obtener las faltas superadas");
+    }
+};
+
+// Método para actualizar el estado del alumno
+export const actualizarEstadoAlumno = async (dnialumno) => {
+    try {
+        // Verificamos que se haya proporcionado un dni
+        if (!dnialumno) {
+            console.error("No se proporcionó un DNI de alumno");
+            return;
+        }
+
+        // Construimos la URL para la petición de actualización
+        const url = `http://localhost:5000/alumnos/actualizarEstadoAlumno`; // Asegúrate de tener la URL correcta
+
+        // Realizamos la solicitud PUT para actualizar el estado del alumno
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ dnialumno }), // Enviamos el DNI como parte del cuerpo de la solicitud
+        });
+
+        // Si la respuesta es exitosa, procesamos la información
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Estado actualizado:", data.message);
+        } else {
+            const errorData = await response.json();
+            console.error("Error al actualizar estado:", errorData.error);
+        }
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
+    }
+};
+
+
 
 
 

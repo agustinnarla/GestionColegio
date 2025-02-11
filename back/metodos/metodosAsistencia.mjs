@@ -97,15 +97,17 @@ export const obtenerModificacionAlumnosAusentes = async (req, res) => {
 export const obtenerFaltasSuperadas = async (req, res) => {
     try {
         const query = `
-            SELECT dnialumno
-            FROM public.asistencia
-            WHERE idestado IN (2, 3)
-            GROUP BY dnialumno
+            SELECT a.dnialumno
+            FROM public.asistencia a
+            JOIN public.alumno al ON a.dnialumno = al.dnialumno
+            WHERE a.idestado IN (2, 3)
+            AND al.idestadoalumno <> 2
+            GROUP BY a.dnialumno
             HAVING SUM(CASE 
-                        WHEN idestado = 2 THEN 1
-                        WHEN idestado = 3 THEN 0.5
+                        WHEN a.idestado = 2 THEN 1
+                        WHEN a.idestado = 3 THEN 0.5
                         ELSE 0 
-                      END) >= 9
+                    END) >= 9;
         `;
 
         const { rows } = await pool.query(query);
