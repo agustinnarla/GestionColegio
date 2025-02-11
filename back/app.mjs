@@ -8,8 +8,14 @@ dotenv.config()
 const app = express()
 
 // Configuración de CORS más específica
+// app.use(cors({
+//     origin: ['http://192.168.0.22:19006', 'http://192.168.0.22:8081'],
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+// }));
+
 app.use(cors({
-    origin: ['http://192.168.0.22:19006', 'http://192.168.0.22:8081', 'http://localhost:8081'],
+    origin: ['http://localhost:19006', 'http://localhost:8081'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type']
@@ -43,6 +49,10 @@ app.use('/', ruta)
 
 const port = process.env.PUERTO || 5000 
 
+// app.listen(port,() => {
+//     console.log(`El servidor se alojo en http://192.168.0.22:${port}`)
+// })
+
 app.listen(port,() => {
-    console.log(`El servidor se alojo en http://192.168.0.22:${port}`)
+    console.log(`El servidor se alojo en http://localhost:${port}`)
 })

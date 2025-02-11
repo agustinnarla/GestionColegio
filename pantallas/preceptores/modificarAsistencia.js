@@ -1,44 +1,146 @@
 import { StyleSheet,View,Image,TouchableOpacity,Text,TextInput,Switch,ScrollView} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { obtenerAlumnosAusentes, obtenerCursoFrontend, registrarAsistenciaFrontend } from '../../scripts/preceptor/scriptGestionAsistencia.js';
+import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
 
 import bg from '../../assets/bg1.jpg'
 
 import { FontAwesome5 } from '@expo/vector-icons';
 
-
-
-export default function ModificarAsistencia(){
-
+export default function ModificarAsistencia() {
     const navegacion = useNavigation();
+    const route = useRoute(); // Hook para acceder a los parámetros de la ruta
 
-    const [students, setStudents] = useState([
-        { id: 1, nombre: 'Agustin Arla', presente: true },
-        { id: 2, nombre: 'Agustin Romanisio', presente: true },
-        { id: 3, nombre: 'Valentin Lopez', presente: false },
-      ]);
-    
-      const toggleSwitch = (id) => {
+    const { idcurso } = route.params; // Aquí recuperamos el idcurso
+
+    console.log('Curso seleccionado:', idcurso); // Verifica si el idcurso se está pasando correctamente
+
+    // Estado y lógica para mostrar a los estudiantes
+    const [students, setStudents] = useState([]);
+    const [mensajeConfirmacion, setMensajeConfirmacion] = useState(''); // Estado para el mensaje de confirmación
+    const [modalVisible, setModalVisible] = useState(false); // Inicializar estado para el modal
+
+
+    const toggleSwitch = (id) => {
         setStudents((prevEstudiante) =>
             prevEstudiante.map((estudiante) =>
-            estudiante.id === id ? { ...estudiante, presente: !estudiante.presente } : estudiante
-          )
+                estudiante.id === id ? { ...estudiante, presente: !estudiante.presente } : estudiante
+            )
         );
-      };
+    };
+
+    const obtenerFechaActual = () => {
+        const fecha = new Date();
+        const year = fecha.getFullYear();
+        const month = (fecha.getMonth() + 1).toString().padStart(2, '0'); // Mes con 2 dígitos
+        const day = fecha.getDate().toString().padStart(2, '0'); // Día con 2 dígitos
+        return `${year}-${month}-${day}`;
+    };
+
+    useEffect(() => {
+        const cargarAlumnosAusentes = async () => {
+            const fechaActual = obtenerFechaActual();
+            try {
+                // Obtener los alumnos ausentes desde la API
+                const respuesta = await obtenerAlumnosAusentes(idcurso, fechaActual);
+                console.log('Respuesta del servidor:', respuesta); // Verifica si la respuesta es la esperada
+        
+                // Verifica que la propiedad 'alumnos' existe y no está vacía
+                if (respuesta && Array.isArray(respuesta.alumnos) && respuesta.alumnos.length > 0) {
+                    const alumnosAusentes = respuesta.alumnos;
+        
+                    // Mapeamos los datos de los alumnos para establecer el estado de los switches
+                    const estudiantesActualizados = alumnosAusentes.map((alumno) => {
+                        const estado = alumno.idestado === 2 ? false : true; // Si idestado es 2, el switch estará apagado
+                        return { id: alumno.dnialumno, nombre: alumno.nombreapellido, presente: estado };
+                    });
+        
+                    // Actualizamos el estado con los alumnos ausentes
+                    setStudents(estudiantesActualizados);
+                } else {
+                    console.log('No se encontraron alumnos ausentes o la respuesta está vacía.');
+                }
+            } catch (error) {
+                console.log('Error al obtener los alumnos ausentes:', error.message);
+            }
+        };
+        cargarAlumnosAusentes(); // Llamar a la función al cargar el componente
+    }, [idcurso]); // Dependencia de idcurso para cargar los datos cada vez que cambie el curso
+    
+    const handleRegistrar = async () => {
+        try {
+            // Iterar sobre cada estudiante y enviar los datos uno a uno
+            for (const estudiante of students) {
+                // Usar el ID directamente del objeto estudiante
+                const alumnosData = await obtenerAlumnoFiltrado(estudiante.id);
+    
+                // Verificar si alumnosData contiene la información del alumno
+                if (alumnosData) {
+                    // Determinar el estado del estudiante basado en el switch
+                    const idestado = estudiante.presente ? 3 : 2; // Si el switch está marcado, idestado es 3; si está desmarcado, idestado es 2
+    
+                    const asistenciaData = {
+                        dnialumno: parseInt(estudiante.id, 10), // Usamos el ID directamente
+                        fecha: obtenerFechaActual(), // Se asigna la fecha actual
+                        idcurso: idcurso,  // Asegurarse de que es un número
+                        idestado: idestado,  // Asignar el valor calculado para idestado
+                    };
+    
+                    console.log("Datos que se van a enviar al backend:", asistenciaData); // Verifica los datos antes de enviarlos
+    
+                    // Enviar los datos de asistencia al backend (asegúrate de tener el código de envío adecuado)
+                    //await enviarAsistencia(asistenciaData); // Asegúrate de que esta función maneje el envío correctamente
+                } else {
+                    console.error(`No se encontraron datos para el DNI ${estudiante.id}`);
+                }
+            }
+            // Después de procesar todos los estudiantes, confirmar el registro
+            confirmarRegistro();
+    
+        } catch (error) {
+            console.error('Error al registrar la asistencia:', error.message);
+        }
+    };
+
+    const confirmarRegistro = async () => {
+        setModalVisible(false); // Cerrar el modal
+        try {
+            for (const estudiante of students) {
+                const asistenciaData = {
+                    dnialumno: parseInt(estudiante.id, 10), // Cambié formData.dnialumno por id
+                    fecha: obtenerFechaActual(),
+                    idcurso: idcurso,
+                    idestado: estudiante.presente ? 3 : 2, // Cambié la lógica para idestado
+                };
+                console.log("Enviando datos al backend:", asistenciaData);
+                const curso = await obtenerCursoFrontend(asistenciaData.idcurso);
+                registrarAsistenciaFrontend(asistenciaData);
+                setMensajeConfirmacion(`La asistencia del curso "${curso.curso.detalle}" se registró correctamente.`);
+                setTimeout(() => {
+                    setMensajeConfirmacion('');
+                }, 3000);
+            }
+            console.log("Registro completado.");
+        } catch (error) {
+            console.error("Error al confirmar el registro:", error.message);
+        }
+    };
+    
 
 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
             <Picker style={styles.lista}>
-                <Picker.Item  label='Seleccionar curso' value=''/>
-                <Picker.Item  label='1 b' value='1b'/>
-                <Picker.Item  label='2 a' value='1a'/>
+                <Picker.Item label='Seleccionar curso' value='' />
+                <Picker.Item label='1 b' value='1b' />
+                <Picker.Item label='2 a' value='1a' />
             </Picker>
             <View style={styles.busqueda}>
                 <FontAwesome5 name="search" size={15} color="black" style={styles.icon} />
-                <TextInput placeholder='Ingresar Alumno' style={styles.textBusqueda}/>
+                <TextInput placeholder='Ingresar Alumno' style={styles.textBusqueda} />
             </View>
             <View style={styles.contenedorTexto}>
                 <Text style={styles.texto}>Nombre</Text>
@@ -46,25 +148,30 @@ export default function ModificarAsistencia(){
             </View>
             <ScrollView style={styles.listaEstudiantes}>
                 {students.map((estudiante) => (
-                <View key={estudiante.id} style={styles.filaEstudiantes}>
-                    
-                    <Text style={styles.estudiante}>{estudiante.nombre}</Text>
-                    <Switch
-                    value={estudiante.presente}
-                    onValueChange={() => toggleSwitch(estudiante.id)}
-                    thumbColor={estudiante.presente ? "#3b82f6" : "#ccc"}
-                    />
-                </View>
+                    <View key={estudiante.id} style={styles.filaEstudiantes}>
+                        <Text style={styles.estudiante}>{estudiante.nombre}</Text>
+                        <Switch
+                            value={estudiante.presente}
+                            onValueChange={() => toggleSwitch(estudiante.id)}
+                            thumbColor={estudiante.presente ? "#3b82f6" : "#ccc"}
+                        />
+                    </View>
                 ))}
             </ScrollView>
-
+    
             <View style={styles.contenedorBotones}>
-                <TouchableOpacity style={styles.volver}><Text style={styles.botonTexto} onPress={() => navegacion.navigate('Gestionar Asistencia')}>Volver</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.enviar}><Text style={styles.botonTexto}>Enviar</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.exportar}><Text style={styles.botonTexto}>Exportar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.volver} onPress={() => navegacion.navigate('Gestionar Asistencia')}>
+                    <Text style={styles.botonTexto}>Volver</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.enviar} onPress={handleRegistrar}>
+                    <Text style={styles.botonTexto}>Enviar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.exportar}>
+                    <Text style={styles.botonTexto}>Exportar</Text>
+                </TouchableOpacity>
             </View>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({

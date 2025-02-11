@@ -1,6 +1,6 @@
 import { Alert, Platform } from 'react-native';
-const api_url = 'http://192.168.0.22:5000'
-const api_urlAmonestacion = 'http://192.168.0.22:5000/amonestacion'
+const api_url = 'http://localhost:5000'
+const api_urlAmonestacion = 'http://localhost:5000/amonestacion'
 
 export const registrarAmonestacion = async (formData) => {
     try{
