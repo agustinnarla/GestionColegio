@@ -5,6 +5,7 @@ import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
 import { obtenerAlumnoPorCurso, obtenerEtapasEvaluativas, obtenerMateria, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
 import ListasDesplegables from '../../componente/ListasDesplegables';
+import { registrarNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
 
 
@@ -15,7 +16,6 @@ export default function CargarNotas() {
         dnialumno: '',
         idmateria: '',
         idcurso:'',
-        idetapas: '',
         nota1: '',
         nota2: '',
         nota3: '',
@@ -63,13 +63,64 @@ export default function CargarNotas() {
         }
     };
 
+    const handleRegistrar = async () => {
+        try {
+            // Validación más específica y logs de depuración
+            console.log('FormData actual:', formData);
+            console.log('Alumnos:', alumnos);
+
+            // Validar que haya alumnos seleccionados
+            if (!alumnos || alumnos.length === 0) {
+                return Alert.alert('Error', 'No hay alumnos para registrar notas');
+            }
+
+            // Validar campos del formulario
+            if (!formData.idmateria) {
+                return Alert.alert('Error', 'Por favor seleccione una materia');
+            }
+            if (!formData.idcurso) {
+                return Alert.alert('Error', 'Por favor seleccione un curso');
+            }
+
+            // Crear array de notas para registrar
+            const notasParaRegistrar = alumnos.map(alumno => {
+                if (!alumno.dnialumno) {
+                    throw new Error("DNI de alumno no encontrado");
+                }
+
+                return {
+                    dnialumno: parseInt(alumno.dnialumno),
+                    idmateria: parseInt(formData.idmateria),
+                    idcurso: parseInt(formData.idcurso),
+                    nota1: alumno.nota1 ? parseInt(alumno.nota1) : null,
+                    nota2: alumno.nota2 ? parseInt(alumno.nota2) : null,
+                    nota3: alumno.nota3 ? parseInt(alumno.nota3) : null,
+                    nota4: alumno.nota4 ? parseInt(alumno.nota4) : null,
+                    nota5: alumno.nota5 ? parseInt(alumno.nota5) : null,
+                    nota6: alumno.nota6 ? parseInt(alumno.nota6) : null
+                };
+            });
+
+            console.log("Datos a registrar:", notasParaRegistrar);
+
+            // Llamar al backend para registrar las notas
+            const respuesta = await registrarNotas(notasParaRegistrar);
+            console.log('Respuesta del servidor:', respuesta);
+            Alert.alert('Éxito', 'Las notas se registraron correctamente');
+
+        } catch (error) {
+            console.log("Error detallado:", error);
+            Alert.alert('Error', `Error al registrar las notas: ${error.message}`);
+        }
+    };
+
     const handleNotaChange = (dnialumno, campo, valor) => {
         // Validar que el valor sea un número entre 0 y 10
         if (valor === '' || (parseInt(valor) >= 0 && parseInt(valor) <= 10)) {
             setAlumnos(prevAlumnos => 
                 prevAlumnos.map(alumno => 
                     alumno.dnialumno === dnialumno 
-                        ? { ...alumno, [campo]: valor }
+                        ? { ...alumno, [campo]: valor === '' ? '' : valor }
                         : alumno
                 )
             );
@@ -135,7 +186,7 @@ export default function CargarNotas() {
                             <TextInput 
                                 key={num}
                                 style={styles.inputNota}
-                                value={item[`nota${num}`]?.toString()}
+                                value={item[`nota${num}`]?.toString() || ''}
                                 inputMode="numeric"
                                 maxLength={2}
                                 onChangeText={(text) => handleNotaChange(item.dnialumno, `nota${num}`, text)}
@@ -143,8 +194,11 @@ export default function CargarNotas() {
                         ))}
                     </View>
                 ))}
-                <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos}>
-                            <Text style={styles.textoBoton}>Confrimar</Text>
+                <TouchableOpacity 
+                    style={styles.botonConsultar} 
+                    onPress={handleRegistrar}
+                >
+                    <Text style={styles.textoBoton}>Confirmar</Text>
                 </TouchableOpacity>
             </ScrollView>
                 </View>

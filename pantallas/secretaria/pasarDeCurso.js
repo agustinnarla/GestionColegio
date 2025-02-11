@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } fr
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
 import { CursoSelector } from '../../componente/ListasDesplegables';
-import { obtenerAlumnoFinal } from '../../scripts/secretaria/scriptPasarCurso';
+import { obtenerAlumnoFinal, registrarCursoNuevo } from '../../scripts/secretaria/scriptPasarCurso';
 
 export default function PasarDeAño() {
   const [formData, setFormData] = useState({
@@ -45,6 +45,28 @@ export default function PasarDeAño() {
       } 
     };
   
+    const handleRegistrar = async() => {
+      try {
+        const alumnosData = alumnos.map(alumno => ({
+          dnialumno: alumno.dnialumno,
+          idcurso: parseInt(formData.idcurso) 
+        }));
+
+        console.log("Datos a enviar:", alumnosData);
+
+        const respuesta = await registrarCursoNuevo(alumnosData);
+        
+        console.log("Alumnos Asignados al curso nuevo perfectamente",respuesta)
+        setAlumnos([]);
+        setFormData({
+          dnialumno: '',
+          idcurso:'',
+      });
+      } catch(error) {
+        console.error("Error completo:", error);
+        Alert.alert('Error', 'Hubo un problema al actualizar los alumnos: ' + error.message);
+      }
+    }
   return (
     <View style={styles.container}>
       <Image source={bg} style={styles.bg} resizeMode="cover" />
@@ -73,7 +95,7 @@ export default function PasarDeAño() {
                     </View>
                 ))}
                 <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
-                            <Text style={styles.textoBoton}>Confrimar</Text>
+                            <Text style={styles.textoBoton} onPress={handleRegistrar}>Confirmar</Text>
                 </TouchableOpacity>
             </ScrollView>
                 </View>

@@ -10,8 +10,6 @@ export const pool = new pg.Pool({
   user: process.env.USER || 'postgres',
   password: process.env.PASSWORD || 'roma'
 });
-
-
 try {
     await pool.query("SELECT NOW()");
     console.log("Base de datos conectada exitosamente");
