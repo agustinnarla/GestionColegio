@@ -5,7 +5,9 @@ import { obtenerLibroMatriz, obtenerLetra } from '../../scripts/secretaria/scrip
 
 export default function LibroMatriz() {
     const [datos, setDatos] = useState([]);
-    const [añoActual, setAñoActual] = useState(6);
+    const [cursoActual, setCursoActual] = useState('');
+    const [cursosDisponibles, setCursosDisponibles] = useState([]);
+    const [cursoSeleccionado, setCursoSeleccionado] = useState('');
     
     const [formData, setFormData] = useState({
         dnialumno: '',
@@ -15,40 +17,49 @@ export default function LibroMatriz() {
         promedio: '',
     });
 
-    const cambiarAño = (cambio) => {
-        setAñoActual(prevAño => Math.min(6, Math.max(1, prevAño + cambio)));
+    const handleConsultar = async () => {
+        try {
+            const alumno = await obtenerLibroMatriz(formData.dnialumno);
+            console.log('Alumno consultado:', alumno);
+
+            if (alumno && alumno.length > 0) {
+                setFormData({
+                    ...formData,
+                    dnialumno: parseInt(alumno[0].dnialumno), 
+                    idcurso: alumno[0].idcurso || '',
+                    idestadoevaluativo: alumno[0].idestadoevaluativo || '',
+                    idmateria: alumno[0].idmateria || '',
+                    promedio: alumno[0].promedio || '',
+                });
+
+                setDatos(alumno);
+                setCursoActual(alumno[0].curso_detalle); 
+                setCursosDisponibles([...new Set(alumno.map(item => item.curso_detalle))]); 
+                setCursoSeleccionado(alumno[0].curso_detalle); 
+            } else {
+                Alert.alert('Error', 'Alumno no encontrado');
+            }
+        } catch (error) {
+            console.error('Error al consultar alumno:', error.message);
+            Alert.alert('Error', error.message);
+        }
     };
 
-    const handleConsultar = async () => {
-    try {
-        const alumno = await obtenerLibroMatriz(formData.dnialumno);
-        console.log('Alumno consultado:', alumno);
-
-        if (alumno && alumno.length > 0) {
-            setFormData({
-                ...formData,
-                dnialumno: parseInt(alumno[0].dnialumno), 
-                idestadoevaluativo: alumno[0].idestadoevaluativo || '',
-                idmateria: alumno[0].idmateria || '',
-                promedio: alumno[0].promedio || '',
-            });
-
-            setDatos(alumno);
-            setAñoActual(alumno[0].idcurso); // Asume que el año está en el primer registro
-        } else {
-            Alert.alert('Error', 'Alumno no encontrado');
+    const cambiarCurso = (direccion) => {
+        const indiceActual = cursosDisponibles.indexOf(cursoSeleccionado);
+        if (direccion === 'anterior' && indiceActual < cursosDisponibles.length - 1) {
+            setCursoSeleccionado(cursosDisponibles[indiceActual + 1]);
+        } else if (direccion === 'siguiente' && indiceActual > 0) {
+            setCursoSeleccionado(cursosDisponibles[indiceActual - 1]);
         }
-    } catch (error) {
-        console.error('Error al consultar alumno:', error.message);
-        Alert.alert('Error', error.message);
-    }
-};
+    };
 
     const renderItem = ({ item }) => {
         const hoy = new Date();
         const dia = hoy.getDate();
         const mes = hoy.getMonth() + 1;
         const año = hoy.getFullYear();
+
         return (
             <View style={styles.fila}>
                 <Text style={styles.celda}>{item.materia_detalle}</Text>
@@ -62,7 +73,9 @@ export default function LibroMatriz() {
             </View>
         );
     };
-    const datosFiltrados = datos.filter(item => item.idcurso === añoActual);
+
+    const datosFiltrados = datos.filter(item => item.curso_detalle === cursoSeleccionado);
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
@@ -107,24 +120,29 @@ export default function LibroMatriz() {
                     <FlatList
                         data={datosFiltrados}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.dnialumno.toString()}
+                        keyExtractor={(item) => `${item.dnialumno}-${item.idmateria}`} 
                     />
-                    <View style={styles.contenedorBotonesAño}>
-                        <TouchableOpacity 
-                            style={[styles.botonAño, añoActual <= 1 && styles.botonDeshabilitado]} 
-                            onPress={() => cambiarAño(-1)} 
-                            disabled={añoActual <= 1}>
-                            <Text style={styles.textoBotonAño}>{"<"}</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.textoAño}>{añoActual} Curso</Text>
-                        <TouchableOpacity 
-                            style={[styles.botonAño, añoActual >= 6 && styles.botonDeshabilitado]} 
-                            onPress={() => cambiarAño(1)} 
-                            disabled={añoActual >= 6}>
-                            <Text style={styles.textoBotonAño}>{">"}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    
+                </View>
+            )}
+
+            {/* Botones para cambiar de curso */}
+            {cursosDisponibles.length > 0 && (
+                <View style={styles.contenedorBotonesAño}>
+                    <TouchableOpacity 
+                        style={[styles.botonAño, cursosDisponibles.indexOf(cursoSeleccionado) === cursosDisponibles.length - 1 && styles.botonDeshabilitado]} 
+                        onPress={() => cambiarCurso('anterior')}
+                        disabled={cursosDisponibles.indexOf(cursoSeleccionado) === cursosDisponibles.length - 1}
+                    >
+                        <Text style={styles.textoBotonAño}>{"<"}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.textoAño}>{cursoSeleccionado} Curso</Text>
+                    <TouchableOpacity 
+                        style={[styles.botonAño, cursosDisponibles.indexOf(cursoSeleccionado) === 0 && styles.botonDeshabilitado]} 
+                        onPress={() => cambiarCurso('siguiente')}
+                        disabled={cursosDisponibles.indexOf(cursoSeleccionado) === 0}
+                    >
+                        <Text style={styles.textoBotonAño}>{">"}</Text>
+                    </TouchableOpacity>
                 </View>
             )}
         </View>
@@ -225,7 +243,26 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
     },
-  
+    cursosContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    botonCurso: {
+        padding: 10,
+        backgroundColor: '#007bff',
+        borderRadius: 5,
+        marginHorizontal: 10,
+    },
+    botonCursoSeleccionado: {
+        backgroundColor: '#0056b3',
+    },
+    textoBotonCurso: {
+        color: 'black',
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
     contenedorBotonesAño: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -242,10 +279,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#0500FF',
-    },
-    textoAño: {
-        fontSize: 18,
-        fontWeight: 'bold',
     },
     botonDeshabilitado: {
         backgroundColor: '#D3D3D3', // Color para el botón deshabilitado

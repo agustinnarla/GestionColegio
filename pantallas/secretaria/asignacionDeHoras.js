@@ -41,7 +41,6 @@ export default function AsignacionHoras() {
     return (
         <View style={styles.container}>
             <Image source={bg} style={styles.bg} />
-           
                 <View style={styles.selectorContainer}>
                     <View style={styles.selector}>
                         <Text style={styles.label}>Profesor</Text>

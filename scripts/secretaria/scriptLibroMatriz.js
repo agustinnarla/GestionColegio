@@ -49,6 +49,6 @@ export const obtenerLetra = (promedio) => {
         case promedio == 0:
             return 'cero';
         default:
-            return 'D';
+            return 'no hay notas registradas';
     }
 }

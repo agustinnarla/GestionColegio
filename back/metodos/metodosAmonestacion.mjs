@@ -32,7 +32,7 @@ export const registrarAmonestacion = async (req,res) => {
         );
 
 
-        
+        //Realizar metodo para enviar email 
         const emailsQuery = await pool.query(
             'SELECT emailfamiliar FROM alumno WHERE dnialumno = $1',
             [dnialumno]
@@ -58,6 +58,7 @@ export const registrarAmonestacion = async (req,res) => {
                 await transporter.sendMail(mailOptions);
             
             }   
+
         console.log("Amonestación registrada exitosamente");
         res.status(200).json({ amonestacion: respuesta.rows});
     }catch(error){
