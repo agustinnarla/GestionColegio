@@ -1,43 +1,68 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput } from 'react-native';
-import React, { useState } from "react";
+import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert } from 'react-native';
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import { obtenerLibroMatriz, obtenerLetra } from '../../scripts/secretaria/scriptLibroMatriz';
 
 export default function LibroMatriz() {
     const [datos, setDatos] = useState([]);
-    const [añoActual, setAñoActual] = useState(6); // Cambiar a número
-
-    const consultarDatos = () => {
-        try {
-            const datosSimulados = [
-                { id: '1', materia: 'Biología', condicion: 'Regular', letra: 'nueve', n: '9', m: '11', a: '24', establecimiento: 'Este establecimiento'},
-                { id: '2', materia: 'Química', condicion: 'Regular', letra: 'seis', n: '6', m: '11', a: '24', establecimiento: 'Este establecimiento'},
-            ];
-            setDatos(datosSimulados);
-        } catch (error) {
-            console.error("Error al consultar datos:", error);
-            // Manejo de errores (puedes mostrar un mensaje al usuario)
-        }
-    };
+    const [añoActual, setAñoActual] = useState(6);
+    
+    const [formData, setFormData] = useState({
+        dnialumno: '',
+        idcurso: '',
+        idmateria: '',
+        idestadoevaluativo: '',
+        promedio: '',
+    });
 
     const cambiarAño = (cambio) => {
-        const nuevoAño = añoActual + cambio; // Sumar o restar correctamente
-        setAñoActual(nuevoAño);
-        consultarDatos(); 
-    
+        setAñoActual(prevAño => Math.min(6, Math.max(1, prevAño + cambio)));
     };
 
-    const renderItem = ({ item }) => (
-        <View style={styles.fila}>
-            <Text style={styles.celda}>{item.materia}</Text>
-            <Text style={styles.celda}>{item.condicion}</Text>
-            <Text style={styles.celda}>{item.letra}</Text>
-            <Text style={styles.celda}>{item.n}</Text>
-            <Text style={styles.celda}>{item.m}</Text>
-            <Text style={styles.celda}>{item.a}</Text>
-            <Text style={styles.celda}>{item.establecimiento}</Text>
-        </View>
-    );
+    const handleConsultar = async () => {
+    try {
+        const alumno = await obtenerLibroMatriz(formData.dnialumno);
+        console.log('Alumno consultado:', alumno);
 
+        if (alumno && alumno.length > 0) {
+            setFormData({
+                ...formData,
+                dnialumno: parseInt(alumno[0].dnialumno), 
+                idestadoevaluativo: alumno[0].idestadoevaluativo || '',
+                idmateria: alumno[0].idmateria || '',
+                promedio: alumno[0].promedio || '',
+            });
+
+            setDatos(alumno);
+            setAñoActual(alumno[0].idcurso); // Asume que el año está en el primer registro
+        } else {
+            Alert.alert('Error', 'Alumno no encontrado');
+        }
+    } catch (error) {
+        console.error('Error al consultar alumno:', error.message);
+        Alert.alert('Error', error.message);
+    }
+};
+
+    const renderItem = ({ item }) => {
+        const hoy = new Date();
+        const dia = hoy.getDate();
+        const mes = hoy.getMonth() + 1;
+        const año = hoy.getFullYear();
+        return (
+            <View style={styles.fila}>
+                <Text style={styles.celda}>{item.materia_detalle}</Text>
+                <Text style={styles.celda}>{item.estado_detalle}</Text>
+                <Text style={styles.celda}>{item.promedio}</Text>
+                <Text style={styles.celda}>{obtenerLetra(item.promedio)}</Text>
+                <Text style={styles.celda}>{dia}</Text>
+                <Text style={styles.celda}>{mes}</Text>
+                <Text style={styles.celda}>{año}</Text>
+                <Text style={styles.celda}>Este establecimiento</Text>
+            </View>
+        );
+    };
+    const datosFiltrados = datos.filter(item => item.idcurso === añoActual);
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
@@ -50,11 +75,13 @@ export default function LibroMatriz() {
                         placeholder='dni' 
                         keyboardType='numeric' 
                         accessibilityLabel="Ingrese su DNI"
+                        value={formData.dnialumno}
+                        onChangeText={(text) => setFormData({...formData, dnialumno: text})}
                     />
                 </View>
                 
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonConsultar} onPress={consultarDatos}>
+                    <TouchableOpacity style={styles.botonConsultar} onPress={handleConsultar}>
                         <Text style={styles.textoBoton}>Consultar</Text>
                     </TouchableOpacity>
 
@@ -62,44 +89,42 @@ export default function LibroMatriz() {
                         <Text style={styles.imprimir}>Imprimir</Text>
                     </TouchableOpacity>
                 </View>
-               
             </View>
     
-
             {/* Grilla */}
             {datos.length > 0 && (
                 <View style={styles.grilla}>
                     <View style={styles.encabezado}>
                         <Text style={styles.celdaEncabezado}>Espacio Curricular</Text>
                         <Text style={styles.celdaEncabezado}>Condición</Text>
-                        <Text style={styles.celdaEncabezado}>Letra</Text>
                         <Text style={styles.celdaEncabezado}>N°</Text>
+                        <Text style={styles.celdaEncabezado}>Letra</Text>
+                        <Text style={styles.celdaEncabezado}>D</Text>
                         <Text style={styles.celdaEncabezado}>M</Text>
                         <Text style={styles.celdaEncabezado}>A</Text>
                         <Text style={styles.celdaEncabezado}>Establecimiento</Text>
                     </View>
                     <FlatList
-                        data={datos}
+                        data={datosFiltrados}
                         renderItem={renderItem}
-                        keyExtractor={item => item.id}
+                        keyExtractor={(item) => item.dnialumno.toString()}
                     />
-                     <View style={styles.contenedorBotonesAño}>
+                    <View style={styles.contenedorBotonesAño}>
                         <TouchableOpacity 
                             style={[styles.botonAño, añoActual <= 1 && styles.botonDeshabilitado]} 
                             onPress={() => cambiarAño(-1)} 
-                            disabled={añoActual <= 1} // Deshabilitar si el año es 1
-                        >
+                            disabled={añoActual <= 1}>
                             <Text style={styles.textoBotonAño}>{"<"}</Text>
                         </TouchableOpacity>
-                        <Text style={styles.textoAño}>{añoActual} año</Text>
+                        <Text style={styles.textoAño}>{añoActual} Curso</Text>
                         <TouchableOpacity 
                             style={[styles.botonAño, añoActual >= 6 && styles.botonDeshabilitado]} 
                             onPress={() => cambiarAño(1)} 
-                            disabled={añoActual >= 6} // Deshabilitar si el año es 6
-                        >
+                            disabled={añoActual >= 6}>
                             <Text style={styles.textoBotonAño}>{">"}</Text>
                         </TouchableOpacity>
-                     </View>
+                    </View>
+                    
                 </View>
             )}
         </View>

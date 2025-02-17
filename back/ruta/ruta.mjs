@@ -16,6 +16,7 @@ import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasar
 import {  obtenerAlumnosAusentes, obtenerEstadosFalta, obtenerJustificarFalta, registrarJustificacion, ActualizarEstadoLibreAlumno} from '../metodos/metodosJustificarFalta.mjs'
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
+import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 
 // Configuración de multer
 const storage = multer.memoryStorage()
@@ -87,3 +88,5 @@ ruta.post('/justificarFalta',registrarJustificacion)
 ruta.get('/certificado',obtenerEstadoCertificado)
 //Estado Inasistencia
 ruta.get('/estado',obtenerEstadoInasistencia)
+//libroMatriz 
+ruta.get('/libroMatriz/:dnialumno', cargarGrilla)

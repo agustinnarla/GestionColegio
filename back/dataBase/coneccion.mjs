@@ -6,7 +6,7 @@ dotenv.config()
 export const pool = new pg.Pool({
   host: process.env.HOST || 'localhost', // Usa 'localhost' si la variable de entorno no está definida
   port: process.env.PORT || 5432,       // Usa 5432 como valor por defecto
-  database: process.env.DATABASE || 'gestion-colegio',
+  database: process.env.DATABASE || 'gestion-Colegio',
   user: process.env.USER || 'postgres',
   password: process.env.PASSWORD || 'roma'
 });

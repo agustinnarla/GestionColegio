@@ -1,8 +1,8 @@
-const api_url = 'http://192.168.0.22:5000'
-const api_urlCargarNotas = 'http://192.168.0.22:5000/notas'
-const api_urlObtenerMateria = 'http://192.168.0.22:5000/materia'
-const api_urlObtenerEtapasEvaluativas = 'http://192.168.0.22:5000/etapas'
-const api_urlObtenerAlumnoPorCurso = 'http://192.168.0.22:5000/alumnosPorCurso'
+const api_url = 'http://192.168.0.23:5000'
+const api_urlCargarNotas = 'http://192.168.0.23:5000/notas'
+const api_urlObtenerMateria = 'http://192.168.0.23:5000/materia'
+const api_urlObtenerEtapasEvaluativas = 'http://192.168.0.23:5000/etapas'
+const api_urlObtenerAlumnoPorCurso = 'http://192.168.0.23:5000/alumnosPorCurso'
 
 
 
