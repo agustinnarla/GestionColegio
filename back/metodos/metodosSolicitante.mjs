@@ -3,7 +3,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerSolicitante = async (req,res) => {
     try{
-        const respuesta = await pool.query('SELECT idsolicitante,nombre_apellido FROM solicitante')
+        const respuesta = await pool.query('SELECT id_solicitante,nombre_apellido FROM solicitante')
         res.status(200).json({solicitante: respuesta.rows})
     }catch(error){
         console.log(error)

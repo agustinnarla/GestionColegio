@@ -11,11 +11,13 @@ import { registrarNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
 export default function CargarNotas() {
     
-    //Formulario
+    /*
+        FORMULARIO
+    */
     const [formData, setFormData] = useState({
-        dnialumno: '',
-        idmateria: '',
-        idcurso:'',
+        dni_alumno: '',
+        id_materia: '',
+        id_curso:'',
         nota1: '',
         nota2: '',
         nota3: '',
@@ -24,6 +26,9 @@ export default function CargarNotas() {
         nota6: ''
     });
     
+    /*
+        CARGAMOS LAS LISTAS DESPLEGABLES
+    */
     const [curso,setCursos] = useState([]);
     const [etapaEscolar, setEtapaEscolar] = useState([]);
     const [materias,setMaterias] = useState([]);
@@ -45,11 +50,14 @@ export default function CargarNotas() {
         cargarDatos();
     }, []);
 
-    // Cargar alumnos cuando se selecciona un curso y materia 
+    
+    /*
+        CARGAMOS ALUMNOS SEGÚN EL CURSO Y MATERIA SELECCIONADOS
+    */
     const cargarAlumnos = async () => {
-        if (formData.idcurso && formData.idmateria) {  
+        if (formData.id_curso && formData.id_materia) {  
             try {
-                const alumnosData = await obtenerNotas(formData.idcurso, formData.idmateria);
+                const alumnosData = await obtenerNotas(formData.id_curso, formData.id_materia);
                 if (alumnosData) {
                     setAlumnos(alumnosData);
                     console.log('Alumnos cargados:', alumnosData);
@@ -63,11 +71,12 @@ export default function CargarNotas() {
         }
     };
 
+    /*
+        REGISTRAMOS NUEVAS NOTAS 
+    */
     const handleRegistrar = async () => {
         try {
-            // Validación más específica y logs de depuración
-            console.log('FormData actual:', formData);
-            console.log('Alumnos:', alumnos);
+            
 
             // Validar que haya alumnos seleccionados
             if (!alumnos || alumnos.length === 0) {
@@ -75,23 +84,23 @@ export default function CargarNotas() {
             }
 
             // Validar campos del formulario
-            if (!formData.idmateria) {
+            if (!formData.id_materia) {
                 return Alert.alert('Error', 'Por favor seleccione una materia');
             }
-            if (!formData.idcurso) {
+            if (!formData.id_curso) {
                 return Alert.alert('Error', 'Por favor seleccione un curso');
             }
 
             // Crear array de notas para registrar
             const notasParaRegistrar = alumnos.map(alumno => {
-                if (!alumno.dnialumno) {
+                if (!alumno.dni_alumno) {
                     throw new Error("DNI de alumno no encontrado");
                 }
 
                 return {
-                    dnialumno: parseInt(alumno.dnialumno),
-                    idmateria: parseInt(formData.idmateria),
-                    idcurso: parseInt(formData.idcurso),
+                    dni_alumno: parseInt(alumno.dni_alumno),
+                    id_materia: parseInt(formData.id_materia),
+                    id_curso: parseInt(formData.id_curso),
                     nota1: alumno.nota1 ? parseInt(alumno.nota1) : null,
                     nota2: alumno.nota2 ? parseInt(alumno.nota2) : null,
                     nota3: alumno.nota3 ? parseInt(alumno.nota3) : null,
@@ -114,12 +123,12 @@ export default function CargarNotas() {
         }
     };
 
-    const handleNotaChange = (dnialumno, campo, valor) => {
+    const handleNotaChange = (dni_alumno, campo, valor) => {
         // Validar que el valor sea un número entre 0 y 10
         if (valor === '' || (parseInt(valor) >= 0 && parseInt(valor) <= 10)) {
             setAlumnos(prevAlumnos => 
                 prevAlumnos.map(alumno => 
-                    alumno.dnialumno === dnialumno 
+                    alumno.dnialumno === dni_alumno 
                         ? { ...alumno, [campo]: valor === '' ? '' : valor }
                         : alumno
                 )
@@ -127,7 +136,7 @@ export default function CargarNotas() {
         }
     };
 
-      //Ver reutilización
+
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
@@ -180,7 +189,7 @@ export default function CargarNotas() {
                 contentContainerStyle={styles.scrollViewContent}
             >
                 {alumnos.map((item) => (
-                    <View key={item.dnialumno} style={styles.row}>
+                    <View key={item.dni_alumno} style={styles.row}>
                         <Text style={styles.cellNombre}>{item.nombre_completo}</Text>
                         {[1,2,3,4,5,6].map((num) => (
                             <TextInput 
@@ -189,7 +198,7 @@ export default function CargarNotas() {
                                 value={item[`nota${num}`]?.toString() || ''}
                                 inputMode="numeric"
                                 maxLength={2}
-                                onChangeText={(text) => handleNotaChange(item.dnialumno, `nota${num}`, text)}
+                                onChangeText={(text) => handleNotaChange(item.dni_alumno, `nota${num}`, text)}
                             />
                         ))}
                     </View>

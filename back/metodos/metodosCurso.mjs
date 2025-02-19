@@ -3,7 +3,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerCurso = async (req,res) => {
     try{
-        const respuesta = await pool.query("SELECT idcurso,detalle FROM curso")
+        const respuesta = await pool.query("SELECT id_curso,detalle FROM curso")
         res.json({curso: respuesta.rows})
     }
     catch{
@@ -15,7 +15,7 @@ export const obtenerCursoFiltrado = async (req, res) => {
     const { idcurso } = req.params;
     try {
         const respuesta = await pool.query(
-            "SELECT idcurso, detalle FROM curso WHERE idcurso = $1",
+            "SELECT id_curso, detalle FROM curso WHERE id_curso = $1",
             [idcurso]
         );
         if (respuesta.rows.length > 0) {

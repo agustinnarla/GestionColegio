@@ -1,7 +1,16 @@
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import { pool } from '../dataBase/coneccion.mjs';
 dotenv.config();
 
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 /* 
         REGISTRAR AMONESTACIÓN
 */
@@ -73,11 +82,11 @@ const enviarEmail = async (dni_alumno, fecha, motivo) => {
 
 
 export const obtenerCantidadAmonestaciones = async (req, res) => {
-    const { dnialumno } = req.params;
+    const { dni_alumno } = req.params;
     try {
         const respuesta = await pool.query(
             "SELECT COALESCE(MAX(total), 0) as total FROM amonestacion WHERE dni_alumno = $1",
-            [dnialumno]
+            [dni_alumno]
         );
         res.status(200).json({ total: respuesta.rows[0].total });
     } catch (error) {

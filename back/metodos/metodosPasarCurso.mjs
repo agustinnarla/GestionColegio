@@ -5,24 +5,24 @@ export const obtenerAlumnoFinal = async (req,res) => {
     const {idcurso} = req.params
     try{
         // Obtener promedios de cada alumno en distintas materias
-        const promedios = await pool.query('SELECT dnialumno, AVG(promedio) as promedio FROM alumnomateria GROUP BY dnialumno')
+        const promedios = await pool.query('SELECT dni_alumno, AVG(promedio) as promedio FROM alumnomateria GROUP BY dni_alumno')
         
         // Comprobar si hay algún promedio menor a 6
         const alumnosConFinales = promedios.rows.map(alumno => ({
-            dnialumno: alumno.dnialumno,
+            dni_alumno: alumno.dni_alumno,
             tieneFinal: alumno.promedio < 6 
         }));
 
         const respuesta = await pool.query(
-            "SELECT a.dnialumno, CONCAT(nombre,' ',apellido) as nombrecompleto, promedio as promedio " +
-            "FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno INNER JOIN alumnomateria am ON a.dnialumno = am.dnialumno " +
-            "WHERE am.idcurso=$1 AND a.idestadoalumno=1 AND am.idestadoevaluativo=1",
+            "SELECT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, promedio as promedio " +
+            "FROM alumno a INNER JOIN alumnocurso ac ON a.dni_alumno = ac.dni_alumno INNER JOIN alumnomateria am ON a.dni_alumno = am.dni_alumno " +
+            "WHERE am.id_curso=$1 AND a.id_estadoalumno=1 AND am.id_estadoevaluativo=1",
             [idcurso]
         );
 
         // Agregar información sobre finales pendientes a la respuesta
         const alumnosConInfo = respuesta.rows.map(alumno => {
-            const infoFinal = alumnosConFinales.find(a => a.dnialumno === alumno.dnialumno);
+            const infoFinal = alumnosConFinales.find(a => a.dni_alumno === alumno.dni_alumno);
             return {
                 ...alumno,
                 tieneFinal: infoFinal ? infoFinal.tieneFinal : false // Asigna el estado de final
@@ -49,8 +49,8 @@ export const registrarCursoNuevo = async(req, res) => {
         const cursoActual = await pool.query(
             `SELECT c.detalle 
             FROM alumnocurso ac 
-            JOIN curso c ON ac.idcurso = c.idcurso 
-            WHERE ac.dnialumno = $1`,
+            JOIN curso c ON ac.id_curso = c.id_curso 
+            WHERE ac.dni_alumno = $1`,
             [alumnos[0].dnialumno]
         );
 
@@ -66,7 +66,7 @@ export const registrarCursoNuevo = async(req, res) => {
 
         // Buscar el primer curso del año siguiente (por ejemplo, "2a")
         const cursoSiguiente = await pool.query(
-            `SELECT idcurso 
+            `SELECT id_curso 
             FROM curso 
             WHERE detalle LIKE $1
             ORDER BY detalle ASC
@@ -89,7 +89,7 @@ export const registrarCursoNuevo = async(req, res) => {
             
             for (const alumno of alumnos) {
                 await client.query(
-                    'UPDATE alumnocurso SET idcurso = $1 WHERE dnialumno = $2', 
+                    'UPDATE alumnocurso SET id_curso = $1 WHERE dni_alumno = $2', 
                     [idcursonuevo, alumno.dnialumno]
                 );
             }

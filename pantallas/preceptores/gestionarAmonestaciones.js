@@ -1,23 +1,29 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform,Alert } from 'react-native';
-import React, {useState,useEffect} from "react";
-import { Picker } from '@react-native-picker/picker';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import { obtenerAlumnoCurso, obtenerSolicitante } from '../../scripts/preceptor/scriptGestionarObservacion.js';
-import { registrarAmonestacion,mostrarMensaje,imprimirArchivo,obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
+import { registrarAmonestacion, mostrarMensaje, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
+import ListasDesplegables from '../../componente/ListasDesplegables';
 
 export default function GestionarAmonestaciones() {
-
-    //Formulario
+    // Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
         id_solicitante: '',
         cantidad: '',
         fecha: '',
-        motivo: ''
+        motivo: '',
+        id_curso: ''
     });
 
-    //
+    // Listas desplegables
+    const [cursos, setCursos] = useState([]);
+    const [solicitantes, setSolicitante] = useState([]);
+    const [alumnos, setAlumnos] = useState([]);
+    const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
+
+    // Validar campos del formulario
     const validarCampos = () => {
         return formData.dni_alumno && 
             formData.id_solicitante && 
@@ -26,12 +32,6 @@ export default function GestionarAmonestaciones() {
             formData.motivo.length >= 3 &&
             formData.id_curso; 
     };
-
-    // Listas desplegables
-    const [cursos, setCursos] = useState([]);
-    const [solicitantes, setSolicitante] = useState([]);
-    const [alumnos, setAlumnos] = useState([]);
-    const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
 
     // Cargar cursos y solicitantes
     useEffect(() => {
@@ -61,15 +61,14 @@ export default function GestionarAmonestaciones() {
             }
         };
         cargarAlumnos();
-    }, [formData.id_curso]); // Solo se ejecuta cuando cambia el curso
+    }, [formData.id_curso]);
 
-    //Cargamos la cantidad de amonestaciones de acuerdo al dni
+    // Cargar cantidad de amonestaciones de acuerdo al DNI
     useEffect(() => {
         const cargarAmonestacion = async () => {
             if (formData.dni_alumno) {
                 try {
                     const total = await obtenerCantidadAmonestaciones(formData.dni_alumno);
-                    // Aseguramos que total sea un número antes de convertirlo a string
                     setTotalAmonestaciones(total ? total.toString() : "0");
                 } catch (error) {
                     console.error('Error al obtener total de amonestaciones:', error);
@@ -78,46 +77,38 @@ export default function GestionarAmonestaciones() {
             }
         };
         cargarAmonestacion();
-    }, [formData.dnialumno]);
+    }, [formData.dni_alumno]);
 
-    //Registramos la observación
+    // Registrar amonestación
     const handleRegistrar = async () => {
         try {
-            // Crear el objeto alumnoData, omitiendo campos no obligatorios
             const alumnoData = {
-                dni_alumno: parseInt(formData.dnialumno),
-                id_solicitante: parseInt(formData.idsolicitante),
+                dni_alumno: parseInt(formData.dni_alumno),
+                id_solicitante: parseInt(formData.id_solicitante),
                 cantidad: parseInt(formData.cantidad),
                 fecha: formData.fecha,
                 motivo: formData.motivo
-            }
+            };
 
-            // Validar que todos los campos estén completos
-            if (!alumnoData.dni_alumno || !alumnoData.id_solicitante || !alumnoData.fecha || !alumnoData.motivo || !alumnoData.cantidad) {
+            if (!validarCampos()) {
                 await mostrarMensaje('Error', 'Por favor complete todos los campos');
                 return;
             }
-            console.log('Datos de la amonesatción', alumnoData); 
+
+            console.log('Datos de la amonestación', alumnoData); 
             
             const respuesta = await registrarAmonestacion(alumnoData);
             await mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
-            console.log('Amonestación Registrado:', respuesta)
+            console.log('Amonestación Registrada:', respuesta);
             
-            setFormData({
-                dnialumno: '',
-                cantidad: '',
-                idsolicitante: '',
-                fecha: '',
-                motivo: ''
-            });
-            setTotalAmonestaciones('0'); 
-            
+            limpiarInterfaz();
         } catch (error) {
             console.error('Error al registrar la amonestación:', error.message);
             await mostrarMensaje('Error', 'No se pudo registrar la amonestación');
         }
-    }
+    };
 
+    // Limpiar formulario
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
@@ -125,13 +116,14 @@ export default function GestionarAmonestaciones() {
             cantidad: '',
             fecha: '',
             motivo: '',
+            id_curso: ''
         });
         setTotalAmonestaciones('0'); 
     };
 
+    // Imprimir archivo
     const handleImprimir = async () => {
         try {
-        
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
             const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
 
@@ -147,44 +139,20 @@ export default function GestionarAmonestaciones() {
         }
     };
 
-     //Ver reutilización
+    // Manejar cambios en el formulario
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
 
-    //Ver reutilización
-    const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
-        return (
-            <>
-                <Text style={styles.label}>{label}</Text>
-                <Picker
-                    style={styles.input}
-                    selectedValue={selectedValue}
-                    onValueChange={onValueChange}
-                >
-                    {items.length > 0 ? (
-                        items.map((item) => (
-                            <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
-                        ))
-                    ) : (
-                        <Picker.Item label="Cargando..." value="" />
-                    )}
-                </Picker>
-            </>
-        );
-    });
-
     const Content = (
         <View style={styles.contenido}>
-            <PickerField 
-                label="Curso"
-                style={styles.lista}
-                selectedValue={formData.id_curso} 
-                onValueChange={(value) => handleChange('idcurso', value)} 
-                items={[
-                    { label: 'Seleccione el curso', value: '' },
-                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.id_curso, key: curso.id_curso })) 
-                ]} 
+            <ListasDesplegables 
+                formData={formData} 
+                handleChange={handleChange} 
+                curso={cursos} 
+                alumnos={alumnos}
+                solicitantes={solicitantes}
+                styles={styles}
             />
 
             <Text style={styles.label}>Fecha:</Text>
@@ -193,37 +161,15 @@ export default function GestionarAmonestaciones() {
                 placeholder="AAAA-MM-DD" 
                 keyboardType="number-pad" 
                 value={formData.fecha}  
-                onChangeText={(value) => handleChange('fecha',value)}
-            />
-
-            <PickerField 
-                label="Alumno"
-                style={styles.lista}
-                selectedValue={formData.dni_alumno} 
-                onValueChange={(value) => handleChange('dnialumno', value)} 
-                items={[
-                    { label: 'Seleccione el alumno', value: '' },
-                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dni_alumno), key: alumno.dni_alumno }))
-                ]} 
-            />
-
-            <PickerField 
-                label="Solicitado Por"
-                style={styles.lista}
-                selectedValue={formData.id_solicitante} 
-                onValueChange={(value) => handleChange('idsolicitante', value)} 
-                items={[
-                    { label: 'Seleccione el solicitante', value: '' },
-                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.id_solicitante, key: solicitante.id_solicitante })) 
-                ]} 
+                onChangeText={(value) => handleChange('fecha', value)}
             />
 
             <Text style={styles.label}>Cantidad:</Text>
             <TextInput 
                 style={styles.input} 
-                placeholder="Cantidad de amonestación del dia" 
+                placeholder="Cantidad de amonestación del día" 
                 value={formData.cantidad}  
-                onChangeText={(value) => handleChange('cantidad',value)}
+                onChangeText={(value) => handleChange('cantidad', value)}
             />
 
             <Text style={styles.label}>Cantidad de amonestaciones totales:</Text>
@@ -234,7 +180,7 @@ export default function GestionarAmonestaciones() {
                 style={styles.input} 
                 placeholder="Motivo de las observaciones" 
                 value={formData.motivo}  
-                onChangeText={(value) => handleChange('motivo',value)}
+                onChangeText={(value) => handleChange('motivo', value)}
             />
 
             <View style={styles.botonesContainer}>
@@ -275,12 +221,11 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         zIndex: -1,
     },
-    scroll:{
+    scroll: {
         flexGrow: 1,  
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 20,
-        
     },
     contenido: {
         width: '90%',
@@ -321,7 +266,6 @@ const styles = StyleSheet.create({
     botonesContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-    
         marginTop: 20,
         marginBottom: 60,
     },
@@ -344,7 +288,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         flex: 1,
     },
-    botonImprimir:{
+    botonImprimir: {
         flex: 1,
         backgroundColor: '#CED9EF',
         paddingVertical: 12, 
