@@ -10,8 +10,8 @@ export default function GestionarAmonestaciones() {
 
     //Formulario
     const [formData, setFormData] = useState({
-        dnialumno: '',
-        idsolicitante: '',
+        dni_alumno: '',
+        id_solicitante: '',
         cantidad: '',
         fecha: '',
         motivo: ''
@@ -19,12 +19,12 @@ export default function GestionarAmonestaciones() {
 
     //
     const validarCampos = () => {
-        return formData.dnialumno && 
-            formData.idsolicitante && 
+        return formData.dni_alumno && 
+            formData.id_solicitante && 
             formData.cantidad.length >= 1 && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
-            formData.idcurso; 
+            formData.id_curso; 
     };
 
     // Listas desplegables
@@ -51,9 +51,9 @@ export default function GestionarAmonestaciones() {
     // Cargar alumnos cuando se selecciona un curso
     useEffect(() => {
         const cargarAlumnos = async () => {
-            if (formData.idcurso) {
+            if (formData.id_curso) {
                 try {
-                    const alumnosData = await obtenerAlumnoCurso(formData.idcurso);
+                    const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
                     setAlumnos(alumnosData);
                 } catch (error) {
                     console.error('Error al cargar alumnos:', error);
@@ -61,14 +61,14 @@ export default function GestionarAmonestaciones() {
             }
         };
         cargarAlumnos();
-    }, [formData.idcurso]); // Solo se ejecuta cuando cambia el curso
+    }, [formData.id_curso]); // Solo se ejecuta cuando cambia el curso
 
     //Cargamos la cantidad de amonestaciones de acuerdo al dni
     useEffect(() => {
         const cargarAmonestacion = async () => {
-            if (formData.dnialumno) {
+            if (formData.dni_alumno) {
                 try {
-                    const total = await obtenerCantidadAmonestaciones(formData.dnialumno);
+                    const total = await obtenerCantidadAmonestaciones(formData.dni_alumno);
                     // Aseguramos que total sea un número antes de convertirlo a string
                     setTotalAmonestaciones(total ? total.toString() : "0");
                 } catch (error) {
@@ -85,15 +85,15 @@ export default function GestionarAmonestaciones() {
         try {
             // Crear el objeto alumnoData, omitiendo campos no obligatorios
             const alumnoData = {
-                dnialumno: parseInt(formData.dnialumno),
-                idsolicitante: parseInt(formData.idsolicitante),
+                dni_alumno: parseInt(formData.dnialumno),
+                id_solicitante: parseInt(formData.idsolicitante),
                 cantidad: parseInt(formData.cantidad),
                 fecha: formData.fecha,
                 motivo: formData.motivo
             }
 
             // Validar que todos los campos estén completos
-            if (!alumnoData.dnialumno || !alumnoData.idsolicitante || !alumnoData.fecha || !alumnoData.motivo || !alumnoData.cantidad) {
+            if (!alumnoData.dni_alumno || !alumnoData.id_solicitante || !alumnoData.fecha || !alumnoData.motivo || !alumnoData.cantidad) {
                 await mostrarMensaje('Error', 'Por favor complete todos los campos');
                 return;
             }
@@ -120,8 +120,8 @@ export default function GestionarAmonestaciones() {
 
     const limpiarInterfaz = () => {
         setFormData({
-            dnialumno: '',
-            idsolicitante: '',
+            dni_alumno: '',
+            id_solicitante: '',
             cantidad: '',
             fecha: '',
             motivo: '',
@@ -132,8 +132,8 @@ export default function GestionarAmonestaciones() {
     const handleImprimir = async () => {
         try {
         
-            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dnialumno) === parseInt(formData.dnialumno));
-            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.idsolicitante) === parseInt(formData.idsolicitante));
+            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
+            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
 
             const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
             await mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
@@ -179,11 +179,11 @@ export default function GestionarAmonestaciones() {
             <PickerField 
                 label="Curso"
                 style={styles.lista}
-                selectedValue={formData.idcurso} 
+                selectedValue={formData.id_curso} 
                 onValueChange={(value) => handleChange('idcurso', value)} 
                 items={[
                     { label: 'Seleccione el curso', value: '' },
-                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
+                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.id_curso, key: curso.id_curso })) 
                 ]} 
             />
 
@@ -199,22 +199,22 @@ export default function GestionarAmonestaciones() {
             <PickerField 
                 label="Alumno"
                 style={styles.lista}
-                selectedValue={formData.dnialumno} 
+                selectedValue={formData.dni_alumno} 
                 onValueChange={(value) => handleChange('dnialumno', value)} 
                 items={[
                     { label: 'Seleccione el alumno', value: '' },
-                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dnialumno), key: alumno.dnialumno }))
+                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dni_alumno), key: alumno.dni_alumno }))
                 ]} 
             />
 
             <PickerField 
                 label="Solicitado Por"
                 style={styles.lista}
-                selectedValue={formData.idsolicitante} 
+                selectedValue={formData.id_solicitante} 
                 onValueChange={(value) => handleChange('idsolicitante', value)} 
                 items={[
                     { label: 'Seleccione el solicitante', value: '' },
-                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.idsolicitante, key: solicitante.idsolicitante })) 
+                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.id_solicitante, key: solicitante.id_solicitante })) 
                 ]} 
             />
 

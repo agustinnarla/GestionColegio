@@ -54,7 +54,7 @@ export const BottomTab = () => {
     >
       <Tab.Screen
         name="MENU"
-        component={HomeSecretaria}
+        component={HomePreceptor}
         options={{
           title: "MENÚ",
           headerTintColor: "white",

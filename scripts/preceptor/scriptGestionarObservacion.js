@@ -1,44 +1,50 @@
 import { Alert, Platform } from 'react-native';
 //Rutas que utilizamos
-const api_url = 'http://localhost:5000'
-const api_urlAlumnoCurso = 'http://localhost:5000/alumnosPorCurso'
+const api_url = 'http://192.168.0.23:5000'
+const api_urlAlumnoCurso = 'http://192.168.0.23:5000/alumnosPorCurso'
 
+//Obtenemos los solicitantes para registrar quien manda la observación
 export const obtenerSolicitante = async () => {
     try{
+        //Consultamos a la api
         const respuesta = await fetch(`${api_url}/solicitante`)
         const data = await respuesta.json()
         if(respuesta.ok){
             return data.solicitante
         }else{
-            console.log('error')
+            //console.log('error')
             throw new Error(data.error)
 
         }
     }catch(error){
-        console.log(error)
+        //console.log(error)
         throw new Error("Error al obtener los solicitantes")
     }
 }
 
+//Obtenemos alumno por curso para la carga de la lista desplegable
 export const obtenerAlumnoCurso = async (idcurso) =>{
     try{
+        //Consultamos la api
         const respuesta = await fetch(`${api_urlAlumnoCurso}/${idcurso}`)
         const data = await respuesta.json()
         if(respuesta.ok){
             return data.alumnos
         }else{
-            console.log('error')
+            //console.log('error')
             throw new Error(data.error)
 
         }
     }catch(error){
-        console.log(error)
+        //console.log(error)
         throw new Error("Error al obtener los alumnos")
     }
 }
 
+//Registramos la observación
 export const registrarObservacion = async (formData) => {
     try{
+        //Consultamos la api 
         const respuesta = await fetch(`${api_url}/observacion`, {
             method: 'POST',
             headers: {'Content-Type' : 
@@ -48,18 +54,19 @@ export const registrarObservacion = async (formData) => {
         const data =  await respuesta.json()
 
         if(respuesta.ok){
-            console.log("Se agrego la observación")
+            //console.log("Se agrego la observación")
             return data;  
         } else {
             throw new Error(data.error || 'Error desconocido al registrar la observación');
         }
     }catch(error){
-        console.log(error)
+        //console.log(error)
         throw new Error("Error al cargar la observación")
     }
 }
 
 
+//Mostramos un mensaje en pantalla, pero lo configuramos para web y para celular ya que si no tenemos error 
 export const mostrarMensaje = (titulo, texto) => {
     if (Platform.OS === 'web') {
         // Para web
@@ -68,14 +75,14 @@ export const mostrarMensaje = (titulo, texto) => {
             resolve();
         });
     } else {
-        // Para móvil
+        // Para celular
         return new Promise((resolve) => {
             Alert.alert(
                 titulo,
                 texto,
                 [
                     {
-                        text: "OK",
+                        text: "Observación registrada correctamente",
                         onPress: () => resolve()
                     }
                 ],
@@ -85,10 +92,13 @@ export const mostrarMensaje = (titulo, texto) => {
     }
 }
 
+
+//Funcion para imprimir el archivo 
 export const imprimirArchivo = async (formData, alumno, solicitante) => {
     try {
+        //Obtenemos la fecha del equipo local
         const fecha = new Date().toLocaleDateString();
-        
+        //Generamos nuestro contenido en html para luego ser mostrado 
         const htmlContent = `
             <html>
                 <head>
@@ -121,7 +131,7 @@ export const imprimirArchivo = async (formData, alumno, solicitante) => {
         `;
 
         if (Platform.OS === 'web') {
-            // Para web: abrir en una nueva ventana e imprimir
+            //Para web -> abrimos en una nueva ventana e imprimir
             const printWindow = window.open('', '_blank');
             printWindow.document.write(htmlContent);
             printWindow.document.close();

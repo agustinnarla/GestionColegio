@@ -3,29 +3,23 @@ import dotenv from 'dotenv'
 import {pool} from '../dataBase/coneccion.mjs'
 dotenv.config();
 
-//Configuración del email 
-// const transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS
-//     }
-// });
+
 
 //Alta
 export const registrarObservacion = async (req, res) => {
     //Datos q le vamos a pasar
     const { dnialumno, fecha, idsolicitante, motivo } = req.body; 
     try {
-        //SQL del insert
+        
+
         const respuesta = await pool.query(
-            'INSERT INTO observacion (dnialumno, fecha, idsolicitante, motivo) VALUES ($1, $2, $3, $4)',
+            'INSERT INTO observacion (dni_alumno, fecha, id_solicitante, motivo) VALUES ($1, $2, $3, $4)',
             [dnialumno, fecha, idsolicitante, motivo]
         );
 
         // Obtener emails de los padres
         const emailsQuery = await pool.query(
-            'SELECT emailfamiliar FROM alumno WHERE dnialumno = $1',
+            'SELECT email_familiar FROM alumno WHERE dni_alumno = $1',
             [dnialumno]
         );
 
@@ -48,10 +42,11 @@ export const registrarObservacion = async (req, res) => {
                 await transporter.sendMail(mailOptions);
             
             }   
-        console.log("Observación registrada exitosamente");
+        //Registramos la observación
+        //console.log("Observación registrada exitosamente");
         res.status(200).json({ observacion: respuesta.rows});
     } catch (error) {
-        console.log(error);
+        //console.log(error);
         res.status(500).json({ error: 'Algo salió mal al cargar la observación' });
     }
 };

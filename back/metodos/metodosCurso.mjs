@@ -11,16 +11,19 @@ export const obtenerCurso = async (req,res) => {
     }
 }
 export const obtenerCursoFiltrado = async (req, res) => {
-    const { idcurso } = req.params; // Obtener el idcurso desde los parámetros de la solicitud
+     // Obtener el idcurso desde los parámetros de la solicitud
+    const { idcurso } = req.params;
     try {
         const respuesta = await pool.query(
             "SELECT idcurso, detalle FROM curso WHERE idcurso = $1",
             [idcurso]
         );
         if (respuesta.rows.length > 0) {
-            res.json({ curso: respuesta.rows[0] }); // Enviar solo el curso encontrado
+            // Enviar solo el curso encontrado
+            res.json({ curso: respuesta.rows[0] }); 
         } else {
-            res.status(404).json({ error: 'Curso no encontrado' }); // Respuesta si no se encuentra el curso
+            // Respuesta si no se encuentra el curso
+            res.status(404).json({ error: 'Curso no encontrado' }); 
         }
     } catch (error) {
         console.error("Error al traer el curso:", error.message);

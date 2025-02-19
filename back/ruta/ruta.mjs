@@ -1,92 +1,160 @@
-import {Router} from 'express'
+import { Router } from 'express'
 import multer from 'multer'
-import { agregarAlumno,agregarLegajo, deshabilitarAlumno, modificarAlumno, obtenerAlumno, obtenerAlumnoCurso, obtenerAlumnoFiltrado,obtenerLegajoAlumnoFiltrado, obtenerAlumnoNombreApellido, obtenerLegajoAlumno, modificarAdjuntoLegajo } from '../metodos/metodosGestionAlumno.mjs'
+import { 
+    agregarAlumno, agregarLegajo, deshabilitarAlumno, modificarAlumno, obtenerAlumno, 
+    obtenerAlumnoCurso, obtenerAlumnoFiltrado, obtenerLegajoAlumnoFiltrado, 
+    obtenerAlumnoNombreApellido, obtenerLegajoAlumno, modificarAdjuntoLegajo 
+} from '../metodos/metodosGestionAlumno.mjs'
+
 import { obtenerSexo } from '../metodos/metodosSexo.mjs'
 import { obtenerCurso, obtenerCursoFiltrado } from '../metodos/metodosCurso.mjs'
 import { obtenerEstadoAlumno } from '../metodos/metodosEstadoAlumno.mjs'
 import { obtenerLocalidad } from '../metodos/metodosLocalidad.mjs'
 import { obtenerSolicitante } from '../metodos/metodosSolicitante.mjs'
 import { registrarObservacion } from '../metodos/metodosObservacion.mjs'
-import { registrarAmonestacion, obtenerCantidadAmonestaciones} from '../metodos/metodosAmonestacion.mjs'
-import { modificarAsistencia, registrarAsistenciaBackend, validarFechaAsistencia, obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas } from '../metodos/metodosAsistencia.mjs'
+import { registrarAmonestacion, obtenerCantidadAmonestaciones } from '../metodos/metodosAmonestacion.mjs'
+import { 
+    modificarAsistencia, registrarAsistenciaBackend, validarFechaAsistencia, 
+    obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas 
+} from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
 import { obtenerMateria } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasarCurso.mjs'
-import {  obtenerAlumnosAusentes, obtenerEstadosFalta, obtenerJustificarFalta, registrarJustificacion, ActualizarEstadoLibreAlumno} from '../metodos/metodosJustificarFalta.mjs'
+import {  
+    obtenerAlumnosAusentes, obtenerEstadosFalta, obtenerJustificarFalta, 
+    registrarJustificacion, ActualizarEstadoLibreAlumno 
+} from '../metodos/metodosJustificarFalta.mjs'
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 
-// Configuración de multer
+// Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
+// Creación del router
 export const ruta = Router()
 
-//Gestion alumno
+// =====================================
+//         GESTIÓN DE ALUMNOS
+// =====================================
 ruta.get('/alumnos', obtenerAlumno)
 ruta.get('/alumnos/:dnialumno', obtenerAlumnoFiltrado)
-ruta.get('/alumnosNombreApellido',obtenerAlumnoNombreApellido)
-ruta.get('/alumnosPorCurso/:idcurso',obtenerAlumnoCurso)
+ruta.get('/alumnosNombreApellido', obtenerAlumnoNombreApellido)
+ruta.get('/alumnosPorCurso/:idcurso', obtenerAlumnoCurso)
 ruta.get('/alumnosLegajo', obtenerLegajoAlumno)
-ruta.get('/alumnosLegajo/:dnialumno/:imagenTipo', obtenerLegajoAlumnoFiltrado);
+ruta.get('/alumnosLegajo/:dnialumno/:imagenTipo', obtenerLegajoAlumnoFiltrado)
+
 ruta.post('/alumnos', agregarAlumno)
+
+// Subida de archivos para legajos de alumnos
 ruta.post('/alumnosLegajo', upload.fields([
     { name: 'dnifoto', maxCount: 1 },
     { name: 'fichamedica', maxCount: 1 },
     { name: 'partidanacimiento', maxCount: 1 }
-]), agregarLegajo);
-ruta.put('/alumnos/deshabilitar/:dnialumno',deshabilitarAlumno)
-ruta.put('/alumnos/modificar/:dnialumno',modificarAlumno);
-ruta.put('/alumnosLegajo/modificar/:dnialumno',  upload.fields([
+]), agregarLegajo)
+
+ruta.put('/alumnos/deshabilitar/:dnialumno', deshabilitarAlumno)
+ruta.put('/alumnos/modificar/:dnialumno', modificarAlumno)
+
+// Modificación de documentos adjuntos en el legajo del alumno
+ruta.put('/alumnosLegajo/modificar/:dnialumno', upload.fields([
     { name: 'dnifoto', maxCount: 1 },
     { name: 'fichamedica', maxCount: 1 },
     { name: 'partidanacimiento', maxCount: 1 }
-]), modificarAdjuntoLegajo);
-ruta.put('/alumnos/actualizarEstadoAlumno', ActualizarEstadoLibreAlumno) //cambiar a metodosAlumno
-//Sexo
-ruta.get('/sexo',obtenerSexo)
-//Curso
-ruta.get('/curso',obtenerCurso)
+]), modificarAdjuntoLegajo)
+
+ruta.put('/alumnos/actualizarEstadoAlumno', ActualizarEstadoLibreAlumno) // TODO: Mover a métodosAlumno
+
+// =====================================
+//               SEXO
+// =====================================
+ruta.get('/sexo', obtenerSexo)
+
+// =====================================
+//               CURSOS
+// =====================================
+ruta.get('/curso', obtenerCurso)
 ruta.get('/curso/:idcurso', obtenerCursoFiltrado)
-//EstadoAlumno
-ruta.get('/estadoAlumno',obtenerEstadoAlumno)
-//Localidad
-ruta.get('/localidad',obtenerLocalidad)
-//Solicitante
-ruta.get('/solicitante',obtenerSolicitante)
-//Observación
-ruta.post('/observacion',registrarObservacion)
-//Amonestación
-ruta.post('/amonestacion',registrarAmonestacion)
-ruta.get('/amonestacion/:dnialumno',obtenerCantidadAmonestaciones)
-//Asistencia 
-// Asegúrate de que esta línea esté definida correctamente en el backend
-ruta.post('/asistencia', registrarAsistenciaBackend);
+
+// =====================================
+//        ESTADO DEL ALUMNO
+// =====================================
+ruta.get('/estadoAlumno', obtenerEstadoAlumno)
+
+// =====================================
+//            LOCALIDADES
+// =====================================
+ruta.get('/localidad', obtenerLocalidad)
+
+// =====================================
+//          SOLICITANTES
+// =====================================
+ruta.get('/solicitante', obtenerSolicitante)
+
+// =====================================
+//         OBSERVACIONES
+// =====================================
+ruta.post('/observacion', registrarObservacion)
+
+// =====================================
+//         AMONESTACIONES
+// =====================================
+ruta.post('/amonestacion', registrarAmonestacion)
+ruta.get('/amonestacion/:dnialumno', obtenerCantidadAmonestaciones)
+
+// =====================================
+//            ASISTENCIA
+// =====================================
+ruta.post('/asistencia', registrarAsistenciaBackend)
 ruta.put('/asistencia', modificarAsistencia)
 ruta.get('/asistencia/curso/:idcurso/fecha/:fecha', validarFechaAsistencia)
 ruta.get('/asistencia/curso/:idcurso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes)
 ruta.get('/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) 
-//Notas
+
+// =====================================
+//               NOTAS
+// =====================================
 ruta.get('/notas/:idcurso/:idmateria', obtenerNotas)
-ruta.post('/notas',registrarNota)
-//Materia
-ruta.get('/materia',obtenerMateria)
-//Etapas
-ruta.get('/etapas',obtenerEtapaEvaluativa)
-//Pasaje de curso
-ruta.get('/pasajeCurso/:idcurso',obtenerAlumnoFinal)
-ruta.post('/pasajeCurso',registrarCursoNuevo)
-//Justificar Falta
+ruta.post('/notas', registrarNota)
+
+// =====================================
+//              MATERIAS
+// =====================================
+ruta.get('/materia', obtenerMateria)
+
+// =====================================
+//       ETAPAS EVALUATIVAS
+// =====================================
+ruta.get('/etapas', obtenerEtapaEvaluativa)
+
+// =====================================
+//       PASAJE DE CURSO
+// =====================================
+ruta.get('/pasajeCurso/:idcurso', obtenerAlumnoFinal)
+ruta.post('/pasajeCurso', registrarCursoNuevo)
+
+// =====================================
+//       JUSTIFICACIÓN DE FALTAS
+// =====================================
 ruta.get('/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) 
-ruta.get('/justificarFalta/estadoalumnos/:fechadesde/:fechahasta', obtenerJustificarFalta);
+ruta.get('/justificarFalta/estadoalumnos/:fechadesde/:fechahasta', obtenerJustificarFalta)
 ruta.get('/justificarFalta/estadofalta', obtenerEstadosFalta)
 ruta.get('/justificarFalta', obtenerJustificarFalta)
-ruta.post('/justificarFalta',registrarJustificacion)
-//Certificado
-ruta.get('/certificado',obtenerEstadoCertificado)
-//Estado Inasistencia
-ruta.get('/estado',obtenerEstadoInasistencia)
-//libroMatriz 
+ruta.post('/justificarFalta', registrarJustificacion)
+
+// =====================================
+//          CERTIFICADOS
+// =====================================
+ruta.get('/certificado', obtenerEstadoCertificado)
+
+// =====================================
+//       ESTADO INASISTENCIA
+// =====================================
+ruta.get('/estado', obtenerEstadoInasistencia)
+
+// =====================================
+//       LIBRO MATRIZ
+// =====================================
 ruta.get('/libroMatriz/:dnialumno', cargarGrilla)

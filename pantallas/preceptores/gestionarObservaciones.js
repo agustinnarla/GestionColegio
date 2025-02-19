@@ -7,72 +7,74 @@ import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import { obtenerAlumnoCurso, obtenerSolicitante, registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 
 export default function GestionarObservaciones() {
-    //Formulario
+    // Formulario
     const [formData, setFormData] = useState({
-        dnialumno: '',
-        idsolicitante: '',
+        dni_alumno: '',
+        id_solicitante: '',
         fecha: '',
-        motivo: ''
+        motivo: '',
+        id_curso: ''
     });
 
+    // Listas desplegables
+    const [cursos, setCursos] = useState([]);
+    const [solicitantes, setSolicitante] = useState([]);
+    const [alumnos, setAlumnos] = useState([]);
+
+    // Validamos que los datos tengan contenido
     const validarCampos = () => {
-        return formData.dnialumno && 
-            formData.idsolicitante && 
+        return formData.dni_alumno && 
+            formData.id_solicitante && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
-            formData.idcurso; 
+            formData.id_curso; 
     };
 
+    // Metodo para limpiar la interfaz al apretar el boton cancelar o registrar
     const limpiarInterfaz = () => {
         setFormData({
-            dnialumno: '',
-            idsolicitante: '',
+            dni_alumno: '',
+            id_solicitante: '',
             fecha: '',
-            motivo: ''
+            motivo: '',
+            id_curso: ''
         });
     };
 
+    // RegistrarObservación()
     const handleRegistrar = async () => {
         try {
-            // Crear el objeto alumnoData, omitiendo campos no obligatorios
             const alumnoData = {
-                dnialumno: parseInt(formData.dnialumno),
-                idsolicitante: parseInt(formData.idsolicitante),
+                dni_alumno: parseInt(formData.dni_alumno),
+                id_solicitante: parseInt(formData.id_solicitante),
                 fecha: formData.fecha,
                 motivo: formData.motivo
-            }
+            };
 
-            // Validar que todos los campos estén completos
-            if (!alumnoData.dnialumno || !alumnoData.idsolicitante || !alumnoData.fecha || !alumnoData.motivo) {
+            if (!validarCampos()) {
                 await mostrarMensaje('Error', 'Por favor complete todos los campos');
                 return;
             }
+
             console.log('Datos de la observación', alumnoData); 
             
             const respuesta = await registrarObservacion(alumnoData);
-            await mostrarMensaje('¡Éxito!', 'La observación se registró correctamente');
-            console.log('Observación Registrado:', respuesta)
+            await mostrarMensaje('Observación registrada correctamente');
+            console.log('Observación Registrada:', respuesta);
             
-            setFormData({
-                dnialumno: '',
-                idsolicitante: '',
-                fecha: '',
-                motivo: ''
-            });
-            
+            limpiarInterfaz();
         } catch (error) {
             console.error('Error al registrar la observación:', error.message);
             await mostrarMensaje('Error', 'No se pudo registrar la observación');
         }
-    }
+    };
 
+    // ImprimirArchivo()
     const handleImprimir = async () => {
         try {
-        
-            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dnialumno) === parseInt(formData.dnialumno));
-            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.idsolicitante) === parseInt(formData.idsolicitante));
+            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
+            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
 
-    
             const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
             await mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
             
@@ -84,11 +86,6 @@ export default function GestionarObservaciones() {
             await mostrarMensaje('Error', 'No se pudo generar el PDF');
         }
     };
-
-    // Listas desplegables
-    const [cursos, setCursos] = useState([]);
-    const [solicitantes, setSolicitante] = useState([]);
-    const [alumnos, setAlumnos] = useState([]);
 
     // Cargar cursos y solicitantes
     useEffect(() => {
@@ -108,9 +105,9 @@ export default function GestionarObservaciones() {
     // Cargar alumnos cuando se selecciona un curso
     useEffect(() => {
         const cargarAlumnos = async () => {
-            if (formData.idcurso) {
+            if (formData.id_curso) {
                 try {
-                    const alumnosData = await obtenerAlumnoCurso(formData.idcurso);
+                    const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
                     setAlumnos(alumnosData);
                 } catch (error) {
                     console.error('Error al cargar alumnos:', error);
@@ -118,14 +115,14 @@ export default function GestionarObservaciones() {
             }
         };
         cargarAlumnos();
-    }, [formData.idcurso]);
+    }, [formData.id_curso]);
 
-    //Ver reutilización
+    // Manejar cambios en el formulario
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
 
-    //Ver reutilización
+    // Componente reutilizable para Picker
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
         return (
             <>
@@ -151,12 +148,11 @@ export default function GestionarObservaciones() {
         <View style={styles.contenido}>
             <PickerField 
                 label="Curso"
-                style={styles.lista}
-                selectedValue={formData.idcurso} 
-                onValueChange={(value) => handleChange('idcurso', value)} 
+                selectedValue={formData.id_curso} 
+                onValueChange={(value) => handleChange('id_curso', value)} 
                 items={[
                     { label: 'Seleccione el curso', value: '' },
-                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
+                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.id_curso, key: curso.id_curso})) 
                 ]} 
             />
 
@@ -166,27 +162,25 @@ export default function GestionarObservaciones() {
                 placeholder="AAAA-MM-DD" 
                 keyboardType="number-pad" 
                 value={formData.fecha}  
-                onChangeText={(value) => handleChange('fecha',value)}
+                onChangeText={(value) => handleChange('fecha', value)}
             />
-            <PickerField 
+           <PickerField 
                 label="Alumno"
-                style={styles.lista}
-                selectedValue={formData.dnialumno} 
-                onValueChange={(value) => handleChange('dnialumno', value)} 
+                selectedValue={formData.dni_alumno} 
+                onValueChange={(value) => handleChange('dni_alumno', value)} 
                 items={[
                     { label: 'Seleccione el alumno', value: '' },
-                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dnialumno), key: alumno.dnialumno }))
+                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dni_alumno), key: alumno.dni_alumno }))
                 ]} 
             />
 
             <PickerField 
                 label="Solicitado Por"
-                style={styles.lista}
-                selectedValue={formData.idsolicitante} 
-                onValueChange={(value) => handleChange('idsolicitante', value)} 
+                selectedValue={formData.id_solicitante} 
+                onValueChange={(value) => handleChange('id_solicitante', value)} 
                 items={[
                     { label: 'Seleccione el solicitante', value: '' },
-                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.idsolicitante, key: solicitante.idsolicitante })) 
+                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.id_solicitante, key: solicitante.id_solicitante })) 
                 ]} 
             />
 
@@ -195,7 +189,7 @@ export default function GestionarObservaciones() {
                 style={styles.input} 
                 placeholder="Motivo de las observaciones" 
                 value={formData.motivo}  
-                onChangeText={(value) => handleChange('motivo',value)}
+                onChangeText={(value) => handleChange('motivo', value)}
             />
             <View style={styles.botonesContainer}>
                 <TouchableOpacity style={[styles.botonRegistrar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar}>
