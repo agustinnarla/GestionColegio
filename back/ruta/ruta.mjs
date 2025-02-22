@@ -28,7 +28,9 @@ import {
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
-
+import { registrarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
+import { obtenerRoles } from '../metodos/metodosRoles.mjs'  
+import { ingresarUsuario } from '../metodos/metodosLogin.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -158,3 +160,19 @@ ruta.get('/estado', obtenerEstadoInasistencia)
 //       LIBRO MATRIZ
 // =====================================
 ruta.get('/libroMatriz/:dni_alumno', cargarGrilla)
+
+// =====================================
+//       REGISTRAR USUARIO
+// =====================================
+ruta.post('/registrarUsuario', registrarUsuario)
+
+// =====================================
+//       INGRESAR USUARIO
+// =====================================
+ruta.post('/ingresarUsuario', ingresarUsuario)
+
+
+// =====================================
+//       OBTENER ROLES 
+// =====================================
+ruta.get('/roles', obtenerRoles)

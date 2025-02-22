@@ -17,13 +17,33 @@ import HomeAdmin from "../pantallas/admin/HomeAdmin";
 
 
 
-const Tab = createBottomTabNavigator()
+const Tab = createBottomTabNavigator();
 
-export const BottomTab = () => {
+
+const getMenuComponent = (id_rol) => {
+  switch (id_rol) {
+    case 1:
+      return HomeAdmin;
+    case 2:
+      return HomePreceptor;
+    case 3:
+      return HomeProfesor;
+    case 4:
+      return HomeAlumno;
+    case 5:
+      return HomeSecretaria;
+    default:
+      return HomeAlumno; 
+  }
+};
+
+export const BottomTab = ({ route }) => {
+  const { id_rol } = route.params;
+
   return (
     <Tab.Navigator 
       screenOptions={({ route })  => ({
-        tabBarIcon: ({focused, color, size }) => {
+        tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           let iconColor = focused ? 'black' : color;
           if (route.name === "MENU") {
@@ -54,7 +74,7 @@ export const BottomTab = () => {
     >
       <Tab.Screen
         name="MENU"
-        component={HomeSecretaria}
+        component={getMenuComponent(id_rol)}
         options={{
           title: "MENÚ",
           headerTintColor: "white",
@@ -103,10 +123,10 @@ export const BottomTab = () => {
           ),
         }}
       />
-      
     </Tab.Navigator>
   );
 };
+
 
 const styles = StyleSheet.create({
   tabBar: {

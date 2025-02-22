@@ -228,12 +228,22 @@ export const modificarAlumno = async (req, res) => {
         }
 
         // Si se proporciona un nuevo idcurso, actualizar la tabla alumnocurso
-        if (idcurso) {
+        if (id_curso) {
             const respuestaCurso = await pool.query('UPDATE alumnocurso SET id_curso = $1 WHERE dni_alumno = $2', [id_curso, dni_alumno]);
             if (respuestaCurso.rowCount === 0) {
                 return res.status(404).json({ error: 'Curso no encontrado para el alumno' });
             }
         }
+
+        // Registrar el alumno como usuario
+        const contrasenaHaseada = await encriptarContrasena(dni_alumno.toString());
+        const id_rol = 4; 
+
+        await pool.query(
+            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol) VALUES ($1, $2, $3, $4)',
+            [dni_alumno, contrasenaHaseada, email_personal, id_rol]
+        );
+
 
         console.log("Alumno actualizado exitosamente");
         res.status(200).json({ message: 'Alumno actualizado exitosamente' }); 
