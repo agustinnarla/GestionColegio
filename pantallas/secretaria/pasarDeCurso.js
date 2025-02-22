@@ -6,11 +6,13 @@ import { CursoSelector } from '../../componente/ListasDesplegables';
 import { obtenerAlumnoFinal, registrarCursoNuevo } from '../../scripts/secretaria/scriptPasarCurso';
 
 export default function PasarDeAño() {
+  //Formulario
   const [formData, setFormData] = useState({
     dnialumno: '',
     idcurso: ''
   });
   
+  //Cargamos datos 
   const [alumnos, setAlumnos] = useState([]);
   const [curso, setCursos] = useState([]);
 
@@ -45,6 +47,7 @@ export default function PasarDeAño() {
       } 
     };
   
+    //Registramos curso nuevo 
     const handleRegistrar = async() => {
       try {
         const alumnosData = alumnos.map(alumno => ({
@@ -70,8 +73,6 @@ export default function PasarDeAño() {
   return (
     <View style={styles.container}>
       <Image source={bg} style={styles.bg} resizeMode="cover" />
-
-
       <CursoSelector 
           formData={formData}
           handleChange={handleChange}

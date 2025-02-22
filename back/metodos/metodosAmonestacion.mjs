@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 import { pool } from '../dataBase/coneccion.mjs';
 dotenv.config();
 
-
+/* 
+        OBTENCIÓN DE MAIL
+*/
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -11,6 +13,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
+
 /* 
         REGISTRAR AMONESTACIÓN
 */
@@ -44,7 +47,9 @@ export const registrarAmonestacion = async (req, res) => {
     }
 };
 
-//Funciona para enviar mail
+/*
+    FUNCION PARA ENVIAR EMAIL 
+*/
 const enviarEmail = async (dni_alumno, fecha, motivo) => {
     try {
         const emailsQuery = await pool.query(
@@ -79,7 +84,6 @@ const enviarEmail = async (dni_alumno, fecha, motivo) => {
 /*
     OBTENER CANTIDAD DE AMONESTACIONES
 */
-
 
 export const obtenerCantidadAmonestaciones = async (req, res) => {
     const { dni_alumno } = req.params;

@@ -1,7 +1,7 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 export const cargarGrilla = async (req, res) => {
-    const { dnialumno } = req.params;
+    const { dni_alumno } = req.params;
     try {
         const respuesta = await pool.query(
             // Ver curso actual 
@@ -13,7 +13,7 @@ export const cargarGrilla = async (req, res) => {
             "INNER JOIN alumnocurso AS ac ON ac.id_curso = c.id_curso " +
             "WHERE am.dni_alumno = $1 AND am.id_curso = ac.id_curso " +
             "ORDER BY c.id_curso DESC", 
-            [dnialumno]
+            [dni_alumno]
         );
         res.status(200).json({ grilla: respuesta.rows });
     } catch (error) {

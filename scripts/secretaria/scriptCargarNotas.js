@@ -42,25 +42,6 @@ export const obtenerMateria = async () => {
     }
 };
 
-/*
-    CONSULTA A LA API PARA OBTENER LAS ETAPAS EVALUATIVAS -> VER DE ELIMINAR 
-*/ 
-export const obtenerEtapasEvaluativas= async () => {
-    try{
-        const respuesta = await fetch(`${api_urlObtenerEtapasEvaluativas}`)
-
-        if(!respuesta.ok){
-            throw new Error('Error al obtener las etapas escolares')
-        }
-
-        const data = await respuesta.json()
-        console.log(data);
-        return data.etapa; 
-    }catch(error){
-        console.error('Error en obtenerEtapasEscolares:', error);
-    }
-}
-
 
 /*
     CONSULTA A LA API PARA OBTENER LOS ALUMNOS POR CURSO 

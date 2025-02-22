@@ -3,7 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
-import { obtenerAlumnoPorCurso, obtenerEtapasEvaluativas, obtenerMateria, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
+import {  obtenerEtapasEvaluativas, obtenerMateria, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { registrarNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
@@ -14,6 +14,7 @@ export default function CargarNotas() {
     /*
         FORMULARIO
     */
+
     const [formData, setFormData] = useState({
         dni_alumno: '',
         id_materia: '',
@@ -30,7 +31,6 @@ export default function CargarNotas() {
         CARGAMOS LAS LISTAS DESPLEGABLES
     */
     const [curso,setCursos] = useState([]);
-    const [etapaEscolar, setEtapaEscolar] = useState([]);
     const [materias,setMaterias] = useState([]);
     const [alumnos, setAlumnos] = useState([]); 
 
@@ -38,10 +38,8 @@ export default function CargarNotas() {
         const cargarDatos = async () => {
             try {
                 const cursosData = await obtenerCurso();
-                const etapaEscolarData = await obtenerEtapasEvaluativas();
                 const materiasData = await obtenerMateria();
                 setCursos(cursosData);
-                setEtapaEscolar(etapaEscolarData);
                 setMaterias(materiasData);
             } catch (error) {
                 Alert.alert('Error', error.message);
@@ -151,7 +149,6 @@ export default function CargarNotas() {
                         formData={formData}
                         handleChange={handleChange}
                         curso={curso}
-                        etapaEscolar={etapaEscolar}
                         materias={materias}
                         styles={styles}
                         />
