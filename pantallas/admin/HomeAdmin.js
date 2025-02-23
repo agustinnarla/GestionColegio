@@ -27,6 +27,9 @@ export default function HomeAdmin() {
                         <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Registrar Curso')}>
                             <Text style={styles.textoBoton}>Registrar Curso</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Registrar Rol')}>
+                            <Text style={styles.textoBoton}>Registrar Rol</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Cargar Tareas')}>
                             <Text style={styles.textoBoton}>Cargar Tareas</Text>
                         </TouchableOpacity>

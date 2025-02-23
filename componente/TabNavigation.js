@@ -74,6 +74,7 @@ export const BottomTab = ({ route }) => {
     >
       <Tab.Screen
         name="MENU"
+        component={HomeAdmin}
         component={getMenuComponent(id_rol)}
         options={{
           title: "MENÚ",
