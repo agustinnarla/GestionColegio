@@ -29,6 +29,9 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria} from '../metodos/metodosGestionMateria.mjs'
+import { registrarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
+import { obtenerRoles, registrarRol } from '../metodos/metodosRoles.mjs'  
+import { ingresarUsuario } from '../metodos/metodosLogin.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -40,26 +43,26 @@ export const ruta = Router()
 //         GESTIÓN DE ALUMNOS
 // =====================================
 ruta.get('/alumnos', obtenerAlumno)
-ruta.get('/alumnos/:dnialumno', obtenerAlumnoFiltrado)
+ruta.get('/alumnos/:dni_alumno', obtenerAlumnoFiltrado)
 ruta.get('/alumnosNombreApellido', obtenerAlumnoNombreApellido)
-ruta.get('/alumnosPorCurso/:idcurso', obtenerAlumnoCurso)
+ruta.get('/alumnosPorCurso/:id_curso', obtenerAlumnoCurso)
 ruta.get('/alumnosLegajo', obtenerLegajoAlumno)
-ruta.get('/alumnosLegajo/:dnialumno/:imagenTipo', obtenerLegajoAlumnoFiltrado)
+ruta.get('/alumnosLegajo/:dni_alumno/:imagenTipo', obtenerLegajoAlumnoFiltrado)
 
 ruta.post('/alumnos', agregarAlumno)
 
 // Subida de archivos para legajos de alumnos
 ruta.post('/alumnosLegajo', upload.fields([
-    { name: 'dnifoto', maxCount: 1 },
+    { name: 'dni_foto', maxCount: 1 },
     { name: 'fichamedica', maxCount: 1 },
     { name: 'partidanacimiento', maxCount: 1 }
 ]), agregarLegajo)
 
-ruta.put('/alumnos/deshabilitar/:dnialumno', deshabilitarAlumno)
-ruta.put('/alumnos/modificar/:dnialumno', modificarAlumno)
+ruta.put('/alumnos/deshabilitar/:dni_alumno', deshabilitarAlumno)
+ruta.put('/alumnos/modificar/:dni_alumno', modificarAlumno)
 
 // Modificación de documentos adjuntos en el legajo del alumno
-ruta.put('/alumnosLegajo/modificar/:dnialumno', upload.fields([
+ruta.put('/alumnosLegajo/modificar/:dni_alumno', upload.fields([
     { name: 'dnifoto', maxCount: 1 },
     { name: 'fichamedica', maxCount: 1 },
     { name: 'partidanacimiento', maxCount: 1 }
@@ -76,7 +79,7 @@ ruta.get('/sexo', obtenerSexo)
 //               CURSOS
 // =====================================
 ruta.get('/curso', obtenerCurso)
-ruta.get('/curso/:idcurso', obtenerCursoFiltrado)
+ruta.get('/curso/:id_curso', obtenerCursoFiltrado)
 
 // =====================================
 //        ESTADO DEL ALUMNO
@@ -102,21 +105,21 @@ ruta.post('/observacion', registrarObservacion)
 //         AMONESTACIONES
 // =====================================
 ruta.post('/amonestacion', registrarAmonestacion)
-ruta.get('/amonestacion/:dnialumno', obtenerCantidadAmonestaciones)
+ruta.get('/amonestacion/:dni_alumno', obtenerCantidadAmonestaciones)
 
 // =====================================
 //            ASISTENCIA
 // =====================================
 ruta.post('/asistencia', registrarAsistenciaBackend)
 ruta.put('/asistencia', modificarAsistencia)
-ruta.get('/asistencia/curso/:idcurso/fecha/:fecha', validarFechaAsistencia)
-ruta.get('/asistencia/curso/:idcurso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes)
+ruta.get('/asistencia/curso/:id_curso/fecha/:fecha', validarFechaAsistencia)
+ruta.get('/asistencia/curso/:id_curso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes)
 ruta.get('/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) 
 
 // =====================================
 //               NOTAS
 // =====================================
-ruta.get('/notas/:idcurso/:idmateria', obtenerNotas)
+ruta.get('/notas/:id_curso/:id_materia', obtenerNotas)
 ruta.post('/notas', registrarNota)
 
 // =====================================
@@ -132,7 +135,7 @@ ruta.get('/etapas', obtenerEtapaEvaluativa)
 // =====================================
 //       PASAJE DE CURSO
 // =====================================
-ruta.get('/pasajeCurso/:idcurso', obtenerAlumnoFinal)
+ruta.get('/pasajeCurso/:id_curso', obtenerAlumnoFinal)
 ruta.post('/pasajeCurso', registrarCursoNuevo)
 
 // =====================================
@@ -169,3 +172,19 @@ ruta.get('/materiaprofesor/:id_materia', obtenerProfesorXMateria);
 //       GESTION PROFESOR
 // =====================================
 ruta.get('/profesor', obtenerProfesor)
+ruta.get('/libroMatriz/:dni_alumno', cargarGrilla)
+
+// =====================================
+//       REGISTRAR USUARIO
+// =====================================
+ruta.post('/registrarUsuario', registrarUsuario)
+
+// =====================================
+//       INGRESAR USUARIO
+// =====================================
+ruta.post('/ingresarUsuario', ingresarUsuario)
+// =====================================
+//       OBTENER ROLES 
+// =====================================
+ruta.get('/roles', obtenerRoles)
+ruta.post('/roles', registrarRol)

@@ -1,34 +1,38 @@
 import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert } from 'react-native';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerLibroMatriz, obtenerLetra } from '../../scripts/secretaria/scriptLibroMatriz';
+import { obtenerLibroMatriz, obtenerLetra,imprimirLibroMatriz } from '../../scripts/secretaria/scriptLibroMatriz';
 
 export default function LibroMatriz() {
+
+    
+    //Formulario
+    const [formData, setFormData] = useState({
+        dni_alumno: '',
+        id_curso: '',
+        id_materia: '',
+        id_estadoevaluativo: '',
+        promedio: '',
+    });
+
     const [datos, setDatos] = useState([]);
     const [cursoActual, setCursoActual] = useState('');
     const [cursosDisponibles, setCursosDisponibles] = useState([]);
     const [cursoSeleccionado, setCursoSeleccionado] = useState('');
-    
-    const [formData, setFormData] = useState({
-        dnialumno: '',
-        idcurso: '',
-        idmateria: '',
-        idestadoevaluativo: '',
-        promedio: '',
-    });
 
+    //Función para consultar un alumno 
     const handleConsultar = async () => {
         try {
-            const alumno = await obtenerLibroMatriz(formData.dnialumno);
+            const alumno = await obtenerLibroMatriz(formData.dni_alumno);
             console.log('Alumno consultado:', alumno);
 
             if (alumno && alumno.length > 0) {
                 setFormData({
                     ...formData,
-                    dnialumno: parseInt(alumno[0].dnialumno), 
-                    idcurso: alumno[0].idcurso || '',
-                    idestadoevaluativo: alumno[0].idestadoevaluativo || '',
-                    idmateria: alumno[0].idmateria || '',
+                    dni_alumno: parseInt(alumno[0].dni_alumno), 
+                    id_curso: alumno[0].id_curso || '',
+                    id_estadoevaluativo: alumno[0].id_estadoevaluativo || '',
+                    id_materia: alumno[0].id_materia || '',
                     promedio: alumno[0].promedio || '',
                 });
 
@@ -45,6 +49,8 @@ export default function LibroMatriz() {
         }
     };
 
+
+    //Función para cambiar de curso
     const cambiarCurso = (direccion) => {
         const indiceActual = cursosDisponibles.indexOf(cursoSeleccionado);
         if (direccion === 'anterior' && indiceActual < cursosDisponibles.length - 1) {
@@ -54,6 +60,7 @@ export default function LibroMatriz() {
         }
     };
 
+    //Renderizamos en la grilla los datos 
     const renderItem = ({ item }) => {
         const hoy = new Date();
         const dia = hoy.getDate();
@@ -76,6 +83,21 @@ export default function LibroMatriz() {
 
     const datosFiltrados = datos.filter(item => item.curso_detalle === cursoSeleccionado);
 
+    //Función para imprimir el libro matriz
+    const handleImprimir = async () => {
+        try {
+            const cursos = cursosDisponibles.map(curso => ({
+                curso_detalle: curso,
+                datos: datos.filter(item => item.curso_detalle === curso)
+            }));
+            await imprimirLibroMatriz(formData, cursos);
+            Alert.alert('Éxito', 'Documento listo para imprimir');
+        } catch (error) {
+            console.error('Error al imprimir:', error.message);
+            Alert.alert('Error', 'No se pudo generar el documento');
+        }
+    };
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
@@ -88,8 +110,8 @@ export default function LibroMatriz() {
                         placeholder='dni' 
                         keyboardType='numeric' 
                         accessibilityLabel="Ingrese su DNI"
-                        value={formData.dnialumno}
-                        onChangeText={(text) => setFormData({...formData, dnialumno: text})}
+                        value={formData.dni_alumno}
+                        onChangeText={(text) => setFormData({...formData, dni_alumno: text})}
                     />
                 </View>
                 
@@ -99,7 +121,7 @@ export default function LibroMatriz() {
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.botonImprimir}>
-                        <Text style={styles.imprimir}>Imprimir</Text>
+                        <Text style={styles.imprimir} onPress={handleImprimir}>Imprimir</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -47,23 +47,28 @@ const Stack = createStackNavigator();
 function MyStack() {
   return (
       <Stack.Navigator initialRouteName='Login'>
-        {/* <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{
-            title: "LOGIN",
-            headerTintColor: "white",
-            headerTitleAlign: "center",
-            headerBackground: () => (
-              <LinearGradient
+        <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{
+          title: "LOGIN",
+          headerTintColor: "white",
+          headerTitleAlign: "center",
+          headerBackground: () => (
+            <LinearGradient
               colors={['rgba(10, 18, 49, 0.8)', 'rgba(45, 85, 228, 0.8)']}
               style={{ flex: 1 }}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
-              />
-            ),
-          }}
-          /> */}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="BottomTab"
+        component={BottomTab}
+        options={{ headerShown: false }}
+      />
           {/* Principal */}
         <Stack.Screen
           name="Home"
