@@ -50,6 +50,6 @@ app.use('/', ruta)
 const port = process.env.PUERTO || 5000 
 
 app.listen(port,() => {
-    console.log(`El servidor se alojo en http://192.168.0.23:${port}`)
+    console.log(`El servidor se alojo en http://localhost:${port}`)
 })
 

@@ -1,56 +1,215 @@
-import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity, Alert } from 'react-native';
+import React, { useState , useEffect} from 'react';
 import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
+import MultiSelect from 'react-native-multiple-select';
+import { Picker } from '@react-native-picker/picker';
+import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, deshabilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
+
 
 export default function GestionarMaterias() {
-    const [selectedProfesores, setProfesores] = useState([]);
+    const [profesores, setProfesores] = useState([]);
+    const [selectedProfesores, setSelectedProfesores] = useState([]);
+    const [selectedMateria, setSelectedMateria] = useState('');
+    const [materias, setMaterias] = useState([]);
+    const [resetKey, setResetKey] = useState(0);
 
-    const profesores = [
-        { key: '1', value: 'Profesor 1' },
-        { key: '2', value: 'Profesor 2' },
-        { key: '3', value: 'Profesor 3' },
-        { key: '4', value: 'Profesor 4' },
-    ];
+
+    const cargarMaterias = async () => {
+        try {
+            const materiasObtenidas = await obtenerMaterias();
+    
+            if (materiasObtenidas && Array.isArray(materiasObtenidas.materias)) {
+                const materiasFormateadas = materiasObtenidas.materias.map((materia) => ({
+                    key: materia.id_materia.toString(),
+                    value: materia.detalle,
+                }));
+                setMaterias(materiasFormateadas);
+            } else {
+                console.error('El formato de materias obtenidas no es válido:', materiasObtenidas);
+            }
+        } catch (error) {
+            console.error('Error al cargar las materias:', error);
+        }
+    };
+
+    const cargarProfesores = async () => {
+        try {
+            // Obtener los datos de los profesores desde la API
+            const profesoresObtenidos = await obtenerProfesor();
+            // Verificar que los datos obtenidos estén en el formato esperado
+            if (profesoresObtenidos && Array.isArray(profesoresObtenidos.profesor)) {
+                // Mapear los datos para transformarlos en el formato necesario para MultipleSelectList
+                const profesoresFormateados = profesoresObtenidos.profesor.map((profesor) => ({
+                    key: profesor.dni_profesor.toString(),  // Asegúrate de que `key` sea un string
+                    value: `${profesor.nombre} ${profesor.apellido}`,  // Concatenar el nombre y apellido
+                }));
+                console.log(profesoresFormateados)
+                // Guardar los profesores formateados en el estado
+                setProfesores(profesoresFormateados);
+            } else {
+                console.error('El formato de profesores obtenidos no es válido:', profesoresObtenidos);
+            }
+            
+        } catch (error) {
+            console.error('Error al cargar los profesores:', error);
+        }
+    };
+
+    const cargarMateriaProfesor = async () => {
+        if (selectedMateria && selectedProfesores.length > 0) {
+            console.log("profesores" + selectedProfesores)
+            console.log("materia" + selectedMateria)
+            const result = await registrarMateriaProfesor(selectedProfesores, selectedMateria);
+            // Verificar el mensaje de la respuesta
+            if (result && result.mensaje) {
+                alert(result.mensaje);  // Muestra el mensaje de éxito o de error
+            } else {
+                alert('Hubo un error al registrar la relación');
+            }
+        } else {
+            alert('Selecciona una materia y al menos un profesor');
+        }
+    };
+    const cargarProfesoresPorMateria = async (idMateria) => {
+        const data = await obtenerProfesorXMateria(idMateria);
+        if (data && data.profesor) {
+            const dniProfesores = data.profesor.map(prof => prof.dni_profesor.toString());
+            setSelectedProfesores(dniProfesores);  // Actualizar con las claves correctas
+        }
+    };
+
+    const handleMateriaChange = async (itemValue) => {
+        setSelectedMateria(itemValue);  // Actualiza la materia seleccionada
+        if (itemValue) {
+            await cargarProfesoresPorMateria(itemValue);  // Carga los profesores asignados
+        } else {
+            setSelectedProfesores([]);  // Si no hay materia seleccionada, limpia la selección
+        }
+    };
+
+    const handleDeshabilitarMateria = async () => {
+        if (!selectedMateria) {
+            console.warn("No hay materia seleccionada para deshabilitar.");
+            return;
+        }
+    
+        // Verifica si está en un navegador o en una app móvil
+        if (typeof window !== 'undefined' && window.confirm) {
+            const confirmar = window.confirm("¿Seguro que quiere deshabilitar la materia?");
+            if (confirmar) {
+                try {
+                    const respuesta = await deshabilitarMateria(selectedMateria);
+                    if (respuesta && respuesta.ok) {
+                        setSelectedMateria(null);
+                        setSelectedProfesores([]);
+                        console.log("Materia deshabilitada correctamente");
+                    } else {
+                        throw new Error("Error al deshabilitar la materia");
+                    }
+                } catch (error) {
+                    console.error("Error al deshabilitar la materia:", error);
+                }
+            } else {
+                console.log("Operación cancelada");
+            }
+        } else {
+            Alert.alert(
+                "Confirmación",
+                "¿Seguro que quiere deshabilitar la materia?",
+                [
+                    {
+                        text: "Cancelar",
+                        onPress: () => console.log("Cancelado"),
+                        style: "cancel"
+                    },
+                    {
+                        text: "Confirmar",
+                        onPress: async () => {
+                            try {
+                                const respuesta = await deshabilitarMateria(selectedMateria);
+                                if (respuesta && respuesta.ok) {
+                                    setSelectedMateria(null);
+                                    setSelectedProfesores([]);
+                                    console.log("Materia deshabilitada correctamente");
+                                } else {
+                                    throw new Error("Error al deshabilitar la materia");
+                                }
+                            } catch (error) {
+                                console.error("Error al deshabilitar la materia:", error);
+                            }
+                        }
+                    }
+                ]
+            );
+        }
+    };
+    
+    
+    const limpiarInterfaz = () => {
+        setSelectedMateria("");
+        setSelectedProfesores([]);
+        setResetKey(prevKey => prevKey + 1);  // Cambiar la clave para reiniciar el componente
+    };
+
+    useEffect(() => { 
+        cargarMaterias();
+        cargarProfesores();
+    }, []);
+    useEffect(() => {
+        console.log('Profesores seleccionados:', selectedProfesores);
+        console.log('Profesores:', profesores);
+    }, [selectedProfesores]);    
 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.contenido}>
                 <Text style={styles.titulo}>Materias</Text>
-                <TextInput
-                    placeholder='Insertar Materia'
+                <Picker
+                    selectedValue={selectedMateria}
+                    onValueChange={handleMateriaChange}  // Llama a la función para actualizar y cargar profesores
                     style={styles.input}
-                    placeholderTextColor="#888"
-                />
+                >
+                    <Picker.Item label="Seleccionar Materia" value="" />
+                    {materias.map((materia) => (
+                        <Picker.Item 
+                            key={materia.key} 
+                            label={materia.value}  
+                            value={materia.key}    
+                        />
+                    ))}
+                </Picker>
                 <Text style={styles.subtitulo}>Profesores asignables a la Materia</Text>
-
-                <MultipleSelectList
-                    setSelected={(val) => setProfesores(val)}
-                    data={profesores}
-                    save="value"
-                    label="Profesores"
-                    placeholder="Seleccionar Profesores"
-                    boxStyles={styles.dropdown}
-                    dropdownTextStyles={styles.dropdownText}
+                <MultiSelect
+                    items={profesores}
+                    uniqueKey="key"
+                    onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)}
+                    selectedItems={selectedProfesores}
+                    selectText="Seleccionar Profesores"
+                    searchInputPlaceholderText="Buscar..."
+                    tagRemoveIconColor="#CCC"
+                    tagBorderColor="#CCC"
+                    tagTextColor="#CCC"
+                    selectedItemTextColor="#CCC"
+                    selectedItemIconColor="#CCC"
+                    itemTextColor="#000"
+                    displayKey="value"
+                    searchInputStyle={{ color: '#CCC' }}
+                    submitButtonColor="#CCC"
+                    submitButtonText="Seleccionar"
                 />
-
                 <Text style={styles.seleccionadas}>Profesores seleccionados: {selectedProfesores.join(', ')}</Text>
-
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar}>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={cargarMateriaProfesor}>  {/* Llamar a registrar cuando se hace clic */}
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonEliminar}>
+                    <TouchableOpacity style={styles.botonEliminar} onPress={handleDeshabilitarMateria}>
                         <Text style={styles.textoBoton}>Eliminar</Text>
                     </TouchableOpacity>
                 </View>
-
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonModificar}>
-                        <Text style={styles.textoBoton}>Modificar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar}>
+                    <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
                         <Text style={styles.textoBoton}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
@@ -58,7 +217,6 @@ export default function GestionarMaterias() {
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     padre: {
         flex: 1,

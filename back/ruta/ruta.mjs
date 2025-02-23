@@ -28,7 +28,7 @@ import {
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
-
+import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria} from '../metodos/metodosGestionMateria.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -122,8 +122,8 @@ ruta.post('/notas', registrarNota)
 // =====================================
 //              MATERIAS
 // =====================================
-ruta.get('/materia', obtenerMateria)
-
+ruta.get('/materia', obtenerMaterias)
+ruta.put('/materia/:id_materia', deshabilitarMateria)
 // =====================================
 //       ETAPAS EVALUATIVAS
 // =====================================
@@ -158,3 +158,14 @@ ruta.get('/estado', obtenerEstadoInasistencia)
 //       LIBRO MATRIZ
 // =====================================
 ruta.get('/libroMatriz/:dnialumno', cargarGrilla)
+
+// =====================================
+//       GESTION MATERIAS
+// =====================================
+ruta.post('/materiaprofesor', registrarMateriaProfesor)
+ruta.delete('/materiaprofesor', eliminarMateriaProfesor)
+ruta.get('/materiaprofesor/:id_materia', obtenerProfesorXMateria);
+// =====================================
+//       GESTION PROFESOR
+// =====================================
+ruta.get('/profesor', obtenerProfesor)
