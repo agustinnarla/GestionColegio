@@ -29,7 +29,7 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 import { registrarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
-import { obtenerRoles } from '../metodos/metodosRoles.mjs'  
+import { obtenerRoles, registrarRol } from '../metodos/metodosRoles.mjs'  
 import { ingresarUsuario } from '../metodos/metodosLogin.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
@@ -176,3 +176,4 @@ ruta.post('/ingresarUsuario', ingresarUsuario)
 //       OBTENER ROLES 
 // =====================================
 ruta.get('/roles', obtenerRoles)
+ruta.post('/roles', registrarRol)

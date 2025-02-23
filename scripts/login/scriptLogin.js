@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { Alert } from 'react-native';
 const api_urlLogin = 'http://192.168.0.23:5000/ingresarUsuario'
+
+
 export const login = async (dniUsuario, contrasena, navigation) => {
     try {
         const response = await axios.post(api_urlLogin, {

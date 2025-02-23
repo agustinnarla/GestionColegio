@@ -89,8 +89,25 @@ export function SolicitanteSelector({ formData, handleChange, solicitantes, styl
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function RolesSelector({ formData, handleChange, roles, styles }) {
+    const selectorConfig = {
+        label: 'Roles',
+        selectedValue: formData.id_rol,
+        onValueChange: (value) => handleChange('id_rol', value),
+        items: [
+            { label: 'Seleccione rol', value: '' },
+            ...(roles || []).map(item => ({
+                label: item.detalle,
+                value: item.id_rol,
+                key: item.id_rol
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 // Componente principal que combina todos los selectores
-function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, styles }) {
+function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles }) {
     return (
         <View style={styles.filtrosContainer}>
             {curso && <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />}
@@ -98,6 +115,7 @@ function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, mater
             {materias && <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />}
             {alumnos && <AlumnoSelector formData={formData} handleChange={handleChange} alumnos={alumnos} styles={styles} />}
             {solicitantes && <SolicitanteSelector formData={formData} handleChange={handleChange} solicitantes={solicitantes} styles={styles} />}
+            {roles && <RolesSelector formData={formData} handleChange={handleChange} roles={roles} styles={styles} />}
         </View>
     );
 }
