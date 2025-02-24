@@ -28,10 +28,7 @@ import {
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
-import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria} from '../metodos/metodosGestionMateria.mjs'
-import { registrarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
-import { obtenerRoles, registrarRol } from '../metodos/metodosRoles.mjs'  
-import { ingresarUsuario } from '../metodos/metodosLogin.mjs'
+import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria} from '../metodos/metodosGestionMateria.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -127,6 +124,7 @@ ruta.post('/notas', registrarNota)
 // =====================================
 ruta.get('/materia', obtenerMaterias)
 ruta.put('/materia/:id_materia', deshabilitarMateria)
+ruta.post('/materia', insertarMateria)
 // =====================================
 //       ETAPAS EVALUATIVAS
 // =====================================

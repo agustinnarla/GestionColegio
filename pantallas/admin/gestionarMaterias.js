@@ -1,10 +1,10 @@
-import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity, Alert, Modal } from 'react-native';
 import React, { useState , useEffect} from 'react';
 import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, deshabilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
+import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, deshabilitarMateria, registrarMateria } from '../../scripts/admin/scriptGestionMaterias';
 
 
 export default function GestionarMaterias() {
@@ -13,6 +13,8 @@ export default function GestionarMaterias() {
     const [selectedMateria, setSelectedMateria] = useState('');
     const [materias, setMaterias] = useState([]);
     const [resetKey, setResetKey] = useState(0);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [nuevaMateria, setNuevaMateria] = useState('');
 
 
     const cargarMaterias = async () => {
@@ -144,6 +146,28 @@ export default function GestionarMaterias() {
             );
         }
     };
+
+    const handleRegistrarMateria = async () => {
+        if (!nuevaMateria.trim()) {
+            console.warn('El nombre de la materia es obligatorio');
+            return;
+        }
+    
+        try {
+            const response = await registrarMateria(nuevaMateria);
+            if (response) {
+                console.log('Materia registrada con éxito:', response);
+                setModalVisible(false);
+                setNuevaMateria('');
+                cargarMaterias();
+            } else {
+                console.error('Error al registrar la materia');
+            }
+        } catch (error) {
+            console.error('Error al registrar la materia:', error);
+        }
+    };
+    
     
     
     const limpiarInterfaz = () => {
@@ -166,20 +190,21 @@ export default function GestionarMaterias() {
             <Image source={bg} style={styles.bg} />
             <View style={styles.contenido}>
                 <Text style={styles.titulo}>Materias</Text>
-                <Picker
-                    selectedValue={selectedMateria}
-                    onValueChange={handleMateriaChange}  // Llama a la función para actualizar y cargar profesores
-                    style={styles.input}
-                >
-                    <Picker.Item label="Seleccionar Materia" value="" />
-                    {materias.map((materia) => (
-                        <Picker.Item 
-                            key={materia.key} 
-                            label={materia.value}  
-                            value={materia.key}    
-                        />
-                    ))}
-                </Picker>
+                <View style={styles.pickerContainer}>
+                    <Picker
+                        selectedValue={selectedMateria}
+                        onValueChange={handleMateriaChange}
+                        style={styles.input}
+                    >
+                        <Picker.Item label="Seleccionar Materia" value="" />
+                        {materias.map((materia) => (
+                            <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
+                        ))}
+                    </Picker>
+                    <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
+                        <Text style={styles.textoBotonAgregar}>+</Text>
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.subtitulo}>Profesores asignables a la Materia</Text>
                 <MultiSelect
                     items={profesores}
@@ -214,6 +239,27 @@ export default function GestionarMaterias() {
                     </TouchableOpacity>
                 </View>
             </View>
+            <Modal visible={modalVisible} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.titulo}>Nueva Materia</Text>
+                        <TextInput
+                            style={styles.inputModal}
+                            placeholder="Ingrese nombre de la materia"
+                            value={nuevaMateria}
+                            onChangeText={setNuevaMateria}
+                        />
+                        <View style={styles.botonesModal}>
+                            <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarMateria}>
+                                <Text style={styles.textoBotonModal}>Registrar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.textoBotonModal}>Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -262,23 +308,9 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 8,
         padding: 12,
-        marginBottom: 20,
         backgroundColor: '#fafafa',
         width: '100%',
         fontSize: 16,
-    },
-    dropdown: {
-        width: '100%',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        backgroundColor: '#fafafa',
-        marginBottom: 15,
-        padding: 10,
-    },
-    dropdownText: {
-        fontSize: 16,
-        color: '#333',
     },
     seleccionadas: {
         marginTop: 10,
@@ -286,7 +318,23 @@ const styles = StyleSheet.create({
         color: '#333',
         fontStyle: 'italic',
     },
-    
+    pickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 20,
+    },
+    botonAgregar: {
+        backgroundColor: '#4CAF50',
+        padding: 12,
+        borderRadius: 8,
+        marginLeft: 10,
+    },
+    textoBotonAgregar: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
     contenidoBoton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -303,16 +351,6 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 10,
     },
-    botonModificar: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-    },
     botonEliminar: {
         backgroundColor: '#F3B9B9',
         borderColor: '#FF0000',
@@ -322,7 +360,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         flex: 1,
     },
-    botonCancelar:{
+    botonCancelar: {
         backgroundColor: '#DADADA',
         borderColor: '#000000',
         borderWidth: 1,
@@ -331,10 +369,58 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         flex: 1,
     },
-    textoBoton:{
+    textoBoton: {
         color: 'black',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    }
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    inputModal: {
+        borderBottomWidth: 1,
+        borderColor: '#ccc',
+        width: '100%',
+        padding: 10,
+        marginBottom: 20,
+        fontSize: 16,
+    },
+    botonesModal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    botonModal: {
+        backgroundColor: '#4CAF50',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    botonModalCancelar: {
+        backgroundColor: '#F44336',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    textoBotonModal: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });
+
