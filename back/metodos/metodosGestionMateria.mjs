@@ -25,7 +25,7 @@ export const verificarExistencia = async (dni_profesor, id_materia) => {
         'SELECT * FROM materiaprofesor WHERE dni_profesor = $1 AND id_materia = $2',
         [dni_profesor, id_materia]
     );
-    return resultado.rows.length > 0; // Si ya existe, retorna true
+    return resultado.rows.length > 0;
 };
 
 export const registrarMateriaProfesor = async (req, res) => {
@@ -34,18 +34,14 @@ export const registrarMateriaProfesor = async (req, res) => {
         return res.status(400).json({ error: 'Se requiere dni_profesor e id_materia' });
     }
     try {
-        // Verificar si la relación ya existe
         const existe = await verificarExistencia(dni_profesor, id_materia);
         if (existe) {
-            // Si existe, no lanzamos un error, solo indicamos que ya está registrada
             return res.status(200).json({ mensaje: 'La relación Materia-Profesor ya estaba registrada' });
         }
-        // Ejecutar la consulta para insertar la relación en la tabla materiaprofesor
         const resultado = await pool.query(
             'INSERT INTO materiaprofesor (dni_profesor, id_materia) VALUES ($1, $2) RETURNING *',
             [dni_profesor, id_materia]
         );
-        // Responde con el resultado de la inserción
         return res.status(201).json({ mensaje: 'Relación Materia-Profesor registrada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         console.error('Error al registrar la relación:', error);
@@ -57,7 +53,6 @@ export const eliminarMateriaProfesor = async (req, res) => {
     const { id_materia } = req.body;
 
     try {
-        // Eliminar todas las relaciones para la materia
         await pool.query('DELETE FROM materiaprofesor WHERE id_materia = $1', [id_materia]);
         res.status(200).json({ mensaje: 'Relaciones eliminadas exitosamente' });
     } catch (error) {
@@ -100,6 +95,25 @@ export const obtenerProfesorXMateria = async (req, res) => {
     }
 };
 
+export const insertarMateria = async (req, res) => {
+    const { detalle } = req.body; // Recibe el nombre de la materia desde el frontend
+
+    if (!detalle) {
+        return res.status(400).json({ error: "El detalle de la materia es obligatorio" });
+    }
+
+    try {
+        const respuesta = await pool.query(
+            "INSERT INTO materia (detalle, id_estadoalumno) VALUES ($1, 1) RETURNING *",
+            [detalle]
+        );
+
+        res.status(201).json({ mensaje: "Materia registrada con éxito", materia: respuesta.rows[0] });
+    } catch (error) {
+        console.error("Error al insertar la materia:", error);
+        res.status(500).json({ error: "Error al registrar la materia" });
+    }
+};
 
 
 

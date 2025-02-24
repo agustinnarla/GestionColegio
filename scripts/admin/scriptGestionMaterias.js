@@ -121,6 +121,27 @@ export const deshabilitarMateria = async (id_materia) => {
     }
 };
 
+export const registrarMateria = async (detalle) => {
+    try {
+        const respuesta = await fetch(api_urlMaterias, {
+            method: 'POST',  
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ detalle }) // Enviar detalle en el cuerpo de la solicitud
+        });
+
+        if (!respuesta.ok) {
+            throw new Error('Error al registrar la materia');
+        }
+
+        return await respuesta.json();  
+
+    } catch (error) {
+        console.error('Error en registrarMateria:', error);
+        return null;
+    }
+};
+
+
 
 
 
