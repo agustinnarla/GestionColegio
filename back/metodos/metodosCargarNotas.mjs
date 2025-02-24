@@ -1,11 +1,15 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
+
+/* 
+       OBTENEMOS NOTAS DE LOS ALUMNOS DE UN CURSO Y MATERIA ESPECÍFICA
+*/
 export const obtenerNotas = async (req, res) => {
-    const {idcurso,idmateria} = req.params;
+    const {id_curso,id_materia} = req.params;
     try {
         const respuesta = await pool.query(`
             SELECT 
-                a.dnialumno, 
+                a.dni_alumno, 
                 CONCAT(a.nombre,' ',a.apellido) as nombre_completo,
                 am.nota1, 
                 am.nota2,
@@ -15,15 +19,15 @@ export const obtenerNotas = async (req, res) => {
                 am.nota6
             FROM alumno a
             LEFT JOIN alumnocurso ac 
-                ON a.dnialumno = ac.dnialumno
+                ON a.dni_alumno = ac.dni_alumno
             LEFT JOIN alumnomateria am 
-                ON a.dnialumno = am.dnialumno 
-                AND am.idmateria = $2
-                AND am.idcurso = $1  /* Usamos $1 que corresponde a idcurso */
-            WHERE ac.idcurso = $1 
-                AND a.idestadoalumno = 1
+                ON a.dni_alumno = am.dni_alumno 
+                AND am.id_materia = $2
+                AND am.id_curso = $1  
+            WHERE ac.id_curso = $1 
+                AND a.id_estadoalumno = 1
             ORDER BY a.apellido, a.nombre
-        `, [idcurso, idmateria]);
+        `, [id_curso, id_materia]);
         
         res.status(200).json({notas: respuesta.rows});
     } catch (error) {
@@ -32,6 +36,9 @@ export const obtenerNotas = async (req, res) => {
     }
 }
 
+/*
+    REGISTRAMOS NUEVA NOTA/NOTAS 
+*/
 export const registrarNota = async (req, res) => {
     try {
         if (!Array.isArray(req.body)) {
@@ -42,9 +49,9 @@ export const registrarNota = async (req, res) => {
 
         for (const registro of req.body) {
             const { 
-                dnialumno, 
-                idmateria, 
-                idcurso,
+                dni_alumno, 
+                id_materia, 
+                id_curso,
                 nota1 = 0, 
                 nota2 = 0, 
                 nota3 = 0, 
@@ -54,9 +61,9 @@ export const registrarNota = async (req, res) => {
             } = registro;
 
             // Validar datos obligatorios
-            if (!dnialumno || !idmateria || !idcurso) {
+            if (!dni_alumno || !id_materia || !id_curso) {
                 resultados.push({
-                    dnialumno,
+                    dni_alumno,
                     error: "Faltan datos obligatorios"
                 });
                 continue;
@@ -73,10 +80,10 @@ export const registrarNota = async (req, res) => {
                 // Verificar si existe el registro
                 const existeRegistro = await pool.query(`
                     SELECT * FROM alumnomateria 
-                    WHERE dnialumno = $1 
-                    AND idmateria = $2 
-                    AND idcurso = $3`,
-                    [dnialumno, idmateria, idcurso]
+                    WHERE dni_alumno = $1 
+                    AND id_materia = $2 
+                    AND id_curso = $3`,
+                    [dni_alumno, id_materia, id_curso]
                 );
 
                 if (existeRegistro.rows.length > 0) {
@@ -84,32 +91,32 @@ export const registrarNota = async (req, res) => {
                     await pool.query(`
                         UPDATE alumnomateria 
                         SET nota1 = $4, nota2 = $5, nota3 = $6, nota4 = $7, nota5 = $8, nota6 = $9,
-                            idestadoevaluativo = $10, promedio = $11
-                        WHERE dnialumno = $1 
-                        AND idmateria = $2 
-                        AND idcurso = $3`,
-                        [dnialumno, idmateria, idcurso, 
+                            id_estadoevaluativo = $10, promedio = $11
+                        WHERE dni_alumno = $1 
+                        AND id_materia = $2 
+                        AND id_curso = $3`,
+                        [dni_alumno, id_materia, id_curso, 
                          nota1, nota2, nota3, nota4, nota5, nota6,
                          idestadoevaluativo, promedio]
                     );
                     resultados.push({
-                        dnialumno,
+                        dni_alumno,
                         status: "actualizado"
                     });
                 } else {
                     // Insertar nuevo registro
                     await pool.query(`
                         INSERT INTO alumnomateria 
-                        (dnialumno, idmateria, idcurso, 
+                        (dni_alumno, id_materia, id_curso, 
                          nota1, nota2, nota3, nota4, nota5, nota6,
-                         idestadoevaluativo, promedio)
+                         id_estadoevaluativo, promedio)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-                        [dnialumno, idmateria, idcurso, 
+                        [dni_alumno, id_materia, id_curso, 
                          nota1, nota2, nota3, nota4, nota5, nota6,
                          idestadoevaluativo, promedio]
                     );
                     resultados.push({
-                        dnialumno,
+                        dni_alumno,
                         status: "insertado"
                     });
                 }
@@ -117,7 +124,7 @@ export const registrarNota = async (req, res) => {
             } catch (error) {
                 console.error("Error específico:", error);
                 resultados.push({
-                    dnialumno,
+                    dni_alumno,
                     error: error.message
                 });
             }

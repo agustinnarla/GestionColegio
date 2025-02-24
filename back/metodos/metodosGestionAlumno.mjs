@@ -15,11 +15,11 @@ export const obtenerLegajoAlumno = async (req, res) => {
         // Consulta para obtener los metadatos del legajo, incluidos los campos binarios como BLOB o BYTEA
         const respuesta = await pool.query(`
             SELECT 
-                dnialumno,
+                dni_alumno,
                 fecha_subida,
-                LENGTH(dnifoto) AS tamaño_dni,
-                LENGTH(fichamedica) AS tamaño_ficha_medica,
-                LENGTH(partidanacimiento) AS tamaño_partida_nacimiento
+                LENGTH(dni_foto) AS tamaño_dni,
+                LENGTH(ficha_medica) AS tamaño_ficha_medica,
+                LENGTH(partida_nacimiento) AS tamaño_partida_nacimiento
             FROM adjuntolegajo
         `);
         // Mapear los resultados para enviar solo los metadatos
@@ -81,13 +81,13 @@ export const obtenerLegajoAlumnoFiltrado = async (req, res) => {
 
 export const obtenerAlumnoFiltrado = async (req, res) => {
     try {
-        const { dnialumno } = req.params;
+        const { dni_alumno } = req.params;
         const respuesta = await pool.query(
-            `SELECT a.*, ac.idcurso, ac.dnialumno 
+            `SELECT a.*, ac.id_curso, ac.dni_alumno 
             FROM alumno a 
-            INNER JOIN alumnocurso ac ON ac.dnialumno = a.dnialumno  
-            WHERE a.dnialumno = $1`, 
-            [dnialumno]
+            INNER JOIN alumnocurso ac ON ac.dni_alumno = a.dni_alumno  
+            WHERE a.dni_alumno = $1`, 
+            [dni_alumno]
         );
 
         if (respuesta.rows.length === 0) {
@@ -104,23 +104,23 @@ export const obtenerAlumnoFiltrado = async (req, res) => {
 
 export const agregarAlumno = async (req, res) => {
     try {
-        const { dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, 
-            fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, telefonomadre,
-            telefonopadre, emailpersonal, emailfamiliar, idcurso,edificio } = req.body;
+        const { dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, 
+            fecha_nacimiento, id_localidad, id_estadoalumno, telefono_personal, telefono_madre,
+            telefono_padre, email_personal, email_familiar, id_curso,edificio } = req.body;
 
         const respuesta = await pool.query(
-            'INSERT INTO alumno (dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil,'
-            + 'fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal,telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio)'
+            'INSERT INTO alumno (dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil,'
+            + 'fecha_nacimiento, id_localidad, id_estadoalumno, telefono_personal,telefono_madre, telefono_padre, email_personal, email_familiar,edificio)'
             + 'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
-            [dnialumno, nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, idlocalidad, idestadoalumno, telefonopersonal, 
-                telefonomadre, telefonopadre, emailpersonal, emailfamiliar,edificio]
+            [dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, fecha_nacimiento, id_localidad, id_estadoalumno, telefono_personal, 
+                telefono_madre, telefono_padre, email_personal, email_familiar,edificio]
         );
 
         const nuevoDni = respuesta.rows[0].dnialumno;
 
         await pool.query(
-            'INSERT INTO alumnocurso (dnialumno, idcurso) VALUES ($1, $2)',
-            [nuevoDni, idcurso]
+            'INSERT INTO alumnocurso (dni_alumno, id_curso) VALUES ($1, $2)',
+            [nuevoDni, id_curso]
         );
 
     
@@ -136,14 +136,14 @@ export const agregarAlumno = async (req, res) => {
 
 export const agregarLegajo = async (req, res) => {
     try {
-        const { dnialumno, fecha_subida } = req.body;
+        const { dni_alumno, fecha_subida } = req.body;
 
         // Verificar si los archivos están presentes
         const dnifoto = req.files.dnifoto ? req.files.dnifoto[0].buffer : null;
         const fichamedica = req.files.fichamedica ? req.files.fichamedica[0].buffer : null;
         const partidanacimiento = req.files.partidanacimiento ? req.files.partidanacimiento[0].buffer : null;
 
-        if (!dnialumno || !fecha_subida) {
+        if (!dni_alumno || !fecha_subida) {
             return res.status(400).json({ error: 'Faltan datos obligatorios (dnialumno, fecha_subida).' });
         }
 
@@ -152,7 +152,7 @@ export const agregarLegajo = async (req, res) => {
             `INSERT INTO adjuntolegajo (dnialumno, dnifoto, fichamedica, partidanacimiento, fecha_subida)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *`,
-            [dnialumno, dnifoto, fichamedica, partidanacimiento, fecha_subida]
+            [dni_alumno, dnifoto, fichamedica, partidanacimiento, fecha_subida]
         );
 
         // Responder con los datos del nuevo registro
@@ -167,8 +167,8 @@ export const agregarLegajo = async (req, res) => {
 
 export const deshabilitarAlumno = async (req,res) =>{
     try{
-        const {dnialumno} = req.params;
-        const respuesta = await pool.query('UPDATE alumno SET idestadoalumno = 2 WHERE dnialumno = $1', [dnialumno]);
+        const {dni_alumno} = req.params;
+        const respuesta = await pool.query('UPDATE alumno SET id_estadoalumno = 2 WHERE dni_alumno = $1', [dni_alumno]);
         
         if (respuesta.rowCount === 0) {
             return res.status(404).json({ error: 'Alumno no encontrado' });
@@ -183,9 +183,9 @@ export const deshabilitarAlumno = async (req,res) =>{
 
 export const modificarAlumno = async (req, res) => {
     try {
-        const { dnialumno } = req.params;
-        const { nombre, apellido, domicilio, departamento, piso, idsexo, cuil, fechanacimiento, 
-            idlocalidad, idestadoalumno, telefonopersonal, telefonomadre, telefonopadre, emailpersonal, emailfamiliar, idcurso, edificio } = req.body; 
+        const { dni_alumno } = req.params;
+        const { nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, fecha_nacimiento, 
+            id_localidad, id_estadoalumno, telefono_personal, telefono_madre, telefono_padre, email_personal, email_familiar, id_curso, edificio } = req.body; 
         const valores = [];
         const columnas = [];
         // Crear un objeto con los campos que se pueden actualizar
@@ -195,16 +195,16 @@ export const modificarAlumno = async (req, res) => {
             domicilio,
             departamento,
             piso,
-            idsexo,
+            id_sexo,
             cuil,
-            fechanacimiento,
-            idlocalidad,
-            idestadoalumno,
-            telefonopersonal,
-            telefonomadre,
-            telefonopadre,
-            emailpersonal,
-            emailfamiliar,
+            fecha_nacimiento,
+            id_localidad,
+            id_estadoalumno,
+            telefono_personal,
+            telefono_madre,
+            telefono_padre,
+            email_personal,
+            email_familiar,
             edificio
         };
         // Iterar sobre el objeto y construir las columnas y valores
@@ -220,20 +220,30 @@ export const modificarAlumno = async (req, res) => {
         }
 
         // Actualizar la tabla alumno
-        valores.push(dnialumno);
-        const respuestaAlumno = await pool.query('UPDATE alumno SET ' + columnas.join(', ') + ' WHERE dnialumno = $' + (valores.length), valores);
+        valores.push(dni_alumno);
+        const respuestaAlumno = await pool.query('UPDATE alumno SET ' + columnas.join(', ') + ' WHERE dni_alumno = $' + (valores.length), valores);
         
         if (respuestaAlumno.rowCount === 0) {
             return res.status(404).json({ error: 'Alumno no encontrado' });
         }
 
         // Si se proporciona un nuevo idcurso, actualizar la tabla alumnocurso
-        if (idcurso) {
-            const respuestaCurso = await pool.query('UPDATE alumnocurso SET idcurso = $1 WHERE dnialumno = $2', [idcurso, dnialumno]);
+        if (id_curso) {
+            const respuestaCurso = await pool.query('UPDATE alumnocurso SET id_curso = $1 WHERE dni_alumno = $2', [id_curso, dni_alumno]);
             if (respuestaCurso.rowCount === 0) {
                 return res.status(404).json({ error: 'Curso no encontrado para el alumno' });
             }
         }
+
+        // Registrar el alumno como usuario
+        const contrasenaHaseada = await encriptarContrasena(dni_alumno.toString());
+        const id_rol = 4; 
+
+        await pool.query(
+            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol) VALUES ($1, $2, $3, $4)',
+            [dni_alumno, contrasenaHaseada, email_personal, id_rol]
+        );
+
 
         console.log("Alumno actualizado exitosamente");
         res.status(200).json({ message: 'Alumno actualizado exitosamente' }); 
@@ -285,10 +295,10 @@ export const obtenerAlumnoNombreApellido = async (req,res) => {
 }
 
 export const obtenerAlumnoCurso = async (req,res) => {
-    const {idcurso} = req.params
+    const {id_curso} = req.params
     try{
-        const respuesta = await pool.query("SELECT a.dnialumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dnialumno = ac.dnialumno WHERE idcurso=$1 AND a.idestadoalumno=1",
-            [idcurso])
+        const respuesta = await pool.query("SELECT a.dni_alumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dni_alumno = ac.dni_alumno WHERE id_curso=$1 AND a.id_estadoalumno=1",
+            [id_curso])
         res.status(200).json({alumnos: respuesta.rows})
     }catch(error){
         console.log(error)

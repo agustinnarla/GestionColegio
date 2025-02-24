@@ -5,10 +5,12 @@ const api_urlObtenerEtapasEvaluativas = 'http://192.168.0.23:5000/etapas'
 const api_urlObtenerAlumnoPorCurso = 'http://192.168.0.23:5000/alumnosPorCurso'
 
 
-
-export const obtenerNotas = async (idcurso,idmateria) => {
+/*
+    CONSULTA A LA API PARA OBTENER NOTAS 
+*/
+export const obtenerNotas = async (id_curso,id_materia) => {
     try{
-        const respuesta = await fetch(`${api_urlCargarNotas}/${idcurso}/${idmateria}`)
+        const respuesta = await fetch(`${api_urlCargarNotas}/${id_curso}/${id_materia}`)
 
         if (!respuesta.ok) {
             throw new Error('Error al obtener las notas de los alumnos');
@@ -21,6 +23,9 @@ export const obtenerNotas = async (idcurso,idmateria) => {
     }
 }
 
+/*
+    CONSULTA A LA API PARA OBTENER MATERIAS Y CARGARLAS EN LA BASE DE DATOS 
+*/
 export const obtenerMateria = async () => {
     try {
         const respuesta = await fetch(`${api_urlObtenerMateria}`); 
@@ -37,25 +42,13 @@ export const obtenerMateria = async () => {
     }
 };
 
-export const obtenerEtapasEvaluativas= async () => {
+
+/*
+    CONSULTA A LA API PARA OBTENER LOS ALUMNOS POR CURSO 
+*/
+export const obtenerAlumnoPorCurso = async (id_curso) => {
     try{
-        const respuesta = await fetch(`${api_urlObtenerEtapasEvaluativas}`)
-
-        if(!respuesta.ok){
-            throw new Error('Error al obtener las etapas escolares')
-        }
-
-        const data = await respuesta.json()
-        console.log(data);
-        return data.etapa; 
-    }catch(error){
-        console.error('Error en obtenerEtapasEscolares:', error);
-    }
-}
-
-export const obtenerAlumnoPorCurso = async (idcurso) => {
-    try{
-        const respuesta = await fetch(`${api_urlObtenerAlumnoPorCurso}/${idcurso}`)
+        const respuesta = await fetch(`${api_urlObtenerAlumnoPorCurso}/${id_curso}`)
 
         if(!respuesta.ok){
             throw new Error('Error al obtener los alumnos')
@@ -69,6 +62,9 @@ export const obtenerAlumnoPorCurso = async (idcurso) => {
     }
 }
 
+/*
+    CONSULTA A LA API PARA REGISTRAR NOTAS 
+*/
 export const registrarNotas= async(formData) => {
     try{
         const respuesta = await fetch(api_urlCargarNotas, {

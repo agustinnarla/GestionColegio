@@ -23,10 +23,10 @@ export const obtenerSolicitante = async () => {
 }
 
 //Obtenemos alumno por curso para la carga de la lista desplegable
-export const obtenerAlumnoCurso = async (idcurso) =>{
+export const obtenerAlumnoCurso = async (id_curso) =>{
     try{
         //Consultamos la api
-        const respuesta = await fetch(`${api_urlAlumnoCurso}/${idcurso}`)
+        const respuesta = await fetch(`${api_urlAlumnoCurso}/${id_curso}`)
         const data = await respuesta.json()
         if(respuesta.ok){
             return data.alumnos
@@ -117,7 +117,7 @@ export const imprimirArchivo = async (formData, alumno, solicitante) => {
                     </div>
                     <div class="content">
                         <p><strong>Alumno:</strong> ${alumno.nombrecompleto}</p>
-                        <p><strong>DNI:</strong> ${formData.dnialumno}</p>
+                        <p><strong>DNI:</strong> ${formData.dni_alumno}</p>
                         <p><strong>Fecha de la observación:</strong> ${formData.fecha}</p>
                         <p><strong>Solicitado por:</strong> ${solicitante.nombre_apellido}</p>
                         <p><strong>Motivo:</strong>${formData.motivo}</p>

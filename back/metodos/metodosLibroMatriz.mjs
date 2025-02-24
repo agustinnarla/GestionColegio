@@ -1,19 +1,19 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 export const cargarGrilla = async (req, res) => {
-    const { dnialumno } = req.params;
+    const { dni_alumno } = req.params;
     try {
         const respuesta = await pool.query(
             // Ver curso actual 
-            "SELECT DISTINCT am.dnialumno, m.detalle AS materia_detalle, ev.detalle AS estado_detalle, am.promedio, c.detalle AS curso_detalle, c.idcurso " +
+            "SELECT DISTINCT am.dni_alumno, m.detalle AS materia_detalle, ev.detalle AS estado_detalle, am.promedio, c.detalle AS curso_detalle, c.id_curso " +
             "FROM alumnomateria AS am " +
-            "INNER JOIN materia AS m ON m.idmateria = am.idmateria " +
-            "INNER JOIN estadoevaluativo AS ev ON ev.idestadoevaluativo = am.idestadoevaluativo " +
-            "INNER JOIN curso AS c ON c.idcurso = am.idcurso " +
-            "INNER JOIN alumnocurso AS ac ON ac.idcurso = c.idcurso " +
-            "WHERE am.dnialumno = $1 AND am.idcurso = ac.idcurso " +
-            "ORDER BY c.idcurso DESC", 
-            [dnialumno]
+            "INNER JOIN materia AS m ON m.id_materia = am.id_materia " +
+            "INNER JOIN estadoevaluativo AS ev ON ev.id_estadoevaluativo = am.id_estadoevaluativo " +
+            "INNER JOIN curso AS c ON c.id_curso = am.id_curso " +
+            "INNER JOIN alumnocurso AS ac ON ac.id_curso = c.id_curso " +
+            "WHERE am.dni_alumno = $1 AND am.id_curso = ac.id_curso " +
+            "ORDER BY c.id_curso DESC", 
+            [dni_alumno]
         );
         res.status(200).json({ grilla: respuesta.rows });
     } catch (error) {

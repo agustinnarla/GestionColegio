@@ -5,7 +5,7 @@ import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import { obtenerAlumnoCurso, obtenerSolicitante, registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
-
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 export default function GestionarObservaciones() {
     // Formulario
     const [formData, setFormData] = useState({
@@ -122,39 +122,18 @@ export default function GestionarObservaciones() {
         setFormData({ ...formData, [name]: value });
     };
 
-    // Componente reutilizable para Picker
-    const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
-        return (
-            <>
-                <Text style={styles.label}>{label}</Text>
-                <Picker
-                    style={styles.input}
-                    selectedValue={selectedValue}
-                    onValueChange={onValueChange}
-                >
-                    {items.length > 0 ? (
-                        items.map((item) => (
-                            <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
-                        ))
-                    ) : (
-                        <Picker.Item label="Cargando..." value="" />
-                    )}
-                </Picker>
-            </>
-        );
-    });
 
     const Content = (
         <View style={styles.contenido}>
-            <PickerField 
-                label="Curso"
-                selectedValue={formData.id_curso} 
-                onValueChange={(value) => handleChange('id_curso', value)} 
-                items={[
-                    { label: 'Seleccione el curso', value: '' },
-                    ...cursos.map(curso => ({ label: curso.detalle, value: curso.id_curso, key: curso.id_curso})) 
-                ]} 
+            <ListasDesplegables 
+                formData={formData} 
+                handleChange={handleChange} 
+                curso={cursos} 
+                alumnos={alumnos}
+                solicitantes={solicitantes}
+                styles={styles}
             />
+
 
             <Text style={styles.label}>Fecha:</Text>
             <TextInput 
@@ -163,25 +142,6 @@ export default function GestionarObservaciones() {
                 keyboardType="number-pad" 
                 value={formData.fecha}  
                 onChangeText={(value) => handleChange('fecha', value)}
-            />
-           <PickerField 
-                label="Alumno"
-                selectedValue={formData.dni_alumno} 
-                onValueChange={(value) => handleChange('dni_alumno', value)} 
-                items={[
-                    { label: 'Seleccione el alumno', value: '' },
-                    ...alumnos.map(alumno => ({ label: alumno.nombrecompleto, value: parseInt(alumno.dni_alumno), key: alumno.dni_alumno }))
-                ]} 
-            />
-
-            <PickerField 
-                label="Solicitado Por"
-                selectedValue={formData.id_solicitante} 
-                onValueChange={(value) => handleChange('id_solicitante', value)} 
-                items={[
-                    { label: 'Seleccione el solicitante', value: '' },
-                    ...solicitantes.map(solicitante => ({ label: solicitante.nombre_apellido, value: solicitante.id_solicitante, key: solicitante.id_solicitante })) 
-                ]} 
             />
 
             <Text style={styles.label}>Motivo:</Text>

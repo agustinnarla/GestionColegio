@@ -90,7 +90,7 @@ export default function GestionarAlumno() {
                     dni: legajoDNI,
                     fichaMedica: legajoFichaMedica,
                     partidaNacimiento: legajoPartidaNacimiento,
-                  });
+                });
             } else {
                 Alert.alert('Error', 'Alumno no encontrado');
             }
@@ -110,7 +110,7 @@ export default function GestionarAlumno() {
             return;
         }
 
-        const cuil = formData.cuil;  // CUIL ingresado por el usuario como string
+        const cuil = formData.cuil;  
         if (validarCUIL(cuil, dni)) {
             console.log('CUIL y DNI válidos');
             formData.cuil = cuil; 

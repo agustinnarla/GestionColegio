@@ -1,11 +1,93 @@
-import { StyleSheet, View, Image, TextInput, Text, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { StyleSheet, View, Image, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import React from "react";
+import ListasDesplegables from '../../componente/ListasDesplegables';
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import { obtenerRoles, registrarUsuario } from '../../scripts/admin/scriptRegistrarUsuario';
 
 export default function RegistrarUsuario() { 
     const navegacion = useNavigation();
+
+    const [formData, setFormData] = useState({
+        email: '',
+        dni_usuario: '',
+        contrasena: '',
+        confirmarContrasena: '',
+        id_rol: '',
+        id_estadoalumno: 1,
+    });
+
+    const [roles, setRoles] = useState([]);
+
+    useEffect(() => {
+        const cargarDatos = async () => {
+            try {
+                const rolesData = await obtenerRoles();
+                setRoles(Array.isArray(rolesData) ? rolesData : []);
+            } catch (error) {
+                Alert.alert('Error', error.message);
+            }
+        };
+        cargarDatos();
+    }, []);
+
+    // Manejar cambios en el formulario
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const limpiarInterfaz = () => {
+        setFormData({
+            dni_usuario: '',
+            email: '',  
+            contrasena: '',
+            confirmarContrasena: '',
+            id_rol: '',
+            id_estadoalumno: 1,
+        });
+    };
+    // Validar formato de email
+    const validarEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    };
+
+    // Validar que las contraseñas coincidan
+    const validarContrasenas = () => {
+        return formData.contrasena === formData.confirmarContrasena;
+    };
+
+    const handleRegistrar = async () => {
+        if (!validarEmail(formData.email)) {
+            Alert.alert('Error', 'Por favor ingrese un email válido');
+            return;
+        }
+
+        if (!validarContrasenas()) {
+            Alert.alert('Error', 'Las contraseñas no coinciden');
+            return;
+        }
+
+        try {
+            const usuarioData = {
+                email: formData.email,
+                dni_usuario: parseInt(formData.dni_usuario),
+                contrasena: formData.contrasena,
+                id_rol: parseInt(formData.id_rol),
+                id_estadoalumno: formData.id_estadoalumno,
+            };
+
+            const respuesta = await registrarUsuario(usuarioData);
+            console.log('Usuario Registrado:', respuesta);
+            
+            Alert.alert('Éxito', 'Usuario registrado exitosamente');
+            limpiarInterfaz();
+        } catch (error) {
+            console.error('Error al registrar el usuario:', error.message);
+            Alert.alert('Error', 'No se pudo registrar el usuario');
+        }
+    };
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
@@ -15,6 +97,8 @@ export default function RegistrarUsuario() {
                     style={styles.input}
                     placeholder='Email'
                     keyboardType='email-address'
+                    onChangeText={(text) => handleChange('email', text)}
+                    value={formData.email}
                 />
 
                 <Text style={styles.label}>DNI</Text>
@@ -22,6 +106,8 @@ export default function RegistrarUsuario() {
                     style={styles.input}
                     placeholder='DNI'
                     keyboardType='numeric'
+                    onChangeText={(text) => handleChange('dni_usuario', text)}
+                    value={formData.dni_usuario}
                 />
 
                 <Text style={styles.label}>Contraseña</Text>
@@ -29,6 +115,8 @@ export default function RegistrarUsuario() {
                     style={styles.input}
                     placeholder='Contraseña'
                     secureTextEntry={true}
+                    onChangeText={(text) => handleChange('contrasena', text)}
+                    value={formData.contrasena}
                 />
 
                 <Text style={styles.label}>Confirmar Contraseña</Text>
@@ -36,31 +124,33 @@ export default function RegistrarUsuario() {
                     style={styles.input}
                     placeholder='Confirmar Contraseña'
                     secureTextEntry={true}
+                    onChangeText={(text) => handleChange('confirmarContrasena', text)}
+                    value={formData.confirmarContrasena}
                 />
 
-                <Text style={styles.label}>Rol</Text>
                 <View style={styles.contenidoRol}>
                     <View style={styles.contenidoLista}>
-                        <Picker style={styles.lista}>
-                            <Picker.Item label='Seleccionar Rol' value='' />
-                            <Picker.Item label='Administrador' value='Administrador' />
-                            <Picker.Item label='Profesor' value='Profesor' />
-                        </Picker>
+                        <ListasDesplegables 
+                            formData={formData} 
+                            handleChange={handleChange} 
+                            roles={roles} // Asegúrate de pasar roles aquí
+                            styles={styles}
+                        />
                     </View>
                     <TouchableOpacity 
                         style={styles.botonAgregarRol}
-                        onPress={() => navegacion.navigate('Registrar Rol')} // Redirige a la pantalla para agregar nuevo rol
+                        onPress={() => navegacion.navigate('Registrar Rol')} 
                     >
                         <Text style={styles.textoBotonAgregarRol}>+</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar}>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.botonCancelar}>
-                        <Text style={styles.textoBoton}>Cancelar</Text>
+                        <Text style={styles.textoBoton} onPress={limpiarInterfaz}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
             </View>

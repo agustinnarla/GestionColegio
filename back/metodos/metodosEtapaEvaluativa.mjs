@@ -4,7 +4,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 //Luego se tendria q traer materias de acuerdo al profesor 
 export const obtenerEtapaEvaluativa = async (req,res) => {
     try{
-        const respuesta = await pool.query("SELECT idetapas, detalle FROM etapas")
+        const respuesta = await pool.query("SELECT id_etapas, detalle FROM etapas")
         console.log('Etapas traídas exitosamente');
         res.json({etapa: respuesta.rows})
     }

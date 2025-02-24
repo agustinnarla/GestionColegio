@@ -4,14 +4,14 @@ import PickerField from './PickerField';
 export function CursoSelector({ formData, handleChange, curso, styles }) {
     const selectorConfig = {
         label: 'Curso',
-        selectedValue: formData.idcurso,
-        onValueChange: (value) => handleChange('idcurso', value),
+        selectedValue: formData.id_curso,
+        onValueChange: (value) => handleChange('id_curso', value),
         items: [
             { label: 'Seleccione curso', value: '' },
             ...(curso || []).map(item => ({
                 label: item.detalle,
-                value: item.idcurso,
-                key: item.idcurso
+                value: item.id_curso,
+                key: item.id_curso
             }))
         ]
     };
@@ -22,14 +22,14 @@ export function CursoSelector({ formData, handleChange, curso, styles }) {
 export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) {
     const selectorConfig = {
         label: 'Etapas evaluativa',
-        selectedValue: formData.idetapas,
-        onValueChange: (value) => handleChange('idetapas', value),
+        selectedValue: formData.id_etapas,
+        onValueChange: (value) => handleChange('id_etapas', value),
         items: [
             { label: 'Seleccione etapa evaluativa', value: '' },
-            ...etapaEscolar.map(item => ({
+            ...(etapaEscolar || []).map(item => ({
                 label: item.detalle,
-                value: item.idetapas,
-                key: item.idetapas
+                value: item.id_etapas,
+                key: item.id_etapas
             }))
         ]
     };
@@ -40,14 +40,14 @@ export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) 
 export function MateriaSelector({ formData, handleChange, materias, styles }) {
     const selectorConfig = {
         label: 'Materias',
-        selectedValue: formData.idmateria,
-        onValueChange: (value) => handleChange('idmateria', value),
+        selectedValue: formData.id_materia,
+        onValueChange: (value) => handleChange('id_materia', value),
         items: [
             { label: 'Seleccione materia', value: '' },
-            ...materias.map(item => ({
+            ...(materias || []).map(item => ({
                 label: item.detalle,
-                value: item.idmateria,
-                key: item.idmateria
+                value: item.id_materia,
+                key: item.id_materia
             }))
         ]
     };
@@ -55,15 +55,69 @@ export function MateriaSelector({ formData, handleChange, materias, styles }) {
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function AlumnoSelector({ formData, handleChange, alumnos, styles }) {
+    const selectorConfig = {
+        label: 'Alumnos',
+        selectedValue: formData.dni_alumno,
+        onValueChange: (value) => handleChange('dni_alumno', value),
+        items: [
+            { label: 'Seleccione alumno', value: '' },
+            ...(alumnos || []).map(item => ({
+                label: item.nombrecompleto,
+                value: item.dni_alumno,
+                key: item.dni_alumno
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+export function SolicitanteSelector({ formData, handleChange, solicitantes, styles }) {
+    const selectorConfig = {
+        label: 'Solicitante',
+        selectedValue: formData.id_solicitante,
+        onValueChange: (value) => handleChange('id_solicitante', value),
+        items: [
+            { label: 'Seleccione solicitante', value: '' },
+            ...(solicitantes || []).map(item => ({
+                label: item.nombre_apellido,
+                value: item.id_solicitante,
+                key: item.id_solicitante
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+export function RolesSelector({ formData, handleChange, roles, styles }) {
+    const selectorConfig = {
+        label: 'Roles',
+        selectedValue: formData.id_rol,
+        onValueChange: (value) => handleChange('id_rol', value),
+        items: [
+            { label: 'Seleccione rol', value: '' },
+            ...(roles || []).map(item => ({
+                label: item.detalle,
+                value: item.id_rol,
+                key: item.id_rol
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 // Componente principal que combina todos los selectores
-function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, styles }) {
+function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles }) {
     return (
         <View style={styles.filtrosContainer}>
-            <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />
-            <EtapaSelector formData={formData} handleChange={handleChange} etapaEscolar={etapaEscolar} styles={styles} />
-            <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />
+            {curso && <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />}
+            {etapaEscolar && <EtapaSelector formData={formData} handleChange={handleChange} etapaEscolar={etapaEscolar} styles={styles} />}
+            {materias && <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />}
+            {alumnos && <AlumnoSelector formData={formData} handleChange={handleChange} alumnos={alumnos} styles={styles} />}
+            {solicitantes && <SolicitanteSelector formData={formData} handleChange={handleChange} solicitantes={solicitantes} styles={styles} />}
+            {roles && <RolesSelector formData={formData} handleChange={handleChange} roles={roles} styles={styles} />}
         </View>
     );
 }
 
-export default ListasDesplegables; 
+export default ListasDesplegables;
