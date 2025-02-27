@@ -10,7 +10,7 @@ export const obtenerMateria = async (req, res) => {
         if (respuesta.rows.length === 0) {
             return res.status(404).json({ message: 'No se encontraron materias' });
         }
-
+        console.log('Materias traídas exitosamente');
         res.json({ materia: respuesta.rows });
     } catch (error) {
         console.error( 'error al traer las materias');

@@ -1,6 +1,17 @@
-import {pool} from '../dataBase/coneccion.mjs';
+import { pool } from '../dataBase/coneccion.mjs';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 export const ingresarUsuario = async (req, res) => {
     const { dni_usuario, contrasena } = req.body;
@@ -21,4 +32,80 @@ export const ingresarUsuario = async (req, res) => {
         console.log(error.message);
         res.status(500).json({ message: 'Error al ingresar usuario' });
     }
-}
+};
+
+export const generarContrasena = async () => {
+    // Generar contraseña temporal aleatoria de 8 caracteres
+    const caracteresPermitidos = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let contrasenaTemporal = '';
+    for (let i = 0; i < 8; i++) {
+        contrasenaTemporal += caracteresPermitidos.charAt(Math.floor(Math.random() * caracteresPermitidos.length));
+    }
+
+    // Encriptar la contraseña temporal
+    const contrasenaEncriptada = await bcrypt.hash(contrasenaTemporal, 10);
+
+    return { contrasenaTemporal, contrasenaEncriptada };
+};
+
+export const enviarEmail = async (req, res) => {
+    const { dni_usuario } = req.body;
+    try {
+        // Generar contraseña temporal
+        const { contrasenaTemporal, contrasenaEncriptada } = await generarContrasena();
+        
+        // Actualizar la contraseña
+        const resultado = await contrasenaActualizada(contrasenaEncriptada, dni_usuario);
+
+        if (resultado.success) {
+            // Configurar el email
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: resultado.email,
+                subject: 'Nueva contraseña temporal',
+                html: `
+                    <h2>Datos de acceso temporales</h2>
+                    <p><strong>DNI:</strong> ${dni_usuario}</p>
+                    <p><strong>Contraseña temporal:</strong> ${contrasenaTemporal}</p>
+                    <p>Por favor, cambie su contraseña después de iniciar sesión.</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log('Correo enviado exitosamente');
+            res.status(200).json({ message: 'Correo enviado exitosamente con la nueva contraseña' });
+        } else {
+            res.status(404).json({ message: resultado.message });
+        }
+    } catch (error) {
+        console.error("Error al enviar el email de notificación", error.message);
+        res.status(500).json({ message: 'Error al enviar el email de notificación' });
+    }
+};
+
+export const contrasenaActualizada = async (contrasenaEncriptada, dni_usuario) => {
+    try {
+        const actualizarContrasena = await pool.query(
+            'UPDATE usuario SET contrasena = $1 WHERE dni_usuario = $2 RETURNING email',
+            [contrasenaEncriptada, dni_usuario]
+        );
+        
+        if (actualizarContrasena.rows.length > 0) {
+            return { 
+                success: true, 
+                email: actualizarContrasena.rows[0].email 
+            };
+        } else {
+            return { 
+                success: false, 
+                message: 'Usuario no encontrado' 
+            };
+        }
+    } catch (error) {
+        console.error("Error al actualizar la contraseña:", error.message);
+        return { 
+            success: false, 
+            message: 'Error al actualizar la contraseña' 
+        };
+    }
+};

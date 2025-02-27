@@ -1,18 +1,47 @@
-import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground, Alert } from 'react-native';
+import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesome5 } from '@expo/vector-icons';
-import axios from 'axios';
-import {login} from '../scripts/login/scriptLogin.js';
+import { login, olvideMiContrasena } from '../scripts/login/scriptLogin.js';
 import bg from '../assets/bg1.jpg';
 import logo from '../assets/logo_huerto.png';
+import CustomAlert from '../componente/CustomAlerts.js';
 
 export default function Login(props) {
     const [dniUsuario, setDniUsuario] = useState('');
     const [contrasena, setContrasena] = useState('');
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
 
-    const handleLogin = () => {
-        login(dniUsuario, contrasena, props.navigation);
+    const handleLogin = async () => {
+        await login(dniUsuario, contrasena, props.navigation, mostrarMensaje);
     };
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+    const handleOlvideMiContrasena = async () => {
+        if (!dniUsuario) {
+            mostrarMensaje('Error', 'Por favor ingrese su DNI para recuperar la contraseña.');
+            return;
+        }
+    
+        try {
+            const response = await olvideMiContrasena(dniUsuario);
+            if (response.success) {
+                mostrarMensaje('Éxito', 'Se ha enviado un correo con su nueva contraseña, por favor modifiquela desde el perfil.');
+            } else {
+                mostrarMensaje('Error', response.message || 'No se pudo enviar el correo de recuperación de contraseña.');
+            }
+        } catch (error) {
+            mostrarMensaje('Error', 'No se pudo enviar el correo de recuperación de contraseña.');
+        }
+    };
+
+    const isButtonDisabled = !dniUsuario || !contrasena;
 
     return (
         <View style={styles.padre}>
@@ -40,22 +69,31 @@ export default function Login(props) {
                             value={contrasena}
                         />
                     </View>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleOlvideMiContrasena}>
                         <Text style={styles.textoOlvide}>
-                            Olvide mi contraseña
+                            Olvidé mi contraseña
                         </Text>
                     </TouchableOpacity>
                     <View style={styles.padreBoton}>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={handleLogin}>
+                        <TouchableOpacity
+                            style={[styles.cajaBoton, isButtonDisabled && styles.botonDeshabilitado]}
+                            onPress={handleLogin}
+                            disabled={isButtonDisabled}
+                        >
                             <Text style={styles.textoBoton}>Ingresar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </ImageBackground>
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
+            />
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     padre: {
@@ -110,6 +148,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.71,
         shadowRadius: 6,
         elevation: 4,
+    },
+    botonDeshabilitado: {
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
     },
     textoBoton: {
         textAlign: 'center',

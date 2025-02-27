@@ -1,8 +1,8 @@
 import { Alert, Platform } from 'react-native';
-const api_url = 'http://localhost:5000'
-const api_urlMaterias = 'http://localhost:5000/materia' 
-const api_urlProfesor = 'http://localhost:5000/profesor'
-const api_urlMateriaProfesor = 'http://localhost:5000/materiaprofesor'
+const api_url = 'http://192.168.0.18:5000'
+const api_urlMaterias = 'http://192.168.0.18:5000/materia' 
+const api_urlProfesor = 'http://192.168.0.18:5000/profesor'
+const api_urlMateriaProfesor = 'http://192.168.0.18:5000/materiaprofesor'
 
 export const obtenerMaterias = async () => {
     try {
