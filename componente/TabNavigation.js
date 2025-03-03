@@ -38,7 +38,12 @@ const getMenuComponent = (id_rol) => {
 };
 
 export const BottomTab = ({ route }) => {
+<<<<<<< HEAD
   // const { id_rol } = route.params;
+=======
+  const { id_rol, dni_usuario } = route.params;
+  console.log('BottomTab params:', { id_rol, dni_usuario });
+>>>>>>> 9a2433a31069e890289ab07b88256a554466c613
 
   return (
     <Tab.Navigator 
@@ -74,8 +79,12 @@ export const BottomTab = ({ route }) => {
     >
       <Tab.Screen
         name="MENU"
+<<<<<<< HEAD
         component={HomeAdmin}
         //component={getMenuComponent(id_rol)}
+=======
+        component={getMenuComponent(id_rol)}
+>>>>>>> 9a2433a31069e890289ab07b88256a554466c613
         options={{
           title: "MENÚ",
           headerTintColor: "white",
@@ -108,22 +117,23 @@ export const BottomTab = ({ route }) => {
         }}
       />
       <Tab.Screen
-        name="PERFIL"
-        component={Perfil}
-        options={{
-          title: "PERFIL",
-          headerTintColor: "white",
-          headerTitleAlign: "center",
-          headerBackground: () => (
-            <LinearGradient
-              colors={["rgba(10, 18, 49, 0.8)", "rgba(45, 85, 228, 0.8)"]}
-              style={{ flex: 1 }}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-            />
-          ),
-        }}
+  name="PERFIL"
+  component={Perfil}
+  initialParams={{ dni_usuario }} 
+  options={{
+    title: "PERFIL",
+    headerTintColor: "white",
+    headerTitleAlign: "center",
+    headerBackground: () => (
+      <LinearGradient
+        colors={["rgba(10, 18, 49, 0.8)", "rgba(45, 85, 228, 0.8)"]}
+        style={{ flex: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
       />
+    ),
+  }}
+/>
     </Tab.Navigator>
   );
 };

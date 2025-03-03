@@ -7,7 +7,7 @@ import {
 } from '../metodos/metodosGestionAlumno.mjs'
 
 import { obtenerSexo } from '../metodos/metodosSexo.mjs'
-import { obtenerCurso, obtenerCursoFiltrado } from '../metodos/metodosCurso.mjs'
+import { obtenerCurso, obtenerCursoFiltrado, registrarCursoPorMateria } from '../metodos/metodosCurso.mjs'
 import { obtenerEstadoAlumno } from '../metodos/metodosEstadoAlumno.mjs'
 import { obtenerLocalidad } from '../metodos/metodosLocalidad.mjs'
 import { obtenerSolicitante } from '../metodos/metodosSolicitante.mjs'
@@ -33,6 +33,11 @@ import { registrarUsuario } from '../metodos/metodosRegistrarUsuario.mjs'
 import { ingresarUsuario } from '../metodos/metodosLogin.mjs'
 import {registrarRol, obtenerRoles, obtenerTareasPorRol, eliminaRolTarea, actualizarEstadoRol} from '../metodos/metodosRoles.mjs'
 import { agregarTarea, deshabilitarTarea, eliminarTareaRol, obtenerTareas, obtenerTareasRol, registrarTareaRol} from '../metodos/metodosCargarTarea.mjs'
+import { registrarUsuario, restablecerContrasena} from '../metodos/metodosRegistrarUsuario.mjs'
+import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
+import { obtenerRoles, registrarRol } from '../metodos/metodosRoles.mjs'
+import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
+import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -81,6 +86,7 @@ ruta.get('/sexo', obtenerSexo)
 // =====================================
 ruta.get('/curso', obtenerCurso)
 ruta.get('/curso/:id_curso', obtenerCursoFiltrado)
+ruta.post('/curso', registrarCursoPorMateria)
 
 // =====================================
 //        ESTADO DEL ALUMNO
@@ -177,14 +183,19 @@ ruta.get('/profesor', obtenerProfesor)
 ruta.get('/libroMatriz/:dni_alumno', cargarGrilla)
 
 // =====================================
+//       OBTENER USUARIO
+// =====================================
+ruta.get('/usuario/:dni_usuario', obtenerUsuario)
+// =====================================
 //       REGISTRAR USUARIO
 // =====================================
 ruta.post('/registrarUsuario', registrarUsuario)
-
+ruta.post('/restablecerContrasena/:dni_usuario', restablecerContrasena)
 // =====================================
 //       INGRESAR USUARIO
 // =====================================
 ruta.post('/ingresarUsuario', ingresarUsuario)
+ruta.post('/recuperarContrasena', enviarEmail)
 // =====================================
 //       OBTENER ROLES 
 // =====================================
@@ -202,3 +213,7 @@ ruta.delete('/tarearol', eliminarTareaRol)
 ruta.get('/tarearol/:id_tarea', obtenerTareasRol)
 ruta.post('/tareas', agregarTarea)
 ruta.put('/tareas/:id_tarea', deshabilitarTarea)
+// =====================================
+//       OBTENER ESPECIALIDAD
+// =====================================
+ruta.get('/especialidad', obtenerEspecialidad)
