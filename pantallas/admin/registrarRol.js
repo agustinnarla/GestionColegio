@@ -1,17 +1,193 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity } from 'react-native';
-import React, { useState } from "react";
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import MultiSelect from 'react-native-multiple-select';
+import { obtenerTareas, obtenerRoles} from '../../scripts/admin/scriptCargarTareas';
+import { Picker } from '@react-native-picker/picker';
+import { obtenerTareasRol, registrarRolTarea, registrarRol, deshabilitarRol} from '../../scripts/admin/scriptCargarRol';
 
 export default function RegistrarRol() {
     const [selectedItems, setSelectedItems] = useState([]);
+    const [tareas, setTareas] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [selectedRol, setSelectedRol] = useState('');
 
-    const tareas = [
-        { id: '1', name: 'Tarea 1' },
-        { id: '2', name: 'Tarea 2' },
-        { id: '3', name: 'Tarea 3' },
-        { id: '4', name: 'Tarea 4' },
-    ];
+    const [modalVisible, setModalVisible] = useState(false);
+    const [nuevoRol, setNuevoRol] = useState("");
+
+    const handleAgregarRol = async () => {
+        if (!nuevoRol.trim()) {
+            console.warn('El nombre del rol es obligatorio');
+            return;
+        }
+        try {
+            const response = await registrarRol(nuevoRol);
+            if (response && response.data) {
+                console.log('Rol registrado con éxito:', response);
+                setRoles([...roles, { label: nuevoRol, value: response.data.id_rol?.toString() }]); 
+                setNuevoRol('');
+                setModalVisible(false);
+            } else {
+                console.error('Error al registrar el rol');
+            }
+        } catch (error) {
+            console.error('Error al registrar el rol:', error);
+        }
+    };
+    
+
+    const cargarTareas = async () => {
+        try {
+            const tareasObtenidas = await obtenerTareas();
+            console.log('Tareas obtenidas:', tareasObtenidas);
+    
+            if (tareasObtenidas && Array.isArray(tareasObtenidas.roles)) {
+                const tareasFormateadas = tareasObtenidas.roles.map((tarea) => ({
+                    id: tarea.id_tarea?.toString(),
+                    name: tarea.detalle,
+                }));
+                setTareas(tareasFormateadas);
+            } else {
+                console.error('El formato de tareas obtenidas no es válido:', tareasObtenidas);
+            }
+        } catch (error) {
+            console.error('Error al cargar las tareas:', error);
+        }
+    };
+    
+    const cargarRoles = async () => {
+        try {
+            const rolesObtenidos = await obtenerRoles();
+            console.log('Roles obtenidos:', rolesObtenidos);
+    
+            if (rolesObtenidos && Array.isArray(rolesObtenidos.roles)) {
+                const rolesFormateados = rolesObtenidos.roles.map((rol) => ({
+                    label: rol.detalle, // Lo que se muestra en el Picker
+                    value: rol.id_rol?.toString(), // El valor del Picker
+                }));
+                setRoles(rolesFormateados);
+            } else {
+                console.error('El formato de roles obtenidos no es válido:', rolesObtenidos);
+            }
+        } catch (error) {
+            console.error('Error al cargar los roles:', error);
+        }
+    };
+
+    const obtenerTareasPorRolSeleccionado = async (id_rol) => {
+        try {
+            const data = await obtenerTareasRol(id_rol); // Obtener tareas del rol seleccionado
+    
+            if (data && Array.isArray(data.tareas)) {
+                const tareasSeleccionadas = data.tareas.map((item) => item.id_tarea.toString()); // Convertir IDs a string
+                setSelectedItems(tareasSeleccionadas); // Marcar tareas seleccionadas en el MultiSelect
+            } else {
+                console.error('El formato de tareas obtenidas no es válido:', data);
+                setSelectedItems([]); // Limpiar en caso de error
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                setSelectedItems([]); // Si no hay tareas asociadas, limpiar
+            } else {
+                console.error('Error al obtener tareas del rol:', error);
+                setSelectedItems([]); // Limpiar en caso de error
+            }
+        }
+    };
+    
+    const handleRolChange = async (itemValue) => {
+        setSelectedRol(itemValue); // Actualizar el rol seleccionado
+        if (itemValue) {
+            await obtenerTareasPorRolSeleccionado(itemValue); // Cargar las tareas asociadas al rol
+        } else {
+            setSelectedItems([]); // Si no hay rol seleccionado, limpiar las tareas seleccionadas
+        }
+    };
+
+    const cargarRolTarea = async () => {
+        if (selectedItems.length > 0 && selectedRol) {
+            console.log("Roles seleccionados:", selectedItems);
+            console.log("Tarea seleccionada:", selectedRol);
+    
+            // Enviar todos los roles seleccionados para la tarea
+            const result = await Promise.all(
+                selectedItems.map((tarea) => registrarRolTarea(selectedRol, tarea))
+            );
+    
+            console.log("Resultados de la solicitud:", result);  // Agregar este log para depurar
+    
+            const mensaje = result.every((r) => r.mensaje === 'Relación Tarea-Rol registrada exitosamente')
+                ? 'Todas las relaciones fueron registradas exitosamente'
+                : 'Hubo un error al registrar algunas relaciones';
+    
+            alert(mensaje);
+        } else {
+            alert('Selecciona al menos un rol y una tarea');
+        }
+    };
+
+    const handleDeshabilitarRol = async () => {
+        if (!selectedRol) {
+            console.warn("No hay rol seleccionado para deshabilitar.");
+            return;
+        }
+    
+        // Verifica si está en un navegador o en una app móvil
+        if (typeof window !== 'undefined' && window.confirm) {
+            const confirmar = window.confirm("¿Seguro que quiere deshabilitar el rol?");
+            if (confirmar) {
+                try {
+                    const respuesta = await deshabilitarRol(selectedRol);
+                    if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') { // Aquí se usa 'mensaje' en lugar de 'ok'
+                        setSelectedRol(null);
+                        console.log("Rol deshabilitado correctamente");
+                    } else {
+                        throw new Error(respuesta.mensaje || "Error al deshabilitar el rol");
+                    }
+                } catch (error) {
+                    console.error("Error al deshabilitar el rol:", error);
+                }
+            } else {
+                console.log("Operación cancelada");
+            }
+        } else {
+            Alert.alert(
+                "Confirmación",
+                "¿Seguro que quiere deshabilitar el rol?",
+                [
+                    {
+                        text: "Cancelar",
+                        onPress: () => console.log("Cancelado"),
+                        style: "cancel"
+                    },
+                    {
+                        text: "Confirmar",
+                        onPress: async () => {
+                            try {
+                                const respuesta = await deshabilitarRol(selectedRol);
+                                if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') { // Verifica el mensaje aquí también
+                                    setSelectedRol(null);
+                                    console.log("Rol deshabilitado correctamente");
+                                } else {
+                                    throw new Error(respuesta.mensaje || "Error al deshabilitar el rol");
+                                }
+                            } catch (error) {
+                                console.error("Error al deshabilitar el rol:", error);
+                            }
+                        }
+                    }
+                ]
+            );
+        }
+    };
+    
+    
+    
+    useEffect(() => {
+        cargarTareas();
+        cargarRoles();
+    }, []);
+    
 
     const onSelectedItemsChange = (selectedItems) => {
         setSelectedItems(selectedItems);
@@ -21,37 +197,68 @@ export default function RegistrarRol() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
             <Text style={styles.titulo}>Agregar Rol</Text>
-            <TextInput
-                style={styles.input}
-                placeholder='Agregar un nuevo rol'
-            />
+            <View style={styles.pickerContainer}>
+            <Picker
+                selectedValue={selectedRol}
+                onValueChange={handleRolChange}
+                style={styles.inputPicker}
+            >
+                <Picker.Item label="Selecciona un rol" value="" />
+                {roles.map((rol) => (
+                    <Picker.Item key={rol.value} label={rol.label} value={rol.value} />
+                ))}
+            </Picker>
+            
+            <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
+                <Text style={styles.textoBotonAgregar}>+</Text>
+            </TouchableOpacity>
+        </View>
             <Text style={styles.titulo}>Tareas asignables al rol</Text>
+            <Modal visible={modalVisible} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.titulo}>Nuevo Rol</Text>
+                        <TextInput
+                            style={styles.inputModal}
+                            placeholder="Ingrese el nombre del rol"
+                            value={nuevoRol}
+                            onChangeText={setNuevoRol}
+                        />
+                        <View style={styles.botonesModal}>
+                            <TouchableOpacity style={styles.botonModal} onPress={handleAgregarRol}>
+                                <Text style={styles.textoBotonModal}>Agregar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.botonModalCancelar}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text style={styles.textoBotonModal}>Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             <MultiSelect
                 items={tareas}
                 uniqueKey="id"
-                onSelectedItemsChange={onSelectedItemsChange}
+                onSelectedItemsChange={setSelectedItems}
                 selectedItems={selectedItems}
                 selectText="Seleccionar tareas"
                 searchInputPlaceholderText="Buscar tareas..."
-                tagRemoveIconColor="#CCC"
-                tagBorderColor="#CCC"
-                tagTextColor="#000"
-                selectedItemTextColor="#CCC"
-                selectedItemIconColor="#CCC"
-                itemTextColor="#000"
                 displayKey="name"
-                searchInputStyle={{ color: '#CCC' }}
                 submitButtonColor="#48d22b"
                 submitButtonText="Seleccionar"
                 styleDropdownMenu={styles.dropdown}
             />
 
             <View style={styles.contenidoBoton}>
-                <TouchableOpacity style={styles.botonRegistrar}>
+                <TouchableOpacity style={styles.botonRegistrar}onPress={cargarRolTarea}>
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.botonEliminar}>
+                <TouchableOpacity 
+                    style={styles.botonEliminar} 
+                    onPress={handleDeshabilitarRol}>
                     <Text style={styles.textoBoton}>Eliminar</Text>
                 </TouchableOpacity>
             </View>
@@ -150,5 +357,79 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+    },
+    pickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%', 
+        marginBottom: 20, 
+    },
+    inputPicker: {
+        flex: 1, 
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        padding: 12,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
+        marginRight: 10, 
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    inputModal: {
+        borderBottomWidth: 1,
+        borderColor: '#ccc',
+        width: '100%',
+        padding: 10,
+        marginBottom: 20,
+        fontSize: 16,
+    },
+    botonesModal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    botonModal: {
+        backgroundColor: '#4CAF50',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    botonModalCancelar: {
+        backgroundColor: '#F44336',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    textoBotonModal: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    botonAgregar: {
+        marginLeft: 10,
+        backgroundColor: '#007BFF',
+        padding: 10,
+        borderRadius: 5,
+    },
+    textoBotonAgregar: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: 'bold',
     },
 });

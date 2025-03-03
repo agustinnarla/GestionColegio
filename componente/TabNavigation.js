@@ -38,7 +38,7 @@ const getMenuComponent = (id_rol) => {
 };
 
 export const BottomTab = ({ route }) => {
-  const { id_rol } = route.params;
+  // const { id_rol } = route.params;
 
   return (
     <Tab.Navigator 
@@ -75,7 +75,7 @@ export const BottomTab = ({ route }) => {
       <Tab.Screen
         name="MENU"
         component={HomeAdmin}
-        component={getMenuComponent(id_rol)}
+        //component={getMenuComponent(id_rol)}
         options={{
           title: "MENÚ",
           headerTintColor: "white",

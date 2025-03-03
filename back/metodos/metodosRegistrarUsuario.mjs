@@ -1,5 +1,5 @@
 import { pool } from '../dataBase/coneccion.mjs';
-import bcrypt from 'bcrypt';
+//import bcrypt from 'bcrypt';
 
 export const registrarUsuario = async (req, res) => {
     //Se tendria q cambiar el nombre por estadoUsuario y hacerlo global
@@ -20,12 +20,12 @@ export const registrarUsuario = async (req, res) => {
     }
 };
 
-const encriptarContrasena = async (contrasena) => {
-    try {
-        const salto = await bcrypt.genSalt(10);
-        return await bcrypt.hash(contrasena, salto);
-    } catch (error) {
-        console.error('Error al encriptar la contraseña:', error);
-        throw new Error('Error al encriptar la contraseña');
-    }
-};
+// const encriptarContrasena = async (contrasena) => {
+//     try {
+//         const salto = await bcrypt.genSalt(10);
+//         return await bcrypt.hash(contrasena, salto);
+//     } catch (error) {
+//         console.error('Error al encriptar la contraseña:', error);
+//         throw new Error('Error al encriptar la contraseña');
+//     }
+// };

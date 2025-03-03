@@ -29,6 +29,10 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria} from '../metodos/metodosGestionMateria.mjs'
+import { registrarUsuario } from '../metodos/metodosRegistrarUsuario.mjs'
+import { ingresarUsuario } from '../metodos/metodosLogin.mjs'
+import {registrarRol, obtenerRoles, obtenerTareasPorRol, eliminaRolTarea, actualizarEstadoRol} from '../metodos/metodosRoles.mjs'
+import { agregarTarea, deshabilitarTarea, eliminarTareaRol, obtenerTareas, obtenerTareasRol, registrarTareaRol} from '../metodos/metodosCargarTarea.mjs'
 // Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -186,3 +190,15 @@ ruta.post('/ingresarUsuario', ingresarUsuario)
 // =====================================
 ruta.get('/roles', obtenerRoles)
 ruta.post('/roles', registrarRol)
+ruta.get('/tarearol/rol/:id_rol', obtenerTareasPorRol)
+ruta.delete('/tarearol/rol', eliminaRolTarea)
+ruta.put('/roles/:id_rol',actualizarEstadoRol)
+// =====================================
+//       TAREAS
+// =====================================
+ruta.get('/tareas', obtenerTareas)
+ruta.post('/tarearol', registrarTareaRol)
+ruta.delete('/tarearol', eliminarTareaRol)
+ruta.get('/tarearol/:id_tarea', obtenerTareasRol)
+ruta.post('/tareas', agregarTarea)
+ruta.put('/tareas/:id_tarea', deshabilitarTarea)

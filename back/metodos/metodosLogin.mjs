@@ -1,5 +1,5 @@
 import {pool} from '../dataBase/coneccion.mjs';
-import bcrypt from 'bcrypt';
+// import bcrypt from 'bcrypt';
 
 
 export const ingresarUsuario = async (req, res) => {

@@ -132,9 +132,7 @@ export const registrarMateria = async (detalle) => {
         if (!respuesta.ok) {
             throw new Error('Error al registrar la materia');
         }
-
         return await respuesta.json();  
-
     } catch (error) {
         console.error('Error en registrarMateria:', error);
         return null;
