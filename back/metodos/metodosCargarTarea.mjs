@@ -2,7 +2,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerTareas = async (req,res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM tarea')
+        const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estadoalumno != 2')
         res.status(200).json({roles: respuesta.rows});
         console.log('Tareas obtenidas exitosamente');
     }
@@ -11,6 +11,20 @@ export const obtenerTareas = async (req,res) => {
         res.status(500).json({ message: 'Error al obtener las tareas' });
     }   
 }
+
+export const obtenerTareasDeshabilitadas = async (req,res) => {
+    try {
+        const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estadoalumno = 2')
+        res.status(200).json({tareas: respuesta.rows});
+        console.log('Tareas Deshabilitadas obtenidas exitosamente');
+    }
+    catch(error){
+        console.log(error.message);
+        res.status(500).json({ message: 'Error al obtener las tareas' });
+    }   
+}
+
+
 
 export const verificarExistencia = async (id_tarea, id_rol) => {
     const resultado = await pool.query(
@@ -120,6 +134,24 @@ export const deshabilitarTarea = async (req, res) => {
         res.status(500).json({ error: 'Error al deshabilitar la tarea' });
     }
 };
+
+export const habilitarTarea = async (req, res) => {
+    const { id_tarea } = req.params; 
+    if (!id_tarea) {
+        return res.status(400).json({ error: 'ID de tarea no proporcionado' });
+    }
+    try {
+        // Actualizar el estado de la materia a deshabilitada (id_estadoalumno = 2)
+        await pool.query('UPDATE tarea SET id_estadoalumno = 1 WHERE id_tarea = $1', [id_tarea]);
+
+        res.status(200).json({ mensaje: 'Tarea deshabilitada exitosamente' });
+    } catch (error) {
+        console.error('Error al deshabilitar la Tarea:', error);
+        res.status(500).json({ error: 'Error al deshabilitar la tarea' });
+    }
+};
+
+
 
 
 

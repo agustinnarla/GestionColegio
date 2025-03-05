@@ -38,53 +38,45 @@ const getMenuComponent = (id_rol) => {
 };
 
 export const BottomTab = ({ route }) => {
-<<<<<<< HEAD
-  // const { id_rol } = route.params;
-=======
-  const { id_rol, dni_usuario } = route.params;
-  console.log('BottomTab params:', { id_rol, dni_usuario });
->>>>>>> 9a2433a31069e890289ab07b88256a554466c613
+  // const { id_rol, dni_usuario } = route.params;
+  // console.log('BottomTab params:', { id_rol, dni_usuario });
 
   return (
     <Tab.Navigator 
-      screenOptions={({ route })  => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          let iconColor = focused ? 'black' : color;
-          if (route.name === "MENU") {
-            iconName = "home";
-          } else if (route.name === "CALENDARIO") {
-            iconName = "calendar";
-          } else if (route.name === "PERFIL") {
-            iconName = "user";
-          }
+      // screenOptions={({ route })  => ({
+      //   tabBarIcon: ({ focused, color, size }) => {
+      //     let iconName;
+      //     let iconColor = focused ? 'black' : color;
+      //     if (route.name === "MENU") {
+      //       iconName = "home";
+      //     } else if (route.name === "CALENDARIO") {
+      //       iconName = "calendar";
+      //     } else if (route.name === "PERFIL") {
+      //       iconName = "user";
+      //     }
 
-          return (
-          <View style={styles.tabBarIconContainer}>
-            <View style={[styles.circle, { backgroundColor: focused ? '#ECECEC' : 'transparent', top: focused ? -40 : -20 }]}>
-                  <FontAwesome
-                  name={iconName}
-                  size={size}
-                  color={iconColor}
-                  />
-            </View>
-          </View>
-          );
-        },
-      })}
-      tabBarOptions={{
-        activeTintColor: 'blue',
-        inactiveTintColor: 'gray',
-      }}
+      //     return (
+      //     <View style={styles.tabBarIconContainer}>
+      //       <View style={[styles.circle, { backgroundColor: focused ? '#ECECEC' : 'transparent', top: focused ? -40 : -20 }]}>
+      //             <FontAwesome
+      //             name={iconName}
+      //             size={size}
+      //             color={iconColor}
+      //             />
+      //       </View>
+      //     </View>
+      //     );
+      //   },
+      // })}
+      // tabBarOptions={{
+      //   activeTintColor: 'blue',
+      //   inactiveTintColor: 'gray',
+      // }}
     >
       <Tab.Screen
         name="MENU"
-<<<<<<< HEAD
         component={HomeAdmin}
         //component={getMenuComponent(id_rol)}
-=======
-        component={getMenuComponent(id_rol)}
->>>>>>> 9a2433a31069e890289ab07b88256a554466c613
         options={{
           title: "MENÚ",
           headerTintColor: "white",
@@ -117,9 +109,9 @@ export const BottomTab = ({ route }) => {
         }}
       />
       <Tab.Screen
-  name="PERFIL"
+      name="PERFIL"
   component={Perfil}
-  initialParams={{ dni_usuario }} 
+  //initialParams={{ dni_usuario }} 
   options={{
     title: "PERFIL",
     headerTintColor: "white",

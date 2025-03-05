@@ -1,12 +1,8 @@
-<<<<<<< HEAD
-import {pool} from '../dataBase/coneccion.mjs';
-// import bcrypt from 'bcrypt';
-=======
+
 import { pool } from '../dataBase/coneccion.mjs';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
->>>>>>> 9a2433a31069e890289ab07b88256a554466c613
 
 dotenv.config();
 
