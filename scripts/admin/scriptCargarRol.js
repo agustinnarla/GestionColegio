@@ -17,6 +17,8 @@ export const obtenerTareasRol = async (id_rol) => {
     }
 };
 
+
+
 export const registrarRolTarea = async (id_rol, id_tarea) => {
     try {
         // Paso 1: Eliminar todas las relaciones existentes para el rol
@@ -84,7 +86,7 @@ export const registrarRol = async (nombreRol) => {
 
 export const deshabilitarRol = async (id_rol) => {
     try {
-        const response = await fetch(`${api_urlRoles}/${id_rol}`, {
+        const response = await fetch(`${api_urlRoles}/deshabilitarol/${id_rol}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -100,6 +102,39 @@ export const deshabilitarRol = async (id_rol) => {
     } catch (error) {
         console.error('Error al deshabilitar el rol:', error);
         return { mensaje: `Error al deshabilitar el rol: ${error.message}` }; // Mensaje de error más detallado
+    }
+};
+
+
+export const habilitarRol = async (id_rol) => {
+    try {
+        const response = await fetch(`${api_urlRoles}/habilitarrol/${id_rol}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return { mensaje: 'Rol deshabilitado exitosamente', data }; // Cambié el mensaje para indicar éxito
+    } catch (error) {
+        console.error('Error al deshabilitar el rol:', error);
+        return { mensaje: `Error al deshabilitar el rol: ${error.message}` }; // Mensaje de error más detallado
+    }
+};
+export const obtenerRolesDeshabilitados = async () => {
+    try {
+        const response = await fetch(`${api_urlRoles}/rolesdeshabilitados`);
+        const data = await response.json();
+        console.log('Respuesta de la API:', data);
+        return data;
+    } catch (error) {
+        console.error('Error al obtener roles:', error);
+        return { roles: [] }; // Devuelve un array vacío en caso de error
     }
 };
 

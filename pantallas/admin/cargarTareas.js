@@ -1,9 +1,9 @@
-import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity, Modal} from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity, Modal, Switch} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
-import { obtenerRoles, obtenerTareas, registrarTareaRol, obtenerTareasRol, agregarTarea, deshabilitarTarea } from '../../scripts/admin/scriptCargarTareas';
+import { obtenerRoles, obtenerTareas, registrarTareaRol, obtenerTareasRol, agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
 import { Picker } from '@react-native-picker/picker';
 
 export default function CargarTareas() {
@@ -13,6 +13,63 @@ export default function CargarTareas() {
     const [selectedTarea, setSelectedTarea] = useState(''); // Tarea seleccionada (para el Picker)
     const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
     const [nuevaTarea, setNuevaTarea] = useState(''); // Estado para almacenar el nombre de la nueva tarea
+    const [modalModificarVisible, setModalModificarVisible] = useState(false);
+    const [tareasDeshabilitadas, setTareasDeshabilitadas] = useState([]);
+
+
+    const toggleSwitch = (idTarea) => {
+        setTareasDeshabilitadas((prev) =>
+            prev.map((tarea) =>
+                tarea.id_tarea === idTarea
+                    ? { ...tarea, id_estadoalumno: tarea.id_estadoalumno === 1 ? 2 : 1 }
+                    : tarea
+            )
+        );
+    
+        // Si el switch se activa, llamamos a handleHabilitarTarea
+        handleHabilitarTarea(idTarea);
+    };
+    
+
+    const cargarTareasDeshabilitadas = async () => {
+        try {
+            const respuesta = await obtenerTareasDeshabilitadas();
+            console.log("Tareas obtenidas:", respuesta);  // Verifica el formato
+            setTareasDeshabilitadas(respuesta.tareas || []); // Extrae el array correctamente
+        } catch (error) {
+            console.error('Error al obtener las tareas deshabilitadas:', error);
+        }
+    };
+    
+    
+
+    const actualizarEstadoTarea = async (id_tarea, nuevoEstado) => {
+        // Aquí va tu lógica para hacer la petición a la base de datos
+        console.log(`Actualizando tarea ${id_tarea} con nuevo estado: ${nuevoEstado}`);
+        // Simulamos que la actualización fue exitosa
+        return { mensaje: 'Tarea actualizada exitosamente' };
+    };
+
+    const handleConfirmarModificacion = async () => {
+        console.log('Tareas actualizadas:', tareasDeshabilitadas);
+    
+        // Aquí iría la lógica para actualizar las tareas en la base de datos
+        try {
+            const result = await Promise.all(
+                tareasDeshabilitadas.map(tarea => {
+                    if (tarea.id_estadoalumno === 1) {
+                        return actualizarEstadoTarea(tarea.id_tarea, 1); // Actualiza el estado a 1
+                    }
+                    return null;
+                })
+            );
+            console.log('Tareas actualizadas en la base de datos:', result);
+        } catch (error) {
+            console.error('Error al actualizar tareas:', error);
+        }
+    
+        setModalModificarVisible(false); // Cierra el modal después de la confirmación
+    };
 
     const cargarRoles = async () => {
         try {
@@ -141,10 +198,31 @@ export default function CargarTareas() {
             }
         }
     };
+
+    const handleHabilitarTarea = async (idTarea) => {
+        try {
+            const respuesta = await habilitarTarea(idTarea); // Llama a la función que habilita la tarea en la BD
+            if (respuesta) {
+                alert('Tarea habilitada exitosamente.');
+                setTareasDeshabilitadas((prev) => 
+                    prev.map((tarea) =>
+                        tarea.id_tarea === idTarea ? { ...tarea, id_estadoalumno: 1 } : tarea
+                    )
+                );
+            } else {
+                alert('Error al habilitar la tarea.');
+            }
+        } catch (error) {
+            console.error('Error en handleHabilitarTarea:', error);
+            alert('Ocurrió un error al habilitar la tarea.');
+        }
+    };
+    
     
     useEffect(() => {
         cargarRoles();
         cargarTareas();
+        cargarTareasDeshabilitadas();
     }, []);
 
     return (
@@ -224,9 +302,33 @@ export default function CargarTareas() {
                 </View>
 
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonModificar}>
-                        <Text style={styles.textoBoton}>Modificar</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                    <Text style={styles.textoBoton}>Modificar</Text>
+                </TouchableOpacity>
+                <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            {Array.isArray(tareasDeshabilitadas) &&
+                                tareasDeshabilitadas.map((tarea) => (
+                                    <View key={tarea.id_tarea} style={styles.itemContainer}>
+                                        <Text style={styles.textoTarea}>{tarea.detalle}</Text>
+                                        <Switch
+                                            value={tarea.id_estadoalumno === 1}
+                                            onValueChange={() => toggleSwitch(tarea.id_tarea)}
+                                        />
+                                    </View>
+                                ))}
+                            <View style={styles.botonesModal}>
+                                <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
+                                    <Text>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonModal} onPress={handleConfirmarModificacion}>
+                                    <Text>Confirmar</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
                     <TouchableOpacity style={styles.botonCancelar}>
                         <Text style={styles.textoBoton}>Cancelar</Text>
                     </TouchableOpacity>
@@ -433,5 +535,17 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    textoTarea: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginVertical: 10,
+        width: '100%',
     },
 });

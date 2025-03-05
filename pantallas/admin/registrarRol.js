@@ -1,19 +1,21 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Modal, Switch } from 'react-native';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import MultiSelect from 'react-native-multiple-select';
 import { obtenerTareas, obtenerRoles} from '../../scripts/admin/scriptCargarTareas';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerTareasRol, registrarRolTarea, registrarRol, deshabilitarRol} from '../../scripts/admin/scriptCargarRol';
+import { obtenerTareasRol, registrarRolTarea, registrarRol, deshabilitarRol, obtenerRolesDeshabilitados, habilitarRol} from '../../scripts/admin/scriptCargarRol';
 
 export default function RegistrarRol() {
     const [selectedItems, setSelectedItems] = useState([]);
     const [tareas, setTareas] = useState([]);
     const [roles, setRoles] = useState([]);
     const [selectedRol, setSelectedRol] = useState('');
-
+    const [rolesDeshabilitados, setRolesDeshabilitados] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [nuevoRol, setNuevoRol] = useState("");
+    const [modalModificarVisible, setModalModificarVisible] = useState(false);
+
 
     const handleAgregarRol = async () => {
         if (!nuevoRol.trim()) {
@@ -35,6 +37,16 @@ export default function RegistrarRol() {
         }
     };
     
+    const cargarRolesDeshabilitados = async () => {
+        try {
+            const respuesta = await obtenerRolesDeshabilitados();
+            if (respuesta && respuesta.roles) {
+                setRolesDeshabilitados(respuesta.roles);
+            }
+        } catch (error) {
+            console.error('Error al cargar roles deshabilitados:', error);
+        }
+    };
 
     const cargarTareas = async () => {
         try {
@@ -181,11 +193,39 @@ export default function RegistrarRol() {
         }
     };
     
+    const toggleSwitchRol = (idRol) => {
+        setRolesDeshabilitados((prev) =>
+            prev.map((rol) =>
+                rol.id_rol === idRol ? { ...rol, id_estado: rol.id_estado === 1 ? 2 : 1 } : rol
+            )
+        );
+    };
+
+    const handleConfirmarRoles = async () => {
+        console.log('Roles actualizados:', rolesDeshabilitados);
+    
+        try {
+            const result = await Promise.all(
+                rolesDeshabilitados.map(rol => {
+                    if (rol.id_estado === 1) {
+                        return habilitarRol(rol.id_rol); // Llamar a la función que habilita el rol
+                    }
+                    return null;
+                })
+            );
+            console.log('Roles actualizados en la base de datos:', result);
+        } catch (error) {
+            console.error('Error al actualizar roles:', error);
+        }
+    
+        setModalModificarVisible(false); // Cierra el modal después de la confirmación
+    };
     
     
     useEffect(() => {
         cargarTareas();
         cargarRoles();
+        cargarRolesDeshabilitados();
     }, []);
     
 
@@ -264,10 +304,34 @@ export default function RegistrarRol() {
             </View>
 
             <View style={styles.contenidoBoton}>
-                <TouchableOpacity style={styles.botonModificar}>
+                <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
                     <Text style={styles.textoBoton}>Modificar</Text>
                 </TouchableOpacity>
             </View>
+            <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        {Array.isArray(rolesDeshabilitados) &&
+                            rolesDeshabilitados.map((rol) => (
+                                <View key={rol.id_rol} style={styles.itemContainer}>
+                                    <Text style={styles.textoRol}>{rol.detalle}</Text>
+                                    <Switch
+                                        value={rol.id_estado === 1} 
+                                        onValueChange={() => toggleSwitchRol(rol.id_rol)}
+                                    />
+                                </View>
+                            ))}
+                        <View style={styles.botonesModal}>
+                            <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
+                                <Text>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.botonModal} onPress={handleConfirmarRoles}>
+                                <Text>Confirmar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -431,5 +495,18 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 20,
         fontWeight: 'bold',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginVertical: 10,
+        width: '100%',
     },
 });

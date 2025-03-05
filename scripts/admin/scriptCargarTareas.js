@@ -29,6 +29,20 @@ export const obtenerTareas = async () => {
     }
 };
 
+export const obtenerTareasDeshabilitadas = async () => {
+    try {
+        const response = await fetch(`${api_urlTareas}/tareasDeshabilitadas`);
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error al obtener tareas:', error);
+        return { tareas: [] };
+    }
+};
+
 export const registrarTareaRol = async (id_rol, id_tarea) => {
     try {
         // Paso 1: Eliminar todas las relaciones existentes para la tarea
@@ -110,7 +124,26 @@ export const agregarTarea = async (detalle) => {
 
 export const deshabilitarTarea = async (id_tarea) => {
     try {
-        const respuesta = await fetch(`${api_urlTareas}/${id_tarea}`, {  // Pasa el ID en la URL
+        const respuesta = await fetch(`${api_urlTareas}/deshabilitartarea/${id_tarea}`, {  // Pasa el ID en la URL
+            method: 'PUT',  // Cambiar a PUT en lugar de DELETE
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!respuesta.ok) {
+            throw new Error('Error al deshabilitar la tarea');
+        }
+
+        return await respuesta.json();  // Devuelve la respuesta JSON si todo sale bien
+
+    } catch (error) {
+        console.error('Error en deshabilitarTarea:', error);
+        return null;
+    }
+};
+
+export const habilitarTarea = async (id_tarea) => {
+    try {
+        const respuesta = await fetch(`${api_urlTareas}/habilitartarea/${id_tarea}`, {  // Pasa el ID en la URL
             method: 'PUT',  // Cambiar a PUT en lugar de DELETE
             headers: { 'Content-Type': 'application/json' },
         });
