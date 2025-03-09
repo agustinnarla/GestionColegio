@@ -38,8 +38,8 @@ const getMenuComponent = (id_rol) => {
 };
 
 export const BottomTab = ({ route }) => {
-  const { id_rol, dni_usuario } = route.params;
-  console.log('BottomTab params:', { id_rol, dni_usuario });
+   const { id_rol, dni_usuario } = route.params;
+   console.log('BottomTab params:', { id_rol, dni_usuario });
 
   return (
     <Tab.Navigator 
@@ -108,7 +108,7 @@ export const BottomTab = ({ route }) => {
         }}
       />
       <Tab.Screen
-  name="PERFIL"
+      name="PERFIL"
   component={Perfil}
   initialParams={{ dni_usuario }} 
   options={{

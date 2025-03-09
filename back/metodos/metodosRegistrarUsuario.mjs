@@ -21,16 +21,15 @@ export const registrarUsuario = async (req, res) => {
 };
 
 export const encriptarContrasena = async (contrasena) => {
-    const saltRounds = 10;
     try {
-        const salt = await bcrypt.genSalt(saltRounds);
-        const hash = await bcrypt.hash(contrasena, salt);
-        return hash;
+        const salto = await bcrypt.genSalt(10);
+        return await bcrypt.hash(contrasena, salto);
     } catch (error) {
         console.error('Error al encriptar la contraseña:', error);
         throw new Error('Error al encriptar la contraseña');
     }
 };
+
 
 export const restablecerContrasena = async (req, res) => {
     const { dni_usuario} = req.params;
@@ -55,7 +54,6 @@ export const restablecerContrasena = async (req, res) => {
         res.status(500).json({ message: 'Error al restablecer la contraseña' });
     }
 };
-
 
 export const consultarUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
@@ -137,3 +135,4 @@ export const deshabilitarUsuario = async (req, res) => {
         res.status(500).json({ message: 'Error al deshabilitar el usuario' });
     }
 };
+

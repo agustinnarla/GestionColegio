@@ -15,6 +15,7 @@ export default function GestionarMaterias() {
     const [resetKey, setResetKey] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
     const [nuevaMateria, setNuevaMateria] = useState('');
+    
 
 
     const cargarMaterias = async () => {
@@ -152,7 +153,6 @@ export default function GestionarMaterias() {
             console.warn('El nombre de la materia es obligatorio');
             return;
         }
-    
         try {
             const response = await registrarMateria(nuevaMateria);
             if (response) {
@@ -167,8 +167,6 @@ export default function GestionarMaterias() {
             console.error('Error al registrar la materia:', error);
         }
     };
-    
-    
     
     const limpiarInterfaz = () => {
         setSelectedMateria("");
@@ -325,10 +323,10 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     botonAgregar: {
-        backgroundColor: '#4CAF50',
-        padding: 12,
-        borderRadius: 8,
         marginLeft: 10,
+        backgroundColor: '#007BFF',
+        padding: 10,
+        borderRadius: 5,
     },
     textoBotonAgregar: {
         color: 'white',

@@ -29,12 +29,12 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria} from '../metodos/metodosGestionMateria.mjs'
-import { consultarUsuario, deshabilitarUsuario, modificarUsuario, registrarUsuario, restablecerContrasena} from '../metodos/metodosRegistrarUsuario.mjs'
+import { registrarUsuario, restablecerContrasena, consultarUsuario, modificarUsuario, deshabilitarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
-import { obtenerRoles, registrarRol } from '../metodos/metodosRoles.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
-// Configuración de almacenamiento para subida de archivos con multer
+import { obtenerTareas, deshabilitarTarea, agregarTarea,eliminarTareaRol, registrarTareaRol, obtenerTareasRol, obtenerTareasDeshabilitadas, habilitarTarea } from '../metodos/metodosCargarTarea.mjs'
+import { obtenerRoles, obtenerRolesDeshabilitados, registrarRol, obtenerTareasPorRol, eliminaRolTarea, habilitarRol, deshabilitarRol } from '../metodos/metodosRoles.mjs'// Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -199,7 +199,23 @@ ruta.post('/recuperarContrasena', enviarEmail)
 //       OBTENER ROLES 
 // =====================================
 ruta.get('/roles', obtenerRoles)
+ruta.get('/roles/rolesdeshabilitados', obtenerRolesDeshabilitados)
 ruta.post('/roles', registrarRol)
+ruta.get('/tarearol/rol/:id_rol', obtenerTareasPorRol)
+ruta.delete('/tarearol/rol', eliminaRolTarea)
+ruta.put('/roles/deshabilitarol/:id_rol',deshabilitarRol)
+ruta.put('/roles/habilitarrol/:id_rol', habilitarRol)
+// =====================================
+//       TAREAS
+// =====================================
+ruta.get('/tareas', obtenerTareas)
+ruta.get('/tareas/tareasDeshabilitadas', obtenerTareasDeshabilitadas)
+ruta.post('/tarearol', registrarTareaRol)
+ruta.delete('/tarearol', eliminarTareaRol)
+ruta.get('/tarearol/:id_tarea', obtenerTareasRol)
+ruta.post('/tareas', agregarTarea)
+ruta.put('/tareas/deshabilitartarea/:id_tarea', deshabilitarTarea)
+ruta.put('/tareas/habilitartarea/:id_tarea', habilitarTarea)
 // =====================================
 //       OBTENER ESPECIALIDAD
 // =====================================

@@ -69,11 +69,11 @@ export default function RegistrarUsuario() {
                     id_rol: usuario.id_rol
                 });
             } else {
-                mostrarMensaje('Advertencia', 'Alumno no encontrado, verifique su dni');
+                mostrarMensaje('Advertencia', 'Usuario no encontrado, verifique su dni');
             }
         } catch (error) {
             console.log(error.message);
-            mostrarMensaje('Advertencia', 'Alumno no encontrado, verifique su dni')
+            mostrarMensaje('Advertencia', 'Usuario no encontrado, verifique su dni')
         }
     };
 

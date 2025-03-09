@@ -77,8 +77,6 @@ export const deshabilitarMateria = async (req, res) => {
         res.status(500).json({ error: 'Error al deshabilitar la materia' });
     }
 };
-
-
 export const obtenerProfesorXMateria = async (req, res) => {
     const { id_materia } = req.params; // Obtener el id de la materia desde los parámetros de la URL
 
@@ -97,17 +95,14 @@ export const obtenerProfesorXMateria = async (req, res) => {
 
 export const insertarMateria = async (req, res) => {
     const { detalle } = req.body; // Recibe el nombre de la materia desde el frontend
-
     if (!detalle) {
         return res.status(400).json({ error: "El detalle de la materia es obligatorio" });
     }
-
     try {
         const respuesta = await pool.query(
             "INSERT INTO materia (detalle, id_estadoalumno) VALUES ($1, 1) RETURNING *",
             [detalle]
         );
-
         res.status(201).json({ mensaje: "Materia registrada con éxito", materia: respuesta.rows[0] });
     } catch (error) {
         console.error("Error al insertar la materia:", error);
