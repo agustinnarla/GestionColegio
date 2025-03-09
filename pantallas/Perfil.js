@@ -55,7 +55,7 @@ export default function Perfil({ route, navigation }) {
   const cerrarSesion = async () => {
     try {
       //await AsyncStorage.removeItem('token'); // Elimina el token de autenticación
-      navigation.navigate('Login'); // Redirige a la pantalla de inicio de sesión
+      navigation.navigate('Login'); 
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       Alert.alert('Error', 'No se pudo cerrar la sesión');

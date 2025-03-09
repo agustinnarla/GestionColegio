@@ -137,7 +137,7 @@ export const deshabilitarAlumno = async(dni) => {
 }
 export const modificarAlumno = async (dni, formData) => {
     try {
-        const url = `${api_urlModificar}/${dni}`; // Verifica la URL
+        const url = `${api_urlModificar}/${dni}`; 
         console.log('URL a la que se está haciendo la solicitud:', url);
         
         const respuesta = await fetch(url, {

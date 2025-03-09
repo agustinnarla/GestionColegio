@@ -3,10 +3,21 @@ import { useNavigation } from '@react-navigation/native';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerRoles, registrarUsuario } from '../../scripts/admin/scriptRegistrarUsuario';
+import { consultarUsuario, obtenerRoles, registrarUsuario, modificarUsuario, deshabilitarUsuario } from '../../scripts/admin/scriptRegistrarUsuario';
+import CustomAlert from '../../componente/CustomAlerts';
 
 export default function RegistrarUsuario() { 
     const navegacion = useNavigation();
+
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     const [formData, setFormData] = useState({
         email: '',
@@ -46,6 +57,26 @@ export default function RegistrarUsuario() {
             id_estadoalumno: 1,
         });
     };
+
+    const handleConsultar = async () => {
+        try {
+            const usuario = await consultarUsuario(formData.dni_usuario);
+            if (usuario) {
+                setFormData({
+                    ...formData,
+                    dni_usuario: usuario.dni_usuario,
+                    email: usuario.email,
+                    id_rol: usuario.id_rol
+                });
+            } else {
+                mostrarMensaje('Advertencia', 'Alumno no encontrado, verifique su dni');
+            }
+        } catch (error) {
+            console.log(error.message);
+            mostrarMensaje('Advertencia', 'Alumno no encontrado, verifique su dni')
+        }
+    };
+
     // Validar formato de email
     const validarEmail = (email) => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,12 +90,13 @@ export default function RegistrarUsuario() {
 
     const handleRegistrar = async () => {
         if (!validarEmail(formData.email)) {
-            Alert.alert('Error', 'Por favor ingrese un email válido');
+            mostrarMensaje('Error', 'Por favor ingrese un correo valido.');
+            ;
             return;
         }
 
         if (!validarContrasenas()) {
-            Alert.alert('Error', 'Las contraseñas no coinciden');
+            mostrarMensaje('Error', 'Las contraseñas no coinciden');
             return;
         }
 
@@ -80,27 +112,51 @@ export default function RegistrarUsuario() {
             const respuesta = await registrarUsuario(usuarioData);
             console.log('Usuario Registrado:', respuesta);
             
-            Alert.alert('Éxito', 'Usuario registrado exitosamente');
+            mostrarMensaje('Éxito', 'Usuario registrado exitosamente');
             limpiarInterfaz();
         } catch (error) {
             console.error('Error al registrar el usuario:', error.message);
-            Alert.alert('Error', 'No se pudo registrar el usuario');
+            mostrarMensaje('Error', 'No se pudo registrar el usuario');
         }
     };
 
+    const handleModificar = async () => {
+        try {
+            const { dni_usuario, email, id_rol, id_estadoalumno, contrasena } = formData;
+            const formDataToSend = {};
+            if (email) formDataToSend.email = email;
+            if (id_rol) formDataToSend.id_rol = id_rol;
+            if (id_estadoalumno) formDataToSend.id_estadoalumno = id_estadoalumno;
+            if (contrasena) formDataToSend.contrasena = contrasena;
+
+            const respuesta = await modificarUsuario(dni_usuario, formDataToSend);
+            limpiarInterfaz();
+            console.log('Usuario modificado', respuesta);
+            mostrarMensaje('Éxito', 'Usuario modificado exitosamente');
+        } catch (error) {
+            console.log('Error al modificar el usuario:', error.message);
+            mostrarMensaje('Error', 'No se pudo modificar el usuario');
+        }
+    };
+
+
+   
+    const handleDeshabilitar = async () => {
+        try {
+            const { dni_usuario } = formData;
+            const respuesta = await deshabilitarUsuario(dni_usuario);
+            limpiarInterfaz();
+            console.log('Usuario deshabilitado', respuesta);
+            mostrarMensaje('Éxito', 'Usuario deshabilitado exitosamente');
+        } catch (error) {
+            console.log('Error al deshabilitar el usuario:', error.message);
+            mostrarMensaje('Error', 'No se pudo deshabilitar el usuario');
+        }
+    };
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
             <View style={styles.formulario}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='Email'
-                    keyboardType='email-address'
-                    onChangeText={(text) => handleChange('email', text)}
-                    value={formData.email}
-                />
-
                 <Text style={styles.label}>DNI</Text>
                 <TextInput
                     style={styles.input}
@@ -108,6 +164,17 @@ export default function RegistrarUsuario() {
                     keyboardType='numeric'
                     onChangeText={(text) => handleChange('dni_usuario', text)}
                     value={formData.dni_usuario}
+                />
+                <TouchableOpacity style={styles.consultar} onPress={handleConsultar}>
+                    <Text>Consultar</Text>
+                </TouchableOpacity>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder='Email'
+                    keyboardType='email-address'
+                    onChangeText={(text) => handleChange('email', text)}
+                    value={formData.email}
                 />
 
                 <Text style={styles.label}>Contraseña</Text>
@@ -133,7 +200,7 @@ export default function RegistrarUsuario() {
                         <ListasDesplegables 
                             formData={formData} 
                             handleChange={handleChange} 
-                            roles={roles} // Asegúrate de pasar roles aquí
+                            roles={roles} 
                             styles={styles}
                         />
                     </View>
@@ -149,10 +216,22 @@ export default function RegistrarUsuario() {
                     <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleModificar}>
+                        <Text style={styles.textoBoton}>Modificar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleDeshabilitar}>
+                        <Text style={styles.textoBoton}>Eliminar</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.botonCancelar}>
                         <Text style={styles.textoBoton} onPress={limpiarInterfaz}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
+                <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
+            />
             </View>
         </View>
     );

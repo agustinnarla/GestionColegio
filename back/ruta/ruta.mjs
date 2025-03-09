@@ -29,7 +29,7 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria} from '../metodos/metodosGestionMateria.mjs'
-import { registrarUsuario, restablecerContrasena} from '../metodos/metodosRegistrarUsuario.mjs'
+import { consultarUsuario, deshabilitarUsuario, modificarUsuario, registrarUsuario, restablecerContrasena} from '../metodos/metodosRegistrarUsuario.mjs'
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerRoles, registrarRol } from '../metodos/metodosRoles.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
@@ -182,11 +182,14 @@ ruta.get('/libroMatriz/:dni_alumno', cargarGrilla)
 //       OBTENER USUARIO
 // =====================================
 ruta.get('/usuario/:dni_usuario', obtenerUsuario)
+ruta.get('/registrarUsuario/consultarUsuario/:dni_usuario', consultarUsuario)
 // =====================================
 //       REGISTRAR USUARIO
 // =====================================
 ruta.post('/registrarUsuario', registrarUsuario)
 ruta.post('/restablecerContrasena/:dni_usuario', restablecerContrasena)
+ruta.put('/deshabilitarUsuario/:dni_usuario',deshabilitarUsuario)
+ruta.put('/modificarUsuario/:dni_usuario', modificarUsuario)
 // =====================================
 //       INGRESAR USUARIO
 // =====================================
