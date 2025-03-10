@@ -91,7 +91,6 @@ export default function RegistrarUsuario() {
     const handleRegistrar = async () => {
         if (!validarEmail(formData.email)) {
             mostrarMensaje('Error', 'Por favor ingrese un correo valido.');
-            ;
             return;
         }
 
@@ -139,8 +138,6 @@ export default function RegistrarUsuario() {
         }
     };
 
-
-   
     const handleDeshabilitar = async () => {
         try {
             const { dni_usuario } = formData;
@@ -153,21 +150,24 @@ export default function RegistrarUsuario() {
             mostrarMensaje('Error', 'No se pudo deshabilitar el usuario');
         }
     };
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
             <View style={styles.formulario}>
-                <Text style={styles.label}>DNI</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='DNI'
-                    keyboardType='numeric'
-                    onChangeText={(text) => handleChange('dni_usuario', text)}
-                    value={formData.dni_usuario}
-                />
-                <TouchableOpacity style={styles.consultar} onPress={handleConsultar}>
-                    <Text>Consultar</Text>
-                </TouchableOpacity>
+            <Text style={styles.label}>Dni</Text> 
+                <View style={styles.dniContainer}>
+                    <TextInput
+                        style={[styles.input, styles.inputDNI]}
+                        placeholder='DNI'
+                        keyboardType='numeric'
+                        onChangeText={(text) => handleChange('dni_usuario', text)}
+                        value={formData.dni_usuario}
+                    />
+                    <TouchableOpacity style={styles.botonConsultar} onPress={handleConsultar}>
+                        <Text>Consultar</Text>
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.label}>Email</Text>
                 <TextInput
                     style={styles.input}
@@ -216,10 +216,10 @@ export default function RegistrarUsuario() {
                     <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleModificar}>
+                    <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}>
                         <Text style={styles.textoBoton}>Modificar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleDeshabilitar}>
+                    <TouchableOpacity style={styles.botonDeshabilitar} onPress={handleDeshabilitar}>
                         <Text style={styles.textoBoton}>Eliminar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.botonCancelar}>
@@ -227,11 +227,11 @@ export default function RegistrarUsuario() {
                     </TouchableOpacity>
                 </View>
                 <CustomAlert
-                isVisible={alertVisible}
-                onClose={() => setAlertVisible(false)}
-                title={alertTitle}
-                message={alertMessage}
-            />
+                    isVisible={alertVisible}
+                    onClose={() => setAlertVisible(false)}
+                    title={alertTitle}
+                    message={alertMessage}
+                />
             </View>
         </View>
     );
@@ -254,15 +254,32 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     formulario: {
-        width: '85%',
+        width: '50%',
         padding: 20,
         borderRadius: 10,
+    },
+    dniContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    inputDNI: {
+        flex: 1,
+        marginRight: 10,
     },
     label: {
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 10,
         color: '#2c3e50',
+    },
+    botonConsultar: {
+        backgroundColor: '#CED9EF',
+        borderColor: '#746BC8',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 5,
     },
     input: {
         borderWidth: 1,
@@ -279,9 +296,6 @@ const styles = StyleSheet.create({
     },
     contenidoLista: {
         flex: 1, 
-        borderWidth: 1,
-        borderColor: '#bdc3c7',
-        borderRadius: 5,
     },
     lista: {
         height: 50,
@@ -315,8 +329,24 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     botonCancelar: {
+        backgroundColor: '#f9e0e0',
+        borderColor: 'pink',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 5,
+    },
+    botonDeshabilitar: {
         backgroundColor: '#F3B9B9',
         borderColor: '#FF0000',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 5,
+    },
+    botonModificar: {
+        backgroundColor: '#CED9EF',
+        borderColor: '#746BC8',
         borderWidth: 1,
         paddingVertical: 15,
         paddingHorizontal: 30,
