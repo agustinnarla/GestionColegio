@@ -13,9 +13,6 @@ export const login = async (dniUsuario, contrasena, navigation, mostrarMensaje) 
         if (response.status === 200) {
             const { usuario } = response.data;
             const { id_rol } = usuario;
-
-            console.log('Login successful:', { id_rol, dni_usuario: dniUsuario }); // Para debuggear
-
             mostrarMensaje('Éxito', 'Login exitoso');
             navigation.navigate('BottomTab', { 
                 id_rol: id_rol,

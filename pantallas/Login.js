@@ -28,7 +28,6 @@ export default function Login(props) {
             mostrarMensaje('Error', 'Por favor ingrese su DNI para recuperar la contraseña.');
             return;
         }
-    
         try {
             const response = await olvideMiContrasena(dniUsuario);
             if (response.success) {
@@ -110,7 +109,7 @@ const styles = StyleSheet.create({
     tarjeta: {
         margin: 20,
         borderRadius: 10,
-        width: '80%',
+        width: '40%',
         padding: 20,
     },
     cajaTexto: {

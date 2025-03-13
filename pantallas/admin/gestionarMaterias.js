@@ -5,6 +5,7 @@ import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, deshabilitarMateria, registrarMateria, obtenerMateriasDeshabilitadas, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
+import CustomAlert from '../../componente/CustomAlerts';
 
 
 export default function GestionarMaterias() {
@@ -17,6 +18,15 @@ export default function GestionarMaterias() {
     const [nuevaMateria, setNuevaMateria] = useState('');
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
     const [materiasDeshabilitadas, setMateriasDeshabilitadas] = useState([]);
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     const cargarMaterias = async () => {
         try {
@@ -102,7 +112,7 @@ export default function GestionarMaterias() {
 
     const handleDeshabilitarMateria = async () => {
         if (!selectedMateria) {
-            console.warn("No hay materia seleccionada para deshabilitar.");
+            mostrarMensaje('Advertencia', 'No hay materia seleccionada para deshabilitar.');
             return;
         }
     
@@ -149,13 +159,13 @@ export default function GestionarMaterias() {
                                     setSelectedMateria(null);
                                     setSelectedProfesores([]);
                                     console.log("Materia deshabilitada correctamente");
-                                    alert(respuesta.mensaje);  // Muestra el mensaje de éxito del backend
+                                    mostrarMensaje('Exito', 'Materia deshabilitada correctamente.');
                                 } else {
                                     throw new Error("Error al deshabilitar la materia");
                                 }
                             } catch (error) {
                                 console.error("Error al deshabilitar la materia:", error);
-                                alert("Error al deshabilitar la materia");  // Mensaje de error
+                                mostrarMensaje('Error', 'Error al deshabilitada la materia.');
                             }
                         }
                     }
@@ -166,7 +176,8 @@ export default function GestionarMaterias() {
 
     const handleRegistrarMateria = async () => {
         if (!nuevaMateria.trim()) {
-            console.warn('El nombre de la materia es obligatorio');
+            mostrarMensaje('Advertencia', 'El nombre de la materia es obligatorio.');
+
             return;
         }
         try {
@@ -178,11 +189,14 @@ export default function GestionarMaterias() {
                 cargarMaterias();
                 cargarProfesores();
                 cargarMateriasDeshabilitadas();
+                mostrarMensaje('Exito', 'Materia registrada exitosamente.');
             } else {
                 console.error('Error al registrar la materia');
             }
         } catch (error) {
             console.error('Error al registrar la materia:', error);
+            mostrarMensaje('Error', 'Error al registrar la materia.');
+
         }
     };
 
@@ -375,6 +389,15 @@ export default function GestionarMaterias() {
                     </View>
                 </Modal>
             </View>
+                </View>
+            </Modal>
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
+            />
+        </View>
     );
 }
 const styles = StyleSheet.create({

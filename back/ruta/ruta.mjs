@@ -29,14 +29,15 @@ import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria, obtenerMateriasDeshabilitadas, habilitarMateria} from '../metodos/metodosGestionMateria.mjs'
-import {registrarRol, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol} from '../metodos/metodosRoles.mjs'
+import {registrarRol, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol, obtenerRoles} from '../metodos/metodosRoles.mjs'
 import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../metodos/metodosCargarTarea.mjs'
 import { obtenerTareas,obtenerRoles, obtenerTareasDeRoles, registrarTareaRol, eliminaRolTarea, eliminarTareaRol, obtenerRolesDeTarea} from '../metodos/metodosTareasRoles.mjs'
-import { registrarUsuario, restablecerContrasena} from '../metodos/metodosRegistrarUsuario.mjs'
+import { registrarUsuario, restablecerContrasena, consultarUsuario, modificarUsuario, deshabilitarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
-// Configuración de almacenamiento para subida de archivos con multer
+import { obtenerTareas, deshabilitarTarea, agregarTarea,eliminarTareaRol, registrarTareaRol, obtenerTareasRol, obtenerTareasDeshabilitadas, habilitarTarea } from '../metodos/metodosCargarTarea.mjs'
+import { obtenerRoles, obtenerRolesDeshabilitados, registrarRol, obtenerTareasPorRol, eliminaRolTarea, habilitarRol, deshabilitarRol } from '../metodos/metodosRoles.mjs'// Configuración de almacenamiento para subida de archivos con multer
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -186,11 +187,14 @@ ruta.get('/libroMatriz/:dni_alumno', cargarGrilla)
 //       OBTENER USUARIO
 // =====================================
 ruta.get('/usuario/:dni_usuario', obtenerUsuario)
+ruta.get('/registrarUsuario/consultarUsuario/:dni_usuario', consultarUsuario)
 // =====================================
 //       REGISTRAR USUARIO
 // =====================================
 ruta.post('/registrarUsuario', registrarUsuario)
 ruta.post('/restablecerContrasena/:dni_usuario', restablecerContrasena)
+ruta.put('/deshabilitarUsuario/:dni_usuario',deshabilitarUsuario)
+ruta.put('/modificarUsuario/:dni_usuario', modificarUsuario)
 // =====================================
 //       INGRESAR USUARIO
 // =====================================
