@@ -10,6 +10,32 @@ export const obtenerMaterias = async (req, res) => {
     }
 };
 
+export const obtenerMateriasDeshabilitadas = async (req, res) => {
+    try {
+        const respuesta = await pool.query('SELECT * FROM materia WHERE id_estadoalumno = 2');
+        res.json({ materias: respuesta.rows });
+    } catch (error) {
+        console.log('Error al traer las materias', error);
+        res.status(500).json({ error: 'Error al obtener las materias' });
+    }
+};
+
+export const habilitarMateria = async (req, res) => {
+    const { id_materia } = req.params; 
+    if (!id_materia) {
+        return res.status(400).json({ error: 'ID de materia no proporcionado' });
+    }
+    try {
+        // Actualizar el estado de la materia a deshabilitada (id_estadoalumno = 2)
+        await pool.query('UPDATE materia SET id_estadoalumno = 1 WHERE id_materia = $1', [id_materia]);
+
+        res.status(200).json({ mensaje: 'Materia habilitada exitosamente' });
+    } catch (error) {
+        console.error('Error al habilitar la materia:', error);
+        res.status(500).json({ error: 'Error al habilitar la materia' });
+    }
+};
+
 
 export const obtenerProfesor = async (req,res) => {
     try{

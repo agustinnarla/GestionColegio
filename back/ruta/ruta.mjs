@@ -28,9 +28,10 @@ import {
 import { obtenerEstadoCertificado } from '../metodos/metodosCertificados.mjs'
 import { obtenerEstadoInasistencia } from '../metodos/metodosEstado.mjs'
 import { cargarGrilla } from '../metodos/metodosLibroMatriz.mjs'
-import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria} from '../metodos/metodosGestionMateria.mjs'
-import {registrarRol, obtenerRoles, obtenerTareasPorRol, eliminaRolTarea, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol} from '../metodos/metodosRoles.mjs'
-import { agregarTarea, deshabilitarTarea, eliminarTareaRol, obtenerTareas, obtenerTareasRol, registrarTareaRol, obtenerTareasDeshabilitadas, habilitarTarea} from '../metodos/metodosCargarTarea.mjs'
+import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, eliminarMateriaProfesor, deshabilitarMateria, insertarMateria, obtenerMateriasDeshabilitadas, habilitarMateria} from '../metodos/metodosGestionMateria.mjs'
+import {registrarRol, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol} from '../metodos/metodosRoles.mjs'
+import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../metodos/metodosCargarTarea.mjs'
+import { obtenerTareas,obtenerRoles, obtenerTareasDeRoles, registrarTareaRol, eliminaRolTarea, eliminarTareaRol, obtenerRolesDeTarea} from '../metodos/metodosTareasRoles.mjs'
 import { registrarUsuario, restablecerContrasena} from '../metodos/metodosRegistrarUsuario.mjs'
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
@@ -130,7 +131,9 @@ ruta.post('/notas', registrarNota)
 //              MATERIAS
 // =====================================
 ruta.get('/materia', obtenerMaterias)
+ruta.get('/materia/materiasDeshabilitadas', obtenerMateriasDeshabilitadas)
 ruta.put('/materia/:id_materia', deshabilitarMateria)
+ruta.put('/materia/habilitarMateria/:id_materia', habilitarMateria)
 ruta.post('/materia', insertarMateria)
 // =====================================
 //       ETAPAS EVALUATIVAS
@@ -199,7 +202,7 @@ ruta.post('/recuperarContrasena', enviarEmail)
 ruta.get('/roles', obtenerRoles)
 ruta.get('/roles/rolesdeshabilitados', obtenerRolesDeshabilitados)
 ruta.post('/roles', registrarRol)
-ruta.get('/tarearol/rol/:id_rol', obtenerTareasPorRol)
+ruta.get('/tarearol/rol/:id_rol', obtenerTareasDeRoles)
 ruta.delete('/tarearol/rol', eliminaRolTarea)
 ruta.put('/roles/deshabilitarol/:id_rol',deshabilitarRol)
 ruta.put('/roles/habilitarrol/:id_rol', habilitarRol)
@@ -209,8 +212,9 @@ ruta.put('/roles/habilitarrol/:id_rol', habilitarRol)
 ruta.get('/tareas', obtenerTareas)
 ruta.get('/tareas/tareasDeshabilitadas', obtenerTareasDeshabilitadas)
 ruta.post('/tarearol', registrarTareaRol)
-ruta.delete('/tarearol', eliminarTareaRol)
-ruta.get('/tarearol/:id_tarea', obtenerTareasRol)
+ruta.delete('/tarearol/tarea', eliminarTareaRol)
+ruta.get('/tarearol/obtenerTareasDeRoles/:id_rol', obtenerTareasDeRoles)
+ruta.get('/tarearol/obtenerRolesDeTarea/:id_tarea', obtenerRolesDeTarea)
 ruta.post('/tareas', agregarTarea)
 ruta.put('/tareas/deshabilitartarea/:id_tarea', deshabilitarTarea)
 ruta.put('/tareas/habilitartarea/:id_tarea', habilitarTarea)

@@ -2,9 +2,9 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Modal, Swit
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import MultiSelect from 'react-native-multiple-select';
-import { obtenerTareas, obtenerRoles} from '../../scripts/admin/scriptCargarTareas';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerTareasRol, registrarRolTarea, registrarRol, deshabilitarRol, obtenerRolesDeshabilitados, habilitarRol} from '../../scripts/admin/scriptCargarRol';
+import { registrarRol, deshabilitarRol, obtenerRolesDeshabilitados, habilitarRol} from '../../scripts/admin/scriptCargarRol';
+import { obtenerTareasDeRoles, registrarTareaRol, obtenerTareas, obtenerRoles, registrarRolTarea } from '../../scripts/admin/scriptTareasRol';
 
 export default function RegistrarRol() {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -15,38 +15,7 @@ export default function RegistrarRol() {
     const [modalVisible, setModalVisible] = useState(false);
     const [nuevoRol, setNuevoRol] = useState("");
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
-
-
-    const handleAgregarRol = async () => {
-        if (!nuevoRol.trim()) {
-            console.warn('El nombre del rol es obligatorio');
-            return;
-        }
-        try {
-            const response = await registrarRol(nuevoRol);
-            if (response && response.data) {
-                console.log('Rol registrado con éxito:', response);
-                setRoles([...roles, { label: nuevoRol, value: response.data.id_rol?.toString() }]); 
-                setNuevoRol('');
-                setModalVisible(false);
-            } else {
-                console.error('Error al registrar el rol');
-            }
-        } catch (error) {
-            console.error('Error al registrar el rol:', error);
-        }
-    };
-    
-    const cargarRolesDeshabilitados = async () => {
-        try {
-            const respuesta = await obtenerRolesDeshabilitados();
-            if (respuesta && respuesta.roles) {
-                setRolesDeshabilitados(respuesta.roles);
-            }
-        } catch (error) {
-            console.error('Error al cargar roles deshabilitados:', error);
-        }
-    };
+    const [tareasOriginales, setTareasOriginales] = useState([]);
 
     const cargarTareas = async () => {
         try {
@@ -86,27 +55,77 @@ export default function RegistrarRol() {
         }
     };
 
+    const cargarRolesDeshabilitados = async () => {
+        try {
+            const respuesta = await obtenerRolesDeshabilitados();
+            if (respuesta && respuesta.roles) {
+                setRolesDeshabilitados(respuesta.roles);
+            }
+        } catch (error) {
+            console.error('Error al cargar roles deshabilitados:', error);
+        }
+    };
+
+    const handleRegistrarRol = async () => {
+        if (!nuevoRol.trim()) {
+            console.warn('El nombre del rol es obligatorio');
+            return;
+        }
+        try {
+            const response = await registrarRol(nuevoRol);
+            if (response && response.data) {
+                console.log('Rol registrado con éxito:', response);
+    
+                // Actualizar el estado `roles` con el nuevo rol
+                const nuevoRolFormateado = {
+                    label: nuevoRol,
+                    value: response.data.id_rol?.toString(),
+                };
+                setRoles([...roles, nuevoRolFormateado]);
+    
+                // Limpiar el campo y cerrar el modal
+                setNuevoRol('');
+                setModalVisible(false);
+    
+                // Recargar roles y tareas desde la base de datos
+                await cargarRoles();
+                await cargarTareas();
+            } else {
+                console.error('Error al registrar el rol');
+            }
+        } catch (error) {
+            console.error('Error al registrar el rol:', error);
+        }
+    };
+
     const obtenerTareasPorRolSeleccionado = async (id_rol) => {
         try {
-            const data = await obtenerTareasRol(id_rol); // Obtener tareas del rol seleccionado
+            const data = await obtenerTareasDeRoles(id_rol); // Obtener tareas del rol seleccionado
     
+            // Verificar si la respuesta es válida y contiene un array de tareas
             if (data && Array.isArray(data.tareas)) {
                 const tareasSeleccionadas = data.tareas.map((item) => item.id_tarea.toString()); // Convertir IDs a string
                 setSelectedItems(tareasSeleccionadas); // Marcar tareas seleccionadas en el MultiSelect
+                setTareasOriginales(tareasSeleccionadas); // Guardar las tareas originales
             } else {
                 console.error('El formato de tareas obtenidas no es válido:', data);
                 setSelectedItems([]); // Limpiar en caso de error
+                setTareasOriginales([]); // Limpiar las tareas originales
             }
         } catch (error) {
             if (error.response && error.response.status === 404) {
-                setSelectedItems([]); // Si no hay tareas asociadas, limpiar
+                // Si no hay tareas asociadas, limpiar
+                setSelectedItems([]);
+                setTareasOriginales([]);
             } else {
                 console.error('Error al obtener tareas del rol:', error);
                 setSelectedItems([]); // Limpiar en caso de error
+                setTareasOriginales([]); // Limpiar las tareas originales
             }
         }
     };
     
+    //ACTUALIZA EL ROL SELECCIONADO
     const handleRolChange = async (itemValue) => {
         setSelectedRol(itemValue); // Actualizar el rol seleccionado
         if (itemValue) {
@@ -116,28 +135,45 @@ export default function RegistrarRol() {
         }
     };
 
+    //REGISTRA ROL TAREA
     const cargarRolTarea = async () => {
         if (selectedItems.length > 0 && selectedRol) {
-            console.log("Roles seleccionados:", selectedItems);
-            console.log("Tarea seleccionada:", selectedRol);
+            console.log("Tareas seleccionadas:", selectedItems);
+            console.log("Rol seleccionado:", selectedRol);
     
-            // Enviar todos los roles seleccionados para la tarea
-            const result = await Promise.all(
-                selectedItems.map((tarea) => registrarRolTarea(selectedRol, tarea))
-            );
+            try {
+                // Construir el arreglo de relaciones
+                const relaciones = selectedItems.map(id_tarea => ({
+                    id_tarea: parseInt(id_tarea),
+                    id_rol: parseInt(selectedRol),
+                }));
     
-            console.log("Resultados de la solicitud:", result);  // Agregar este log para depurar
+                // Llamar a registrarRolTarea con el arreglo de relaciones
+                const result = await registrarRolTarea(relaciones);
     
-            const mensaje = result.every((r) => r.mensaje === 'Relación Tarea-Rol registrada exitosamente')
-                ? 'Todas las relaciones fueron registradas exitosamente'
-                : 'Hubo un error al registrar algunas relaciones';
+                // Verificar el mensaje de la respuesta
+                if (result && result.mensaje) {
+                    console.log(result.mensaje); // Muestra el mensaje de éxito en la consola
+                    alert('Todas las relaciones se registraron correctamente'); // Mensaje de éxito general
+                } else {
+                    console.error('Hubo un error al registrar las relaciones');
+                    alert('Hubo un error al registrar algunas relaciones');
+                }
+            } catch (error) {
+                console.error('Error al registrar las relaciones:', error);
+                alert('Hubo un error al registrar algunas relaciones');
+            }
     
-            alert(mensaje);
+            // Recargar datos después de registrar
+            await cargarTareas();
+            await cargarRoles();
+            await cargarRolesDeshabilitados();
         } else {
-            alert('Selecciona al menos un rol y una tarea');
+            alert('Selecciona un rol y al menos una tarea');
         }
     };
 
+    //DESHABILITAR ROL
     const handleDeshabilitarRol = async () => {
         if (!selectedRol) {
             console.warn("No hay rol seleccionado para deshabilitar.");
@@ -191,8 +227,12 @@ export default function RegistrarRol() {
                 ]
             );
         }
+        cargarTareas();
+        cargarRoles();
+        cargarRolesDeshabilitados();
     };
     
+    //SWITCH DEL MODAL
     const toggleSwitchRol = (idRol) => {
         setRolesDeshabilitados((prev) =>
             prev.map((rol) =>
@@ -201,6 +241,7 @@ export default function RegistrarRol() {
         );
     };
 
+    //Habilitar Rol, confirmacion
     const handleConfirmarRoles = async () => {
         console.log('Roles actualizados:', rolesDeshabilitados);
     
@@ -214,6 +255,9 @@ export default function RegistrarRol() {
                 })
             );
             console.log('Roles actualizados en la base de datos:', result);
+            cargarTareas();
+            cargarRoles();
+            cargarRolesDeshabilitados();
         } catch (error) {
             console.error('Error al actualizar roles:', error);
         }
@@ -228,10 +272,6 @@ export default function RegistrarRol() {
         cargarRolesDeshabilitados();
     }, []);
     
-
-    const onSelectedItemsChange = (selectedItems) => {
-        setSelectedItems(selectedItems);
-    };
 
     return (
         <View style={styles.padre}>
@@ -265,7 +305,7 @@ export default function RegistrarRol() {
                             onChangeText={setNuevoRol}
                         />
                         <View style={styles.botonesModal}>
-                            <TouchableOpacity style={styles.botonModal} onPress={handleAgregarRol}>
+                            <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarRol}>
                                 <Text style={styles.textoBotonModal}>Agregar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -307,7 +347,7 @@ export default function RegistrarRol() {
                 <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
                     <Text style={styles.textoBoton}>Modificar</Text>
                 </TouchableOpacity>
-            </View>
+            
             <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -332,6 +372,10 @@ export default function RegistrarRol() {
                     </View>
                 </View>
             </Modal>
+                <TouchableOpacity style={styles.botonCancelar}>
+                    <Text style={styles.textoBoton}>Cancelar</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -371,8 +415,9 @@ const styles = StyleSheet.create({
         width: '85%',
     },
     contenidoBoton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: 'row', 
+        justifyContent: 'space-between', // Separa los botones horizontalmente
+        alignItems: 'center',
         marginTop: 20,
         width: '85%',
     },
@@ -387,24 +432,23 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     botonCancelar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#DADADA',
+        borderColor: '#000000',
         borderWidth: 1,
         paddingVertical: 15,
-        paddingHorizontal: 30,
         borderRadius: 5,
-        flex: 1,
-        marginLeft: 10,
+        flex: 1, // Ocupa la mitad del contenedor
+        alignItems: 'center',
     },
     botonModificar: {
         backgroundColor: '#CED9EF',
         borderColor: '#746BC8',
         borderWidth: 1,
         paddingVertical: 15,
-        paddingHorizontal: 30,
         borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
+        flex: 1, // Ocupa la mitad del contenedor
+        marginRight: 10, // Espacio entre los botones
+        alignItems: 'center',
     },
     botonEliminar: {
         backgroundColor: '#F3B9B9',

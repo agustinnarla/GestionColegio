@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
-import { obtenerRoles, obtenerTareas, registrarTareaRol, obtenerTareasRol, agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
+import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
+import { obtenerRoles, obtenerTareas, registrarTareaRol, obtenerRolesDeTarea} from '../../scripts/admin/scriptTareasRol';
 import { Picker } from '@react-native-picker/picker';
 
 export default function CargarTareas() {
@@ -16,80 +17,7 @@ export default function CargarTareas() {
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
     const [tareasDeshabilitadas, setTareasDeshabilitadas] = useState([]);
 
-
-    const toggleSwitch = (idTarea) => {
-        setTareasDeshabilitadas((prev) =>
-            prev.map((tarea) =>
-                tarea.id_tarea === idTarea
-                    ? { ...tarea, id_estadoalumno: tarea.id_estadoalumno === 1 ? 2 : 1 }
-                    : tarea
-            )
-        );
-    
-        // Si el switch se activa, llamamos a handleHabilitarTarea
-        handleHabilitarTarea(idTarea);
-    };
-    
-
-    const cargarTareasDeshabilitadas = async () => {
-        try {
-            const respuesta = await obtenerTareasDeshabilitadas();
-            console.log("Tareas obtenidas:", respuesta);  // Verifica el formato
-            setTareasDeshabilitadas(respuesta.tareas || []); // Extrae el array correctamente
-        } catch (error) {
-            console.error('Error al obtener las tareas deshabilitadas:', error);
-        }
-    };
-    
-    
-
-    const actualizarEstadoTarea = async (id_tarea, nuevoEstado) => {
-        // Aquí va tu lógica para hacer la petición a la base de datos
-        console.log(`Actualizando tarea ${id_tarea} con nuevo estado: ${nuevoEstado}`);
-        // Simulamos que la actualización fue exitosa
-        return { mensaje: 'Tarea actualizada exitosamente' };
-    };
-
-    const handleConfirmarModificacion = async () => {
-        console.log('Tareas actualizadas:', tareasDeshabilitadas);
-    
-        // Aquí iría la lógica para actualizar las tareas en la base de datos
-        try {
-            const result = await Promise.all(
-                tareasDeshabilitadas.map(tarea => {
-                    if (tarea.id_estadoalumno === 1) {
-                        return actualizarEstadoTarea(tarea.id_tarea, 1); // Actualiza el estado a 1
-                    }
-                    return null;
-                })
-            );
-            console.log('Tareas actualizadas en la base de datos:', result);
-        } catch (error) {
-            console.error('Error al actualizar tareas:', error);
-        }
-    
-        setModalModificarVisible(false); // Cierra el modal después de la confirmación
-    };
-
-    const cargarRoles = async () => {
-        try {
-            const rolesObtenidos = await obtenerRoles();
-            console.log('Roles obtenidos:', rolesObtenidos);
-
-            if (rolesObtenidos && Array.isArray(rolesObtenidos.roles)) {
-                const rolesFormateados = rolesObtenidos.roles.map((rol) => ({
-                    key: rol.id_rol?.toString(),
-                    value: rol.detalle,
-                }));
-                setRolesDisponibles(rolesFormateados); // Guardar los roles disponibles
-            } else {
-                console.error('El formato de roles obtenidos no es válido:', rolesObtenidos);
-            }
-        } catch (error) {
-            console.error('Error al cargar los roles:', error);
-        }
-    };
-
+    //CARGA LAS TAREAS DENTRO DEL COMBOBOX
     const cargarTareas = async () => {
         try {
             const tareasObtenidas = await obtenerTareas();
@@ -109,12 +37,45 @@ export default function CargarTareas() {
         }
     };
 
-    const obtenerRolesTarea = async (id_tarea) => {
+    //CARGA LOS ROLES DENTRO DEL MULTIPLESELECT
+    const cargarRoles = async () => {
         try {
-            const data = await obtenerTareasRol(id_tarea); // Obtener los roles asociados a la tarea
-            // Verificar si la respuesta es un objeto con la propiedad "rol" que es un array
-            if (data && Array.isArray(data.rol)) {
-                const rolesSeleccionados = data.rol.map((item) => item.id_rol.toString()); // Convertir a strings
+            const rolesObtenidos = await obtenerRoles();
+            console.log('Roles obtenidos:', rolesObtenidos);
+
+            if (rolesObtenidos && Array.isArray(rolesObtenidos.roles)) {
+                const rolesFormateados = rolesObtenidos.roles.map((rol) => ({
+                    key: rol.id_rol?.toString(),
+                    value: rol.detalle,
+                }));
+                setRolesDisponibles(rolesFormateados); // Guardar los roles disponibles
+            } else {
+                console.error('El formato de roles obtenidos no es válido:', rolesObtenidos);
+            }
+        } catch (error) {
+            console.error('Error al cargar los roles:', error);
+        }
+    };
+
+    //CARGA TAREAS DESHABILITADAS DENTRO DEL MODAL MODIFICAR
+    const cargarTareasDeshabilitadas = async () => {
+        try {
+            const respuesta = await obtenerTareasDeshabilitadas();
+            console.log("Tareas obtenidas:", respuesta);  // Verifica el formato
+            setTareasDeshabilitadas(respuesta.tareas || []); // Extrae el array correctamente
+        } catch (error) {
+            console.error('Error al obtener las tareas deshabilitadas:', error);
+        }
+    };
+
+    //OBTIENE LOS ROLES SEGUN LA TAREA SELECCIONADA
+    const cargarRolesTareas = async (id_tarea) => {
+        try {
+            const data = await obtenerRolesDeTarea(id_tarea); // Obtener los roles asociados a la tarea
+    
+            // Verificar si la respuesta es un objeto con la propiedad "tareas" que es un array
+            if (data && Array.isArray(data.roles)) {
+                const rolesSeleccionados = data.roles.map((item) => item.id_rol.toString()); // Convertir a strings
                 setSelectedRoles(rolesSeleccionados); // Actualizar los roles seleccionados
             } else {
                 console.error('El formato de roles obtenidos no es válido:', data);
@@ -131,34 +92,91 @@ export default function CargarTareas() {
         }
     };
 
-    const handleTareaChange = async (itemValue) => {
-        setSelectedTarea(itemValue); // Actualizar la tarea seleccionada
-        if (itemValue) {
-            await obtenerRolesTarea(itemValue); // Cargar los roles asociados a la tarea
-        } else {
-            setSelectedRoles([]); // Si no hay tarea seleccionada, limpiar los roles seleccionados
-        }
-    };
-
+    //ES PARA REGISTRARLO
     const cargarTareaRol = async () => {
         if (selectedRoles.length > 0 && selectedTarea) {
-            console.log("Roles seleccionados:", selectedRoles); // Mostrar todos los roles seleccionados
+            console.log("Roles seleccionados:", selectedRoles);
             console.log("Tarea seleccionada:", selectedTarea);
-
-            // Enviar todos los roles seleccionados
-            const result = await Promise.all(
-                selectedRoles.map((rol) => registrarTareaRol(rol, selectedTarea))
-            );
-            const mensaje = result.every((r) => r.mensaje === 'Relación Tarea-Rol actualizada exitosamente')
-                ? 'Todos los roles fueron actualizados exitosamente'
-                : 'Hubo un error al registrar algunas relaciones';
-
-            alert(mensaje);
+    
+            try {
+                // Construir el arreglo de relaciones
+                const relaciones = selectedRoles.map(id_rol => ({
+                    id_tarea: parseInt(selectedTarea),
+                    id_rol: parseInt(id_rol),
+                }));
+    
+                // Llamar a registrarTareaRol con el arreglo de relaciones
+                const result = await registrarTareaRol(relaciones);
+    
+                // Verificar el mensaje de la respuesta
+                if (result && result.mensaje) {
+                    alert(result.mensaje); // Muestra el mensaje de éxito
+                } else {
+                    alert('Hubo un error al registrar la relación');
+                }
+            } catch (error) {
+                console.error('Error al registrar las relaciones:', error);
+                alert('Hubo un error al registrar algunas relaciones');
+            }
+    
+            // Recargar datos después de registrar
+            cargarRoles();
+            cargarTareas();
+            cargarTareasDeshabilitadas();
         } else {
             alert('Selecciona al menos un rol y una tarea');
         }
     };
 
+    //METODO QUE GESTIONA EL CAMBIO DEL SWITCH
+    const toggleSwitch = (idTarea) => {
+        setTareasDeshabilitadas((prev) =>
+            prev.map((tarea) =>
+                tarea.id_tarea === idTarea
+                    ? {
+                          ...tarea,
+                          id_estadoalumno: tarea.id_estadoalumno === 1 ? 2 : 1, // Cambia el estado
+                      }
+                    : tarea
+            )
+        );
+    };
+
+    //Confirma la habilitacion de la tarea
+    const handleConfirmarModificacion = async () => {
+        try {
+            // Filtra las tareas que tienen id_estadoalumno === 1
+            const tareasAHabilitar = tareasDeshabilitadas.filter(
+                (tarea) => tarea.id_estadoalumno === 1
+            );
+            // Llama a handleHabilitarTarea para cada tarea habilitada
+            const resultados = await Promise.all(
+                tareasAHabilitar.map((tarea) =>
+                    handleHabilitarTarea(tarea.id_tarea)
+                )
+            );
+            console.log('Resultados de habilitar tareas:', resultados);
+            alert('Tareas habilitadas exitosamente.');
+        } catch (error) {
+            console.error('Error al habilitar tareas:', error);
+            alert('Ocurrió un error al habilitar las tareas.');
+        }
+        // Cierra el modal
+        setModalModificarVisible(false);
+    };
+
+
+    //CAMBIA EL ESTADO DE LA TAREA SELECCIONADA
+    const handleTareaChange = async (itemValue) => {
+        setSelectedTarea(itemValue); // Actualizar la tarea seleccionada
+        if (itemValue) {
+            await cargarRolesTareas(itemValue); // Cargar los roles asociados a la tarea
+        } else {
+            setSelectedRoles([]); // Si no hay tarea seleccionada, limpiar los roles seleccionados
+        }
+    };
+
+    //DESHABILITA TAREA
     const handleDeshabilitarTarea = async () => {
         if (!selectedTarea) {
             alert('Por favor, selecciona una tarea para deshabilitar.');
@@ -175,12 +193,16 @@ export default function CargarTareas() {
             } else {
                 alert('Error al deshabilitar la tarea.');
             }
+            cargarRoles();
+            cargarTareas();
+            cargarTareasDeshabilitadas();
         } catch (error) {
             console.error('Error en handleDeshabilitarTarea:', error);
             alert('Ocurrió un error al deshabilitar la tarea.');
         }
     };
 
+    //REGISTRA UNA NUEVA TAREA
     const handleRegistrarTarea = async () => {
         if (nuevaTarea.trim()) {
             try {
@@ -192,6 +214,9 @@ export default function CargarTareas() {
                     ]);
                     setNuevaTarea('');
                     setModalVisible(false);
+                    cargarRoles();
+                    cargarTareas();
+                    cargarTareasDeshabilitadas();
                 }
             } catch (error) {
                 console.error('Error al registrar la tarea:', error);
@@ -199,22 +224,23 @@ export default function CargarTareas() {
         }
     };
 
+    //HABILITA TAREA
     const handleHabilitarTarea = async (idTarea) => {
         try {
             const respuesta = await habilitarTarea(idTarea); // Llama a la función que habilita la tarea en la BD
             if (respuesta) {
-                alert('Tarea habilitada exitosamente.');
-                setTareasDeshabilitadas((prev) => 
-                    prev.map((tarea) =>
-                        tarea.id_tarea === idTarea ? { ...tarea, id_estadoalumno: 1 } : tarea
-                    )
-                );
+                console.log('Tarea habilitada exitosamente:', idTarea);
+                cargarRoles();
+                cargarTareas();
+                cargarTareasDeshabilitadas();
+                return true;
             } else {
-                alert('Error al habilitar la tarea.');
+                console.error('Error al habilitar la tarea:', idTarea);
+                return false;
             }
         } catch (error) {
             console.error('Error en handleHabilitarTarea:', error);
-            alert('Ocurrió un error al habilitar la tarea.');
+            return false;
         }
     };
     
@@ -305,30 +331,30 @@ export default function CargarTareas() {
                 <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
                     <Text style={styles.textoBoton}>Modificar</Text>
                 </TouchableOpacity>
-                <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            {Array.isArray(tareasDeshabilitadas) &&
-                                tareasDeshabilitadas.map((tarea) => (
-                                    <View key={tarea.id_tarea} style={styles.itemContainer}>
-                                        <Text style={styles.textoTarea}>{tarea.detalle}</Text>
-                                        <Switch
-                                            value={tarea.id_estadoalumno === 1}
-                                            onValueChange={() => toggleSwitch(tarea.id_tarea)}
-                                        />
-                                    </View>
-                                ))}
-                            <View style={styles.botonesModal}>
-                                <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
-                                    <Text>Cancelar</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonModal} onPress={handleConfirmarModificacion}>
-                                    <Text>Confirmar</Text>
-                                </TouchableOpacity>
+                    <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                {Array.isArray(tareasDeshabilitadas) &&
+                                    tareasDeshabilitadas.map((tarea) => (
+                                        <View key={tarea.id_tarea} style={styles.itemContainer}>
+                                            <Text style={styles.textoTarea}>{tarea.detalle}</Text>
+                                            <Switch
+                                                value={tarea.id_estadoalumno === 1}
+                                                onValueChange={() => toggleSwitch(tarea.id_tarea)}
+                                            />
+                                        </View>
+                                    ))}
+                                <View style={styles.botonesModal}>
+                                    <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
+                                        <Text>Cancelar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.botonModal} onPress={handleConfirmarModificacion}>
+                                        <Text>Confirmar</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </Modal>
+                    </Modal>
                     <TouchableOpacity style={styles.botonCancelar}>
                         <Text style={styles.textoBoton}>Cancelar</Text>
                     </TouchableOpacity>
