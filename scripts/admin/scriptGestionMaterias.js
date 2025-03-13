@@ -1,8 +1,8 @@
 import { Alert, Platform } from 'react-native';
-const api_url = 'http://192.168.0.18:5000'
-const api_urlMaterias = 'http://192.168.0.18:5000/materia' 
-const api_urlProfesor = 'http://192.168.0.18:5000/profesor'
-const api_urlMateriaProfesor = 'http://192.168.0.18:5000/materiaprofesor'
+const api_url = 'http://localhost:5000'
+const api_urlMaterias = 'http://localhost:5000/materia' 
+const api_urlProfesor = 'http://localhost:5000/profesor'
+const api_urlMateriaProfesor = 'http://localhost:5000/materiaprofesor'
 
 export const obtenerMaterias = async () => {
     try {
@@ -16,6 +16,21 @@ export const obtenerMaterias = async () => {
         
     } catch (error) {
         console.error('Error en obtenerMaterias:', error);
+        return null;
+    }
+};
+
+export const obtenerMateriasDeshabilitadas = async () => {
+    try {
+        const respuesta = await fetch(`${api_urlMaterias}/materiasDeshabilitadas`);
+        if (!respuesta.ok) {
+            throw new Error('Error al obtener las materias');
+        }
+        const data = await respuesta.json();
+        console.log('Respuesta de la API:', data); // Verifica la estructura de la respuesta
+        return data;
+    } catch (error) {
+        console.error('Error en obtenerMateriasDeshabilitadas:', error);
         return null;
     }
 };
@@ -104,7 +119,7 @@ export const obtenerProfesorXMateria = async (idMateria) => {
 
 export const deshabilitarMateria = async (id_materia) => {
     try {
-        const respuesta = await fetch(`${api_urlMaterias}/${id_materia}`, {  // Pasa el ID en la URL
+        const respuesta = await fetch(`${api_urlMaterias}/${id_materia}`, {
             method: 'PUT',  // Cambiar a PUT en lugar de DELETE
             headers: { 'Content-Type': 'application/json' },
         });
@@ -113,7 +128,8 @@ export const deshabilitarMateria = async (id_materia) => {
             throw new Error('Error al deshabilitar la materia');
         }
 
-        return await respuesta.json();  // Devuelve la respuesta JSON si todo sale bien
+        const data = await respuesta.json();  // Devuelve la respuesta JSON si todo sale bien
+        return data;  // Devuelve el objeto JSON completo
 
     } catch (error) {
         console.error('Error en deshabilitarMateria:', error);
@@ -121,6 +137,24 @@ export const deshabilitarMateria = async (id_materia) => {
     }
 };
 
+export const habilitarMateria = async (id_materia) => {
+    try {
+        const respuesta = await fetch(`${api_urlMaterias}/habilitarMateria/${id_materia}`, {  // Pasa el ID en la URL
+            method: 'PUT',  // Cambiar a PUT en lugar de DELETE
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!respuesta.ok) {
+            throw new Error('Error al habilitar la materia');
+        }
+
+        return await respuesta.json();  // Devuelve la respuesta JSON si todo sale bien
+
+    } catch (error) {
+        console.error('Error en habilitarMateria:', error);
+        return null;
+    }
+}; 
 export const registrarMateria = async (detalle) => {
     try {
         const respuesta = await fetch(api_urlMaterias, {

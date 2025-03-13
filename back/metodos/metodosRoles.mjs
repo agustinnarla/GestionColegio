@@ -21,7 +21,7 @@ export const obtenerRolesDeshabilitados = async (req,res) => {
     catch(error){
         console.log(error.message);
         res.status(500).json({ message: 'Error al obtener roles' });
-    }   
+    }
 }
 
 export const registrarRol = async (req,res) => {
@@ -36,39 +36,12 @@ export const registrarRol = async (req,res) => {
     }
 }
 
-export const obtenerTareasPorRol = async (req, res) => {
-    try {
-        const { id_rol } = req.params; // O req.body si lo envías en el cuerpo
-        if (!id_rol) {
-            return res.status(400).json({ message: 'El id_rol es requerido' });
-        }
-        const respuesta = await pool.query('SELECT * FROM tarearol WHERE id_rol = $1', [id_rol]);
-        res.status(200).json({ tareas: respuesta.rows });
-        console.log('Tareas obtenidas exitosamente para el rol:', id_rol);
-    } catch (error) {
-        console.error('Error al obtener tareas por rol:', error.message);
-        res.status(500).json({ message: 'Error al obtener tareas por rol' });
-    }
-};
-
-export const eliminaRolTarea = async (req, res) => {
-    const { id_rol } = req.body;
-    try {
-        await pool.query('DELETE FROM tarearol WHERE id_rol = $1', [id_rol]);
-        res.status(200).json({ mensaje: 'Relaciones eliminadas exitosamente' });
-    } catch (error) {
-        console.error('Error al eliminar relaciones:', error);
-        res.status(500).json({ error: 'Error al eliminar relaciones' });
-    }
-};
 
 export const deshabilitarRol = async (req, res) => {
     const { id_rol } = req.params; // Recibe el id_rol desde el frontend
-
     if (!id_rol) {
         return res.status(400).json({ message: 'El id_rol es obligatorio' });
     }
-
     try {
         const respuesta = await pool.query(
             'UPDATE roles SET id_estadoalumno = 2 WHERE id_rol = $1',
