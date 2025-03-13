@@ -10,3 +10,7 @@ export const obtenerEspecialidad = async (req,res) => {
         console.log("Error al traer las especialidades")
     }
 }
+
+const Prubea3 = async() => {
+    console.log("hola")
+}
