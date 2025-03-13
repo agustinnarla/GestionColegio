@@ -3,7 +3,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerEstadoInasistencia = async (req,res) => {
     try{
-
+        //Estado inasisencia
         const respuesta = await pool.query("SELECT id_estado,detalle FROM estado ")
         res.json({sexo: respuesta.rows})
     }
@@ -12,3 +12,6 @@ export const obtenerEstadoInasistencia = async (req,res) => {
     }
 }
 
+const Prubea = async() => {
+    console.log("hola")
+}
