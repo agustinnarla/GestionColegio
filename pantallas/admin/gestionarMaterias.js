@@ -1,12 +1,11 @@
-import { StyleSheet, View, Image, Text, TextInput,TouchableOpacity, Alert, Modal, Switch} from 'react-native';
-import React, { useState , useEffect} from 'react';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Alert, Modal, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, deshabilitarMateria, registrarMateria, obtenerMateriasDeshabilitadas, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
 import CustomAlert from '../../componente/CustomAlerts';
-
 
 export default function GestionarMaterias() {
     const [profesores, setProfesores] = useState([]);
@@ -367,28 +366,25 @@ export default function GestionarMaterias() {
                     </TouchableOpacity>
                 </View>
             </View>
-                <Modal visible={modalVisible} transparent animationType="slide">
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.titulo}>Nueva Materia</Text>
-                            <TextInput
-                                style={styles.inputModal}
-                                placeholder="Ingrese nombre de la materia"
-                                value={nuevaMateria}
-                                onChangeText={setNuevaMateria}
-                            />
-                            <View style={styles.botonesModal}>
-                                <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarMateria}>
-                                    <Text style={styles.textoBotonModal}>Registrar</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalVisible(false)}>
-                                    <Text style={styles.textoBotonModal}>Cancelar</Text>
-                                </TouchableOpacity>
-                            </View>
+            <Modal visible={modalVisible} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.titulo}>Nueva Materia</Text>
+                        <TextInput
+                            style={styles.inputModal}
+                            placeholder="Ingrese nombre de la materia"
+                            value={nuevaMateria}
+                            onChangeText={setNuevaMateria}
+                        />
+                        <View style={styles.botonesModal}>
+                            <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarMateria}>
+                                <Text style={styles.textoBotonModal}>Registrar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.textoBotonModal}>Cancelar</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
-                </Modal>
-            </View>
                 </View>
             </Modal>
             <CustomAlert
@@ -400,6 +396,7 @@ export default function GestionarMaterias() {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
@@ -485,95 +482,6 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-    },
-    botonEliminar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-    },
-    botonModificar: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-    },
-    botonCancelar: {
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-    },
-    textoBoton: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    inputModal: {
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-        width: '100%',
-        padding: 10,
-        marginBottom: 20,
-        fontSize: 16,
-    },
-    botonesModal: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    botonModal: {
-        backgroundColor: '#4CAF50',
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        alignItems: 'center',
-        marginHorizontal: 5,
-    },
-    botonModalCancelar: {
-        backgroundColor: '#F44336',
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        alignItems: 'center',
-        marginHorizontal: 5,
-    },
-    textoBotonModal: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-    }, itemContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginVertical: 10,
-        width: '100%',
-    },
+        flex: 1
+    }
 });
-

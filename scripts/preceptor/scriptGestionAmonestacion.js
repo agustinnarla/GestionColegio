@@ -1,6 +1,6 @@
 import { Alert, Platform } from 'react-native';
-const api_url = 'http://192.168.0.23:5000'
-const api_urlAmonestacion = 'http://192.168.0.23:5000/amonestacion'
+const api_url = 'http://localhost:5000'
+const api_urlAmonestacion = 'http://localhost:5000/amonestacion'
 
 export const registrarAmonestacion = async (formData) => {
     try{
@@ -24,31 +24,6 @@ export const registrarAmonestacion = async (formData) => {
     }
 }
 
-
-export const mostrarMensaje = (titulo, texto) => {
-    if (Platform.OS === 'web') {
-        // Para web
-        return new Promise((resolve) => {
-            alert(`${titulo}\n${texto}`);
-            resolve();
-        });
-    } else {
-        // Para móvil
-        return new Promise((resolve) => {
-            Alert.alert(
-                titulo,
-                texto,
-                [
-                    {
-                        text: "OK",
-                        onPress: () => resolve()
-                    }
-                ],
-                { cancelable: false }
-            );
-        });
-    }
-}
 
 export const imprimirArchivo = async (formData, alumno, solicitante) => {
     try {

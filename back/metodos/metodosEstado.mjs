@@ -12,7 +12,4 @@ export const obtenerEstadoInasistencia = async (req,res) => {
     }
 }
 
-const Prubea = async() => {
-    console.log("hola")
-}
 
