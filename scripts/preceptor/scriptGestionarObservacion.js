@@ -66,33 +66,6 @@ export const registrarObservacion = async (formData) => {
 }
 
 
-//Mostramos un mensaje en pantalla, pero lo configuramos para web y para celular ya que si no tenemos error 
-export const mostrarMensaje = (titulo, texto) => {
-    if (Platform.OS === 'web') {
-        // Para web
-        return new Promise((resolve) => {
-            alert(`${titulo}\n${texto}`);
-            resolve();
-        });
-    } else {
-        // Para celular
-        return new Promise((resolve) => {
-            Alert.alert(
-                titulo,
-                texto,
-                [
-                    {
-                        text: "Observación registrada correctamente",
-                        onPress: () => resolve()
-                    }
-                ],
-                { cancelable: false }
-            );
-        });
-    }
-}
-
-
 //Funcion para imprimir el archivo 
 export const imprimirArchivo = async (formData, alumno, solicitante) => {
     try {

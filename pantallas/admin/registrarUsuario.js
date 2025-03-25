@@ -1,7 +1,7 @@
 import { StyleSheet, View, Image, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ListasDesplegables from '../../componente/ListasDesplegables';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import { consultarUsuario, obtenerRoles, registrarUsuario, modificarUsuario, deshabilitarUsuario } from '../../scripts/admin/scriptRegistrarUsuario';
 import CustomAlert from '../../componente/CustomAlerts';
@@ -12,7 +12,7 @@ export default function RegistrarUsuario() {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
-
+    const [habilitarBotones, setHabilitarBotones] = useState(false);
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
@@ -44,7 +44,7 @@ export default function RegistrarUsuario() {
 
     // Manejar cambios en el formulario
     const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
+        setFormData({ ...formData, [name]: name === 'dni_usuario' || name === 'id_rol' ? String(value) : value });
     };
 
     const limpiarInterfaz = () => {
@@ -56,26 +56,41 @@ export default function RegistrarUsuario() {
             id_rol: '',
             id_estadoalumno: 1,
         });
+        setHabilitarBotones(false); // Deshabilitar los botones después de limpiar la interfaz
     };
 
+    const validarDni = (dni) => {
+        return /^\d{8}$/.test(dni); // Verifica que el DNI tenga exactamente 8 dígitos
+    };
+ 
     const handleConsultar = async () => {
+        if (!validarDni(formData.dni_usuario)) {
+            mostrarMensaje('Error', 'El DNI debe contener exactamente 8 números.');
+            return;
+        }
+    
         try {
-            const usuario = await consultarUsuario(formData.dni_usuario);
+            const usuario = await consultarUsuario(formData.dni_usuario.trim());
             if (usuario) {
                 setFormData({
                     ...formData,
-                    dni_usuario: usuario.dni_usuario,
-                    email: usuario.email,
-                    id_rol: usuario.id_rol
+                    dni_usuario: String(usuario.dni_usuario),
+                    email: usuario.email || '',
+                    id_rol: usuario.id_rol ? String(usuario.id_rol) : '',
+                    contrasena: '',
+                    confirmarContrasena: ''
                 });
+                setHabilitarBotones(true); // Habilitar los botones después de una consulta exitosa
+                mostrarMensaje('Éxito', 'Usuario encontrado y datos cargados.');
             } else {
-                mostrarMensaje('Advertencia', 'Usuario no encontrado, verifique su dni');
+                mostrarMensaje('Advertencia', 'Usuario no encontrado, verifique su DNI.');
             }
         } catch (error) {
-            console.log(error.message);
-            mostrarMensaje('Advertencia', 'Usuario no encontrado, verifique su dni')
+            console.error('Error al consultar el usuario:', error.message);
+            mostrarMensaje('Error', 'No se pudo consultar el usuario.');
         }
     };
+
 
     // Validar formato de email
     const validarEmail = (email) => {
@@ -87,6 +102,23 @@ export default function RegistrarUsuario() {
     const validarContrasenas = () => {
         return formData.contrasena === formData.confirmarContrasena;
     };
+
+    
+
+    const deshabilitarBoton = useMemo(() => {
+        if (habilitarBotones) {
+            return false; // Si se realizó una consulta exitosa, habilitar los botones
+        }
+        return !(
+            typeof formData.dni_usuario === 'string' &&
+            formData.dni_usuario.trim().length > 0 &&
+            formData.contrasena.trim().length > 0 &&
+            formData.email.trim().length > 0 &&
+            formData.confirmarContrasena.trim().length > 0 &&
+            typeof formData.id_rol === 'string' &&
+            formData.id_rol.trim().length > 0
+        );
+    }, [formData, habilitarBotones]);
 
     const handleRegistrar = async () => {
         if (!validarEmail(formData.email)) {
@@ -213,18 +245,37 @@ export default function RegistrarUsuario() {
                 </View>
 
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
-                        <Text style={styles.textoBoton}>Registrar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}>
-                        <Text style={styles.textoBoton}>Modificar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonDeshabilitar} onPress={handleDeshabilitar}>
-                        <Text style={styles.textoBoton}>Eliminar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar}>
-                        <Text style={styles.textoBoton} onPress={limpiarInterfaz}>Cancelar</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.botonRegistrar, deshabilitarBoton && styles.deshabilitarBoton]}
+                    onPress={handleRegistrar}
+                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                >
+                    <Text style={styles.textoBoton}>Registrar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.botonModificar, deshabilitarBoton && styles.deshabilitarBoton]}
+                    onPress={handleModificar}
+                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                >
+                    <Text style={styles.textoBoton}>Modificar</Text>
+                </TouchableOpacity>
+
+                    <TouchableOpacity
+                    style={[styles.botonDeshabilitar, deshabilitarBoton && styles.deshabilitarBoton]}
+                    onPress={handleDeshabilitar}
+                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                    >
+                    <Text style={styles.textoBoton}>Eliminar</Text>
+                </TouchableOpacity>
+
+                    <TouchableOpacity
+                    style={[styles.botonCancelar, deshabilitarBoton && styles.deshabilitarBoton]}
+                    onPress={limpiarInterfaz}
+                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                    >
+                    <Text style={styles.textoBoton}>Cancelar</Text>
+                </TouchableOpacity>
                 </View>
                 <CustomAlert
                     isVisible={alertVisible}
@@ -254,7 +305,7 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     formulario: {
-        width: '50%',
+        width: '30%',
         padding: 20,
         borderRadius: 10,
     },
@@ -267,6 +318,10 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 10,
     },
+    deshabilitarBoton: {
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
+    },
     label: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -278,8 +333,9 @@ const styles = StyleSheet.create({
         borderColor: '#746BC8',
         borderWidth: 1,
         paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingHorizontal: 25,
         borderRadius: 5,
+        
     },
     input: {
         borderWidth: 1,
@@ -318,7 +374,7 @@ const styles = StyleSheet.create({
     contenidoBoton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 20,
+        marginTop: 30,
     },
     botonRegistrar: {
         backgroundColor: '#CFEFCE',
