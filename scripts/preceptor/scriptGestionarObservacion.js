@@ -1,7 +1,7 @@
 import { Alert, Platform } from 'react-native';
 //Rutas que utilizamos
-const api_url = 'http://192.168.0.23:5000'
-const api_urlAlumnoCurso = 'http://192.168.0.23:5000/alumnosPorCurso'
+const api_url = 'http://localhost:5000'
+const api_urlAlumnoCurso = 'http://localhost:5000/alumnosPorCurso'
 
 //Obtenemos los solicitantes para registrar quien manda la observación
 export const obtenerSolicitante = async () => {

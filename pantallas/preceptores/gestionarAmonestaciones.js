@@ -1,10 +1,11 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import { obtenerAlumnoCurso, obtenerSolicitante } from '../../scripts/preceptor/scriptGestionarObservacion.js';
-import { registrarAmonestacion, mostrarMensaje, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
+import { registrarAmonestacion, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
+import CustomAlert from '../../componente/CustomAlerts.js';
 
 export default function GestionarAmonestaciones() {
     // Formulario
@@ -23,6 +24,20 @@ export default function GestionarAmonestaciones() {
     const [alumnos, setAlumnos] = useState([]);
     const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
 
+    // Modal
+    const [modalVisible, setModalVisible] = useState(false);
+
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
     // Validar campos del formulario
     const validarCampos = () => {
         return formData.dni_alumno && 
@@ -30,8 +45,22 @@ export default function GestionarAmonestaciones() {
             formData.cantidad.length >= 1 && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
-            formData.id_curso; 
+            formData.id_curso && 
+            validarFecha(formData.fecha) &&
+            validarNumeroPositivo(formData.cantidad) 
     };
+
+    // Validar formato de fecha
+    const validarFecha = (fecha) => {
+        const regex = /^\d{2}-\d{2}-\d{4}$/;
+        return regex.test(fecha);
+    };
+
+    // Validar que sea un número positivo
+    const validarNumeroPositivo = (numero) => {
+        return !isNaN(numero) && parseInt(numero) > 0;
+    };
+
 
     // Cargar cursos y solicitantes
     useEffect(() => {
@@ -86,25 +115,25 @@ export default function GestionarAmonestaciones() {
                 dni_alumno: parseInt(formData.dni_alumno),
                 id_solicitante: parseInt(formData.id_solicitante),
                 cantidad: parseInt(formData.cantidad),
-                fecha: formData.fecha,
+                fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
             };
 
             if (!validarCampos()) {
-                await mostrarMensaje('Error', 'Por favor complete todos los campos');
+                mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
                 return;
             }
 
             console.log('Datos de la amonestación', alumnoData); 
             
             const respuesta = await registrarAmonestacion(alumnoData);
-            await mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
+            mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
             console.log('Amonestación Registrada:', respuesta);
             
-            limpiarInterfaz();
+            setModalVisible(true); // Abrir el modal después de registrar la amonestación
         } catch (error) {
             console.error('Error al registrar la amonestación:', error.message);
-            await mostrarMensaje('Error', 'No se pudo registrar la amonestación');
+            mostrarMensaje('Error', 'No se pudo registrar la amonestación');
         }
     };
 
@@ -128,20 +157,29 @@ export default function GestionarAmonestaciones() {
             const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
 
             const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
-            await mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
+            mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
             
             if (Platform.OS === 'web') {
                 window.open(rutaPDF);
             }
+
+            limpiarInterfaz(); // Limpiar la interfaz después de imprimir
+            setModalVisible(false); // Cerrar el modal
         } catch (error) {
             console.error('Error al imprimir:', error);
-            await mostrarMensaje('Error', 'No se pudo generar el PDF');
+            mostrarMensaje('Error', 'No se pudo generar el PDF');
         }
     };
 
     // Manejar cambios en el formulario
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
+    };
+
+    // Formatear fecha en formato AAAA-MM-DD
+    const formatearFecha = (fecha) => {
+        const [dia, mes, año] = fecha.split('-');
+        return `${año}-${mes}-${dia}`;
     };
 
     const Content = (
@@ -158,7 +196,7 @@ export default function GestionarAmonestaciones() {
             <Text style={styles.label}>Fecha:</Text>
             <TextInput 
                 style={styles.input} 
-                placeholder="AAAA-MM-DD" 
+                placeholder="DD-MM-AAAA" 
                 keyboardType="number-pad" 
                 value={formData.fecha}  
                 onChangeText={(value) => handleChange('fecha', value)}
@@ -190,10 +228,31 @@ export default function GestionarAmonestaciones() {
                 <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
                     <Text style={styles.textoBoton}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.botonImprimir, !validarCampos() && styles.botonDeshabilitado]} onPress={handleImprimir} disabled={!validarCampos()}>
-                    <Text style={styles.textoBoton}>Imprimir</Text>
-                </TouchableOpacity>
             </View>
+            <Modal visible={modalVisible} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.titulo}>¿Desea imprimir la amonestación?</Text>
+                        <View style={styles.botonesModal}>
+                            <TouchableOpacity
+                                style={styles.botonImprimirModal}
+                                onPress={handleImprimir}
+                            >
+                                <Text style={styles.textoBotonModal}>Imprimir</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.botonCancelarModal} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.textoBotonModal}>Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
         </View>
     );
 
@@ -288,18 +347,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         flex: 1,
     },
-    botonImprimir: {
-        flex: 1,
-        backgroundColor: '#CED9EF',
-        paddingVertical: 12, 
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        borderColor: '#0500FF',
-        borderWidth: 0.4,
-        marginRight: 15,
-        marginLeft: 15,
-        alignItems: 'center',
-    },
     textoBoton: {
         color: 'black',
         fontSize: 16,
@@ -310,5 +357,54 @@ const styles = StyleSheet.create({
         opacity: 0.5,
         backgroundColor: '#cccccc',
         borderColor: '#999999',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+    },
+    titulo: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        color: '#333',
+    },
+    botonesModal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '50%',
+    },
+    botonImprimirModal: {
+        backgroundColor: '#CED9EF',
+        borderColor: '#0500FF',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        flex: 1,
+        marginRight: 10,
+    },
+    botonCancelarModal: {
+        backgroundColor: '#F3B9B9',
+        borderColor: '#FF0000',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        flex: 1,
+    },
+    textoBotonModal: {
+        color: 'black',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 });
