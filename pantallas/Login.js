@@ -1,7 +1,7 @@
 import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { login, olvideMiContrasena } from '../scripts/login/scriptLogin.js';
+import { ingresarUsuario, olvideMiContrasena } from '../scripts/login/scriptLogin.js';
 import bg from '../assets/bg1.jpg';
 import logo from '../assets/logo_huerto.png';
 import CustomAlert from '../componente/CustomAlerts.js';
@@ -12,10 +12,8 @@ export default function Login(props) {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
-
-    const handleLogin = async () => {
-        await login(dniUsuario, contrasena, props.navigation, mostrarMensaje);
-    };
+    const [intentosFallidos, setIntentosFallidos] = useState(0);
+    const [bloqueado, setBloqueado] = useState(false);
 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
@@ -23,6 +21,45 @@ export default function Login(props) {
         setAlertVisible(true);
     };
 
+    const capturarIntentos = () => {
+        setIntentosFallidos((prev) => {
+            const nuevosIntentos = prev + 1;
+    
+            if (nuevosIntentos >= 3) {
+                setBloqueado(true);
+                mostrarMensaje('Error', 'Cuenta bloqueada por múltiples intentos fallidos. Espere 5 segundos.');
+                setTimeout(() => {
+                    setBloqueado(false);
+                    setIntentosFallidos(0); // Reiniciar intentos después del bloqueo
+                }, 5000); // 5 segundos
+            }
+    
+            return nuevosIntentos;
+        });
+    };
+
+    const handleLogin = async () => {
+        if (bloqueado) {
+            mostrarMensaje('Error', 'Cuenta bloqueada. Intente nuevamente en unos segundos.');
+            return;
+        }
+    
+        try {
+            const response = await ingresarUsuario(dniUsuario, contrasena, props.navigation, mostrarMensaje);
+            
+
+    
+            if (response?.success) {  
+                setIntentosFallidos(0);  
+            } else {
+                capturarIntentos();
+                mostrarMensaje('Error', response?.message || 'Usuario o Contraseña incorrectos.');
+            }
+        } catch (error) {
+            mostrarMensaje('Error', 'Error al intentar iniciar sesión.');
+        }
+    };
+    
     const handleOlvideMiContrasena = async () => {
         if (!dniUsuario) {
             mostrarMensaje('Error', 'Por favor ingrese su DNI para recuperar la contraseña.');
@@ -31,7 +68,7 @@ export default function Login(props) {
         try {
             const response = await olvideMiContrasena(dniUsuario);
             if (response.success) {
-                mostrarMensaje('Éxito', 'Se ha enviado un correo con su nueva contraseña, por favor modifiquela desde el perfil.');
+                mostrarMensaje('Éxito', 'Se ha enviado un correo con su nueva contraseña, por favor modifíquela desde el perfil.');
             } else {
                 mostrarMensaje('Error', response.message || 'No se pudo enviar el correo de recuperación de contraseña.');
             }
@@ -40,7 +77,11 @@ export default function Login(props) {
         }
     };
 
-    const isButtonDisabled = !dniUsuario || !contrasena;
+    const validarCampos = () => {
+        return dniUsuario.trim().length > 0 && contrasena.trim().length > 0;
+    };
+
+    const isButtonDisabled = !validarCampos() || bloqueado;
 
     return (
         <View style={styles.padre}>
@@ -52,7 +93,7 @@ export default function Login(props) {
                     <View style={styles.cajaTexto}>
                         <FontAwesome5 name="user" size={15} color="black" style={styles.icon} />
                         <TextInput
-                            placeholder='Usuario'
+                            placeholder="Usuario"
                             style={styles.textInput}
                             onChangeText={(text) => setDniUsuario(text)}
                             value={dniUsuario}
@@ -61,7 +102,7 @@ export default function Login(props) {
                     <View style={styles.cajaTexto}>
                         <FontAwesome5 name="lock" size={15} color="black" style={styles.icon} />
                         <TextInput
-                            placeholder='Contraseña'
+                            placeholder="Contraseña"
                             secureTextEntry={true}
                             style={styles.textInput}
                             onChangeText={(text) => setContrasena(text)}
@@ -69,9 +110,7 @@ export default function Login(props) {
                         />
                     </View>
                     <TouchableOpacity onPress={handleOlvideMiContrasena}>
-                        <Text style={styles.textoOlvide}>
-                            Olvidé mi contraseña
-                        </Text>
+                        <Text style={styles.textoOlvide}>Olvidé mi contraseña</Text>
                     </TouchableOpacity>
                     <View style={styles.padreBoton}>
                         <TouchableOpacity
@@ -94,7 +133,9 @@ export default function Login(props) {
     );
 }
 
+
 const styles = StyleSheet.create({
+
     padre: {
         flex: 1,
         justifyContent: 'center',
@@ -109,7 +150,7 @@ const styles = StyleSheet.create({
     tarjeta: {
         margin: 20,
         borderRadius: 10,
-        width: '40%',
+        width: '30%',
         padding: 20,
     },
     cajaTexto: {

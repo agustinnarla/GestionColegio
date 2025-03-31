@@ -44,17 +44,33 @@ export const generarContrasena = async () => {
     }
 
     // Encriptar la contraseña temporal
-    const contrasenaEncriptada = await bcrypt.hash(contrasenaTemporal, 10);
+    const contrasenaEncriptada = await encriptarContrasena(contrasenaTemporal);
 
     return { contrasenaTemporal, contrasenaEncriptada };
 };
 
+export const encriptarContrasena = async (contrasena) => {
+    try {
+        const salto = await bcrypt.genSalt(10);
+        return await bcrypt.hash(contrasena, salto);
+    } catch (error) {
+        console.error('Error al encriptar la contraseña:', error);
+        throw new Error('Error al encriptar la contraseña');
+    }
+};
+
 export const enviarEmail = async (req, res) => {
     const { dni_usuario } = req.body;
+
+    // Validar entrada
+    if (!dni_usuario) {
+        return res.status(400).json({ message: 'DNI es obligatorio para enviar el correo' });
+    }
+
     try {
         // Generar contraseña temporal
         const { contrasenaTemporal, contrasenaEncriptada } = await generarContrasena();
-        
+
         // Actualizar la contraseña
         const resultado = await contrasenaActualizada(contrasenaEncriptada, dni_usuario);
 
@@ -79,7 +95,7 @@ export const enviarEmail = async (req, res) => {
             res.status(404).json({ message: resultado.message });
         }
     } catch (error) {
-        console.error("Error al enviar el email de notificación", error.message);
+        console.error('Error al enviar el email de notificación:', error.message);
         res.status(500).json({ message: 'Error al enviar el email de notificación' });
     }
 };
@@ -90,23 +106,23 @@ export const contrasenaActualizada = async (contrasenaEncriptada, dni_usuario) =
             'UPDATE usuario SET contrasena = $1 WHERE dni_usuario = $2 RETURNING email',
             [contrasenaEncriptada, dni_usuario]
         );
-        
+
         if (actualizarContrasena.rows.length > 0) {
-            return { 
-                success: true, 
-                email: actualizarContrasena.rows[0].email 
+            return {
+                success: true,
+                email: actualizarContrasena.rows[0].email
             };
         } else {
-            return { 
-                success: false, 
-                message: 'Usuario no encontrado' 
+            return {
+                success: false,
+                message: 'Usuario no encontrado o no se pudo actualizar la contraseña'
             };
         }
     } catch (error) {
-        console.error("Error al actualizar la contraseña:", error.message);
-        return { 
-            success: false, 
-            message: 'Error al actualizar la contraseña' 
+        console.error('Error al actualizar la contraseña:', error.message);
+        return {
+            success: false,
+            message: 'Error al actualizar la contraseña'
         };
     }
 };
