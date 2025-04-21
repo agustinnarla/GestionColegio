@@ -37,6 +37,7 @@ import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidas, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -234,3 +235,10 @@ ruta.get('/alumno/avisos/:id_curso', obtenerAvisosCurso)
 //       OBTENER MATERIAS POR CURSO
 // =====================================
 ruta.get('/alumno/materia/dni_alumno/:dni_alumno', obtenerMateriaPorDni)
+// =====================================
+//       LIBRO DE AULA
+// =====================================
+ruta.get('/profesor/libroaula/materia/:id_profesor', obtenerMateriaPorProfesor)
+ruta.get('/profesor/libroaula/caracteristicas', obtenerCaracteristicasUnidas)
+ruta.get('/profesor/libroaula/curso_materia/:id_materia', obtenerCursoPorMateria)
+ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)
