@@ -1,48 +1,86 @@
-import { StyleSheet, View, Image, TextInput, Text, ScrollView } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import React from "react";
+import { StyleSheet, View, Image, TextInput, Text, ScrollView, Alert } from 'react-native';
+import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import ListasDesplegables from '../../componente/ListasDesplegables';
+import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../../scripts/alumno/scriptAvisos';
 
 export default function Avisos() {
+    const [formData, setFormData] = useState({
+        id_curso: ''
+    });
+
+    const [datos, setDatos] = useState([]);
+    const [cursos, setCursos] = useState([]);
+    const [fechaFiltro, setFechaFiltro] = useState(''); // Estado para la fecha de filtro
+
+    useEffect(() => {
+        const cargarDatos = async () => {
+            try {
+                const cursoData = await obtenerCurso();
+                const avisoDatos = await obtenerAvisosGenerales();
+                // Combina los avisos generales y los específicos del curso
+                const todosLosAvisos = [
+                    ...(Array.isArray(avisoDatos) ? avisoDatos : []),
+                ];
+
+                setDatos(todosLosAvisos); // Establece los avisos combinados
+                setCursos(Array.isArray(cursoData) ? cursoData : []);
+            } catch (error) {
+                Alert.alert('Error', error.message);
+            }
+        };
+
+        cargarDatos();
+    }, []);
+
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
+    // Filtra los avisos por curso y fecha
+    const avisosFiltrados = datos.filter((aviso) => {
+        const coincideCurso = !formData.id_curso || aviso.curso === formData.id_curso; // Filtra por curso
+        const coincideFecha = !fechaFiltro || aviso.fecha.includes(fechaFiltro); // Filtra por fecha
+        return coincideCurso && coincideFecha; // Devuelve los avisos que coincidan con ambos filtros
+    });
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
-            
-            
+
             <View style={styles.filtro}>
-                <Picker style={styles.lista}>
-                    <Picker.Item label='Curso' value='' />
-                    <Picker.Item label='1 b' value='1b' />
-                    <Picker.Item label='2 a' value='1a' />
-                </Picker>
-                <TextInput style={styles.fechaInput} placeholder='--/--/----' />
+                <ListasDesplegables
+                    formData={formData}
+                    handleChange={handleChange}
+                    curso={cursos}
+                    styles={styles}
+                />
+                <TextInput
+                    style={styles.fechaInput}
+                    placeholder="Fecha (YYYY-MM-DD)"
+                    value={fechaFiltro}
+                    onChangeText={(text) => setFechaFiltro(text)} // Actualiza el estado con el texto ingresado
+                />
             </View>
-            
+
             <ScrollView style={styles.scrollAvisos}>
-                <View style={styles.tarjeta}>
-                    <Text style={styles.textoAviso}>Información: Mañana no habrá clases</Text>
-                    <Text style={styles.textoMotivo}>Motivo: Día del maestro</Text>
-                    <Text style={styles.textoDH}>08/09/2021 -- 11:21pm</Text>
-                </View>
-                
-                <View style={styles.tarjeta}>
-                    <Text style={styles.textoAviso}>Información: Mañana no habrá clases de biología</Text>
-                    <Text style={styles.textoMotivo}>Motivo: Licencia del docente</Text>
-                    <Text style={styles.textoMotivo}>Profesor Afectado: Alguien</Text>
-                    <Text style={styles.textoMotivo}>Cursos Afectados: 1b, 2b</Text>
-                    <Text style={styles.textoDH}>08/09/2021 -- 11:21pm</Text>
-                </View>
-                
-                <View style={styles.tarjeta}>
-                    <Text style={styles.textoAviso}>Información: Mañana no habrá clases de biología</Text>
-                    <Text style={styles.textoMotivo}>Motivo: Licencia del docente</Text>
-                    <Text style={styles.textoMotivo}>Profesor Afectado: Alguien</Text>
-                    <Text style={styles.textoMotivo}>Cursos Afectados: 1b, 2b</Text>
-                    <Text style={styles.textoDH}>09/09/2021 -- 10:14pm</Text>
-                </View>
+                {avisosFiltrados.length > 0 ? (
+                    avisosFiltrados.map((aviso, index) => (
+                        <View key={index} style={styles.tarjeta}>
+                            <Text style={styles.textoAviso}>Información: {aviso.informacion || 'No disponible'}</Text>
+                            <Text style={styles.textoMotivo}>Motivo: {aviso.motivo || 'No disponible'}</Text>
+                            <Text style={styles.textoMotivo}>Profesor Afectado: {aviso.nombre || 'General'}</Text>
+                            <Text style={styles.textoMotivo}>Cursos Afectados: {aviso.curso || 'General'}</Text>
+                            <Text style={styles.textoDH}>{aviso.fecha}</Text>
+                        </View>
+                    ))
+                ) : (
+                    <Text style={styles.textoAviso}>No hay avisos disponibles para los filtros seleccionados.</Text>
+                )}
             </ScrollView>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({

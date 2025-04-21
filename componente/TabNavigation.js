@@ -20,7 +20,7 @@ import HomeAdmin from "../pantallas/admin/HomeAdmin";
 const Tab = createBottomTabNavigator();
 
 
-const getMenuComponent = (id_rol) => {
+const getMenuComponent = (id_rol, dni_usuario) => {
   switch (id_rol) {
     case 1:
       return HomeAdmin;
@@ -29,7 +29,7 @@ const getMenuComponent = (id_rol) => {
     case 3:
       return HomeProfesor;
     case 4:
-      return HomeAlumno;
+      return (props) => <HomeAlumno {...props} dni_usuario={dni_usuario} />;
     case 5:
       return HomeSecretaria;
     default:
@@ -75,7 +75,7 @@ export const BottomTab = ({ route }) => {
     >
       <Tab.Screen
         name="MENU"
-        component={getMenuComponent(id_rol)}
+        component={getMenuComponent(id_rol, dni_usuario)}
         options={{
           title: "MENÚ",
           headerTintColor: "white",

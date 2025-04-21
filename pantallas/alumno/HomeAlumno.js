@@ -8,32 +8,39 @@ import bg from '../../assets/bg1.jpg'
 
 
 
-export default function HomeAlumno(){
-
-    const navegacion = useNavigation()
+export default function HomeAlumno({ dni_usuario }) {
+    const navegacion = useNavigation();
+  
+    console.log('DNI recibido en HomeAlumno:', dni_usuario);
+  
     return (
-        <View style={styles.padre}>
-            <ImageBackground source={bg} style={styles.bg} >
-                
-                <View style={styles.padreBoton}>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Materias')}>
-                        <Text style={styles.textoBoton}>Materias</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Avisos')}>
-                        <Text style={styles.textoBoton}>Avisos</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => Linking.openURL('https://classroom.google.com/')}>
-                        <Text style={styles.textoBoton}>Classroom</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('ChatBot')}>
-                        <Text style={styles.textoBoton}>ChatBot</Text>
-                    </TouchableOpacity>
-                    
-                </View>
-            </ImageBackground>
-        </View>
-    )
-}
+      <View style={styles.padre}>
+        <ImageBackground source={bg} style={styles.bg}>
+          <View style={styles.padreBoton}>
+            <TouchableOpacity
+              style={styles.cajaBoton}
+              onPress={() => navegacion.navigate('Materias', { dni_usuario })}
+            >
+              <Text style={styles.textoBoton}>Materias</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cajaBoton}
+              onPress={() => navegacion.navigate('Avisos')}
+            >
+              <Text style={styles.textoBoton}>Avisos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cajaBoton}
+              onPress={() => Linking.openURL('https://classroom.google.com/')}
+            >
+              <Text style={styles.textoBoton}>Classroom</Text>
+            </TouchableOpacity>
+            
+          </View>
+        </ImageBackground>
+      </View>
+    );
+  }
 
 const styles = StyleSheet.create({
     padre:{

@@ -18,7 +18,7 @@ import {
     obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas 
 } from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
-import { obtenerMateria } from '../metodos/metodosMateria.mjs'
+import { obtenerMateriaPorDni } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasarCurso.mjs'
 import {  
@@ -36,6 +36,7 @@ import { registrarUsuario, restablecerContrasena, consultarUsuario, modificarUsu
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
+import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -224,3 +225,12 @@ ruta.put('/tareas/habilitartarea/:id_tarea', habilitarTarea)
 //       OBTENER ESPECIALIDAD
 // =====================================
 ruta.get('/especialidad', obtenerEspecialidad)
+// =====================================
+//       AVISOS 
+// =====================================
+ruta.get('/alumno/avisos', obtenerAvisosGenerales)
+ruta.get('/alumno/avisos/:id_curso', obtenerAvisosCurso)
+// =====================================
+//       OBTENER MATERIAS POR CURSO
+// =====================================
+ruta.get('/alumno/materia/dni_alumno/:dni_alumno', obtenerMateriaPorDni)

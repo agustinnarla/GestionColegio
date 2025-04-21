@@ -21,7 +21,6 @@ import CargarNotasFinal from './pantallas/profesor/cargarNotaFinal';
 
 //Alumnos
 import Materias from './pantallas/alumno/materias';
-import ChatBot from './pantallas/alumno/chatbot';
 import Avisos from './pantallas/alumno/avisos';
 
 //Secretario
@@ -251,23 +250,6 @@ function MyStack() {
           component={Materias}
           options={{
             title: "Materias",
-            headerTintColor: "white",
-            headerTitleAlign: "center",
-            headerBackground: () => (
-              <LinearGradient
-              colors={['rgba(10, 18, 49, 0.8)', 'rgba(45, 85, 228, 0.8)']}
-              style={{ flex: 1 }}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              />
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="ChatBot"
-          component={ChatBot}
-          options={{
-            title: "ChatBot",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
