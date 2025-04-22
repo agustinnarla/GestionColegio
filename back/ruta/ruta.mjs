@@ -36,6 +36,7 @@ import { registrarUsuario, restablecerContrasena, consultarUsuario, modificarUsu
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
+import { crearAvisos, obtenerAvisos, obtenerMotivos } from '../metodos/metodosCrearAvisos.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -224,3 +225,9 @@ ruta.put('/tareas/habilitartarea/:id_tarea', habilitarTarea)
 //       OBTENER ESPECIALIDAD
 // =====================================
 ruta.get('/especialidad', obtenerEspecialidad)
+// =====================================
+//       AVISOS
+// =====================================
+ruta.post('/avisos', crearAvisos)
+ruta.get('/avisos', obtenerAvisos)
+ruta.get('/motivos', obtenerMotivos)
