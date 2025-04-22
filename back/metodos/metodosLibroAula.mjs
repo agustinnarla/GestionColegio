@@ -48,7 +48,7 @@ export const obtenerCursoPorMateria = async (req,res) => {
 export const registrarLibroAula = async (req,res) => {
     const {id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, id_profesor} = req.body
     try{
-        const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, id_profesor) " +
+        const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, dni_profesor) " +
             "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", 
             [id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, id_profesor])
             res.status(201).json(respuesta.rows[0])
