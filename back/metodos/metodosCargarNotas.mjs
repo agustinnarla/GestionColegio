@@ -2,7 +2,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 
 /* 
-       OBTENEMOS NOTAS DE LOS ALUMNOS DE UN CURSO Y MATERIA ESPECÍFICA
+    OBTENEMOS NOTAS DE LOS ALUMNOS DE UN CURSO Y MATERIA ESPECÍFICA
 */
 export const obtenerNotas = async (req, res) => {
     const {id_curso,id_materia} = req.params;

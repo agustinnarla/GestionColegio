@@ -18,7 +18,7 @@ import {
     obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas 
 } from '../metodos/metodosAsistencia.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/metodosCargarNotas.mjs'
-import { obtenerMateria } from '../metodos/metodosMateria.mjs'
+import { obtenerMateriaPorDni } from '../metodos/metodosMateria.mjs'
 import { obtenerEtapaEvaluativa } from '../metodos/metodosEtapaEvaluativa.mjs'
 import { obtenerAlumnoFinal, registrarCursoNuevo } from '../metodos/metodosPasarCurso.mjs'
 import {  
@@ -36,7 +36,12 @@ import { registrarUsuario, restablecerContrasena, consultarUsuario, modificarUsu
 import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
+<<<<<<< HEAD
 import { crearAvisos, obtenerAvisos, obtenerMotivos } from '../metodos/metodosCrearAvisos.mjs'
+=======
+import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidas, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
+>>>>>>> 3c10aced410cfdd993b9c1549d927c88f083705a
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -226,8 +231,26 @@ ruta.put('/tareas/habilitartarea/:id_tarea', habilitarTarea)
 // =====================================
 ruta.get('/especialidad', obtenerEspecialidad)
 // =====================================
+<<<<<<< HEAD
 //       AVISOS
 // =====================================
 ruta.post('/avisos', crearAvisos)
 ruta.get('/avisos', obtenerAvisos)
 ruta.get('/motivos', obtenerMotivos)
+=======
+//       AVISOS 
+// =====================================
+ruta.get('/alumno/avisos', obtenerAvisosGenerales)
+ruta.get('/alumno/avisos/:id_curso', obtenerAvisosCurso)
+// =====================================
+//       OBTENER MATERIAS POR CURSO
+// =====================================
+ruta.get('/alumno/materia/dni_alumno/:dni_alumno', obtenerMateriaPorDni)
+// =====================================
+//       LIBRO DE AULA
+// =====================================
+ruta.get('/profesor/libroaula/materia/:id_profesor', obtenerMateriaPorProfesor)
+ruta.get('/profesor/libroaula/caracteristicas', obtenerCaracteristicasUnidas)
+ruta.get('/profesor/libroaula/curso_materia/:id_materia', obtenerCursoPorMateria)
+ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)
+>>>>>>> 3c10aced410cfdd993b9c1549d927c88f083705a

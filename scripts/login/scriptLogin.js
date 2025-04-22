@@ -19,6 +19,7 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
                 id_rol: id_rol,
                 dni_usuario: dniUsuario 
             });
+           
 
             return { success: true };  
         }
