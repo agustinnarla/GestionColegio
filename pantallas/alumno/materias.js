@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import bg from '../../assets/bg1.jpg'; 
+import { obtenerMateriasPorDni } from '../../scripts/alumno/scripMaterias'; // Importar la función
 
-const Materia = ({ nombre, docente, dias, notas }) => {
+const Materia = ({ nombre, profesor, dia_semana, notas, promedio }) => {
   const [expandido, setExpandido] = useState(false);
 
   const toggleExpandir = () => {
     setExpandido(!expandido);
   };
 
-  const calcularPromedio = (notas) => {
-    const notasValidas = notas.slice(0, 2).concat(notas[2]).filter(nota => !isNaN(nota));
-    if (notasValidas.length === 0) return '-'; 
-    
-    const sum = notasValidas.reduce((a, b) => a + b, 0);
-    return (sum / notasValidas.length).toFixed(1); 
-  };
+  // Agrupar las notas en etapas
+  const etapas = [
+    { nombre: 'Etapa 1', notas: notas.slice(0, 3) }, // nota1, nota2, nota3
+    { nombre: 'Etapa 2', notas: notas.slice(3, 6) }, // nota4, nota5, nota6
+  ];
 
   return (
     <View style={styles.contenidoMaterias}>
@@ -26,32 +25,28 @@ const Materia = ({ nombre, docente, dias, notas }) => {
 
       {expandido && (
         <View style={styles.contenidoDetalles}>
-          <Text style={styles.texto}><Text style={styles.negrita}>Docente:</Text> {docente}</Text>
-          <Text style={styles.texto}><Text style={styles.negrita}>Días:</Text></Text>
-          <View style={styles.contenidoDias}>
-            {dias.map((dia, index) => (
-              <Text key={index} style={styles.dia}>{dia}</Text>
-            ))}
-          </View>
-
+          <Text style={styles.texto}>
+            <Text style={styles.negrita}>Profesor:</Text> {profesor}
+          </Text>
+          <Text style={styles.texto}>
+            <Text style={styles.negrita}>Días:</Text> {dia_semana}
+          </Text>
           <View style={styles.contenidoNotas}>
-            <Text style={styles.texto}><Text style={styles.negrita}>Notas:</Text></Text>
-
-            {notas.slice(0, 2).map((nota, index) => (
+            <Text style={styles.texto}>
+              <Text style={styles.negrita}>Notas:</Text>
+            </Text>
+            {etapas.map((etapa, index) => (
               <View key={index} style={styles.nota}>
-                <Text>Etapa {index + 1}: {nota}</Text>
+                <Text style={styles.etapaTitulo}>{etapa.nombre}:</Text>
+                {etapa.notas.map((nota, i) => (
+                  <Text key={i} style={styles.notaTexto}>
+                    Nota {i + 1}: {nota}
+                  </Text>
+                ))}
               </View>
             ))}
-
-            <View style={styles.nota}>
-              <Text>TP: {notas[2]}</Text>
-            </View>
-            <View style={styles.nota}>
-              <Text>Áulico: {notas[2]}</Text>
-            </View>
-
             <View style={styles.notaPromedio}>
-              <Text style={styles.promedioTexto}>Promedio: {calcularPromedio(notas)}</Text>
+              <Text style={styles.promedioTexto}>Promedio: {promedio}</Text>
             </View>
           </View>
         </View>
@@ -60,37 +55,61 @@ const Materia = ({ nombre, docente, dias, notas }) => {
   );
 };
 
-const App = () => {
-  const materias = [
-    {
-      nombre: 'Biología',
-      docente: 'Alguien',
-      dias: ['Lunes', 'Viernes'],
-      notas: [8, 7, 9],  
-    },
-    {
-      nombre: 'Matemáticas',
-      docente: 'Profesor X',
-      dias: ['Martes', 'Jueves'],
-      notas: [6, 5, 7], 
-    },
-  ];
+const Materias = ({ route }) => {
+  const [materias, setMaterias] = useState([]); 
+  const [curso, setCurso] = useState(''); // Estado para almacenar el curso
+  const { dni_usuario } = route.params; 
+
+  useEffect(() => {
+    const cargarMaterias = async () => {
+      try {
+        console.log("DNI recibido en el componente Materias:", dni_usuario); 
+        
+        const data = await obtenerMateriasPorDni(dni_usuario);
+        console.log('Datos recibidos en Materias:', data);
+
+        setMaterias(data.materias || []); 
+        if (data.materias.length > 0) {
+          setCurso(data.materias[0].curso); // Asume que todas las materias pertenecen al mismo curso
+        }
+      } catch (error) {
+        console.error("Error al obtener materias:", error);
+        Alert.alert('Error', 'No se pudieron cargar las materias.');
+      }
+    };
+
+    if (dni_usuario) {
+      cargarMaterias();
+    }
+  }, [dni_usuario]);
 
   return (
     <View style={styles.container}>
       <Image source={bg} style={styles.bg} />
       <View style={styles.overlay}>
-        <Text style={styles.titulo}>6 Año b</Text>
+        <Text style={styles.titulo}>{curso}</Text> {/* Muestra el curso dinámicamente */}
         <ScrollView>
-          {materias.map((materia, index) => (
-            <Materia
-              key={index}
-              nombre={materia.nombre}
-              docente={materia.docente}
-              dias={materia.dias}
-              notas={materia.notas}
-            />
-          ))}
+          {materias.length > 0 ? (
+            materias.map((materia, index) => (
+              <Materia
+                key={index}
+                nombre={materia.materia}
+                profesor={materia.profesor}
+                dia_semana={materia.dia_semana || []}
+                notas={[
+                  materia.nota1,
+                  materia.nota2,
+                  materia.nota3,
+                  materia.nota4,
+                  materia.nota5,
+                  materia.nota6,
+                ]}
+                promedio={materia.promedio}
+              />
+            ))
+          ) : (
+            <Text style={styles.textoAviso}>No hay materias disponibles.</Text>
+          )}
         </ScrollView>
       </View>
     </View>
@@ -120,7 +139,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#333', 
+  }, 
+  etapaTitulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2d6a4f',
+    marginTop: 10,
   },
+  notaTexto: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 10,
+  },
+  
   contenidoMaterias: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -183,6 +214,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1d3557',
   },
+  textoAviso: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#999',
+  },
 });
 
-export default App;
+export default Materias;
