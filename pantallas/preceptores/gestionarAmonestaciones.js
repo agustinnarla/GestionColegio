@@ -1,5 +1,5 @@
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import { obtenerAlumnoCurso, obtenerSolicitante } from '../../scripts/preceptor/scriptGestionarObservacion.js';
@@ -38,28 +38,71 @@ export default function GestionarAmonestaciones() {
         setAlertVisible(true);
     };
 
+    // Validar que sea un número positivo
+    const validarNumeroPositivo = (numero) => {
+        return !isNaN(numero) && parseInt(numero) > 0;
+    };
+
+    const validarFecha = (fecha) => {
+        // Verificar formato DD-MM-AAAA
+        const regex = /^\d{2}-\d{2}-\d{4}$/;
+        if (!regex.test(fecha)) {
+            return false;
+        }
+    
+        // Dividir la fecha en día, mes y año
+        const [dia, mes, año] = fecha.split('-').map(Number);
+    
+        // Crear un objeto de fecha y verificar si es válida
+        const fechaValida = new Date(año, mes - 1, dia);
+        if (
+            fechaValida.getFullYear() !== año ||
+            fechaValida.getMonth() !== mes - 1 ||
+            fechaValida.getDate() !== dia
+        ) {
+            return false;
+        }
+    
+        // Verificar que el año sea mayor a 2024
+        if (año <= 2024) {
+            return false;
+        }
+    
+        // Verificar que la fecha esté dentro del rango del 21 de febrero al 21 de diciembre
+        const inicioRango = new Date(año, 1, 21); // 21 de febrero
+        const finRango = new Date(año, 11, 21); // 21 de diciembre
+        if (fechaValida < inicioRango || fechaValida > finRango) {
+            return false;
+        }
+    
+        return true;
+    };
+
+      // Formatear fecha en formato AAAA-MM-DD
+    const formatearFecha = (fecha) => {
+        const [dia, mes, año] = fecha.split('-');
+        return `${año}-${mes}-${dia}`;
+    };
+
+
     // Validar campos del formulario
     const validarCampos = () => {
+        const fechaEsValida = validarFecha(formData.fecha);
         return formData.dni_alumno && 
             formData.id_solicitante && 
             formData.cantidad.length >= 1 && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
             formData.id_curso && 
-            validarFecha(formData.fecha) &&
+            fechaEsValida &&
             validarNumeroPositivo(formData.cantidad) 
     };
 
-    // Validar formato de fecha
-    const validarFecha = (fecha) => {
-        const regex = /^\d{2}-\d{2}-\d{4}$/;
-        return regex.test(fecha);
-    };
+   
+  
+        const validarFomulario = useMemo(() => validarCampos(), [formData]);
 
-    // Validar que sea un número positivo
-    const validarNumeroPositivo = (numero) => {
-        return !isNaN(numero) && parseInt(numero) > 0;
-    };
+    
 
 
     // Cargar cursos y solicitantes
@@ -148,6 +191,7 @@ export default function GestionarAmonestaciones() {
             id_curso: ''
         });
         setTotalAmonestaciones('0'); 
+        setModalVisible(false);
     };
 
     // Imprimir archivo
@@ -176,11 +220,7 @@ export default function GestionarAmonestaciones() {
         setFormData({ ...formData, [name]: value });
     };
 
-    // Formatear fecha en formato AAAA-MM-DD
-    const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('-');
-        return `${año}-${mes}-${dia}`;
-    };
+    
 
     const Content = (
         <View style={styles.contenido}>
@@ -222,7 +262,7 @@ export default function GestionarAmonestaciones() {
             />
 
             <View style={styles.botonesContainer}>
-                <TouchableOpacity style={[styles.botonRegistrar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar}>
+                <TouchableOpacity style={[styles.botonRegistrar, !validarFomulario && styles.botonDeshabilitado]} onPress={handleRegistrar}>
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
@@ -240,8 +280,8 @@ export default function GestionarAmonestaciones() {
                             >
                                 <Text style={styles.textoBotonModal}>Imprimir</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.botonCancelarModal} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.textoBotonModal}>Cancelar</Text>
+                            <TouchableOpacity style={styles.botonCancelarModal} onPress={limpiarInterfaz}>
+                                <Text style={styles.textoBotonModal} >Cancelar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
