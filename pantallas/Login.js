@@ -43,12 +43,8 @@ export default function Login(props) {
             mostrarMensaje('Error', 'Cuenta bloqueada. Intente nuevamente en unos segundos.');
             return;
         }
-    
         try {
             const response = await ingresarUsuario(dniUsuario, contrasena, props.navigation, mostrarMensaje);
-            
-
-    
             if (response?.success) {  
                 setIntentosFallidos(0);  
             } else {

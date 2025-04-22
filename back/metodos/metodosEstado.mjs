@@ -13,3 +13,6 @@ export const obtenerEstadoInasistencia = async (req,res) => {
 }
 
 
+const Prubea2ROMAAA = async() => {
+    console.log("hola")
+}
