@@ -18,9 +18,9 @@ export const obtenerMateriaPorProfesor = async (req,res) => {
     }
 }
 
-export const obtenerCaracteristicasUnidas = async (req,res) => {
+export const obtenerCaracteristicasUnidad = async (req,res) => {
     try{
-        const respuesta = await pool.query("SELECT detalle FROM caracteristicas_unidad")
+        const respuesta = await pool.query("SELECT id_caracteristica_unidad,detalle FROM caracteristicas_unidad")
         res.status(200).json(respuesta.rows)
     }catch(error){
         console.log(error)
@@ -32,7 +32,7 @@ export const obtenerCursoPorMateria = async (req,res) => {
     const {id_materia} = req.params
     try{
         //Capaz comparar tambien con el id del profesor
-        const respuesta = await pool.query("SELECT c.detalle FROM materia_curso AS mc " + 
+        const respuesta = await pool.query("SELECT c.id_curso, c.detalle FROM materia_curso AS mc " + 
             " INNER JOIN curso c ON c.id_curso = mc.id_curso " + 
             " WHERE id_materia = $1", [id_materia])
         res.status(200).json(respuesta.rows)
@@ -46,12 +46,12 @@ export const obtenerCursoPorMateria = async (req,res) => {
 }
 
 export const registrarLibroAula = async (req,res) => {
-    const {dni_profesor} = req.params
-    const {id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema} = req.body
+ 
+    const {id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesor, id_curso} = req.body
     try{
-        const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, dni_profesor) " +
-            "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", 
-            [id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, dni_profesor])
+        const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesor, id_curso) " +
+            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", 
+            [id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesor, id_curso])
             res.status(201).json(respuesta.rows[0])
             if(respuesta.rowCount === 0){
                 return res.status(404).json({error: "No se pudo registrar el libro de aula"})

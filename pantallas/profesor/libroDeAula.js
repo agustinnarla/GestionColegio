@@ -2,17 +2,26 @@ import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerMateriaPorProfesor } from '../../scripts/profesor/scriptLibroAula';
+import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria, registrarLibroAula } from '../../scripts/profesor/scriptLibroAula';
+
 import ListasDesplegables from '../../componente/ListasDesplegables';
 export default function LibroAula({ route }) {
 
      const [formData, setFormData] = useState({
             id_materia: '',
+            id_caracteristica_unidad: '',
+            id_curso: '',
+            fecha: '',
+            numero_clase: '',
+            unidad: '',
+            tema_abarcado: '',
+            dni_profesor: ''
         });
 
     const [materias, setMaterias] = useState([]);
+    const [caracteristica_unidad, setCaracteristica] = useState('');
     const [loading, setLoading] = useState(true);
-
+    const [cursoPorMateria, setCursoPorMateria] = useState([]);
 
     const { dni_usuario } = route.params;
 
@@ -24,7 +33,19 @@ export default function LibroAula({ route }) {
     console.log('DNI Usuario:', dni_usuario);
 
 
-    const [caracteristica, setCaracteristica] = useState('');
+    useEffect(() => {
+            const cagarCursoPorMateria = async () => {
+                if (formData.id_materia) {
+                    try {
+                        const cursoData = await obtenerCursoPorMateria(formData.id_materia);
+                        setCursoPorMateria(cursoData);
+                    } catch (error) {
+                        console.error('Error al cargar alumnos:', error);
+                    }
+                }
+            };
+            cagarCursoPorMateria();
+        }, [formData.id_materia]);
 
     useEffect(() => {
         const cargarMaterias = async () => {
@@ -41,6 +62,75 @@ export default function LibroAula({ route }) {
         cargarMaterias();
     }, [dni_usuario]);
 
+    useEffect(() => {
+        const cargarCaracteristicas = async () => {
+            try{
+                const data = await obtenerCaracteristicasUnidad();
+                setCaracteristica(data);
+            }catch(error){  
+                console.log("Error al cargar las características de la unidad", error)
+            }
+        };
+        cargarCaracteristicas();
+    }, []);
+
+    const formatearFecha = (fecha) => {
+        const [dia, mes, año] = fecha.split('-');
+        return `${año}-${mes}-${dia}`;
+    };
+
+    // Registrar amonestación
+        const handleRegistrar = async () => {
+            try {
+                const libroAulaData = {
+                    id_curso: formData.id_curso,
+                    id_materia: formData.id_materia,
+                    id_caracteristica_unidad: formData.id_caracteristica_unidad,
+                    fecha: formatearFecha(formData.fecha),
+                    numero_clase: formData.numero_clase,
+                    unidad: formData.unidad,
+                    tema_abarcado: formData.tema_abarcado,
+                    dni_profesor: dni_usuario,
+                };
+    
+                // if (!validarCampos()) {
+                //     mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
+                //     return;
+                // }
+    
+                console.log('Datos del libro de aula', libroAulaData); 
+                
+                const respuesta = await registrarLibroAula(libroAulaData);
+                //mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                //console.log('Libro de Aula Registrada:', respuesta);
+                console.log('Respuesta del servidor:', respuesta);
+                // if (respuesta) {
+                //     mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                // } else {
+                //     mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+                // }
+                limpiarInterfaz();
+            } catch (error) {
+                console.error('Error al registrar el libro de aula:', error.message);
+                //mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+            }
+        };
+    
+        // Limpiar formulario
+        const limpiarInterfaz = () => {
+            setFormData({
+                id_materia: '',
+                id_caracteristica_unidad: '',
+                id_curso: '',
+                fecha: '',
+                numero_clase: '',
+                unidad: '',
+                tema_abarcado: '',
+                dni_profesor: ''
+            });
+        };
+
+    
     if (loading) {
         return <ActivityIndicator size="large" color="#0000ff" />;
     }
@@ -56,49 +146,48 @@ export default function LibroAula({ route }) {
             <ScrollView contentContainerStyle={styles.contenidoScroll}>
                 <View style={styles.contenidoLista}>
                 <ListasDesplegables 
-                formData={formData} 
-                handleChange={handleChange} 
-                materias={materias}
-                styles={styles}
-            />
+                    formData={formData} 
+                    handleChange={handleChange} 
+                    materias={materias}
+                    curso={cursoPorMateria}
+                    caracteristica_unidad={caracteristica_unidad}
+                    styles={styles}
+                />
                 </View>
 
                 <Text style={styles.label}>Fecha</Text>
-                <TextInput style={styles.input} placeholder='--/--/----' keyboardType="numeric" />
+                <TextInput style={styles.input} 
+                placeholder='--/--/----' 
+                keyboardType="numeric" 
+                onChangeText={(value) => handleChange('fecha', value)}/>
 
                 <Text style={styles.label}>Clase N°</Text>
-                <TextInput style={styles.input} placeholder='0' keyboardType="numeric" />
+                <TextInput style={styles.input} 
+                placeholder='0' 
+                keyboardType="numeric"
+                onChangeText={(value) => handleChange('numero_clase', value)} />
 
                 <Text style={styles.label}>Unidad</Text>
-                <TextInput style={styles.input} placeholder='1' keyboardType="numeric" />
-
-                <Text style={styles.label}>Características de la unidad</Text>
-                <View style={styles.contenidoLista}>
-                    <Picker
-                        selectedValue={caracteristica}
-                        onValueChange={(itemValue) => setCaracteristica(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label='Seleccionar característica' value='' />
-                        <Picker.Item label='Evaluativa' value='Evaluativa' />
-                        <Picker.Item label='Práctica' value='Práctica' />
-                    </Picker>
-                </View>
+                <TextInput style={styles.input} 
+                placeholder='1' 
+                keyboardType="numeric" 
+                onChangeText={(value) => handleChange('unidad', value)}/>
 
                 <Text style={styles.label}>Tema abarcado</Text>
                 <TextInput
                     style={[styles.input, styles.textArea]}
-                    placeholder='Genética: Conceptos de fenotipo-genotipo'
+                    placeholder='Ingresar Tema abarcado en la clase'
+                    onChangeText={(value) => handleChange('tema_abarcado', value)}
                     multiline={true}
                     numberOfLines={4}
                 />
 
                 <View style={styles.contenidoBoton}>
                     <TouchableOpacity style={styles.botonRegistrar}>
-                        <Text style={styles.textoBoton}>Registrar</Text>
+                        <Text style={styles.textoBoton} onPress={handleRegistrar}>Registrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.botonCancelar}>
-                        <Text style={styles.textoBoton}>Cancelar</Text>
+                        <Text style={styles.textoBoton} onPress={limpiarInterfaz}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
