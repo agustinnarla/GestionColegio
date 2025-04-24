@@ -2,12 +2,12 @@
 import {pool} from "../dataBase/coneccion.mjs"
 
 export const obtenerMateriaPorProfesor = async (req,res) => {
-    const {id_profesor} = req.params
+    const {dni_usuario} = req.params
     try{
-        const respuesta = await pool.query("SELECT m.detalle FROM materia_profesor AS mp " + 
+        const respuesta = await pool.query("SELECT mp.id_materia,m.detalle FROM materia_profesor AS mp " + 
             "INNER JOIN materia m ON m.id_materia = mp.id_materia " +
-            "WHERE id_profesor = $1", 
-            [id_profesor])
+            "WHERE dni_usuario = $1", 
+            [dni_usuario])
         if(respuesta.rowCount === 0){
             return res.status(404).json({error: "No se encontraron materias para el profesor especificado"})
         }
@@ -46,11 +46,12 @@ export const obtenerCursoPorMateria = async (req,res) => {
 }
 
 export const registrarLibroAula = async (req,res) => {
-    const {id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, id_profesor} = req.body
+    const {dni_profesor} = req.params
+    const {id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema} = req.body
     try{
         const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, dni_profesor) " +
             "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", 
-            [id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, id_profesor])
+            [id_materia, fecha, numero_clase, unidad, id_caracteristicas_unidad, tema, dni_profesor])
             res.status(201).json(respuesta.rows[0])
             if(respuesta.rowCount === 0){
                 return res.status(404).json({error: "No se pudo registrar el libro de aula"})

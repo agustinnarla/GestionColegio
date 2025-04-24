@@ -239,7 +239,7 @@ ruta.get('/alumno/materia/dni_alumno/:dni_alumno', obtenerMateriaPorDni)
 // =====================================
 //       LIBRO DE AULA
 // =====================================
-ruta.get('/profesor/libroaula/materia/:id_profesor', obtenerMateriaPorProfesor)
+ruta.get('/profesor/libroaula/materia/:dni_usuario', obtenerMateriaPorProfesor)
 ruta.get('/profesor/libroaula/caracteristicas', obtenerCaracteristicasUnidas)
 ruta.get('/profesor/libroaula/curso_materia/:id_materia', obtenerCursoPorMateria)
 ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)

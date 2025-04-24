@@ -8,28 +8,42 @@ import bg from '../../assets/bg1.jpg'
 
 
 
-export default function HomeProfesor(){
+export default function HomeProfesor({ dni_usuario }) {
+    const navegacion = useNavigation();
 
-    const navegacion = useNavigation()
+    if (!dni_usuario) {
+        console.error('DNI Usuario no definido');
+        return <Text>Error: DNI Usuario no definido</Text>;
+    }else{
+        console.log('DNI Usuario:', dni_usuario);
+    }
+
     return (
         <View style={styles.padre}>
-            <ImageBackground source={bg} style={styles.bg} >
-                
+            <ImageBackground source={bg} style={styles.bg}>
                 <View style={styles.padreBoton}>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Libro De Aula')}>
+                    <TouchableOpacity
+                        style={styles.cajaBoton}
+                        onPress={() => navegacion.navigate('Libro De Aula', { dni_usuario })}
+                    >
                         <Text style={styles.textoBoton}>Libro De Aula</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Asignar Evaluaciones')}>
+                    <TouchableOpacity
+                        style={styles.cajaBoton}
+                        onPress={() => navegacion.navigate('Asignar Evaluaciones', { dni_usuario })}
+                    >
                         <Text style={styles.textoBoton}>Asignar Evaluaciones</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Cargar Nota Final')}>
+                    <TouchableOpacity
+                        style={styles.cajaBoton}
+                        onPress={() => navegacion.navigate('Cargar Nota Final', { dni_usuario })}
+                    >
                         <Text style={styles.textoBoton}>Cargar Nota Final</Text>
                     </TouchableOpacity>
-                    
                 </View>
             </ImageBackground>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({

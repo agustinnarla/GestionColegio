@@ -1,27 +1,66 @@
-import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,FlatList, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import { obtenerMateriaPorProfesor } from '../../scripts/profesor/scriptLibroAula';
+import ListasDesplegables from '../../componente/ListasDesplegables';
+export default function LibroAula({ route }) {
 
-export default function LibroAula() {
-    const [materia, setMateria] = useState('');
+     const [formData, setFormData] = useState({
+            id_materia: '',
+        });
+
+    const [materias, setMaterias] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+
+    const { dni_usuario } = route.params;
+
+    if (!dni_usuario) {
+        console.error('DNI Usuario no definido');
+        return <Text>Error: DNI Usuario no definido</Text>;
+    }
+
+    console.log('DNI Usuario:', dni_usuario);
+
+
     const [caracteristica, setCaracteristica] = useState('');
+
+    useEffect(() => {
+        const cargarMaterias = async () => {
+            try {
+                const data = await obtenerMateriaPorProfesor(dni_usuario);
+                setMaterias(data);
+            } catch (error) {
+                console.error('Error al cargar las materias:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        cargarMaterias();
+    }, [dni_usuario]);
+
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" />;
+    }
+
+     // Manejar cambios en el formulario
+     const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <ScrollView contentContainerStyle={styles.contenidoScroll}>
-                <Text style={styles.label}>Materia</Text>
                 <View style={styles.contenidoLista}>
-                    <Picker
-                        selectedValue={materia}
-                        onValueChange={(itemValue) => setMateria(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label='Seleccionar Materia' value='' />
-                        <Picker.Item label='Biología' value='Biología' />
-                        <Picker.Item label='Química' value='Química' />
-                    </Picker>
+                <ListasDesplegables 
+                formData={formData} 
+                handleChange={handleChange} 
+                materias={materias}
+                styles={styles}
+            />
                 </View>
 
                 <Text style={styles.label}>Fecha</Text>
