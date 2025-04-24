@@ -27,7 +27,7 @@ const getMenuComponent = (id_rol, dni_usuario) => {
     case 2:
       return HomePreceptor;
     case 3:
-      return HomeProfesor;
+      return (props) => <HomeProfesor {...props} dni_usuario={dni_usuario} />;
     case 4:
       return (props) => <HomeAlumno {...props} dni_usuario={dni_usuario} />;
     case 5:

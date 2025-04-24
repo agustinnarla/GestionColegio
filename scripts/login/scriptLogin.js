@@ -19,14 +19,13 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
                 id_rol: id_rol,
                 dni_usuario: dniUsuario 
             });
-           
 
             return { success: true };  
         }
     } catch (error) {
         console.error('Error al iniciar sesión:', error.message);
         mostrarMensaje('Error', 'Usuario o contraseña incorrectos');
-        return { success: false };  
+        return { success: true };  
     }
 };
 

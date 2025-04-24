@@ -177,7 +177,7 @@ export default function CargarTareas() {
     };
 
     //DESHABILITA TAREA
-    const handleDeshabilitarTarea = async () => {
+    const eliminarTarea = async () => {
         if (!selectedTarea) {
             alert('Por favor, selecciona una tarea para deshabilitar.');
             return;
@@ -243,7 +243,6 @@ export default function CargarTareas() {
             return false;
         }
     };
-    
     
     useEffect(() => {
         cargarRoles();
@@ -322,7 +321,7 @@ export default function CargarTareas() {
                     <TouchableOpacity style={styles.botonRegistrar} onPress={cargarTareaRol}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonEliminar} onPress={handleDeshabilitarTarea} >
+                    <TouchableOpacity style={styles.botonEliminar} onPress={eliminarTarea} >
                         <Text style={styles.textoBoton}>Eliminar</Text>
                     </TouchableOpacity>
                 </View>

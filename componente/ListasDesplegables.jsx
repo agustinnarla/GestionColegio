@@ -19,6 +19,24 @@ export function CursoSelector({ formData, handleChange, curso, styles }) {
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function MateriaPorProfesor({ formData, handleChange, materia, styles }) {
+    const selectorConfig = {
+        label: 'Materia',
+        selectedValue: formData.id_materia,
+        onValueChange: (value) => handleChange('id_materia', value),
+        items: [
+            { label: 'Seleccione materia', value: '' },
+            ...(materia || []).map(item => ({
+                label: item.detalle,
+                value: item.id_materia,
+                key: item.id_materia
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) {
     const selectorConfig = {
         label: 'Etapas evaluativa',
@@ -107,12 +125,13 @@ export function RolesSelector({ formData, handleChange, roles, styles }) {
 }
 
 // Componente principal que combina todos los selectores
-function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles }) {
+function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles, materia }) {
     return (
         <View style={styles.filtrosContainer}>
             {curso && <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />}
             {etapaEscolar && <EtapaSelector formData={formData} handleChange={handleChange} etapaEscolar={etapaEscolar} styles={styles} />}
             {materias && <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />}
+            {materia && <MateriaPorProfesor formData={formData} handleChange={handleChange} materias={materia} styles={styles} />}
             {alumnos && <AlumnoSelector formData={formData} handleChange={handleChange} alumnos={alumnos} styles={styles} />}
             {solicitantes && <SolicitanteSelector formData={formData} handleChange={handleChange} solicitantes={solicitantes} styles={styles} />}
             {roles && <RolesSelector formData={formData} handleChange={handleChange} roles={roles} styles={styles} />}

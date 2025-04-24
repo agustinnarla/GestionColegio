@@ -12,6 +12,7 @@ export const registrarUsuario = async (req, res) => {
             'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol,id_estadoalumno) VALUES ($1, $2, $3, $4,$5)',
             [dni_usuario, contrasenaHaseada, email, id_rol, id_estadoalumno]
         );
+        
         res.status(200).json({ usuario: respuesta.rows });
         console.log('Usuario registrado exitosamente');
     } catch (error) {
