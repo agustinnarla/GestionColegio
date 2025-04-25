@@ -141,8 +141,25 @@ export function CaracteristicaSelector({ formData, handleChange, caracteristica_
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function TipoDeEvaluacionSelector({ formData, handleChange, tipo_de_evaluacion, styles }) {
+    const selectorConfig = {
+        label: 'Tipo de evaluación',
+        selectedValue: formData.id_tipo_de_evaluacion,
+        onValueChange: (value) => handleChange('id_tipo_de_evaluacion', value),
+        items: [
+            { label: 'Seleccione el tipo de evaluación', value: '' },
+            ...(tipo_de_evaluacion || []).map(item => ({
+                label: item.detalle,
+                value: item.id_tipo_de_evaluacion,
+                key: item.id_tipo_de_evaluacion
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 // Componente principal que combina todos los selectores
-function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles, caracteristica_unidad, materia }) {
+function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles, caracteristica_unidad, materia, tipo_de_evaluacion }) {
     return (
         <View style={styles.filtrosContainer}>
             {curso && <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />}
@@ -150,6 +167,7 @@ function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, mater
             {materias && <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />}
             {materia && <MateriaPorProfesor formData={formData} handleChange={handleChange} materias={materia} styles={styles} />}
             {alumnos && <AlumnoSelector formData={formData} handleChange={handleChange} alumnos={alumnos} styles={styles} />}
+            {tipo_de_evaluacion && <TipoDeEvaluacionSelector formData={formData} handleChange={handleChange} tipo_de_evaluacion={tipo_de_evaluacion} styles={styles} />}
             {caracteristica_unidad && <CaracteristicaSelector formData={formData} handleChange={handleChange} caracteristica_unidad={caracteristica_unidad} styles={styles} />}
             {solicitantes && <SolicitanteSelector formData={formData} handleChange={handleChange} solicitantes={solicitantes} styles={styles} />}
             {roles && <RolesSelector formData={formData} handleChange={handleChange} roles={roles} styles={styles} />}

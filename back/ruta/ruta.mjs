@@ -247,4 +247,4 @@ ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)
 //       ASIGNAR EVALUACIÓN
 // =====================================
 ruta.get('/profesor/tipo_de_evaluacion', obtenerTipoDeEvaluacion)
-ruta.post('/profesor/asignar_evaluacion/:dni_profesor', registrarEvaluacion)
+ruta.post('/profesor/asignar_evaluacion', registrarEvaluacion)

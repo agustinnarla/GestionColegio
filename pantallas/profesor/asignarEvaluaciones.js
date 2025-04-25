@@ -1,65 +1,171 @@
-import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import { obtenerCursoPorMateria, obtenerMateriaPorProfesor } from '../../scripts/profesor/scriptLibroAula.js';
+import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../../scripts/profesor/scriptAsignarEvaluacion';
+import ListasDesplegables from '../../componente/ListasDesplegables';
 
-export default function LibroAula() {
-    const [materia, setMateria] = useState('');
-    const [caracteristica, setCaracteristica] = useState('');
+export default function LibroAula({ route }) {
+
+     const [formData, setFormData] = useState({
+                id_materia: '',
+                id_curso: '',
+                id_tipo_de_evaluacion: '',
+                fecha: '',
+                tema_abarcado: '',
+                dni_profesor: ''
+            });
+
+    const [materias, setMaterias] = useState([]);
+    const [tipo_de_evaluacion, setTipoEvaluacion] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [cursoPorMateria, setCursoPorMateria] = useState([]);
+
+
+        const { dni_usuario } = route.params;
+    
+        if (!dni_usuario) {
+            console.error('DNI Usuario no definido');
+            return <Text>Error: DNI Usuario no definido</Text>;
+        }
+    
+        console.log('DNI Usuario:', dni_usuario);
+
+        useEffect(() => {
+                    const cagarCursoPorMateria = async () => {
+                        if (formData.id_materia) {
+                            try {
+                                const cursoData = await obtenerCursoPorMateria(formData.id_materia);
+                                setCursoPorMateria(cursoData);
+                            } catch (error) {
+                                console.error('Error al cargar alumnos:', error);
+                            }
+                        }
+                    };
+                    cagarCursoPorMateria();
+                }, [formData.id_materia]);
+        
+            useEffect(() => {
+                const cargarMaterias = async () => {
+                    try {
+                        const data = await obtenerMateriaPorProfesor(dni_usuario);
+                        setMaterias(data);
+                    } catch (error) {
+                        console.error('Error al cargar las materias:', error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+        
+                cargarMaterias();
+            }, [dni_usuario]);
+        
+            useEffect(() => {
+                const cargarTipoDeEvaluacion = async () => {
+                    try{
+                        const data = await obtenerTipoDeEvaluacion();
+                        setTipoEvaluacion(data);
+                    }catch(error){  
+                        console.log("Error al cargar las características de la unidad", error)
+                    }
+                };
+                cargarTipoDeEvaluacion();
+            }, []);
+        
+                const formatearFecha = (fecha) => {
+                const [dia, mes, año] = fecha.split('-');
+                return `${año}-${mes}-${dia}`;
+                };
+        
+                if (loading) {
+                    return <ActivityIndicator size="large" color="#0000ff" />;
+                }
+            
+                 const handleRegistrar = async () => {
+                            try {
+                                const asignarEvaluacionData = {
+                                    id_curso: formData.id_curso,
+                                    id_materia: formData.id_materia,
+                                    id_tipo_de_evaluacion: formData.id_tipo_de_evaluacion,
+                                    fecha: formatearFecha(formData.fecha),
+                                    tema_abarcado: formData.tema_abarcado,
+                                    dni_profesor: dni_usuario,
+                                };
+                    
+                                // if (!validarCampos()) {
+                                //     mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
+                                //     return;
+                                // }
+                    
+                                console.log('Datos del libro de aula', asignarEvaluacionData); 
+                                
+                                const respuesta = await registrarEvaluacion(asignarEvaluacionData);
+                                //mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                                //console.log('Libro de Aula Registrada:', respuesta);
+                                console.log('Respuesta del servidor:', respuesta);
+                                // if (respuesta) {
+                                //     mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                                // } else {
+                                //     mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+                                // }
+                                limpiarInterfaz();
+                            } catch (error) {
+                                console.error('Error al registrar el libro de aula:', error.message);
+                                //mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+                            }
+                        };
+                    
+                        // Limpiar formulario
+                        const limpiarInterfaz = () => {
+                            setFormData({
+                                id_materia: '',
+                                id_curso: '',
+                                id_tipo_de_evaluacion: '',
+                                fecha: '',
+                                tema_abarcado: '',
+                                dni_profesor: ''
+                            });
+                        };
+                
+                 // Manejar cambios en el formulario
+                const handleChange = (name, value) => {
+                    setFormData({ ...formData, [name]: value });
+                };
+            
 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <ScrollView contentContainerStyle={styles.contenidoScroll}>
-                <Text style={styles.label}>Materia</Text>
-                <View style={styles.contenidoLista}>
-                    <Picker
-                        selectedValue={materia}
-                        onValueChange={(itemValue) => setMateria(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label='Seleccionar Materia' value='' />
-                        <Picker.Item label='Biología' value='Biología' />
-                        <Picker.Item label='Química' value='Química' />
-                    </Picker>
-                </View>
-
-                <Text style={styles.label}>Características</Text>
-                <View style={styles.contenidoLista}>
-                    <Picker
-                        selectedValue={caracteristica}
-                        onValueChange={(itemValue) => setCaracteristica(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label='Seleccionar característica' value='' />
-                        <Picker.Item label='Evaluación' value='Evaluación' />
-                        <Picker.Item label='Trabajo Práctico' value='Trabajo Práctico' />
-                        <Picker.Item label='Oral' value='Oral' />
-                    </Picker>
-                </View>
+        
+                    <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
+                        materias={materias}
+                        curso={cursoPorMateria}
+                        tipo_de_evaluacion={tipo_de_evaluacion}
+                        styles={styles}
+                    />
+        
                 <Text style={styles.label}>Fecha:</Text>
                 <TextInput
                     style={styles.input}
                     placeholder='--/--/----'
-
+                    onChangeText={(value) => handleChange('fecha', value)}
+                    keyboardType='numeric'
                 />
                 <Text style={styles.label}>Temas </Text>
                 <TextInput
                     style={[styles.input, styles.textArea]}
-                    placeholder='Genética: Conceptos de fenotipo-genotipo'
+                    placeholder='Ingrese los temas abarcados separados con - o ,'
                     multiline={true}
                     numberOfLines={4}
+                    onChangeText={(value) => handleChange('tema_abarcado', value)}
                 />
 
-                <View style={styles.contenidoLista}>
-                    <Picker>
-                        <Picker.Item label='Curso' value='' />
-                        <Picker.Item label='1° B' value='1 b' />
-                    </Picker>
-                </View>
-                
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar}>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.botonCancelar}>
