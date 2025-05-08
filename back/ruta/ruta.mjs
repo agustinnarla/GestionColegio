@@ -39,6 +39,7 @@ import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
 import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
+import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosSinFiltro, agregarNota, modificarEstadoEvaluativo} from '../metodos/metodosCargarNotasFinal.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -247,4 +248,12 @@ ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)
 //       ASIGNAR EVALUACIÓN
 // =====================================
 ruta.get('/profesor/tipo_de_evaluacion', obtenerTipoDeEvaluacion)
-ruta.post('/profesor/asignar_evaluacion', registrarEvaluacion)
+ruta.post('/profesor/asignar_evaluacion/:dni_profesor', registrarEvaluacion)
+// =====================================
+//       OBTENER CURSOS POR PROFESORES
+// =====================================
+ruta.get('/profesor/curso_profesor/:dni_profesor', obtenerCursosPorProfesor)
+ruta.get('/profesor/curso_materia/:dni_profesor', obtenerMateriasPorProfesor)
+ruta.get('/profesor/curso_materia/alumnos/:dni_profesor', obtenerAlumnosSinFiltro)
+ruta.post('/profesor/nota', agregarNota);
+ruta.put('/profesor/estadoevaluativo', modificarEstadoEvaluativo);
