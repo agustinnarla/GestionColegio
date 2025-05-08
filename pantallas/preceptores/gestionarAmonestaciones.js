@@ -100,7 +100,7 @@ export default function GestionarAmonestaciones() {
 
    
   
-        const validarFomulario = useMemo(() => validarCampos(), [formData]);
+    const validarFomulario = useMemo(() => validarCampos(), [formData]);
 
     
 

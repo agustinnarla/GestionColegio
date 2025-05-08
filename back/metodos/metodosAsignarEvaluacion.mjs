@@ -11,12 +11,12 @@ export const obtenerTipoDeEvaluacion = async  (req, res) => {
 }
 
 export const registrarEvaluacion = async (req, res) => {
-    const {dni_profesor} = req.params
-    const {id_materia, id_tipo_de_evaluacion, fecha, temas, id_curso} = req.body
+
+    const {id_materia, id_tipo_de_evaluacion, fecha, tema_abarcado, id_curso, dni_profesor} = req.body
     try{
-        const respuesta = await pool.query('INSERT INTO evaluacion (id_materia, id_tipo_de_evaluacion, fecha, temas, id_curso, dni_profesor) ' +
+        const respuesta = await pool.query('INSERT INTO evaluacion (id_materia, id_tipo_de_evaluacion, fecha, tema_abarcado, id_curso, dni_profesor) ' +
             'VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', 
-            [id_materia, id_tipo_de_evaluacion, fecha, temas, id_curso, dni_profesor])
+            [id_materia, id_tipo_de_evaluacion, fecha, tema_abarcado, id_curso, dni_profesor])
         res.status(201).json(respuesta.rows[0])
         if(respuesta.rowCount === 0){
             return res.status(404).json({error: 'No se pudo registrar la evaluación'})

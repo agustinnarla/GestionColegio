@@ -37,7 +37,7 @@ import { enviarEmail, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario } from '../metodos/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
-import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidas, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -240,11 +240,11 @@ ruta.get('/alumno/materia/dni_alumno/:dni_alumno', obtenerMateriaPorDni)
 //       LIBRO DE AULA
 // =====================================
 ruta.get('/profesor/libroaula/materia/:dni_usuario', obtenerMateriaPorProfesor)
-ruta.get('/profesor/libroaula/caracteristicas', obtenerCaracteristicasUnidas)
+ruta.get('/profesor/libroaula/caracteristicas', obtenerCaracteristicasUnidad)
 ruta.get('/profesor/libroaula/curso_materia/:id_materia', obtenerCursoPorMateria)
 ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)
 // =====================================
 //       ASIGNAR EVALUACIÓN
 // =====================================
 ruta.get('/profesor/tipo_de_evaluacion', obtenerTipoDeEvaluacion)
-ruta.post('/profesor/asignar_evaluacion/:dni_profesor', registrarEvaluacion)
+ruta.post('/profesor/asignar_evaluacion', registrarEvaluacion)
