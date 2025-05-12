@@ -1,36 +1,88 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Picker, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-
-const profesores = [
-  { id: '1', nombre: 'Juan Pérez', registrado: false },
-  { id: '2', nombre: 'María Gómez', registrado: true },
-  { id: '3', nombre: 'Carlos Ruiz', registrado: false },
-];
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { obtenerProfesoresAsistencia, registrarEntradaProfesor, registrarSalidaProfesor } from '../../scripts/secretaria/scriptAsistenciaProfesor';
 
 export default function RegistroAsistencia() {
-  const [seleccionado, setSeleccionado] = useState(null);
-  const [asistencia, setAsistencia] = useState({});
-  const [busqueda, setBusqueda] = useState('');
-  const [entrada, setEntrada] = useState(false);
+  const [profesores, setProfesores] = useState([]); // Estado para almacenar los profesores
+  const [busqueda, setBusqueda] = useState(''); // Estado para la búsqueda
+  const [seleccionado, setSeleccionado] = useState(null); // Profesor seleccionado
+  const [entrada, setEntrada] = useState(false); // Estado para entrada/salida
 
-  // Función para registrar entrada o salida
-  const registrarAsistencia = () => {
-    if (seleccionado && asistencia.hora) {
-      Alert.alert('Asistencia registrada', `Asistencia de ${seleccionado.nombre} registrada correctamente.`);
-      // Se actualiza el estado del profesor como registrado
-      const nuevosProfesores = profesores.map(prof =>
-        prof.id === seleccionado.id ? { ...prof, registrado: true } : prof
-      );
-      setSeleccionado(null); // Reiniciar selección
-      setAsistencia({}); // Reiniciar formulario
-    } else {
-      Alert.alert('Error', 'Debe completar todos los campos para registrar la asistencia.');
-    }
+  const [formData, setFormData] = useState({
+    dni_profesor: '',
+    fecha: '',
+    hora_entrada: '',
+    hora_salida: '',
+  });
+
+  // Cargar los profesores al montar el componente
+  useEffect(() => {
+    const cargarProfesores = async () => {
+      try {
+        const data = await obtenerProfesoresAsistencia(); // Llama a la función para obtener los profesores
+        setProfesores(data.profesor); // Actualiza el estado con los profesores obtenidos
+      } catch (error) {
+        console.log('Error al cargar los profesores:', error);
+        Alert.alert('Error', 'No se pudieron cargar los profesores');
+      }
+    };
+    cargarProfesores();
+  }, []);
+
+  // Actualizar `formData` al seleccionar un profesor
+  const handleSeleccionarProfesor = (profesor) => {
+    setSeleccionado(profesor);
+    setFormData({
+      ...formData,
+      dni_profesor: profesor.dni_profesor, // Actualiza el DNI del profesor seleccionado
+      fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+    });
   };
 
-  // Filtro de búsqueda
-  const profesoresFiltrados = profesores.filter(prof =>
-    prof.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  // Manejar cambios en los campos del formulario
+  const handleChange = (name, value) => {
+    console.log(`Actualizando ${name}:`, value); // Depuración
+    setFormData({ ...formData, [name]: value });
+};
+
+ const handleRegistrar = async () => {
+    try {
+        const profesorData = {
+            dni_profesor: parseInt(formData.dni_profesor),
+            fecha: formData.fecha,
+            hora_entrada: entrada ? formData.hora_entrada : null,
+            hora_salida: !entrada ? formData.hora_salida : null,
+        };
+
+        console.log("Datos enviados al servidor:", profesorData);
+
+        if (entrada) {
+            const respuesta = await registrarEntradaProfesor(profesorData);
+            console.log("Registro de entrada exitoso:", respuesta);
+        } else {
+            const respuesta = await registrarSalidaProfesor(profesorData);
+            console.log("Registro de salida exitoso:", respuesta);
+        }
+
+        Alert.alert("Éxito", `Se registró la ${entrada ? "entrada" : "salida"} correctamente.`);
+
+        // Reiniciar el formulario después del registro
+        setFormData({
+            dni_profesor: "",
+            fecha: "",
+            hora_entrada: "",
+            hora_salida: "",
+        });
+        setSeleccionado(null);
+    } catch (error) {
+        console.error("Error al registrar la entrada/salida:", error.message);
+        Alert.alert("Error", "No se pudo registrar la asistencia.");
+    }
+};
+
+  // Filtrar los profesores según la búsqueda
+  const profesoresFiltrados = profesores.filter((profesor) =>
+    profesor.nombre_apellido.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   return (
@@ -53,7 +105,7 @@ export default function RegistroAsistencia() {
         </TouchableOpacity>
       </View>
 
-      {/* Búsqueda rápida de profesor */}
+      {/* Campo de búsqueda */}
       <TextInput
         style={styles.input}
         placeholder="Buscar profesor/preceptor"
@@ -63,36 +115,33 @@ export default function RegistroAsistencia() {
 
       {/* Lista de profesores */}
       <FlatList
-        data={profesoresFiltrados}
-        keyExtractor={item => item.id}
+        data={profesoresFiltrados} // Muestra los profesores filtrados
+        keyExtractor={(item, index) => index.toString()} // Usa el índice como clave
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.profesor, item.registrado ? styles.profesorRegistrado : styles.profesorNoRegistrado]}
-            onPress={() => setSeleccionado(item)}
+            onPress={() => handleSeleccionarProfesor(item)} // Selecciona el profesor al presionar
           >
-            <Text style={styles.profesorTexto}>{item.nombre}</Text>
+            <Text style={styles.profesorTexto}>{item.nombre_apellido}</Text>
           </TouchableOpacity>
         )}
       />
 
-      {/* Formulario de asistencia */}
+      {/* Formulario para registrar asistencia */}
       {seleccionado && (
         <View style={styles.formulario}>
-          <Text>Registro de {entrada ? 'Entrada' : 'Salida'} para {seleccionado.nombre}</Text>
+          <Text>Registro de {entrada ? 'Entrada' : 'Salida'} para {seleccionado.nombre_apellido}</Text>
 
           <TextInput
-            style={styles.input}
-            placeholder="Hora de asistencia (ej: 08:30)"
-            value={asistencia.hora}
-            onChangeText={(text) => setAsistencia({ ...asistencia, hora: text })}
+              style={styles.input}
+              placeholder={`Hora de ${entrada ? 'entrada' : 'salida'} (ej: 08:30)`}
+              onChangeText={(text) => handleChange(entrada ? 'hora_entrada' : 'hora_salida', text)}
+              value={entrada ? formData.hora_entrada : formData.hora_salida}
           />
 
-
-          {/* Botón de registro */}
           <TouchableOpacity
-            style={[styles.botonRegistrar, (asistencia.hora) ? styles.botonActivoRegistrar : styles.botonInactivo]}
-            onPress={registrarAsistencia}
-            disabled={!asistencia.hora}
+            style={styles.botonRegistrar}
+            onPress={handleRegistrar}
           >
             <Text>Aceptar</Text>
           </TouchableOpacity>
@@ -101,6 +150,7 @@ export default function RegistroAsistencia() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -125,31 +175,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 5,
     alignItems: 'center',
-    marginTop: 20,
-    marginLeft:10
+    marginHorizontal: 10,
   },
-  botonRegistrar:{
-    borderWidth: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  botonActivoSalida:{
-    backgroundColor: '#F3B9B9',
-    borderColor: '#FF0000',
-  },
-  botonActivoRegistrar: {
-    backgroundColor: '#CFEFCE',
-    borderColor: '#33FF00',
-  },
-  botonActivoEntrada:{
+  botonActivoEntrada: {
     backgroundColor: '#CED9EF',
     borderColor: '#746BC8',
   },
-  botonInactivo: {
-    backgroundColor: '#ccc',
+  botonActivoSalida: {
+    backgroundColor: '#F3B9B9',
+    borderColor: '#FF0000',
   },
   input: {
     borderColor: '#ccc',
@@ -180,5 +214,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#ccc',
+  },
+  botonRegistrar: {
+    borderWidth: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#CFEFCE',
+    borderColor: '#33FF00',
   },
 });

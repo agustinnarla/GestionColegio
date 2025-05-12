@@ -32,7 +32,7 @@ export default function LibroAula({ route }) {
     
         console.log('DNI Usuario:', dni_usuario);
 
-        useEffect(() => {
+            useEffect(() => {
                     const cagarCursoPorMateria = async () => {
                         if (formData.id_materia) {
                             try {

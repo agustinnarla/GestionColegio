@@ -40,6 +40,8 @@ import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAv
 import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosSinFiltro, agregarNota, modificarEstadoEvaluativo} from '../metodos/metodosCargarNotasFinal.mjs'
+import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../metodos/metodosAsignarHoras.mjs'
+import { obtenerProfesoresAsistencia, registrarEntradaProfesor, registrarSalidaProfesor } from '../metodos/metodosAsistenciaProfesores.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -257,3 +259,20 @@ ruta.get('/profesor/curso_materia/:dni_profesor', obtenerMateriasPorProfesor)
 ruta.get('/profesor/curso_materia/alumnos/:dni_profesor', obtenerAlumnosSinFiltro)
 ruta.post('/profesor/nota', agregarNota);
 ruta.put('/profesor/estadoevaluativo', modificarEstadoEvaluativo);
+// =====================================
+//       ASIGNAR HORAS
+// =====================================
+ruta.post('/secretaria/profesor/horas', asignacionDeHoras)
+// =====================================
+//       OBTENER PROFESORES
+// =====================================
+ruta.get('/profesores', obtenerProfesores)
+ruta.get('/profesores/cursos/:dni_profesor', obtenerCursoPorProfesor)
+ruta.get('/profesores/materias/:id_curso', obtenerMateriaPorCurso)
+ruta.get('/profesores/horario/:dni_profesor', obtenerHorasProfesor)
+// =====================================
+//       ASISTENCIA PROFESORES
+// =====================================
+ruta.get('/profesores/asistencia', obtenerProfesoresAsistencia)
+ruta.post('/profesores/asistencia/entrada', registrarEntradaProfesor)
+ruta.put('/profesores/asistencia/salida', registrarSalidaProfesor)

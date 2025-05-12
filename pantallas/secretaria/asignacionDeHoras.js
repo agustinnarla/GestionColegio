@@ -1,231 +1,256 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, Picker, TouchableOpacity, TextInput, FlatList, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, FlatList, Image, ScrollView } from 'react-native';
 import bg from '../../assets/bg1.jpg';
+import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../../scripts/secretaria/scriptAsignacionHoras';
+import ListasDesplegables from '../../componente/ListasDesplegables';
 
 export default function AsignacionHoras() {
-    const [profesor, setProfesor] = useState('');
-    const [curso, setCurso] = useState('');
-    const [materia, setMateria] = useState('');
-    const [datos, setDatos] = useState([]);
+    const [profesores, setProfesor] = useState([]);
+    const [curso, setCurso] = useState([]);
+    const [materias, setMateria] = useState([]);
+    const [horas, setHoras] = useState([]);
+    const [selectedDay, setSelectedDay] = useState('');
+    const [horariosAsignados, setHorariosAsignados] = useState({});
 
-    const handleConsultar = () => {
-        // Simulación de carga de datos para la grilla
-        const datosSimulados = [
-            { id: '1', materia: 'Materia 1', entrada: '08:00', salida: '10:00' },
-        ];
-        setDatos(datosSimulados);
-    };
+    const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    const rangosHorarios = [
+        '08:00 - 09:00',
+        '09:00 - 10:00',
+        '10:00 - 11:00',
+        '11:00 - 12:00',
+        '12:00 - 13:00',
+        '13:00 - 14:00',
+    ];
+
+    const [formData, setFormData] = useState({
+        id_materia: '',
+        id_curso: '',
+        dni_profesor: '',
+        dia_semana: '',
+        hora_inicio: '',
+        hora_final: '',
+    });
+
+    useEffect(() => {
+        const inicializarHorarios = () => {
+            const inicial = {};
+            diasSemana.forEach((dia) => {
+                inicial[dia] = [];
+            });
+            setHorariosAsignados(inicial);
+        };
+        inicializarHorarios();
+    }, []);
 
     const handleReiniciar = () => {
-        setProfesor('');
-        setCurso('');
-        setMateria('');
+        setProfesor([]);
+        setCurso([]);
+        setMateria([]);
+        setHoras([]);
+        setFormData({
+            id_materia: '',
+            id_curso: '',
+            dni_profesor: '',
+            dia_semana: '',
+            hora_inicio: '',
+            hora_final: '',
+        });
+    };
+
+    const handleConsultar = async () => {
+        try {
+            if (formData.dni_profesor) {
+                const data = await obtenerHorasProfesor(formData.dni_profesor);
+                setHoras(data.horas);
+                console.log('Horas traídas exitosamente:', data.horas);
+            } else {
+                console.log('Debe seleccionar un profesor');
+            }
+        } catch (error) {
+            console.error('Error al consultar las horas:', error);
+        }
+    };
+
+    const toggleHorario = (dia, rango) => {
+        setHorariosAsignados((prev) => {
+            const horariosDia = prev[dia] || [];
+            if (horariosDia.includes(rango)) {
+                return {
+                    ...prev,
+                    [dia]: horariosDia.filter((h) => h !== rango),
+                };
+            } else {
+                return {
+                    ...prev,
+                    [dia]: [...horariosDia, rango],
+                };
+            }
+        });
+    };
+
+    const handleAsignarHora = async () => {
+        try {
+            if (
+                formData.id_curso &&
+                formData.id_materia &&
+                selectedDay &&
+                formData.hora_inicio &&
+                formData.hora_final
+            ) {
+                console.log('Asignando hora:', formData);
+
+                setHoras((prevHoras) => [
+                    ...prevHoras,
+                    {
+                        id_horario: prevHoras.length + 1,
+                        dia_semana: selectedDay,
+                        hora_inicio: formData.hora_inicio,
+                        hora_final: formData.hora_final,
+                        curso: curso.find((c) => c.id_curso === formData.id_curso)?.detalle || '',
+                        materia: materias.find((m) => m.id_materia === formData.id_materia)?.detalle || '',
+                    },
+                ]);
+
+                setFormData({
+                    ...formData,
+                    hora_inicio: '',
+                    hora_final: '',
+                });
+            } else {
+                alert('Por favor, complete todos los campos.');
+            }
+        } catch (error) {
+            console.error('Error al asignar la hora:', error);
+        }
+    };
+
+    useEffect(() => {
+        const cargarProfesores = async () => {
+            try {
+                const data = await obtenerProfesores();
+                setProfesor(data.profesores);
+            } catch (error) {
+                console.log('Error al cargar los profesores:', error);
+            }
+        };
+        cargarProfesores();
+    }, []);
+
+    useEffect(() => {
+        const cargarCursos = async () => {
+            try {
+                if (formData.dni_profesor) {
+                    const data = await obtenerCursosPorProfesor(formData.dni_profesor);
+                    setCurso(data.cursos);
+                    console.log('Cursos traídos exitosamente');
+                }
+            } catch (error) {
+                console.log('Error al cargar los cursos', error);
+            }
+        };
+        cargarCursos();
+    }, [formData.dni_profesor]);
+
+    useEffect(() => {
+        const cargarMaterias = async () => {
+            try {
+                if (formData.id_curso) {
+                    const data = await obtenerMateriaPorCurso(formData.id_curso);
+                    setMateria(data.materias);
+                    console.log('Materias traídas exitosamente');
+                }
+            } catch (error) {
+                console.log('Error al cargar las materias', error);
+            }
+        };
+        cargarMaterias();
+    }, [formData.id_curso]);
+
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
     };
 
     const renderItem = ({ item }) => (
         <View style={styles.grillaFila}>
             <Text style={styles.grillaCelda}>{item.materia}</Text>
-            <TextInput
-                style={styles.grillaCeldaInput}
-                placeholder="Hora de entrada"
-                value={item.entrada}
-            />
-            <TextInput
-                style={styles.grillaCeldaInput}
-                placeholder="Hora de salida"
-                value={item.salida}
-            />
+            <Text style={styles.grillaCelda}>{item.dia_semana}</Text>
+            <Text style={styles.grillaCelda}>{item.hora_inicio}</Text>
+            <Text style={styles.grillaCelda}>{item.hora_final}</Text>
         </View>
     );
 
     return (
         <View style={styles.container}>
             <Image source={bg} style={styles.bg} />
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.selectorContainer}>
                     <View style={styles.selector}>
-                        <Text style={styles.label}>Profesor</Text>
-                        <Picker
-                            selectedValue={profesor}
-                            onValueChange={(itemValue) => setProfesor(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Seleccione un profesor" value="" />
-                            <Picker.Item label="Profesor 1" value="profesor1" />
-                            <Picker.Item label="Profesor 2" value="profesor2" />
-                        </Picker>
-                    </View>
-                    <View style={styles.selector}>
-                        <Text style={styles.label}>Curso</Text>
-                        <Picker
-                            selectedValue={curso}
-                            onValueChange={(itemValue) => setCurso(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Seleccione un curso" value="" />
-                            <Picker.Item label="Curso 1" value="curso1" />
-                            <Picker.Item label="Curso 2" value="curso2" />
-                        </Picker>
-                    </View>
-                    <View style={styles.selector}>
-                        <Text style={styles.label}>Materia</Text>
-                        <Picker
-                            selectedValue={materia}
-                            onValueChange={(itemValue) => setMateria(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Seleccione una materia" value="" />
-                            <Picker.Item label="Materia 1" value="materia1" />
-                            <Picker.Item label="Materia 2" value="materia2" />
-                        </Picker>
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            profesores={profesores}
+                            curso={curso}
+                            materias={materias}
+                            styles={styles}
+                        />
                     </View>
                 </View>
 
-                {/* Botones de acción */}
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.button,
-                            (profesor && curso && materia) ? styles.buttonEnabled : styles.buttonDisabled,
-                        ]}
-                        onPress={handleConsultar}
-                        disabled={!profesor || !curso || !materia}
-                    >
-                        <Text style={styles.buttonText}>Consultar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.button} onPress={handleReiniciar}>
-                        <Text style={styles.buttonText}>Reiniciar Filtro</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.button} onPress={handleReiniciar}>
-                        <Text style={styles.buttonText}>Subir Archivo</Text>
-                    </TouchableOpacity>
+                <View style={styles.horariosContainer}>
+                    {diasSemana.map((dia) => (
+                        <View key={dia} style={styles.diaContainer}>
+                            <Text style={styles.diaTitulo}>{dia}</Text>
+                            {rangosHorarios.map((rango) => (
+                                <TouchableOpacity
+                                    key={rango}
+                                    style={[
+                                        styles.horarioCuadro,
+                                        horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
+                                    ]}
+                                    onPress={() => toggleHorario(dia, rango)}
+                                >
+                                    <Text style={styles.horarioTexto}>{rango}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    ))}
                 </View>
 
-                {/* Grilla */}
-                {datos.length > 0 && (
+                {horas.length > 0 && (
                     <View style={styles.grilla}>
                         <View style={styles.grillaEncabezado}>
                             <Text style={styles.grillaEncabezadoCelda}>Materia</Text>
+                            <Text style={styles.grillaEncabezadoCelda}>Día</Text>
                             <Text style={styles.grillaEncabezadoCelda}>Entrada</Text>
                             <Text style={styles.grillaEncabezadoCelda}>Salida</Text>
                         </View>
                         <FlatList
-                            data={datos}
+                            data={horas.filter((item) => item)}
                             renderItem={renderItem}
-                            keyExtractor={item => item.id}
+                            keyExtractor={(item, index) => item?.id_horario?.toString() || index.toString()}
                         />
                     </View>
                 )}
-            
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      
-    },
-    bg: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    selectorContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '90%',
-        marginBottom: 20,
-    },
-    selector: {
-        flex: 1,
-        marginHorizontal: 5,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 5,
-    },
-    picker: {
-        height: 50,
-        backgroundColor: '#f2f2f2',
-        borderRadius: 5,
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginVertical: 20,
-    },
-    button: {
-        padding: 10,
-        backgroundColor: '#ccc',
-        borderRadius: 5,
-        margin: 10,
-        minWidth: '20%',
-        alignItems: 'center',
-    },
-    buttonEnabled: {
-        backgroundColor: '#CED9EF',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        borderColor: '#0500FF',
-        borderWidth: 0.4,
-        alignItems: 'center',
-        shadowColor: '#BAAFFF',
-        shadowOffset: {
-            width: 5,
-            height: 5,
-        },
-        shadowOpacity: 0.71,
-        shadowRadius: 6,
-        elevation: 4,
-    },
-    buttonDisabled: {
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
-        borderWidth: 0.4,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: 'black',
-        fontWeight: 'bold',
-    },
-    grilla: {
-        marginTop: 20,
-        width: '90%',
-    },
-    grillaEncabezado: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        backgroundColor: '#ccc',
-    },
-    grillaEncabezadoCelda: {
-        flex: 1,
-        textAlign: 'center',
-        fontWeight: 'bold',
-    },
-    grillaFila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-    },
-    grillaCelda: {
-        flex: 1,
-        textAlign: 'center',
-    },
-    grillaCeldaInput: {
-        flex: 1,
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        textAlign: 'center',
-    },
+    container: { flex: 1 },
+    scrollContainer: { flexGrow: 1, alignItems: 'center', paddingBottom: 20 },
+    bg: { position: 'absolute', width: '100%', height: '100%', opacity: 0.2 },
+    selectorContainer: { flexDirection: 'row', justifyContent: 'space-between', width: '90%', marginBottom: 20, marginTop: 10 },
+    selector: { flex: 1, marginHorizontal: 5 },
+    horariosContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 20 },
+    diaContainer: { flex: 1, marginHorizontal: 5, marginBottom: 20 },
+    diaTitulo: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
+    horarioCuadro: { padding: 10, marginVertical: 5, backgroundColor: '#f0f0f0', borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#ccc' },
+    horarioAsignado: { backgroundColor: '#4CAF50', borderColor: '#388E3C' },
+    horarioTexto: { color: '#333' },
+    grilla: { marginTop: 20, width: '90%', backgroundColor: '#fff', borderRadius: 8, padding: 10 },
+    grillaEncabezado: { flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#4CAF50', borderRadius: 8 },
+    grillaEncabezadoCelda: { flex: 1, textAlign: 'center', fontWeight: 'bold', color: '#fff' },
+    grillaFila: { flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#ddd' },
+    grillaCelda: { flex: 1, textAlign: 'center', color: '#333' },
 });

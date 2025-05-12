@@ -158,19 +158,121 @@ export function TipoDeEvaluacionSelector({ formData, handleChange, tipo_de_evalu
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function ProfesorSelector({ formData, handleChange, profesores, styles }) {
+    const selectorConfig = {
+        label: 'Seleccione un profesor',
+        selectedValue: formData.dni_profesor,
+        onValueChange: (value) => handleChange('dni_profesor', value),
+        items: [
+            { label: 'Seleccione un profesor', value: '' },
+            ...(profesores || []).map(item => ({
+                label: item.nombre,
+                value: item.dni_profesor,
+                key: item.dni_profesor
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 // Componente principal que combina todos los selectores
-function ListasDesplegables({ formData, handleChange, curso, etapaEscolar, materias, alumnos, solicitantes, roles, styles, caracteristica_unidad, materia, tipo_de_evaluacion }) {
+function ListasDesplegables({
+    formData,
+    handleChange,
+    curso,
+    etapaEscolar,
+    materias,
+    alumnos,
+    solicitantes,
+    roles,
+    styles,
+    caracteristica_unidad,
+    profesores,
+    materia,
+    tipo_de_evaluacion,
+}) {
     return (
         <View style={styles.filtrosContainer}>
-            {curso && <CursoSelector formData={formData} handleChange={handleChange} curso={curso} styles={styles} />}
-            {etapaEscolar && <EtapaSelector formData={formData} handleChange={handleChange} etapaEscolar={etapaEscolar} styles={styles} />}
-            {materias && <MateriaSelector formData={formData} handleChange={handleChange} materias={materias} styles={styles} />}
-            {materia && <MateriaPorProfesor formData={formData} handleChange={handleChange} materias={materia} styles={styles} />}
-            {alumnos && <AlumnoSelector formData={formData} handleChange={handleChange} alumnos={alumnos} styles={styles} />}
-            {tipo_de_evaluacion && <TipoDeEvaluacionSelector formData={formData} handleChange={handleChange} tipo_de_evaluacion={tipo_de_evaluacion} styles={styles} />}
-            {caracteristica_unidad && <CaracteristicaSelector formData={formData} handleChange={handleChange} caracteristica_unidad={caracteristica_unidad} styles={styles} />}
-            {solicitantes && <SolicitanteSelector formData={formData} handleChange={handleChange} solicitantes={solicitantes} styles={styles} />}
-            {roles && <RolesSelector formData={formData} handleChange={handleChange} roles={roles} styles={styles} />}
+            {curso && (
+                <CursoSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    curso={curso}
+                    styles={styles}
+                />
+            )}
+            {etapaEscolar && (
+                <EtapaSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    etapaEscolar={etapaEscolar}
+                    styles={styles}
+                />
+            )}
+            {materias && (
+                <MateriaSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    materias={materias}
+                    styles={styles}
+                />
+            )}
+            {materia && (
+                <MateriaPorProfesor
+                    formData={formData}
+                    handleChange={handleChange}
+                    materias={materia}
+                    styles={styles}
+                />
+            )}
+            {alumnos && (
+                <AlumnoSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    alumnos={alumnos}
+                    styles={styles}
+                />
+            )}
+            {profesores && (
+                <ProfesorSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    profesores={profesores}
+                    styles={styles}
+                />
+            )}
+            {tipo_de_evaluacion && (
+                <TipoDeEvaluacionSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    tipo_de_evaluacion={tipo_de_evaluacion}
+                    styles={styles}
+                />
+            )}
+            {caracteristica_unidad && (
+                <CaracteristicaSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    caracteristica_unidad={caracteristica_unidad}
+                    styles={styles}
+                />
+            )}
+            {solicitantes && (
+                <SolicitanteSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    solicitantes={solicitantes}
+                    styles={styles}
+                />
+            )}
+            {roles && (
+                <RolesSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    roles={roles}
+                    styles={styles}
+                />
+            )}
         </View>
     );
 }
