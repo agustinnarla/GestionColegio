@@ -19,6 +19,24 @@ export function CursoSelector({ formData, handleChange, curso, styles }) {
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function SexoSelector({ formData, handleChange, sexo, styles }) {
+    const selectorConfig = {
+        label: 'Sexo',
+        selectedValue: formData.id_sexo,
+        onValueChange: (value) => handleChange('id_sexo', value),
+        items: [
+            { label: 'Seleccione sexo', value: '' },
+            ...(sexo || []).map(item => ({
+                label: item.detalle,
+                value: item.id_sexo,
+                key: item.id_sexo
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 export function MateriaPorProfesor({ formData, handleChange, materia, styles }) {
     const selectorConfig = {
         label: 'Materia',
@@ -107,6 +125,23 @@ export function SolicitanteSelector({ formData, handleChange, solicitantes, styl
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function EstadoSelector({ formData, handleChange, estadoalumno, styles }) {
+    const selectorConfig = {
+        label: 'Estado del Alumno',
+        selectedValue: formData.id_estadoalumno,
+        onValueChange: (value) => handleChange('id_estadoalumno', value),
+        items: [
+            { label: 'Seleccione estado', value: '' },
+            ...(estadoalumno || []).map(item => ({
+                label: item.detalle,
+                value: item.id_estadoalumno,
+                key: item.id_estadoalumno
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 export function RolesSelector({ formData, handleChange, roles, styles }) {
     const selectorConfig = {
         label: 'Roles',
@@ -118,6 +153,23 @@ export function RolesSelector({ formData, handleChange, roles, styles }) {
                 label: item.detalle,
                 value: item.id_rol,
                 key: item.id_rol
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+export function LocalidadSelector({ formData, handleChange, localidad, styles }) {
+    const selectorConfig = {
+        label: 'Localidad',
+        selectedValue: formData.id_localidad,
+        onValueChange: (value) => handleChange('id_localidad', value),
+        items: [
+            { label: 'Seleccione localidad', value: '' },
+            ...(localidad || []).map(item => ({
+                label: item.detalle,
+                value: item.id_localidad,
+                key: item.id_localidad
             }))
         ]
     };
@@ -190,6 +242,9 @@ function ListasDesplegables({
     profesores,
     materia,
     tipo_de_evaluacion,
+    sexo,
+    estadoalumno,
+    localidad
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -270,6 +325,30 @@ function ListasDesplegables({
                     formData={formData}
                     handleChange={handleChange}
                     roles={roles}
+                    styles={styles}
+                />
+            )}
+            {sexo && (
+                <SexoSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    sexo={sexo}
+                    styles={styles}
+                />
+            )}
+            {estadoalumno && (
+                <EstadoSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    estadoalumno={estadoalumno}
+                    styles={styles}
+                />
+            )}
+            {localidad && (
+                <LocalidadSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    localidad={localidad}
                     styles={styles}
                 />
             )}

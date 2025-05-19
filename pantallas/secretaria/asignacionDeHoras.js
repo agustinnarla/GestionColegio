@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput, FlatList, Image, ScrollView } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../../scripts/secretaria/scriptAsignacionHoras';
+import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor, asignacionDeHoras } from '../../scripts/secretaria/scriptAsignacionHoras';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 
 export default function AsignacionHoras() {
@@ -57,67 +57,81 @@ export default function AsignacionHoras() {
         });
     };
 
-    const handleConsultar = async () => {
+   const handleConsultar = async () => {
         try {
-            if (formData.dni_profesor) {
-                const data = await obtenerHorasProfesor(formData.dni_profesor);
+            if (formData.dni_profesor && formData.id_curso) {
+                console.log('Enviando parámetros:', formData.dni_profesor, formData.id_curso);
+                const data = await obtenerHorasProfesor(formData.dni_profesor, formData.id_curso);
                 setHoras(data.horas);
                 console.log('Horas traídas exitosamente:', data.horas);
+
+                const nuevosHorarios = {};
+                data.horas.forEach((hora) => {
+                    const rango = hora.horario;
+                    if (!nuevosHorarios[hora.dia_semana]) {
+                        nuevosHorarios[hora.dia_semana] = [];
+                    }
+                    nuevosHorarios[hora.dia_semana].push(rango);
+                });
+                setHorariosAsignados(nuevosHorarios);
             } else {
-                console.log('Debe seleccionar un profesor');
+                console.log('Debe seleccionar un profesor y un curso');
             }
         } catch (error) {
-            console.error('Error al consultar las horas:', error);
+            console.error('Error en obtenerHorasProfesor:', error);
         }
     };
 
     const toggleHorario = (dia, rango) => {
-        setHorariosAsignados((prev) => {
-            const horariosDia = prev[dia] || [];
-            if (horariosDia.includes(rango)) {
-                return {
-                    ...prev,
-                    [dia]: horariosDia.filter((h) => h !== rango),
-                };
-            } else {
-                return {
-                    ...prev,
-                    [dia]: [...horariosDia, rango],
-                };
-            }
-        });
-    };
+            setHorariosAsignados((prev) => {
+                const horariosDia = prev[dia] || [];
+                if (horariosDia.includes(rango)) {
+                    // Si el rango ya está asignado, lo eliminamos
+                    return {
+                        ...prev,
+                        [dia]: horariosDia.filter((h) => h !== rango),
+                    };
+                } else {
+                    // Si el rango no está asignado, lo agregamos
+                    return {
+                        ...prev,
+                        [dia]: [...horariosDia, rango],
+                    };
+                }
+            });
+
+            // Actualiza el formData con el día y el rango seleccionado
+            const [hora_inicio, hora_final] = rango.split(' - ');
+            setFormData((prev) => ({
+                ...prev,
+                dia_semana: dia,
+                hora_inicio,
+                hora_final,
+            }));
+        };
 
     const handleAsignarHora = async () => {
         try {
-            if (
-                formData.id_curso &&
-                formData.id_materia &&
-                selectedDay &&
-                formData.hora_inicio &&
-                formData.hora_final
-            ) {
-                console.log('Asignando hora:', formData);
+            try {
+                const profeData = {
+                    id_materia: formData.id_materia,
+                    id_curso: formData.id_curso,
+                    dni_profesor: formData.dni_profesor,
+                    dia_semana: formData.dia_semana,
+                    hora_inicio: formData.hora_inicio,
+                    hora_final: formData.hora_final,
+                };
 
-                setHoras((prevHoras) => [
-                    ...prevHoras,
-                    {
-                        id_horario: prevHoras.length + 1,
-                        dia_semana: selectedDay,
-                        hora_inicio: formData.hora_inicio,
-                        hora_final: formData.hora_final,
-                        curso: curso.find((c) => c.id_curso === formData.id_curso)?.detalle || '',
-                        materia: materias.find((m) => m.id_materia === formData.id_materia)?.detalle || '',
-                    },
-                ]);
 
-                setFormData({
-                    ...formData,
-                    hora_inicio: '',
-                    hora_final: '',
-                });
-            } else {
-                alert('Por favor, complete todos los campos.');
+                console.log('Datos de la asignación de horas', profeData);
+
+                const respuesta = await asignacionDeHoras(profeData);
+
+                console.log('Respuesta del servidor:', respuesta);
+    
+            } catch (error) {
+                console.error('Error al registrar la asignación de horas:', error.message);
+                //mostrarMensaje('Error', 'No se pudo registrar la asignación de horas');
             }
         } catch (error) {
             console.error('Error al asignar la hora:', error);
@@ -170,14 +184,7 @@ export default function AsignacionHoras() {
         setFormData({ ...formData, [name]: value });
     };
 
-    const renderItem = ({ item }) => (
-        <View style={styles.grillaFila}>
-            <Text style={styles.grillaCelda}>{item.materia}</Text>
-            <Text style={styles.grillaCelda}>{item.dia_semana}</Text>
-            <Text style={styles.grillaCelda}>{item.hora_inicio}</Text>
-            <Text style={styles.grillaCelda}>{item.hora_final}</Text>
-        </View>
-    );
+
 
     return (
         <View style={styles.container}>
@@ -195,6 +202,9 @@ export default function AsignacionHoras() {
                         />
                     </View>
                 </View>
+                <TouchableOpacity onPress={handleConsultar} style={{ marginBottom: 20 }}>
+                    <Text>Consultar</Text>
+                </TouchableOpacity>
 
                 <View style={styles.horariosContainer}>
                     {diasSemana.map((dia) => (
@@ -207,7 +217,7 @@ export default function AsignacionHoras() {
                                         styles.horarioCuadro,
                                         horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
                                     ]}
-                                    onPress={() => toggleHorario(dia, rango)}
+                                    onPress={() => toggleHorario(dia, rango)} // Pasa el día y el rango
                                 >
                                     <Text style={styles.horarioTexto}>{rango}</Text>
                                 </TouchableOpacity>
@@ -215,22 +225,9 @@ export default function AsignacionHoras() {
                         </View>
                     ))}
                 </View>
-
-                {horas.length > 0 && (
-                    <View style={styles.grilla}>
-                        <View style={styles.grillaEncabezado}>
-                            <Text style={styles.grillaEncabezadoCelda}>Materia</Text>
-                            <Text style={styles.grillaEncabezadoCelda}>Día</Text>
-                            <Text style={styles.grillaEncabezadoCelda}>Entrada</Text>
-                            <Text style={styles.grillaEncabezadoCelda}>Salida</Text>
-                        </View>
-                        <FlatList
-                            data={horas.filter((item) => item)}
-                            renderItem={renderItem}
-                            keyExtractor={(item, index) => item?.id_horario?.toString() || index.toString()}
-                        />
-                    </View>
-                )}
+                <TouchableOpacity onPress={handleAsignarHora} style={{ marginBottom: 20 }}>
+                    <Text>Asignar Horas</Text>
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );

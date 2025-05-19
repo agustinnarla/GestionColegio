@@ -107,25 +107,28 @@ export const obtenerMateriaPorCurso = async (req, res) => {
 }
 
 export const obtenerHorasProfesor = async (req, res) => {
-    const {dni_profesor} = req.params;
-    try{
+    const { dni_profesor, id_curso } = req.params;
+    try {
         const respuesta = await pool.query(
-            `SELECT h.dia_semana, h.hora_inicio, h.hora_final, c.detalle AS curso, m.detalle AS materia
+            `SELECT DISTINCT 
+                h.dia_semana, 
+                CONCAT(TO_CHAR(h.hora_inicio, 'HH24:MI'), ' - ', TO_CHAR(h.hora_final, 'HH24:MI')) AS horario, 
+                c.detalle AS curso, 
+                m.detalle AS materia
              FROM horario AS h
              INNER JOIN curso AS c ON c.id_curso = h.id_curso
              INNER JOIN materia AS m ON m.id_materia = h.id_materia
-             WHERE h.dni_profesor = $1`,
-            [dni_profesor]
-        )
+             WHERE h.dni_profesor = $1 AND h.id_curso = $2`,
+            [dni_profesor, id_curso]
+        );
 
         if (respuesta.rows.length === 0) {
             return res.status(404).json({ message: 'No se encontraron horas para el profesor' });
         }
         console.log('Horas traídas exitosamente');
         res.json({ horas: respuesta.rows });
-    }catch(error){
+    } catch (error) {
         console.error('Error al obtener las horas del profesor:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
-
-}
+};

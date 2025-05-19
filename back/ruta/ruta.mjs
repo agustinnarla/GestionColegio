@@ -42,6 +42,7 @@ import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodos
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosSinFiltro, agregarNota, modificarEstadoEvaluativo} from '../metodos/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../metodos/metodosAsignarHoras.mjs'
 import { obtenerProfesoresAsistencia, registrarEntradaProfesor, registrarSalidaProfesor } from '../metodos/metodosAsistenciaProfesores.mjs'
+import { habilitarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/metodosGestionPP.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -269,10 +270,17 @@ ruta.post('/secretaria/profesor/horas', asignacionDeHoras)
 ruta.get('/profesores', obtenerProfesores)
 ruta.get('/profesores/cursos/:dni_profesor', obtenerCursoPorProfesor)
 ruta.get('/profesores/materias/:id_curso', obtenerMateriaPorCurso)
-ruta.get('/profesores/horario/:dni_profesor', obtenerHorasProfesor)
+ruta.get('/profesores/horario/:dni_profesor/:id_curso', obtenerHorasProfesor)
 // =====================================
 //       ASISTENCIA PROFESORES
 // =====================================
 ruta.get('/profesores/asistencia', obtenerProfesoresAsistencia)
 ruta.post('/profesores/asistencia/entrada', registrarEntradaProfesor)
 ruta.put('/profesores/asistencia/salida', registrarSalidaProfesor)
+// =====================================
+//       PROFESIONAL
+// =====================================
+ruta.get('/profesional/:dni', obtenerProfesional)
+ruta.post('/profesional/alta', habilitarProfesional)
+ruta.put('/profesional/modificar/:dni', modificarProfesional)
+ruta.put('/profesional/deshabilitar/:dni', deshabilitarProfesional) 

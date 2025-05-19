@@ -20,6 +20,7 @@ export const obtenerAlumnoFiltrado = async (dni) => {
         throw new Error("Error al traer el alumno");
     }
 }
+
 //Agregue yo (Roma)
 export const obtenerDniPdf = async (dni) => {
     try {
@@ -204,6 +205,7 @@ export const obtenerSexo = async () => {
         throw new Error("Error al obtener los sexos")
     }
 }
+
 export const obtenerCurso = async () => {
     try {
         const respuesta = await fetch(`${api_url}/curso`);

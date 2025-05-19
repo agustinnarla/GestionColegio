@@ -1,11 +1,199 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, Alert } from 'react-native';
 import bg from '../../assets/bg1.jpg';
+import { obtenerSexo, obtenerEstadoAlumno, obtenerLocalidad} from '../../scripts/secretaria/scriptGestionAlumno'
+import { obtenerRoles } from '../../scripts/admin/scriptTareasRol.js'
+import ListasDesplegables from '../../componente/ListasDesplegables';
+import { obtenerProfesional, habilitarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
 
-export default function GestionarAlumno() {
+
+export default function GestionarProfesional() {
     const [viveEnDepto, setViveEnDepto] = useState(false); // Estado para la checkbox
     const [piso, setPiso] = useState('');
     const [depto, setDepto] = useState('');
+
+    const[rol, setRol] = useState([])
+    const[localidad,setLocalidad] = useState([])
+    const[sexo,setSexos] = useState([])
+    const[estadoalumno,setEstadoAlumno] = useState([])
+
+    const [formData, setFormData] = useState({
+        dni: '',
+        nombre: '',
+        apellido: '',
+        cuit: '',
+        id_sexo: '',
+        id_rol: '',
+        email: '',
+        fecha_nacimiento: '',
+        telefono_personal: '',
+        telefono_alternativo:'',
+        id_estadoalumno: '',
+        idlocalidad: '',
+        domicilio: '',
+        edificio: false,
+        numero:'',
+        id_localidad: '',
+        piso: '',
+        departamento: ''
+    });
+
+        useEffect(() => {
+            const cargarDatos = async () => {
+                try {
+                    
+                    const localidadData = await obtenerLocalidad();
+                    const sexosData = await obtenerSexo();
+                    const estadoData = await obtenerEstadoAlumno();
+                    const rolData = await obtenerRoles();
+                    console.log('rolData:', rolData);
+                    setRol(rolData.roles);
+                    setSexos(sexosData);
+                    setLocalidad(localidadData);
+                    setEstadoAlumno(estadoData);
+                
+                    
+                } catch (error) {
+                    Alert.alert('Error', error.message);
+                    console.log(error);
+                }
+            };
+    
+        cargarDatos();
+        }, []);
+
+        const handleChange = (name, value) => {
+            setFormData({ ...formData, [name]: value });
+        };
+
+        const registrarProfesional = async () => {
+            try{
+                const profesionalData = {
+                dni: parseInt(formData.dni),
+                nombre: formData.nombre,
+                apellido: formData.apellido,
+                cuit: parseInt(formData.cuit),
+                id_sexo: formData.id_sexo,
+                id_rol: formData.id_rol,
+                email: formData.email,
+                fecha_nacimiento: formData.fecha_nacimiento,
+                telefono_personal: parseInt(formData.telefono_personal),
+                telefono_alternativo: parseInt(formData.telefono_alternativo),
+                id_estadoalumno: formData.id_estadoalumno,
+                id_localidad: formData.id_localidad,
+                domicilio: formData.domicilio,
+                edificio: formData.edificio,
+                numero: formData.numero,
+                piso: formData.edificio ? formData.piso : null,
+                departamento: formData.edificio ? formData.departamento : null
+            };
+                console.log(profesionalData)
+                const respuesta = await habilitarProfesional(profesionalData)
+                if(respuesta){
+                    console.log("El profesional fue habilitado correctamente")
+                }
+
+            }catch(error){
+                
+                console.log(error.message)
+            }
+        }
+        const consultarProfesional = async () => {
+            // Lógica para consultar el profesional
+            try{
+                const profesional = await obtenerProfesional(formData.dni)
+                if(profesional){
+                    setFormData({
+                        ...formData,
+                        apellido: profesional.apellido,
+                        cuit: profesional.cuit,
+                        departamento: profesional.departamento,
+                        domicilio: profesional.domicilio,
+                        email: profesional.email,
+                        fecha_nacimiento: profesional.fecha_nacimiento,
+                        id_estadoalumno: profesional.id_estadoalumno,
+                        id_localidad: profesional.id_localidad,
+                        id_rol: profesional.id_rol,
+                        id_sexo: profesional.id_sexo,
+                        nombre: profesional.nombre,
+                        piso: profesional.piso,
+                        telefono_personal: profesional.telefono_personal,
+                        telefono_alternativo: profesional.telefono_alternativo,
+                        edificio: profesional.edificio,
+                        numero: profesional.numero,
+                    })
+                    console.log(profesional)
+                }else{
+                    console.log("El profesional no existe, verifique el DNI")
+                }
+            }catch(error){
+                console.log(error)
+            }
+        }
+
+        const limpiarFormulario = () => {
+            setFormData({
+                dni: '',
+                nombre: '',
+                apellido: '',
+                cuit: '',
+                id_sexo: '',
+                id_rol: '',
+                email: '',
+                fecha_nacimiento: '',
+                telefono_personal: '',
+                telefono_alternativo:'',
+                id_estadoalumno: '',
+                idlocalidad: '',
+                domicilio: '',
+                edificio: false,
+                numero:'',
+                id_localidad: '',
+                piso: '',
+                departamento: ''
+            });
+        }
+        const handleDeshabilitarProfesional = async () => {
+            try{
+                const respuesta = await deshabilitarProfesional(formData.dni)
+                if(respuesta){
+                    console.log("El profesional fue deshabilitado correctamente")
+                }
+                limpiarFormulario()
+            }catch(error){
+                console.log(error)
+            }
+        }
+        const handleModificarProfesional = async () => {
+            try {
+                const profesionalData = {
+                    dni: parseInt(formData.dni),
+                    nombre: formData.nombre,
+                    apellido: formData.apellido,
+                    cuit: parseInt(formData.cuit),
+                    id_sexo: formData.id_sexo,
+                    id_rol: formData.id_rol,
+                    email: formData.email,
+                    fecha_nacimiento: formData.fecha_nacimiento,
+                    telefono_personal: parseInt(formData.telefono_personal),
+                    telefono_alternativo: parseInt(formData.telefono_alternativo),
+                    id_estadoalumno: formData.id_estadoalumno,
+                    id_localidad: formData.id_localidad,
+                    domicilio: formData.domicilio,
+                    edificio: formData.edificio,
+                    numero: formData.numero,
+                    piso: formData.edificio ? formData.piso : null,
+                    departamento: formData.edificio ? formData.departamento : null
+                };
+                console.log(profesionalData)
+                const respuesta = await modificarProfesional(formData.dni, profesionalData)
+                if(respuesta){
+                    console.log("El profesional fue modificado correctamente")
+                }
+            } catch (error) {
+                console.log(error.message)
+            }
+        }
 
     return (
         <View style={styles.padre}>
@@ -13,8 +201,8 @@ export default function GestionarAlumno() {
             <View style={styles.formulario}>
                 <View style={styles.dniContainer}>
                     <Text style={styles.label}>DNI:</Text>
-                    <TextInput style={styles.inputDni} placeholder='DNI' />
-                    <TouchableOpacity style={styles.consultarButton}>
+                    <TextInput style={styles.inputDni} placeholder='DNI' onChangeText={(value) => handleChange('dni', value)} />
+                    <TouchableOpacity style={styles.consultarButton} onPress={consultarProfesional}>
                         <Text style={styles.consultarText}>Consultar</Text>
                     </TouchableOpacity>
                 </View>
@@ -23,73 +211,75 @@ export default function GestionarAlumno() {
                     {/* Primera columna */}
                     <View style={styles.columna}>
                         <Text style={styles.label}>Nombre:</Text>
-                        <TextInput style={styles.input} placeholder='Nombre' />
+                        <TextInput style={styles.input} placeholder='Nombre' value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
                         <Text style={styles.label}>Apellido:</Text>
-                        <TextInput style={styles.input} placeholder='Apellido' />
+                        <TextInput style={styles.input} placeholder='Apellido' value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
                         <Text style={styles.label}>Correo:</Text>
-                        <TextInput style={styles.input} placeholder='Correo' />
+                        <TextInput style={styles.input} placeholder='Correo' value={formData.email} onChangeText={(value) => handleChange('email', value)} />
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='--/--/----' />
+                        <TextInput style={styles.input} placeholder='--/--/----' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
                         <Text style={styles.label}>CUIT:</Text>
-                        <TextInput style={styles.input} placeholder='CUIT' />
-                        <Text style={styles.label}>Rol:</Text>
-                        <Picker style={styles.input}>
-                            <Picker.Item label='Selecciona un rol' value='' />
-                            <Picker.Item label='Profesor' value='profesor' />
-                            <Picker.Item label='Preceptor' value='preceptor' />
-                        </Picker>
-                        <Text style={styles.label}>Sexo:</Text>
-                        <Picker style={styles.input}>
-                            <Picker.Item label='Selecciona el sexo' value='' />
-                            <Picker.Item label='Masculino' value='m' />
-                            <Picker.Item label='Femenino' value='f' />
-                        </Picker>
+                        <TextInput style={styles.input} placeholder='CUIT' value={formData.cuit} onChangeText={(value) => handleChange('cuit', value)} />
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            roles={rol}
+                            sexo={sexo}
+                            styles={styles}
+                        />
                     </View>
 
                     {/* Segunda columna */}
                     <View style={styles.columna}>
-                        <Text style={styles.label}>País:</Text>
-                        <Picker style={styles.input}>
-                            <Picker.Item label='Seleccione el país' value='' />
-                            <Picker.Item label='Argentina' value='Arg' />
-                            <Picker.Item label='Brasil' value='B' />
-                        </Picker>
-                        <Text style={styles.label}>Localidad:</Text>
-                        <Picker style={styles.input}>
-                            <Picker.Item label='Seleccione la localidad' value='' />
-                            <Picker.Item label='Córdoba' value='Cba' />
-                            <Picker.Item label='Brasil' value='Br' />
-                        </Picker>
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            
+                            estadoalumno={estadoalumno}
+                            localidad={localidad}
+                            styles={styles}
+                        />
+
                         <Text style={styles.label}>Domicilio:</Text>
-                        <TextInput style={styles.input} placeholder='Domicilio' />
+                        <TextInput
+                            style={styles.input}
+                            placeholder='Domicilio'
+                            value={formData.domicilio} 
+                            onChangeText={(value) => handleChange('domicilio', value)}
+                        />
                         <Text style={styles.label}>Número:</Text>
-                        <TextInput style={styles.input} placeholder='Número' />
+                        <TextInput
+                            style={styles.input}
+                            placeholder='Número'
+                            value={formData.numero} 
+                            onChangeText={(value) => handleChange('numero', value)}
+                        />
 
                         <View style={styles.checkboxContainer}>
                             <Text style={styles.label}>¿Vives en un departamento?</Text>
-                            <CheckBox
-                                value={viveEnDepto}
-                                onValueChange={setViveEnDepto}
-                                style={styles.check}
-                            />
+                                <CheckBox
+                                    value={formData.edificio}
+                                    onValueChange={() => handleChange('edificio', !formData.edificio)}
+                                    style={styles.check}
+                                />
                         </View>
 
                         {/* Inputs adicionales si vive en un departamento */}
-                        {viveEnDepto && (
+                        {formData.edificio && (
                             <>
                                 <Text style={styles.label}>Piso:</Text>
                                 <TextInput
                                     style={styles.input}
                                     placeholder='Piso'
-                                    value={piso}
-                                    onChangeText={setPiso}
+                                    value={formData.piso}
+                                    onChangeText={(value) => handleChange('piso', value)}
                                 />
                                 <Text style={styles.label}>Departamento:</Text>
                                 <TextInput
                                     style={styles.input}
                                     placeholder='Departamento'
-                                    value={depto}
-                                    onChangeText={setDepto}
+                                    value={formData.depto}
+                                    onChangeText={(value) => handleChange('depto', value)}
                                 />
                             </>
                         )}
@@ -98,24 +288,18 @@ export default function GestionarAlumno() {
                     {/* Tercera columna */}
                     <View style={styles.columna}>
                         <Text style={styles.label}>Teléfono Personal:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Personal' />
+                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
                         <Text style={styles.label}>Teléfono Alternativo:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Alternativo' />
-                        <Text style={styles.label}>N° de Legajo:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Padre/Tutor' />
-                        <Text style={styles.label}>Fecha apto:</Text>
-                        <TextInput style={styles.input} placeholder='--/--/----' />
-                        <Text style={styles.label}>Otorgado por:</Text>
-                        <TextInput style={styles.input} placeholder='Otorgado por' />
+                        <TextInput style={styles.input} placeholder='Teléfono Alternativo' value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
                     </View>
                 </View>
             </View>
 
             <View style={styles.contenidoBotones}>
-                <TouchableOpacity style={styles.botonAlta}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonBaja}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonModificar}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonLimpiar}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonAlta} onPress={registrarProfesional}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarProfesional}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonModificar} onPress={handleModificarProfesional}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarFormulario}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
         </View>
     );
