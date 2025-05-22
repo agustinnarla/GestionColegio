@@ -42,7 +42,11 @@ import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodos
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosSinFiltro, agregarNota, modificarEstadoEvaluativo} from '../metodos/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../metodos/metodosAsignarHoras.mjs'
 import { obtenerProfesoresAsistencia, registrarEntradaProfesor, registrarSalidaProfesor } from '../metodos/metodosAsistenciaProfesores.mjs'
+<<<<<<< HEAD
 import { habilitarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/metodosGestionPP.mjs'
+=======
+import { obtenerEstadosFaltaPP, obtenerFaltasPP, registrarJustificacionPP} from '../metodos/metodosJustificarFaltaPP.mjs'
+>>>>>>> c3bb95c (justificar falta PP)
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -284,3 +288,8 @@ ruta.get('/profesional/:dni', obtenerProfesional)
 ruta.post('/profesional/alta', habilitarProfesional)
 ruta.put('/profesional/modificar/:dni', modificarProfesional)
 ruta.put('/profesional/deshabilitar/:dni', deshabilitarProfesional) 
+//       JUSTIFICAR FALTA PP
+// =====================================
+ruta.get('/justificarFaltaPP/estadoFalta', obtenerEstadosFaltaPP)
+ruta.get('/justificarFaltaPP/faltas/:fechaInicio/:fechaFin', obtenerFaltasPP);
+ruta.post('/justificarFaltaPP/registrar', registrarJustificacionPP);
