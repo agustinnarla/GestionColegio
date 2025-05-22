@@ -1,9 +1,153 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React from "react";
+import React, { useEffect, useState } from 'react';
 import bg from '../../assets/bg1.jpg';
+import { obtenerEstadosFaltaPP, obtenerFaltasPP, registrarJustificacionPP } from '../../scripts/secretaria/scriptJustificarFaltaPP';
+import { obtenerCertificado } from '../../scripts/preceptor/scriptGestionJustificarFalta';
+
+const formatFecha = (fechaISO) => {
+    if (!fechaISO) return '--/--/----';
+    const fecha = new Date(fechaISO);
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const año = fecha.getFullYear();
+    return `${dia}/${mes}/${año}`;
+};
 
 export default function JustificarFaltaP_P() {
+    const [estadosFalta, setEstadosFalta] = useState([]);
+    const [certificados, setCertificados] = useState([]);
+    const [faltas, setFaltas] = useState([]);
+    const [fechaDesde, setFechaDesde] = useState('');
+    const [fechaHasta, setFechaHasta] = useState('');
+    const [estadoFaltaPorProfesor, setEstadoFaltaPorProfesor] = useState({});
+    const [certificadoPorProfesor, setCertificadoPorProfesor] = useState({});
+
+    const cargarEstadosFaltaPP = async () => {
+        try {
+            const estados = await obtenerEstadosFaltaPP();
+            setEstadosFalta(estados);
+        } catch (error) {
+            console.error('Error al cargar estados de falta:', error.message);
+            Alert.alert('Error', 'No se pudieron cargar los estados de falta');
+        }
+    };
+
+    const cargarCertificados = async () => {
+        try {
+            const certificados = await obtenerCertificado();
+            setCertificados(Array.isArray(certificados) ? certificados : []);
+        } catch (error) {
+            console.error('Error al cargar certificados:', error.message);
+            Alert.alert('Error', 'No se pudieron cargar los certificados');
+        }
+    };
+
+    const cargarFaltas = async () => {
+        try {
+            const faltasData = await obtenerFaltasPP(fechaDesde, fechaHasta);
+            setFaltas(Array.isArray(faltasData) ? faltasData : []);
+            
+            // Inicializar los estados por profesor
+            const estadoInicial = {};
+            const certificadoInicial = {};
+            
+            faltasData.forEach(falta => {
+                estadoInicial[falta.dni_profesor] = falta.id_estadofalta_pp || null;
+                certificadoInicial[falta.dni_profesor] = falta.id_certificado || null;
+            });
+            
+            setEstadoFaltaPorProfesor(estadoInicial);
+            setCertificadoPorProfesor(certificadoInicial);
+            
+        } catch (error) {
+            console.error('Error al cargar faltas:', error.message);
+            Alert.alert('Error', 'No se pudieron cargar las faltas');
+        }
+    };
+
+    useEffect(() => {
+        cargarEstadosFaltaPP();
+        cargarCertificados();
+    }, []);
+
+    const handleConsultar = () => {
+        if (fechaDesde && fechaHasta) {
+            cargarFaltas();
+        } else {
+            Alert.alert('Error', 'Por favor ingrese ambas fechas');
+        }
+    };
+
+    const actualizarSeleccionProfesor = (tipo, valor, dni_profesor, fecha) => {
+      // Actualizar el estado local
+      if (tipo === 'estadoFalta') {
+          setEstadoFaltaPorProfesor(prev => ({
+              ...prev,
+              [dni_profesor]: valor
+          }));
+      } else if (tipo === 'certificado') {
+          setCertificadoPorProfesor(prev => ({
+              ...prev,
+              [dni_profesor]: valor
+          }));
+      }
+  
+      // Preparar datos para enviar al backend
+      const datosParaEnviar = {
+          dni_profesor,
+          fecha,
+          id_estadofalta: tipo === 'estadoFalta' ? valor : estadoFaltaPorProfesor[dni_profesor],
+          id_certificado: tipo === 'certificado' ? valor : certificadoPorProfesor[dni_profesor]
+      };
+  
+      // Solo enviar si tenemos al menos el estado de falta
+      if (datosParaEnviar.id_estadofalta) {
+          registrarJustificacion(datosParaEnviar);
+      }
+    };
+
+      const formatFechaParaBackend = (fechaISO) => {
+        if (!fechaISO) return null;
+        const fecha = new Date(fechaISO);
+        const año = fecha.getFullYear();
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        return `${año}-${mes}-${dia}`;
+    };
+
+    const registrarJustificacion = async ({ dni_profesor, fecha, id_estadofalta, id_certificado }) => {
+      if (!dni_profesor || !fecha) {
+          console.log('Faltan datos requeridos');
+          return;
+      }
+  
+      try {
+          // Preparar los datos para enviar
+          const formData = {
+              dni_profesor,
+              fecha: formatFechaParaBackend(fecha),
+              id_estadofalta: id_estadofalta || null,  // Puede ser null
+              id_certificado: id_certificado || null   // Puede ser null
+          };
+  
+          console.log('Enviando datos:', formData);
+  
+          const resultado = await registrarJustificacionPP(formData);
+          console.log('Respuesta del servidor:', resultado);
+          
+          if (resultado.justificado === "No se realizaron cambios") {
+              Alert.alert('Información', 'No se realizaron cambios en la justificación');
+          } else {
+              Alert.alert('Éxito', 'Justificación registrada correctamente');
+          }
+      } catch (error) {
+          console.error('Error al registrar justificación:', error);
+          Alert.alert('Error', error.response?.data?.error || 'No se pudo registrar la justificación');
+      }
+  };
+  
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
@@ -11,13 +155,23 @@ export default function JustificarFaltaP_P() {
                 <View style={styles.contenidoFecha}>
                     <View style={styles.filaInputs}>
                         <Text style={styles.label}>Fecha desde:</Text>
-                        <TextInput placeholder='--/--/----' style={Platform.OS === 'web' ? styles.inputPequeño : styles.input} />
+                        <TextInput 
+                            placeholder='DD/MM/YYYY' 
+                            style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
+                            value={fechaDesde}
+                            onChangeText={setFechaDesde}
+                        />
                     </View>
                     <View style={styles.filaInputs}>
                         <Text style={styles.label}>Fecha hasta:</Text>
-                        <TextInput placeholder='--/--/----' style={Platform.OS === 'web' ? styles.inputPequeño : styles.input} />
+                        <TextInput 
+                            placeholder='DD/MM/YYYY' 
+                            style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
+                            value={fechaHasta}
+                            onChangeText={setFechaHasta}
+                        />
                     </View>
-                    <TouchableOpacity style={styles.boton}>
+                    <TouchableOpacity style={styles.boton} onPress={handleConsultar}>
                         <Text style={styles.botonTexto}>Consultar</Text>
                     </TouchableOpacity>
                 </View>
@@ -25,28 +179,61 @@ export default function JustificarFaltaP_P() {
                 <ScrollView horizontal>
                     <View style={styles.tabla}>
                         <View style={[styles.fila, styles.encabezados]}>
-                            <Text style={styles.encabezado}>Nombre</Text>
+                            <Text style={styles.encabezado}>DNI</Text>
                             <Text style={styles.encabezado}>Fecha</Text>
                             <Text style={styles.encabezado}>Estado de la Falta</Text>
                             <Text style={styles.encabezado}>Certificado Médico</Text>
-                            <Text style={styles.encabezado}>Días Habilitados</Text>
                         </View>
                         
-                        <View style={styles.fila}>
-                            <Text style={styles.celda}>Juan Pérez</Text>
-                            <TextInput style={styles.celda} placeholder="--/--/----" />
-                            <Picker style={styles.celda}>
-                                <Picker.Item label="Ausente Justificado" value="ausenteJustificado" />
-                                <Picker.Item label="Ausente" value="ausente" />
-                                <Picker.Item label="Tarde" value="tarde" />
-                            </Picker>
-                            <Picker style={styles.celda}>
-                                <Picker.Item label="No entregado" value="no" />
-                                <Picker.Item label="Entregado" value="si" />
-                            </Picker>
-                            <TextInput style={styles.celda} placeholder="Días habilitados" keyboardType="numeric" />
-                            <TouchableOpacity style={styles.archivo}><Text style={styles.archivoInfo}>📁</Text></TouchableOpacity>
-                        </View>
+                        {faltas.length > 0 ? (
+                            faltas.map((falta, index) => (
+                                <View key={index} style={styles.fila}>
+                                    <Text style={styles.celda}>{falta.dni_profesor}</Text>
+                                    <Text style={styles.celda}>{formatFecha(falta.fecha)}</Text>
+                                    
+                                    <Picker
+                                      style={styles.celda}
+                                      selectedValue={estadoFaltaPorProfesor[falta.dni_profesor] || null}
+                                      onValueChange={(itemValue) => {
+                                          actualizarSeleccionProfesor('estadoFalta', itemValue, falta.dni_profesor, falta.fecha);
+                                      }}
+                                  >
+                                      <Picker.Item label="Seleccione estado de falta" value={null} />
+                                      {estadosFalta.map(estado => (
+                                          <Picker.Item
+                                              key={estado.id_estadofalta_pp}
+                                              label={estado.detalle}
+                                              value={estado.id_estadofalta_pp}
+                                          />
+                                      ))}
+                                  </Picker>
+
+                                  <Picker
+                                      style={styles.celda}
+                                      selectedValue={certificadoPorProfesor[falta.dni_profesor] || null}
+                                      onValueChange={(itemValue) => {
+                                          actualizarSeleccionProfesor('certificado', itemValue, falta.dni_profesor, falta.fecha);
+                                      }}
+                                  >
+                                      <Picker.Item label="Seleccione certificado médico" value={null} />
+                                      {certificados.map(certificado => (
+                                          <Picker.Item
+                                              key={certificado.id_certificado}
+                                              label={certificado.detalle}
+                                              value={certificado.id_certificado}
+                                          />
+                                      ))}
+                                  </Picker>
+                                </View>
+                            ))
+                        ) : (
+                            <View style={styles.fila}>
+                                <Text style={styles.celda}>No hay datos disponibles</Text>
+                                <Text style={styles.celda}></Text>
+                                <Text style={styles.celda}></Text>
+                                <Text style={styles.celda}></Text>
+                            </View>
+                        )}
                     </View>
                 </ScrollView>
             </View>
@@ -54,6 +241,7 @@ export default function JustificarFaltaP_P() {
     );
 }
 
+// ... (los styles permanecen iguales) ...
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
