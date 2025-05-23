@@ -1,6 +1,7 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
-export const crearAvisos = async (req, res) => {
+// CrearAviso
+export const crearAviso = async (req, res) => {
     const { informacion, id_motivo, fecha, profesores = [], cursos = [] } = req.body;
     
     // Validar campos obligatorios
@@ -44,8 +45,8 @@ export const crearAvisos = async (req, res) => {
             if (profesores && profesores.length > 0) {
                 const profesoresInt = profesores.map(p => parseInt(p, 10));
                 await client.query(
-                    `INSERT INTO avisos_profesores 
-                     (id_avisos, dni_profesor) 
+                    `INSERT INTO aviso_profesionales
+                     (id_aviso_profesional, dni_profesional) 
                      SELECT $1, unnest($2::int[])`,
                     [idAviso, profesoresInt]
                 );
@@ -55,8 +56,8 @@ export const crearAvisos = async (req, res) => {
             if (cursos && cursos.length > 0) {
                 const cursosInt = cursos.map(c => parseInt(c, 10));
                 await client.query(
-                    `INSERT INTO avisos_cursos 
-                     (id_avisos, id_curso) 
+                    `INSERT INTO aviso_curso 
+                     (id_aviso_curso, id_cursos) 
                      SELECT $1, unnest($2::int[])`,
                     [idAviso, cursosInt]
                 );
@@ -87,56 +88,6 @@ export const crearAvisos = async (req, res) => {
     }
 };
 
-export const obtenerAvisos = async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                a.id_avisos,
-                a.informacion,
-                m.detalle as motivo,
-                TO_CHAR(a.fecha, 'DD/MM/YYYY HH24:MI') as fecha_formateada,
-                
-                -- Profesores como string concatenado
-                (
-                    SELECT STRING_AGG(p.nombre || ' ' || p.apellido, ', ')
-                    FROM avisos_profesores ap
-                    JOIN profesor p ON ap.dni_profesor = p.dni_profesor
-                    WHERE ap.id_avisos = a.id_avisos
-                ) AS profesores,
-                
-                -- Cursos como string concatenado
-                (
-                    SELECT STRING_AGG(c.detalle, ', ')
-                    FROM avisos_cursos ac
-                    JOIN curso c ON ac.id_curso = c.id_curso
-                    WHERE ac.id_avisos = a.id_avisos
-                ) AS cursos
-                
-            FROM avisos a
-            LEFT JOIN motivos m ON a.id_motivo = m.id_motivo
-            ORDER BY a.fecha DESC
-        `;
-        
-        const result = await pool.query(query);
-        
-        // Formatear los datos simplificados
-        const avisosSimplificados = result.rows.map(aviso => ({
-            informacion: aviso.informacion,
-            motivo: aviso.motivo || 'Motivo no especificado',
-            profesores: aviso.profesores || 'Sin profesores asignados',
-            cursos: aviso.cursos || 'Sin cursos asignados',
-            fecha: aviso.fecha_formateada
-        }));
-        
-        res.status(200).json(avisosSimplificados);
-    } catch (error) {
-        console.error('Error al obtener avisos:', error);
-        res.status(500).json({ 
-            error: 'Error al obtener avisos',
-            detalle: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-};
 
 export const obtenerMotivos = async (req, res) => {
     try {

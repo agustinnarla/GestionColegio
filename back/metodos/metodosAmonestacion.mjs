@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 */
 
 export const registrarAmonestacion = async (req, res) => {
-    const { dni_alumno, fecha, id_solicitante, cantidad, motivo } = req.body;
+    const { dni_alumno, fecha, dni_profesional, cantidad, motivo } = req.body;
     try {
         // Obtener el total de amonestaciones actuales
         const totalActualAmonestaciones = await pool.query(
@@ -32,8 +32,8 @@ export const registrarAmonestacion = async (req, res) => {
 
         // Insertar la nueva amonestación
         const respuesta = await pool.query(
-            'INSERT INTO amonestacion (dni_alumno, fecha, total, id_solicitante, cantidad, motivo) VALUES ($1, $2, $3, $4, $5, $6)',
-            [dni_alumno, fecha, nuevoTotal, id_solicitante, cantidad, motivo]
+            'INSERT INTO amonestacion (dni_alumno, fecha, total, dni_profesional, cantidad, motivo) VALUES ($1, $2, $3, $4, $5, $6)',
+            [dni_alumno, fecha, nuevoTotal, dni_profesional, cantidad, motivo]
         );
 
         // Enviar email de notificación

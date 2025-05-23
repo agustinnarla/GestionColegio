@@ -10,6 +10,8 @@ export const obtenerCurso = async (req,res) => {
         console.log("Error al traer los cursos")
     }
 }
+
+// VER
 export const obtenerCursoFiltrado = async (req, res) => {
      // Obtener el idcurso desde los parámetros de la solicitud
     const { idcurso } = req.params;

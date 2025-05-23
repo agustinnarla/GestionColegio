@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 export const ingresarUsuario = async (req, res) => {
     const { dni_usuario, contrasena } = req.body;
     try {
-        const respuesta = await pool.query('SELECT * FROM usuario WHERE dni_usuario = $1 AND id_estadoalumno = 1', [dni_usuario]);
+        const respuesta = await pool.query('SELECT * FROM usuario WHERE dni_usuario = $1 AND id_estado_general = 1', [dni_usuario]);
         if (respuesta.rows.length === 0) {
             return res.status(401).json({ message: 'Usuario no encontrado' });
         }
@@ -59,7 +59,8 @@ export const encriptarContrasena = async (contrasena) => {
     }
 };
 
-export const enviarEmail = async (req, res) => {
+//enviarNuevaContrasena
+export const enviarNuevaContrasena = async (req, res) => {
     const { dni_usuario } = req.body;
 
     // Validar entrada
@@ -72,7 +73,7 @@ export const enviarEmail = async (req, res) => {
         const { contrasenaTemporal, contrasenaEncriptada } = await generarContrasena();
 
         // Actualizar la contraseña
-        const resultado = await contrasenaActualizada(contrasenaEncriptada, dni_usuario);
+        const resultado = await actualizarContrasena(contrasenaEncriptada, dni_usuario);
 
         if (resultado.success) {
             // Configurar el email
@@ -100,17 +101,18 @@ export const enviarEmail = async (req, res) => {
     }
 };
 
-export const contrasenaActualizada = async (contrasenaEncriptada, dni_usuario) => {
+// Actualizar contraseña
+export const actualizarContrasena = async (contrasenaEncriptada, dni_usuario) => {
     try {
-        const actualizarContrasena = await pool.query(
+        const resultado = await pool.query(
             'UPDATE usuario SET contrasena = $1 WHERE dni_usuario = $2 RETURNING email',
             [contrasenaEncriptada, dni_usuario]
         );
 
-        if (actualizarContrasena.rows.length > 0) {
+        if (resultado.rows.length > 0) {
             return {
                 success: true,
-                email: actualizarContrasena.rows[0].email
+                email: resultado.rows[0].email
             };
         } else {
             return {

@@ -1,5 +1,7 @@
 import { pool } from '../dataBase/coneccion.mjs'
 
+
+// VER
 export const obtenerProfesoresAsistencia = async (req, res) => {
     try {
         // Obtener el día actual del sistema
@@ -8,8 +10,8 @@ export const obtenerProfesoresAsistencia = async (req, res) => {
 
         // Consulta a la base de datos usando el día actual
         const respuesta = await pool.query(
-            "SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesor " + // Espacio agregado al final
-            "FROM horario as h INNER JOIN profesores p ON p.dni_profesor = h.dni_profesor WHERE h.dia_semana = $1",
+            "SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional " + // Espacio agregado al final
+            "FROM horario as h INNER JOIN profesional p ON p.dni_profesional = h.dni_profesional WHERE h.dia_semana = $1",
             [diaActual]
         );
         // Verificar si hay resultados
@@ -30,7 +32,7 @@ export const registrarEntradaProfesor = async (req, res) => {
     const { dni_profesor, hora_entrada, fecha } = req.body;
     try {
         const respuesta = await pool.query(
-            "INSERT INTO asistencia_profesor (dni_profesor, fecha, hora_entrada, hora_salida) " +
+            "INSERT INTO asistencia_profesor (dni_profesional, fecha, hora_entrada, hora_salida) " +
             "VALUES ($1, $2, $3, NULL)", // La salida se deja como NULL
             [dni_profesor, fecha, hora_entrada]
         );
@@ -52,7 +54,7 @@ export const registrarSalidaProfesor = async (req, res) => {
         const respuesta = await pool.query(
             "UPDATE asistencia_profesor " +
             "SET hora_salida = $1 " +
-            "WHERE dni_profesor = $2 AND fecha = $3 AND hora_salida IS NULL", // Asegura que no se sobrescriba una salida ya registrada
+            "WHERE dni_profesional = $2 AND fecha = $3 AND hora_salida IS NULL", // Asegura que no se sobrescriba una salida ya registrada
             [hora_salida, dni_profesor, fecha]
         );
         if (respuesta.rowCount === 0) {

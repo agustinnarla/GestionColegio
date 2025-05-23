@@ -1,6 +1,6 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
-
+//obtenerSexos
 export const obtenerSexo = async (req,res) => {
     try{
 

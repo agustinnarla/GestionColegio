@@ -14,7 +14,7 @@ export const obtenerRoles = async (req,res) => {
 
 export const obtenerRolesDeshabilitados = async (req,res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM roles where id_estadoalumno = 2');
+        const respuesta = await pool.query('SELECT * FROM roles where id_estado_general = 2');
         res.status(200).json({roles: respuesta.rows});
         console.log('Roles obtenidos exitosamente');
     }
@@ -27,7 +27,7 @@ export const obtenerRolesDeshabilitados = async (req,res) => {
 export const registrarRol = async (req,res) => {
     const {detalle} = req.body;
     try{
-        const respuesta = await pool.query('INSERT INTO roles (detalle, id_estadoalumno) VALUES ($1,1)',[detalle]);
+        const respuesta = await pool.query('INSERT INTO roles (detalle, id_estado_general) VALUES ($1,1)',[detalle]);
         console.log('Rol registrado exitosamente');
         res.status(200).json({ roles: respuesta.rows});
     }catch(error){
@@ -44,7 +44,7 @@ export const deshabilitarRol = async (req, res) => {
     }
     try {
         const respuesta = await pool.query(
-            'UPDATE roles SET id_estadoalumno = 2 WHERE id_rol = $1',
+            'UPDATE roles SET id_estado_general = 2 WHERE id_rol = $1',
             [id_rol]
         );
 
@@ -69,7 +69,7 @@ export const habilitarRol = async (req, res) => {
 
     try {
         const respuesta = await pool.query(
-            'UPDATE roles SET id_estadoalumno = 1 WHERE id_rol = $1',
+            'UPDATE roles SET id_estado_general = 1 WHERE id_rol = $1',
             [id_rol]
         );
 

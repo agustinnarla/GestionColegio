@@ -1,30 +1,30 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 // Esta es la función del backend que maneja la inserción en la base de datos.
-export const registrarAsistenciaBackend = async (req, res) => {
-    const { dnialumno, fecha, idcurso, idestado } = req.body;
+export const registrarAsistencia = async (req, res) => {
+    const { dni_alumno, fecha, id_curso, id_estado_asistencia } = req.body;
     console.log('Datos recibidos en backend:', req.body); // Verifica que los datos llegan correctamente
 
     try {
         // Verificar si ya existe un registro con la fecha actual y el curso
         const consultaExistente = await pool.query(
-            "SELECT * FROM asistencia WHERE fecha = $1 AND idcurso = $2 AND dnialumno = $3",
-            [fecha, idcurso, dnialumno]
+            "SELECT * FROM asistencia_alumno WHERE fecha = $1 AND id_curso = $2 AND dni_alumno = $3",
+            [fecha, id_curso, dni_alumno]
         );
         console.log("Estamos revisando", consultaExistente)
         if (consultaExistente.rows.length > 0) {
             // Si ya existe, actualiza el registro
             const respuesta = await pool.query(
-                "UPDATE asistencia SET idestado = $1 WHERE fecha = $2 AND idcurso = $3 AND dnialumno = $4",
-                [idestado, fecha, idcurso, dnialumno]
+                "UPDATE asistencia_alumno SET id_estado_asistencia = $1 WHERE fecha = $2 AND id_curso = $3 AND dni_alumno = $4",
+                [id_estado_asistencia, fecha, id_curso, dni_alumno]
             );
             console.log('Registro actualizado:', respuesta.rowCount);
             res.status(200).json({ mensaje: 'Asistencia actualizada correctamente' });
         } else {
             // Si no existe, realiza el INSERT
             const respuesta = await pool.query(
-                "INSERT INTO asistencia (dnialumno, fecha, idcurso, idestado) VALUES ($1, $2, $3, $4)",
-                [dnialumno, fecha, idcurso, idestado]
+                "INSERT INTO asistencia_alumno (dni_alumno, fecha, id_curso, id_estado_asistencia) VALUES ($1, $2, $3, $4)",
+                [dni_alumno, fecha, id_curso, id_estado_asistencia]
             );
             console.log('Nuevo registro insertado:', respuesta.rowCount);
             res.status(201).json({ mensaje: 'Asistencia registrada correctamente' });
@@ -39,9 +39,10 @@ export const registrarAsistenciaBackend = async (req, res) => {
 
 //Modificar
 export const modificarAsistencia = async(req,res) => {
-    const {idcurso,dnialumno,idestado,fecha} = req.body;
+    const {id_curso, dni_alumno, id_estado_asistencia, fecha} = req.body;
     try{
-        const respuesta = await pool.query("UPDATE asistencia SET dnialumno = $1, fecha = $2, idcurso = $3, idestado = $4",[dnialumno,fecha,idcurso,idestado])
+        const respuesta = await pool.query("UPDATE asistencia_alumno SET dni_alumno = $1, fecha = $2, id_curso = $3, id_estado_asistencia = $4",
+            [dni_alumno,fecha,id_curso,id_estado_asistencia])
         console.log(respuesta.rows)
         res.status(200).json({asistencia: respuesta.rows})
     }catch{
@@ -50,12 +51,13 @@ export const modificarAsistencia = async(req,res) => {
     }
 }
 
+// Ver q hace
 export const validarFechaAsistencia = async(req, res) =>{
-    const { idcurso, fecha } = req.params;
+    const { id_curso, fecha } = req.params;
     try {
         const resultado = await pool.query(
-            'SELECT COUNT(*) as total FROM asistencia WHERE idcurso = $1 AND fecha = $2',
-            [idcurso, fecha]
+            'SELECT COUNT(*) as total FROM asistencia_alumno WHERE id_curso = $1 AND fecha = $2',
+            [id_curso, fecha]
         );
         const tieneAsistencia = resultado.rows[0].total > 0;
         res.status(200).json({ tieneAsistencia });
@@ -66,18 +68,18 @@ export const validarFechaAsistencia = async(req, res) =>{
 }
 
 export const obtenerModificacionAlumnosAusentes = async (req, res) => {
-    const { idcurso, fecha } = req.params; // Extraemos los parámetros de la URL
-    console.log("ID Curso:", idcurso);   // Verificar el idcurso
+    const { id_curso, fecha } = req.params; // Extraemos los parámetros de la URL
+    console.log("ID Curso:", id_curso);   // Verificar el idcurso
     console.log("Fecha recibida:", fecha); // Verificar la fecha
 
     try {
         // Aseguramos que la fecha se compara correctamente en la base de datos
         const respuesta = await pool.query(
-            "SELECT a.dnialumno, CONCAT(a.nombre, ' ', a.apellido) as nombreapellido, asi.fecha, asi.idestado "
+            "SELECT a.dni_alumno, CONCAT(a.nombre, ' ', a.apellido) as nombreapellido, asi.fecha, asi.id_estado_asistencia "
             + "FROM alumno AS a "
-            + "INNER JOIN asistencia AS asi ON asi.dnialumno = a.dnialumno "
-            + "WHERE asi.idcurso = $1 AND asi.idestado = 2 AND DATE(asi.fecha) = $2",
-            [idcurso, fecha]
+            + "INNER JOIN asistencia_alumno AS asi ON asi.dni_alumno = a.dni_alumno "
+            + "WHERE asi.id_curso = $1 AND asi.id_estado_asistencia = 2 AND DATE(asi.fecha) = $2",
+            [id_curso, fecha]
         );
 
         if (respuesta.rows.length > 0) {
@@ -94,19 +96,20 @@ export const obtenerModificacionAlumnosAusentes = async (req, res) => {
     }
 };
 
+// VER 
 export const obtenerFaltasSuperadas = async (req, res) => {
     try {
         const query = `
-            SELECT a.dnialumno
-            FROM public.asistencia a
-            JOIN public.alumno al ON a.dnialumno = al.dnialumno
-            WHERE a.idestado IN (2, 3)
-            AND al.idestadoalumno <> 2
-            GROUP BY a.dnialumno
-            HAVING SUM(CASE 
-                        WHEN a.idestado = 2 THEN 1
-                        WHEN a.idestado = 3 THEN 0.5
-                        ELSE 0 
+            SELECT a.dni_alumno
+            FROM public.asistencia_alumno a
+            JOIN public.alumno al ON a.dni_alumno = al.dni_alumno
+            WHERE a.id_estado_asistencia IN (2, 3)
+            AND al.id_estado_alumno <> 2
+            GROUP BY a.dni_alumno
+            HAVING SUM(CASE
+                        WHEN a.id_estado_asistencia = 2 THEN 1
+                        WHEN a.id_estado_asistencia = 3 THEN 0.5
+                        ELSE 0
                     END) >= 9;
         `;
 

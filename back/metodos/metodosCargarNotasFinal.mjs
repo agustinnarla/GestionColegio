@@ -8,7 +8,7 @@ export const obtenerCursosPorProfesor = async (req, res) => {
             SELECT 
                 pc.id_curso, 
                 pc.dni_profesor,
-                c.detalle -- si tenés una tabla curso y querés traer el nombre también
+                c.detalle 
             FROM profesor_curso pc
             LEFT JOIN curso c ON pc.id_curso = c.id_curso
             WHERE pc.dni_profesor = $1
@@ -34,7 +34,7 @@ export const obtenerMateriasPorProfesor = async (req, res) => {
             FROM profesor_materia pm
             LEFT JOIN materia m ON pm.id_materia = m.id_materia
             WHERE pm.dni_profesor = $1
-              AND m.id_estadoalumno = 1
+              AND m.id_estado_general = 1
             ORDER BY pm.id_materia
         `, [dni_profesor]);
 
@@ -45,6 +45,7 @@ export const obtenerMateriasPorProfesor = async (req, res) => {
     }
 };
 
+// Obtener Alumnos no regulares
 export const obtenerAlumnosSinFiltro = async (req, res) => {
     const { dni_profesor } = req.params;
 
@@ -73,8 +74,8 @@ export const obtenerAlumnosSinFiltro = async (req, res) => {
             JOIN 
                 profesor_curso pc ON ac.id_curso = pc.id_curso
             WHERE 
-                am.id_estadoevaluativo = 2
-                AND m.id_estadoalumno = 1
+                am.id_estado_evaluativo = 2
+                AND m.id_estado_general = 1
                 AND pm.dni_profesor = $1
                 AND pc.dni_profesor = $1
         `, [dni_profesor]);
@@ -86,23 +87,24 @@ export const obtenerAlumnosSinFiltro = async (req, res) => {
     }
 };
 
-export const agregarNota = async (req, res) => {
-    const { id_curso, id_materia, dni_profesor, dni_alumno, notafinal } = req.body;
+// RegistrarNotaFinal
+export const registrarNotaFinal = async (req, res) => {
+    const { id_curso, id_materia, dni_profesional, dni_alumno, nota_final } = req.body;
 
     // Validaciones
-    if (!id_curso || !id_materia || !dni_profesor || !dni_alumno || notafinal === undefined) {
+    if (!id_curso || !id_materia || !dni_profesional || !dni_alumno || nota_final === undefined) {
         return res.status(400).json({ error: "Faltan campos requeridos" });
     }
 
-    if (isNaN(notafinal) || notafinal < 1 || notafinal > 10) {
+    if (isNaN(nota_final) || nota_final < 1 || nota_final > 10) {
         return res.status(400).json({ error: "La nota debe ser un número entre 1 y 10" });
     }
 
     try {
         // Verificar si ya existe una nota para evitar duplicados
         const notaExistente = await pool.query(
-            `SELECT id_nota FROM notas 
-             WHERE id_curso = $1 AND id_materia = $2 AND dni_alumno = $3`,
+            `SELECT id_nota FROM nota_final
+                WHERE id_curso = $1 AND id_materia = $2 AND dni_alumno = $3`,
             [id_curso, id_materia, dni_alumno]
         );
 
@@ -112,14 +114,14 @@ export const agregarNota = async (req, res) => {
 
         // Insertar nueva nota
         const respuesta = await pool.query(`
-            INSERT INTO notas (id_curso, id_materia, dni_profesor, dni_alumno, notafinal)
+            INSERT INTO nota_final (id_curso, id_materia, dni_profesional, dni_alumno, nota_final)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING id_nota
-        `, [id_curso, id_materia, dni_profesor, dni_alumno, notafinal]);
+            RETURNING id_nota_final
+        `, [id_curso, id_materia, dni_profesional, dni_alumno, nota_final]);
 
         res.status(201).json({
             mensaje: "Nota registrada con éxito",
-            id_nota: respuesta.rows[0].id_nota
+            id_nota_final: respuesta.rows[0].id_nota_final
         });
     } catch (error) {
         console.error("Error al registrar la nota:", error.message);

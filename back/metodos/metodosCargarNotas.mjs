@@ -16,16 +16,22 @@ export const obtenerNotas = async (req, res) => {
                 am.nota3,
                 am.nota4,
                 am.nota5,
-                am.nota6
+                am.nota6,
+                am.tp1,
+                am.tp2,
+                am.tp3,
+                am.aulico,
+                am.promedio,
+                am.id_estado_evaluativo
             FROM alumno a
-            LEFT JOIN alumnocurso ac 
+            LEFT JOIN alumno_curso ac 
                 ON a.dni_alumno = ac.dni_alumno
-            LEFT JOIN alumnomateria am 
+            LEFT JOIN alumno_materia am 
                 ON a.dni_alumno = am.dni_alumno 
                 AND am.id_materia = $2
                 AND am.id_curso = $1  
             WHERE ac.id_curso = $1 
-                AND a.id_estadoalumno = 1
+                AND a.id_estado_general = 1
             ORDER BY a.apellido, a.nombre
         `, [id_curso, id_materia]);
         
@@ -37,7 +43,7 @@ export const obtenerNotas = async (req, res) => {
 }
 
 /*
-    REGISTRAMOS NUEVA NOTA/NOTAS 
+    REGISTRAMOS NUEVA NOTA/NOTAS  --> Modificar A notas VER PROMEDIOSSSS
 */
 export const registrarNota = async (req, res) => {
     try {
@@ -57,7 +63,11 @@ export const registrarNota = async (req, res) => {
                 nota3 = 0, 
                 nota4 = 0, 
                 nota5 = 0, 
-                nota6 = 0 
+                nota6 = 0,
+                tp1 = 0,
+                tp2 = 0,
+                tp3 = 0,
+                aulico = 0
             } = registro;
 
             // Validar datos obligatorios
@@ -69,7 +79,8 @@ export const registrarNota = async (req, res) => {
                 continue;
             }
 
-            try {
+            try { 
+                // Calcular promedio de trabajos practicos 
                 // Calcular promedio
                 const notas = [nota1, nota2, nota3, nota4, nota5, nota6];
                 const notasValidas = notas.filter(nota => nota > 0);
@@ -79,7 +90,7 @@ export const registrarNota = async (req, res) => {
 
                 // Verificar si existe el registro
                 const existeRegistro = await pool.query(`
-                    SELECT * FROM alumnomateria 
+                    SELECT * FROM alumno_materia 
                     WHERE dni_alumno = $1 
                     AND id_materia = $2 
                     AND id_curso = $3`,
@@ -89,15 +100,16 @@ export const registrarNota = async (req, res) => {
                 if (existeRegistro.rows.length > 0) {
                     // Actualizar registro existente
                     await pool.query(`
-                        UPDATE alumnomateria 
+                        UPDATE alumno_materia
                         SET nota1 = $4, nota2 = $5, nota3 = $6, nota4 = $7, nota5 = $8, nota6 = $9,
-                            id_estadoevaluativo = $10, promedio = $11
+                            tp1 = $10, tp2 = $11, tp3 = $12, aulico = $13,
+                            id_estado_evaluativo = $14, promedio = $15
                         WHERE dni_alumno = $1 
                         AND id_materia = $2 
                         AND id_curso = $3`,
                         [dni_alumno, id_materia, id_curso, 
-                         nota1, nota2, nota3, nota4, nota5, nota6,
-                         idestadoevaluativo, promedio]
+                        nota1, nota2, nota3, nota4, nota5, nota6,
+                        tp1, tp2, tp3, aulico, idestadoevaluativo, promedio]
                     );
                     resultados.push({
                         dni_alumno,
@@ -106,15 +118,15 @@ export const registrarNota = async (req, res) => {
                 } else {
                     // Insertar nuevo registro
                     await pool.query(`
-                        INSERT INTO alumnomateria 
-                        (dni_alumno, id_materia, id_curso, 
-                         nota1, nota2, nota3, nota4, nota5, nota6,
-                         id_estadoevaluativo, promedio)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-                        [dni_alumno, id_materia, id_curso, 
-                         nota1, nota2, nota3, nota4, nota5, nota6,
-                         idestadoevaluativo, promedio]
-                    );
+                        INSERT INTO alumno_materia
+                        (dni_alumno, id_materia, id_curso,
+                        nota1, nota2, nota3, nota4, nota5, nota6,
+                        tp1, tp2, tp3, aulico, id_estado_evaluativo, promedio)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+                    [dni_alumno, id_materia, id_curso,
+                        nota1, nota2, nota3, nota4, nota5, nota6,
+                        tp1, tp2, tp3, aulico, idestadoevaluativo, promedio]
+                );
                     resultados.push({
                         dni_alumno,
                         status: "insertado"

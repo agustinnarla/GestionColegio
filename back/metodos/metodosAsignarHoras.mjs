@@ -19,6 +19,7 @@ export const asignacionDeHoras = async (req, res) => {
     }
 };
 
+
 export const verificarHorario = async (id_curso, dia_semana, hora_inicio, hora_final) => {
     const query = `
         SELECT * FROM horario
@@ -48,7 +49,8 @@ export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_ini
 
 export const obtenerProfesores = async (req, res) => {
     try{
-        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombre, dni_profesor FROM profesores");
+        // Tabla profesionales traer nombre y apellido y de acuerdo al id_rol del profesor 
+        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombre, dni_profesional FROM profesionales WHERE id_rol = 2");
 
         if (respuesta.rows.length === 0) {
             return res.status(404).json({ message: 'No se encontraron profesores' });
@@ -64,11 +66,12 @@ export const obtenerProfesores = async (req, res) => {
 export const obtenerCursoPorProfesor = async (req, res) => {
     const { dni_profesor } = req.params;
     try {
+        // Cambiar dni_profesor por dni_profesional
         const respuesta = await pool.query(
             `SELECT pc.id_curso, c.detalle 
-             FROM profesor_curso AS pc 
-             INNER JOIN curso c ON c.id_curso = pc.id_curso 
-             WHERE pc.dni_profesor = $1`, 
+            FROM profesor_curso AS pc 
+            INNER JOIN curso c ON c.id_curso = pc.id_curso 
+            WHERE pc.profesional = $1`, 
             [dni_profesor]
         );
 
@@ -109,16 +112,17 @@ export const obtenerMateriaPorCurso = async (req, res) => {
 export const obtenerHorasProfesor = async (req, res) => {
     const { dni_profesor, id_curso } = req.params;
     try {
+        // Cambiar dni_profesor por dni_profesional
         const respuesta = await pool.query(
             `SELECT DISTINCT 
                 h.dia_semana, 
                 CONCAT(TO_CHAR(h.hora_inicio, 'HH24:MI'), ' - ', TO_CHAR(h.hora_final, 'HH24:MI')) AS horario, 
                 c.detalle AS curso, 
                 m.detalle AS materia
-             FROM horario AS h
-             INNER JOIN curso AS c ON c.id_curso = h.id_curso
-             INNER JOIN materia AS m ON m.id_materia = h.id_materia
-             WHERE h.dni_profesor = $1 AND h.id_curso = $2`,
+            FROM horario AS h
+            INNER JOIN curso AS c ON c.id_curso = h.id_curso
+            INNER JOIN materia AS m ON m.id_materia = h.id_materia
+            WHERE h.dni_profesional = $1 AND h.id_curso = $2`,
             [dni_profesor, id_curso]
         );
 

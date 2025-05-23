@@ -1,11 +1,11 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
-//Falta traer los que tengan finales --> Seguir viendo
+
 export const obtenerAlumnoFinal = async (req,res) => {
     const {idcurso} = req.params
     try{
         // Obtener promedios de cada alumno en distintas materias
-        const promedios = await pool.query('SELECT dni_alumno, AVG(promedio) as promedio FROM alumnomateria GROUP BY dni_alumno')
+        const promedios = await pool.query('SELECT dni_alumno, AVG(promedio) as promedio FROM alumno_materia GROUP BY dni_alumno')
         
         // Comprobar si hay algún promedio menor a 6
         const alumnosConFinales = promedios.rows.map(alumno => ({
@@ -14,9 +14,9 @@ export const obtenerAlumnoFinal = async (req,res) => {
         }));
 
         const respuesta = await pool.query(
-            "SELECT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, promedio as promedio " +
-            "FROM alumno a INNER JOIN alumnocurso ac ON a.dni_alumno = ac.dni_alumno INNER JOIN alumnomateria am ON a.dni_alumno = am.dni_alumno " +
-            "WHERE am.id_curso=$1 AND a.id_estadoalumno=1 AND am.id_estadoevaluativo=1",
+            "SELECT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, am.promedio as promedio " +
+            "FROM alumno a INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno INNER JOIN alumno_materia am ON a.dni_alumno = am.dni_alumno " +
+            "WHERE am.id_curso=$1 AND a.id_estado_general=1 AND am.id_estado_evaluativo=1",
             [idcurso]
         );
 
@@ -35,11 +35,11 @@ export const obtenerAlumnoFinal = async (req,res) => {
     }
 }
 
-export const registrarCursoNuevo = async(req, res) => {
+export const registrarCursoNuevo = async (req, res) => {
     try {
-        const alumnos = req.body; // Ahora esperamos un array de alumnos
-        
-        if (!Array.isArray(alumnos)) {
+        const alumnos = req.body; // Espera un array de alumnos
+
+        if (!Array.isArray(alumnos) || alumnos.length === 0) {
             return res.status(400).json({
                 message: "Se esperaba un array de alumnos"
             });
@@ -48,10 +48,10 @@ export const registrarCursoNuevo = async(req, res) => {
         // Obtener el curso actual del primer alumno para referencia
         const cursoActual = await pool.query(
             `SELECT c.detalle 
-            FROM alumnocurso ac 
+            FROM alumno_curso ac 
             JOIN curso c ON ac.id_curso = c.id_curso 
             WHERE ac.dni_alumno = $1`,
-            [alumnos[0].dnialumno]
+            [alumnos[0].dni_alumno]
         );
 
         if (!cursoActual.rows[0]) {
@@ -60,8 +60,15 @@ export const registrarCursoNuevo = async(req, res) => {
             });
         }
 
-        // Extraer el número del curso actual (1 de "1a" o "1b")
-        const añoActual = parseInt(cursoActual.rows[0].detalle);
+        // Extraer el número del curso actual (ej: "1a" => 1)
+        const detalle = cursoActual.rows[0].detalle;
+        const match = detalle.match(/^(\d+)/);
+        if (!match) {
+            return res.status(400).json({
+                message: 'El detalle del curso actual no tiene un número válido'
+            });
+        }
+        const añoActual = parseInt(match[1]);
         const añoSiguiente = añoActual + 1;
 
         // Buscar el primer curso del año siguiente (por ejemplo, "2a")
@@ -80,22 +87,22 @@ export const registrarCursoNuevo = async(req, res) => {
             });
         }
 
-        const idcursonuevo = cursoSiguiente.rows[0].idcurso;
+        const idcursonuevo = cursoSiguiente.rows[0].id_curso;
 
         // Actualizar todos los alumnos en una sola transacción
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-            
+
             for (const alumno of alumnos) {
                 await client.query(
-                    'UPDATE alumnocurso SET id_curso = $1 WHERE dni_alumno = $2', 
-                    [idcursonuevo, alumno.dnialumno]
+                    'UPDATE alumno_curso SET id_curso = $1 WHERE dni_alumno = $2',
+                    [idcursonuevo, alumno.dni_alumno]
                 );
             }
-            
+
             await client.query('COMMIT');
-            
+
             res.status(200).json({
                 success: true,
                 message: "Alumnos actualizados correctamente"

@@ -14,17 +14,17 @@ const transporter = nodemailer.createTransport({
 //Alta
 export const registrarObservacion = async (req, res) => {
     //Datos q le vamos a pasar
-    const { dni_alumno, fecha, id_solicitante, motivo } = req.body; 
+    const { dni_alumno, fecha, dni_profesional, motivo } = req.body; 
     try {
         
 
         const respuesta = await pool.query(
-            'INSERT INTO observacion (dni_alumno, fecha, id_solicitante, motivo) VALUES ($1, $2, $3, $4)',
-            [dni_alumno, fecha, id_solicitante, motivo]
+            'INSERT INTO observacion (dni_alumno, fecha, dni_profesional, motivo) VALUES ($1, $2, $3, $4)',
+            [dni_alumno, fecha, dni_profesional, motivo]
         );
 
         // Enviar email de notificación
-        await enviarEmail(dni_alumno, fecha, motivo);
+        await enviarObservacion(dni_alumno, fecha, motivo);
 
 
         //Registramos la observación
@@ -36,8 +36,8 @@ export const registrarObservacion = async (req, res) => {
     }
 };
 
-
-const enviarEmail = async (dni_alumno, fecha, motivo) => {
+//enviarObservacion
+const enviarObservacion = async (dni_alumno, fecha, motivo) => {
     try {
         const emailsQuery = await pool.query(
             'SELECT email_familiar FROM alumno WHERE dni_alumno = $1',

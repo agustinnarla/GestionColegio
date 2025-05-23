@@ -1,16 +1,17 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
-export const cargarGrilla = async (req, res) => {
+//obtener libro matriz
+export const obtenerLibroMatriz = async (req, res) => {
     const { dni_alumno } = req.params;
     try {
         const respuesta = await pool.query(
             // Ver curso actual 
             "SELECT DISTINCT am.dni_alumno, m.detalle AS materia_detalle, ev.detalle AS estado_detalle, am.promedio, c.detalle AS curso_detalle, c.id_curso " +
-            "FROM alumnomateria AS am " +
+            "FROM alumno_materia AS am " +
             "INNER JOIN materia AS m ON m.id_materia = am.id_materia " +
-            "INNER JOIN estadoevaluativo AS ev ON ev.id_estadoevaluativo = am.id_estadoevaluativo " +
+            "INNER JOIN estado_evaluativo AS ev ON ev.id_estado_evaluativo = am.id_estado_evaluativo " +
             "INNER JOIN curso AS c ON c.id_curso = am.id_curso " +
-            "INNER JOIN alumnocurso AS ac ON ac.id_curso = c.id_curso " +
+            "INNER JOIN alumno_curso AS ac ON ac.id_curso = c.id_curso " +
             "WHERE am.dni_alumno = $1 AND am.id_curso = ac.id_curso " +
             "ORDER BY c.id_curso DESC", 
             [dni_alumno]

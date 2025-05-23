@@ -1,7 +1,7 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 
-//Luego se tendria q traer materias de acuerdo al profesor 
+//VER
 export const obtenerMateria = async (req, res) => {
     try {
         const respuesta = await pool.query("SELECT id_materia, detalle FROM materia");
@@ -17,6 +17,9 @@ export const obtenerMateria = async (req, res) => {
     }
 }
 
+
+// VER
+//obtenerNotasPorAlumno -> Cambiar lugar
 export const obtenerMateriaPorDni = async (req, res) => {
     const { dni_alumno } = req.params;
     try {

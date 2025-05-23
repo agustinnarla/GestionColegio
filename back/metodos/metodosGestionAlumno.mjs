@@ -1,9 +1,10 @@
 import {pool} from '../dataBase/coneccion.mjs'
-
+import { encriptarContrasena } from './metodosLogin.mjs';
 
 export const obtenerAlumno = async (req,res) => {
-    try{
-        const respuesta = await pool.query('SELECT * FROM alumno')
+    const {dni_alumno} = req.params
+    try{    
+        const respuesta = await pool.query('SELECT * FROM alumno WHERE dni_alumno = $1', [dni_alumno]);
         res.json({alumnos: respuesta.rows})
     }catch{
         console.log('Error al traer los alumnos')
@@ -11,7 +12,9 @@ export const obtenerAlumno = async (req,res) => {
 }
 
 export const obtenerLegajoAlumno = async (req, res) => {
+    
     try {
+        const { dni_alumno } = req.params;
         // Consulta para obtener los metadatos del legajo, incluidos los campos binarios como BLOB o BYTEA
         const respuesta = await pool.query(`
             SELECT 
@@ -20,8 +23,9 @@ export const obtenerLegajoAlumno = async (req, res) => {
                 LENGTH(dni_foto) AS tamaño_dni,
                 LENGTH(ficha_medica) AS tamaño_ficha_medica,
                 LENGTH(partida_nacimiento) AS tamaño_partida_nacimiento
-            FROM adjuntolegajo
-        `);
+            FROM alumno_legajo
+            WHERE dni_alumno = $1
+        `, [dni_alumno]);
         // Mapear los resultados para enviar solo los metadatos
         const legajos = respuesta.rows.map(row => ({
             id: row.id,
@@ -41,25 +45,25 @@ export const obtenerLegajoAlumno = async (req, res) => {
 
 export const obtenerLegajoAlumnoFiltrado = async (req, res) => {
     try {
-        const { dnialumno, imagenTipo } = req.params; // Capturamos el dnialumno y el tipo de imagen
+        const { dni_alumno, imagen_Tipo } = req.params; // Capturamos el dnialumno y el tipo de imagen
         const respuesta = await pool.query(
-            'SELECT * FROM adjuntolegajo WHERE dnialumno = $1',
-            [dnialumno]
+            'SELECT * FROM adjunto_legajo WHERE dni_alumno = $1',
+            [dni_alumno]
         );
 
         if (respuesta.rows.length > 0) {
             let archivo; // Variable para almacenar el archivo que se enviará
 
             // Dependiendo de la ruta (imagenTipo), seleccionamos el archivo correcto
-            switch (imagenTipo) {
+            switch (imagen_Tipo) {
                 case '1': // DNI Foto
-                    archivo = respuesta.rows[0].dnifoto;
+                    archivo = respuesta.rows[0].dni_foto;
                     break;
                 case '2': // Ficha médica
-                    archivo = respuesta.rows[0].fichamedica;
+                    archivo = respuesta.rows[0].ficha_medica;
                     break;
                 case '3': // Partida de nacimiento
-                    archivo = respuesta.rows[0].partidanacimiento;
+                    archivo = respuesta.rows[0].partida_nacimiento;
                     break;
                 default:
                     return res.status(400).send({ error: 'Tipo de archivo no válido' });
@@ -79,13 +83,14 @@ export const obtenerLegajoAlumnoFiltrado = async (req, res) => {
     }
 };
 
+// VER
 export const obtenerAlumnoFiltrado = async (req, res) => {
     try {
         const { dni_alumno } = req.params;
         const respuesta = await pool.query(
             `SELECT a.*, ac.id_curso, ac.dni_alumno 
             FROM alumno a 
-            INNER JOIN alumnocurso ac ON ac.dni_alumno = a.dni_alumno  
+            INNER JOIN alumno_curso ac ON ac.dni_alumno = a.dni_alumno  
             WHERE a.dni_alumno = $1`, 
             [dni_alumno]
         );
@@ -102,24 +107,25 @@ export const obtenerAlumnoFiltrado = async (req, res) => {
     }
 }
 
-export const agregarAlumno = async (req, res) => {
+//registrar Alumno
+export const registrarAlumno = async (req, res) => {
     try {
         const { dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, 
-            fecha_nacimiento, id_localidad, id_estadoalumno, telefono_personal, telefono_madre,
+            fecha_nacimiento, id_localidad, id_estado_general, telefono_personal, telefono_madre,
             telefono_padre, email_personal, email_familiar, id_curso,edificio } = req.body;
 
         const respuesta = await pool.query(
             'INSERT INTO alumno (dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil,'
-            + 'fecha_nacimiento, id_localidad, id_estadoalumno, telefono_personal,telefono_madre, telefono_padre, email_personal, email_familiar,edificio)'
+            + 'fecha_nacimiento, id_localidad, id_estado_general, telefono_personal,telefono_madre, telefono_padre, email_personal, email_familiar,edificio)'
             + 'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
-            [dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, fecha_nacimiento, id_localidad, id_estadoalumno, telefono_personal, 
+            [dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, fecha_nacimiento, id_localidad, id_estado_general, telefono_personal, 
                 telefono_madre, telefono_padre, email_personal, email_familiar,edificio]
         );
 
-        const nuevoDni = respuesta.rows[0].dnialumno;
+        const nuevoDni = respuesta.rows[0].dni_alumno;
 
         await pool.query(
-            'INSERT INTO alumnocurso (dni_alumno, id_curso) VALUES ($1, $2)',
+            'INSERT INTO alumno_curso (dni_alumno, id_curso) VALUES ($1, $2)',
             [nuevoDni, id_curso]
         );
 
@@ -134,14 +140,15 @@ export const agregarAlumno = async (req, res) => {
     }
 };
 
-export const agregarLegajo = async (req, res) => {
+//Registrar Legajo
+export const registrarLegajo = async (req, res) => {
     try {
         const { dni_alumno, fecha_subida } = req.body;
 
         // Verificar si los archivos están presentes
-        const dnifoto = req.files.dnifoto ? req.files.dnifoto[0].buffer : null;
-        const fichamedica = req.files.fichamedica ? req.files.fichamedica[0].buffer : null;
-        const partidanacimiento = req.files.partidanacimiento ? req.files.partidanacimiento[0].buffer : null;
+        const dni_foto = req.files.dni_foto ? req.files.dni_foto[0].buffer : null;
+        const ficha_medica = req.files.ficha_medica ? req.files.ficha_medica[0].buffer : null;
+        const partida_nacimiento = req.files.partida_nacimiento ? req.files.partida_nacimiento[0].buffer : null;
 
         if (!dni_alumno || !fecha_subida) {
             return res.status(400).json({ error: 'Faltan datos obligatorios (dnialumno, fecha_subida).' });
@@ -149,10 +156,10 @@ export const agregarLegajo = async (req, res) => {
 
         // Realizar la consulta para insertar los datos
         const respuesta = await pool.query(
-            `INSERT INTO adjuntolegajo (dnialumno, dnifoto, fichamedica, partidanacimiento, fecha_subida)
+            `INSERT INTO adjunto_legajo (dni_alumno, dni_foto, ficha_medica, partida_nacimiento, fecha_subida)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *`,
-            [dni_alumno, dnifoto, fichamedica, partidanacimiento, fecha_subida]
+            [dni_alumno, dni_foto, ficha_medica, partida_nacimiento, fecha_subida]
         );
 
         // Responder con los datos del nuevo registro
@@ -168,7 +175,7 @@ export const agregarLegajo = async (req, res) => {
 export const deshabilitarAlumno = async (req,res) =>{
     try{
         const {dni_alumno} = req.params;
-        const respuesta = await pool.query('UPDATE alumno SET id_estadoalumno = 2 WHERE dni_alumno = $1', [dni_alumno]);
+        const respuesta = await pool.query('UPDATE alumno SET id_estado_general = 2 WHERE dni_alumno = $1', [dni_alumno]);
         
         if (respuesta.rowCount === 0) {
             return res.status(404).json({ error: 'Alumno no encontrado' });
@@ -185,7 +192,7 @@ export const modificarAlumno = async (req, res) => {
     try {
         const { dni_alumno } = req.params;
         const { nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, fecha_nacimiento, 
-            id_localidad, id_estadoalumno, telefono_personal, telefono_madre, telefono_padre, email_personal, email_familiar, id_curso, edificio } = req.body; 
+            id_localidad, id_estado_general, telefono_personal, telefono_madre, telefono_padre, email_personal, email_familiar, id_curso, edificio } = req.body; 
         const valores = [];
         const columnas = [];
         // Crear un objeto con los campos que se pueden actualizar
@@ -199,7 +206,7 @@ export const modificarAlumno = async (req, res) => {
             cuil,
             fecha_nacimiento,
             id_localidad,
-            id_estadoalumno,
+            id_estado_general,
             telefono_personal,
             telefono_madre,
             telefono_padre,
@@ -255,24 +262,24 @@ export const modificarAlumno = async (req, res) => {
 
 export const modificarAdjuntoLegajo = async (req, res) => {
     try {
-        const { dnialumno, fecha_subida } = req.body;
+        const { dni_alumno, fecha_subida } = req.body;
 
         // Verificar si los archivos están presentes
-        const dnifoto = req.files.dnifoto ? req.files.dnifoto[0].buffer : null;
-        const fichamedica = req.files.fichamedica ? req.files.fichamedica[0].buffer : null;
-        const partidanacimiento = req.files.partidanacimiento ? req.files.partidanacimiento[0].buffer : null;
+        const dni_foto = req.files.dni_foto ? req.files.dni_foto[0].buffer : null;
+        const ficha_medica = req.files.ficha_medica ? req.files.ficha_medica[0].buffer : null;
+        const partida_nacimiento = req.files.partida_nacimiento ? req.files.partida_nacimiento[0].buffer : null;
 
-        if (!dnialumno || !fecha_subida) {
-            return res.status(400).json({ error: 'Faltan datos obligatorios (dnialumno, fecha_subida).' });
+        if (!dni_alumno || !fecha_subida) {
+            return res.status(400).json({ error: 'Faltan datos obligatorios (dni_alumno, fecha_subida).' });
         }
 
         // Realizar la consulta para insertar los datos
         const respuesta = await pool.query(
-            `UPDATE adjuntolegajo 
-            SET dnifoto = $1, fichamedica = $2, partidanacimiento = $3, fecha_subida = $4
-            WHERE dnialumno = $5
+            `UPDATE adjunto_legajo
+            SET dni_foto = $1, ficha_medica = $2, partida_nacimiento = $3, fecha_subida = $4
+            WHERE dni_alumno = $5
             RETURNING *`,
-            [dnifoto, fichamedica, partidanacimiento, fecha_subida, dnialumno]
+            [dni_foto, ficha_medica, partida_nacimiento, fecha_subida, dni_alumno]
         );
         
 
@@ -294,10 +301,11 @@ export const obtenerAlumnoNombreApellido = async (req,res) => {
     }
 }
 
+//VER
 export const obtenerAlumnoCurso = async (req,res) => {
     const {id_curso} = req.params
     try{
-        const respuesta = await pool.query("SELECT a.dni_alumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumnocurso ac ON a.dni_alumno = ac.dni_alumno WHERE id_curso=$1 AND a.id_estadoalumno=1",
+        const respuesta = await pool.query("SELECT a.dni_alumno,CONCAT(nombre,' ',apellido)  as nombrecompleto FROM alumno a INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno WHERE id_curso=$1 AND a.id_estado_general=1",
             [id_curso])
         res.status(200).json({alumnos: respuesta.rows})
     }catch(error){

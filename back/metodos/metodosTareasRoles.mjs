@@ -2,7 +2,7 @@ import {pool} from '../dataBase/coneccion.mjs';
 
 export const obtenerRoles = async (req,res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM roles where id_estadoalumno = 1');
+        const respuesta = await pool.query('SELECT * FROM roles where id_estado_general = 1');
         res.status(200).json({roles: respuesta.rows});
         console.log('Roles obtenidos exitosamente');
     }
@@ -14,7 +14,7 @@ export const obtenerRoles = async (req,res) => {
 
 export const obtenerTareas = async (req,res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estadoalumno != 2')
+        const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estado_general != 2')
         res.status(200).json({roles: respuesta.rows});
         console.log('Tareas obtenidas exitosamente');
     }
@@ -23,6 +23,7 @@ export const obtenerTareas = async (req,res) => {
         res.status(500).json({ message: 'Error al obtener las tareas' });
     }   
 }
+
 export const registrarTareaRol = async (req, res) => {
     const relaciones = req.body; // Recibe un arreglo de relaciones
 
@@ -101,9 +102,9 @@ export const obtenerTareasDeRoles = async (req, res) => {
         // Obtener las tareas asociadas al rol
         const result = await pool.query(
             `SELECT tr.id_tarea 
-             FROM tarearol tr
+             FROM tarea_rol tr
              JOIN tarea t ON tr.id_tarea = t.id_tarea
-             WHERE tr.id_rol = $1 AND t.id_estadoalumno = 1`,
+             WHERE tr.id_rol = $1 AND t.id_estado_general = 1`,
             [id_rol]
         );
 
@@ -128,9 +129,9 @@ export const obtenerRolesDeTarea = async (req, res) => {
         // Obtener las tareas asociadas al rol
         const result = await pool.query(
             `SELECT tr.id_rol 
-             FROM tarearol tr
+             FROM tarea_rol tr
              JOIN roles r ON tr.id_rol = r.id_rol
-             WHERE tr.id_tarea = $1 AND r.id_estadoalumno = 1`,
+             WHERE tr.id_tarea = $1 AND r.id_estado_general = 1`,
             [id_tarea]
         );
 
@@ -147,24 +148,26 @@ export const obtenerRolesDeTarea = async (req, res) => {
     }
 };
 
-export const eliminarTareaRol = async (req, res) => {
+//Deshabilitar 
+export const deshabilitarTareaRol = async (req, res) => {
     const { id_tarea } = req.body;
     try {
-        await pool.query('DELETE FROM tarearol WHERE id_tarea = $1', [id_tarea]);
-        res.status(200).json({ mensaje: 'Relaciones eliminadas exitosamente' });
+        await pool.query('UPDATE tarea_rol SET id_estado_general = 2 WHERE id_tarea = $1', [id_tarea]);
+        res.status(200).json({ mensaje: 'Relaciones deshabilitadas exitosamente' });
     } catch (error) {
-        console.error('Error al eliminar relaciones:', error);
-        res.status(500).json({ error: 'Error al eliminar relaciones' });
+        console.error('Error al deshabilitar relaciones:', error);
+        res.status(500).json({ error: 'Error al deshabilitar relaciones' });
     }
 };
 
-export const eliminaRolTarea = async (req, res) => {
+//Deshabilitar 
+export const deshabilitarRolTarea = async (req, res) => {
     const { id_rol } = req.body;
     try {
-        await pool.query('DELETE FROM tarearol WHERE id_rol = $1', [id_rol]);
-        res.status(200).json({ mensaje: 'Relaciones eliminadas exitosamente' });
+        await pool.query('UPDATE tarea_rol SET id_estado_general = 2 WHERE id_rol = $1', [id_rol]);
+        res.status(200).json({ mensaje: 'Relaciones deshabilitadas exitosamente' });
     } catch (error) {
-        console.error('Error al eliminar relaciones:', error);
-        res.status(500).json({ error: 'Error al eliminar relaciones' });
+        console.error('Error al deshabilitar relaciones:', error);
+        res.status(500).json({ error: 'Error al deshabilitar relaciones' });
     }
 };

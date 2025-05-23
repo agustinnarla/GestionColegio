@@ -2,7 +2,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 export const obtenerMaterias = async (req, res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM materia WHERE id_estadoalumno != 2');
+        const respuesta = await pool.query('SELECT * FROM materia WHERE id_estado_general = 1');
         res.json({ materias: respuesta.rows });
     } catch (error) {
         console.log('Error al traer las materias', error);
@@ -12,7 +12,7 @@ export const obtenerMaterias = async (req, res) => {
 
 export const obtenerMateriasDeshabilitadas = async (req, res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM materia WHERE id_estadoalumno = 2');
+        const respuesta = await pool.query('SELECT * FROM materia WHERE id_estado_general = 2');
         res.json({ materias: respuesta.rows });
     } catch (error) {
         console.log('Error al traer las materias', error);
@@ -26,8 +26,8 @@ export const habilitarMateria = async (req, res) => {
         return res.status(400).json({ error: 'ID de materia no proporcionado' });
     }
     try {
-        // Actualizar el estado de la materia a deshabilitada (id_estadoalumno = 2)
-        await pool.query('UPDATE materia SET id_estadoalumno = 1 WHERE id_materia = $1', [id_materia]);
+        // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
+        await pool.query('UPDATE materia SET id_estado_general = 1 WHERE id_materia = $1', [id_materia]);
 
         res.status(200).json({ mensaje: 'Materia habilitada exitosamente' });
     } catch (error) {
@@ -36,37 +36,40 @@ export const habilitarMateria = async (req, res) => {
     }
 };
 
-
+//Trae todos los datos 
 export const obtenerProfesor = async (req,res) => {
     try{
-        const respuesta = await pool.query('SELECT * FROM profesor')
+        const respuesta = await pool.query('SELECT * FROM profesional WHERE id_rol = 1 AND id_estado_general = 1')
         res.json({profesor: respuesta.rows})
     }catch{
         console.log('Error al traer las materias')
     }
 }
 
-export const verificarExistencia = async (dni_profesor, id_materia) => {
+export const verificarExistencia = async (dni_profesional, id_materia) => {
     const resultado = await pool.query(
-        'SELECT * FROM materiaprofesor WHERE dni_profesor = $1 AND id_materia = $2',
-        [dni_profesor, id_materia]
+        'SELECT * FROM materia_profesor WHERE dni_profesional = $1 AND id_materia = $2',
+        [dni_profesional, id_materia]
     );
     return resultado.rows.length > 0;
 };
 
+
+//VER SI ES PROESIONAL O USUARIO
 export const registrarMateriaProfesor = async (req, res) => {
-    const { dni_profesor, id_materia } = req.body;
-    if (!dni_profesor || !id_materia) {
-        return res.status(400).json({ error: 'Se requiere dni_profesor e id_materia' });
+    const { dni_profesional, id_materia, id_estado_general } = req.body;
+    if (!dni_profesional || !id_materia || !id_estado_general) {
+        return res.status(400).json({ error: 'Se requiere dni_profesional, id_materia e id_estado_general' });
     }
     try {
-        const existe = await verificarExistencia(dni_profesor, id_materia);
+        const dni_usuario = dni_profesional
+        const existe = await verificarExistencia(dni_profesional, id_materia);
         if (existe) {
             return res.status(200).json({ mensaje: 'La relación Materia-Profesor ya estaba registrada' });
         }
         const resultado = await pool.query(
-            'INSERT INTO materiaprofesor (dni_profesor, id_materia) VALUES ($1, $2) RETURNING *',
-            [dni_profesor, id_materia]
+            'INSERT INTO materia_profesor (dni_profesional, id_materia, id_estado_general) VALUES ($1, $2, $3) RETURNING *',
+            [dni_usuario, id_materia, id_estado_general]
         );
         return res.status(201).json({ mensaje: 'Relación Materia-Profesor registrada exitosamente', data: resultado.rows[0] });
     } catch (error) {
@@ -75,12 +78,12 @@ export const registrarMateriaProfesor = async (req, res) => {
     }
 };
 
-export const eliminarMateriaProfesor = async (req, res) => {
-    const { id_materia } = req.body;
 
+export const deshabilitarMateriaProfesor = async (req, res) => {
+    const { id_materia } = req.params;
     try {
-        await pool.query('DELETE FROM materiaprofesor WHERE id_materia = $1', [id_materia]);
-        res.status(200).json({ mensaje: 'Relaciones eliminadas exitosamente' });
+        await pool.query('UPDATE materia_profesor SET id_estado_general = 2 WHERE id_materia = $1', [id_materia]);
+        res.status(200).json({ mensaje: 'Relaciones deshabilitada exitosamente' });
     } catch (error) {
         console.error('Error al eliminar relaciones:', error);
         res.status(500).json({ error: 'Error al eliminar relaciones' });
@@ -94,8 +97,8 @@ export const deshabilitarMateria = async (req, res) => {
     }
 
     try {
-        // Actualizar el estado de la materia a deshabilitada (id_estadoalumno = 2)
-        await pool.query('UPDATE materia SET id_estadoalumno = 2 WHERE id_materia = $1', [id_materia]);
+        // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
+        await pool.query('UPDATE materia SET id_estado_general = 2 WHERE id_materia = $1', [id_materia]);
 
         res.status(200).json({ mensaje: 'Materia deshabilitada exitosamente' });
     } catch (error) {
@@ -103,12 +106,14 @@ export const deshabilitarMateria = async (req, res) => {
         res.status(500).json({ error: 'Error al deshabilitar la materia' });
     }
 };
-export const obtenerProfesorXMateria = async (req, res) => {
+
+//obtener Profesor Por Materia
+export const obtenerProfesorPorMateria = async (req, res) => {
     const { id_materia } = req.params; // Obtener el id de la materia desde los parámetros de la URL
 
     try {
         const respuesta = await pool.query(
-            'SELECT dni_profesor FROM materiaprofesor WHERE id_materia = $1',
+            'SELECT dni_usuario FROM materia_profesor WHERE id_materia = $1',
             [id_materia]
         );
 
@@ -119,14 +124,15 @@ export const obtenerProfesorXMateria = async (req, res) => {
     }
 };
 
-export const insertarMateria = async (req, res) => {
+// agregarMateria
+export const agregarMateria = async (req, res) => {
     const { detalle } = req.body; // Recibe el nombre de la materia desde el frontend
     if (!detalle) {
         return res.status(400).json({ error: "El detalle de la materia es obligatorio" });
     }
     try {
         const respuesta = await pool.query(
-            "INSERT INTO materia (detalle, id_estadoalumno) VALUES ($1, 1) RETURNING *",
+            "INSERT INTO materia (detalle, id_estado_general) VALUES ($1, 1) RETURNING *",
             [detalle]
         );
         res.status(201).json({ mensaje: "Materia registrada con éxito", materia: respuesta.rows[0] });

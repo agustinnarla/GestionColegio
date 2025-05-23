@@ -1,8 +1,9 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
+
 export const obtenerTareasDeshabilitadas = async (req,res) => {
     try {
-        const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estadoalumno = 2')
+        const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estado_general = 2');
         res.status(200).json({tareas: respuesta.rows});
         console.log('Tareas Deshabilitadas obtenidas exitosamente');
     }
@@ -12,6 +13,7 @@ export const obtenerTareasDeshabilitadas = async (req,res) => {
     }   
 }
 
+//RegistrarTarea
 export const agregarTarea = async (req, res) => {
     const { detalle } = req.body; // Obtener el nombre de la tarea desde el cuerpo de la solicitud
     if (!detalle) {
@@ -20,7 +22,7 @@ export const agregarTarea = async (req, res) => {
     try {
         // Insertar la nueva tarea en la base de datos
         const result = await pool.query(
-            'INSERT INTO tarea (detalle, id_estadoalumno) VALUES ($1, $2) RETURNING id_tarea',
+            'INSERT INTO tarea (detalle, id_estado_general) VALUES ($1, $2) RETURNING id_tarea',
             [detalle, 1]
         );
         // Devolver el ID de la nueva tarea y un mensaje de éxito
@@ -40,8 +42,8 @@ export const deshabilitarTarea = async (req, res) => {
         return res.status(400).json({ error: 'ID de tarea no proporcionado' });
     }
     try {
-        // Actualizar el estado de la materia a deshabilitada (id_estadoalumno = 2)
-        await pool.query('UPDATE tarea SET id_estadoalumno = 2 WHERE id_tarea = $1', [id_tarea]);
+        // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
+        await pool.query('UPDATE tarea SET id_estado_general = 2 WHERE id_tarea = $1', [id_tarea]);
 
         res.status(200).json({ mensaje: 'Tarea deshabilitada exitosamente' });
     } catch (error) {
@@ -56,8 +58,8 @@ export const habilitarTarea = async (req, res) => {
         return res.status(400).json({ error: 'ID de tarea no proporcionado' });
     }
     try {
-        // Actualizar el estado de la materia a deshabilitada (id_estadoalumno = 2)
-        await pool.query('UPDATE tarea SET id_estadoalumno = 1 WHERE id_tarea = $1', [id_tarea]);
+        // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
+        await pool.query('UPDATE tarea SET id_estado_general = 1 WHERE id_tarea = $1', [id_tarea]);
 
         res.status(200).json({ mensaje: 'Tarea deshabilitada exitosamente' });
     } catch (error) {

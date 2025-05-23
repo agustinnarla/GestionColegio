@@ -1,6 +1,7 @@
 
 import {pool} from "../dataBase/coneccion.mjs"
 
+//Ver si es usuario
 export const obtenerMateriaPorProfesor = async (req,res) => {
     const {dni_usuario} = req.params
     try{
