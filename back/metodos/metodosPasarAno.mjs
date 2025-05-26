@@ -2,7 +2,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 
 export const obtenerAlumnoFinal = async (req,res) => {
-    const {idcurso} = req.params
+    const {id_curso} = req.params
     try{
         // Obtener promedios de cada alumno en distintas materias
         const promedios = await pool.query('SELECT dni_alumno, AVG(promedio) as promedio FROM alumno_materia GROUP BY dni_alumno')
@@ -17,7 +17,7 @@ export const obtenerAlumnoFinal = async (req,res) => {
             "SELECT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, am.promedio as promedio " +
             "FROM alumno a INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno INNER JOIN alumno_materia am ON a.dni_alumno = am.dni_alumno " +
             "WHERE am.id_curso=$1 AND a.id_estado_general=1 AND am.id_estado_evaluativo=1",
-            [idcurso]
+            [id_curso]
         );
 
         // Agregar información sobre finales pendientes a la respuesta

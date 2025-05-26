@@ -15,7 +15,7 @@ export const obtenerRoles = async (req,res) => {
 export const obtenerTareas = async (req,res) => {
     try {
         const respuesta = await pool.query('SELECT * FROM tarea WHERE id_estado_general != 2')
-        res.status(200).json({roles: respuesta.rows});
+        res.status(200).json({tareas: respuesta.rows});
         console.log('Tareas obtenidas exitosamente');
     }
     catch(error){
@@ -40,10 +40,10 @@ export const registrarTareaRol = async (req, res) => {
 
         // Recorrer cada relación en el arreglo
         for (const relacion of relaciones) {
-            const { id_tarea, id_rol } = relacion;
+            const { id_tarea, id_rol, id_estado_general } = relacion;
 
             // Validar que cada relación tenga los datos requeridos
-            if (!id_tarea || !id_rol) {
+            if (!id_tarea || !id_rol || !id_estado_general) {
                 console.error('Relación inválida:', relacion);
                 continue; // Saltar esta relación y continuar con la siguiente
             }
@@ -57,8 +57,8 @@ export const registrarTareaRol = async (req, res) => {
 
             // Insertar la nueva relación
             const resultado = await pool.query(
-                'INSERT INTO tarearol (id_tarea, id_rol) VALUES ($1, $2) RETURNING *',
-                [id_tarea, id_rol]
+                'INSERT INTO tarea_rol (id_tarea, id_rol, id_estado_general) VALUES ($1, $2, $3) RETURNING *',
+                [id_tarea, id_rol, id_estado_general]
             );
             console.log('Relación registrada exitosamente:', resultado.rows[0]);
 
@@ -83,7 +83,7 @@ export const registrarTareaRol = async (req, res) => {
 export const verificarExistencia = async (id_tarea, id_rol) => {
     try {
         const resultado = await pool.query(
-            'SELECT * FROM tarearol WHERE id_tarea = $1 AND id_rol = $2', // Asegúrate de que el orden sea correcto
+            'SELECT * FROM tarea_rol WHERE id_tarea = $1 AND id_rol = $2', // Asegúrate de que el orden sea correcto
             [id_tarea, id_rol] // Asegúrate de que el orden sea correcto
         );
         return resultado.rows.length > 0; // Retorna true si la relación ya existe
@@ -123,7 +123,7 @@ export const obtenerTareasDeRoles = async (req, res) => {
 export const obtenerRolesDeTarea = async (req, res) => {
     const { id_tarea } = req.params;
     if (!id_tarea) {
-        return res.status(400).json({ error: 'ID de rol no proporcionado' });
+        return res.status(400).json({ error: 'ID de tarea no proporcionado' });
     }
     try {
         // Obtener las tareas asociadas al rol

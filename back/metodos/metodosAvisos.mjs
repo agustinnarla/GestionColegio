@@ -4,13 +4,10 @@ import { pool } from "../dataBase/coneccion.mjs";
 export const obtenerAvisosGenerales = async (req, res) => {
   try {
       const repuesta = await pool.query(
-        "SELECT av.id_aviso, av.informacion, av.motivo, av.fecha, " +
-        "COALESCE(c.detalle, 'General') AS curso, p.nombre " + 
-        "FROM avisos AS av " +
-        "LEFT JOIN curso c ON c.id_curso = av.id_curso " + 
-        "INNER JOIN profesores p ON p.id_profesor = av.id_profesor " +
-        "WHERE av.id_estado_general = 1 " +
-        "ORDER BY av.fecha DESC;"
+        "SELECT * " + 
+        "FROM avisos " +
+        "WHERE id_estado_general = 1 " +
+        "ORDER BY fecha DESC;"
       );
       res.status(200).json({ avisos: repuesta.rows });
   } catch (error) {
@@ -25,13 +22,13 @@ export const obtenerAvisosCurso = async (req, res) => {
     const { id_curso } = req.params;
     try {
         const repuesta = await pool.query(
-            "SELECT av.id_aviso, av.informacion, av.motivo, av.fecha, " +
-            "c.detalle AS curso, p.nombre " +
-            "FROM avisos AS av " +
-            "INNER JOIN curso c ON c.id_curso = av.id_curso " +
-            "INNER JOIN profesores p ON p.id_profesor = av.id_profesor " +
-            "WHERE av.id_estado_general = 1 AND av.id_curso = $1 " + 
-            "ORDER BY av.fecha DESC", 
+            "SELECT av.id_aviso, av.informacion, av.id_motivo, av.fecha, " +
+            "c.detalle AS curso " +
+            "FROM aviso_curso AS ac " +
+            "INNER JOIN curso c ON c.id_curso = ac.id_curso " +
+            "INNER JOIN avisos av ON av.id_aviso = ac.id_aviso " +
+            "WHERE av.id_estado_general = 1 AND ac.id_curso = $1 " +
+            "ORDER BY av.fecha DESC",
             [id_curso]
         );
         res.status(200).json({ avisos: repuesta.rows });

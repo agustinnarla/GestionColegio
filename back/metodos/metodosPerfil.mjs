@@ -1,5 +1,5 @@
 import {pool} from '../dataBase/coneccion.mjs'
-
+import {encriptarContrasena} from './metodosLogin.mjs'
 export const obtenerUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
     try {

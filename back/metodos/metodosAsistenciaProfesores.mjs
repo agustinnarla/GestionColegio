@@ -2,7 +2,7 @@ import { pool } from '../dataBase/coneccion.mjs'
 
 
 // VER
-export const obtenerProfesoresAsistencia = async (req, res) => {
+export const obtenerProfesionalesAsistencia = async (req, res) => {
     try {
         // Obtener el día actual del sistema
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -28,43 +28,43 @@ export const obtenerProfesoresAsistencia = async (req, res) => {
     }
 };
 
-export const registrarEntradaProfesor = async (req, res) => {
-    const { dni_profesor, hora_entrada, fecha } = req.body;
+export const registrarEntradaProfesional = async (req, res) => {
+    const { dni_profesional, hora_entrada, fecha } = req.body;
     try {
         const respuesta = await pool.query(
-            "INSERT INTO asistencia_profesor (dni_profesional, fecha, hora_entrada, hora_salida) " +
-            "VALUES ($1, $2, $3, NULL)", // La salida se deja como NULL
-            [dni_profesor, fecha, hora_entrada]
+            "INSERT INTO asistencia_profesional (dni_profesional, fecha, hora_entrada, hora_salida, id_estado_asistencia) " +
+            "VALUES ($1, $2, $3, NULL, 1)", // La salida se deja como NULL
+            [dni_profesional, fecha, hora_entrada]
         );
         if (respuesta.rowCount === 0) {
-            return res.status(404).json({ message: 'No se pudo registrar la entrada del profesor' });
+            return res.status(404).json({ message: 'No se pudo registrar la entrada del profesional' });
         }
-        console.log('Entrada del profesor registrada exitosamente');
-        res.json({ message: 'Entrada del profesor registrada exitosamente' });
+        console.log('Entrada del profesional registrada exitosamente');
+        res.json({ message: 'Entrada del profesional registrada exitosamente' });
 
     } catch (error) {
-        console.error('Error al registrar la entrada del profesor:', error);
-        res.status(500).json({ error: 'Error al registrar la entrada del profesor' });
+        console.error('Error al registrar la entrada del profesional:', error);
+        res.status(500).json({ error: 'Error al registrar la entrada del profesional' });
     }
 };
 
-export const registrarSalidaProfesor = async (req, res) => {
-    const { dni_profesor, hora_salida, fecha } = req.body;
+export const registrarSalidaProfesional = async (req, res) => {
+    const { dni_profesional, hora_salida, fecha } = req.body;
     try {
         const respuesta = await pool.query(
-            "UPDATE asistencia_profesor " +
+            "UPDATE asistencia_profesional " +
             "SET hora_salida = $1 " +
             "WHERE dni_profesional = $2 AND fecha = $3 AND hora_salida IS NULL", // Asegura que no se sobrescriba una salida ya registrada
-            [hora_salida, dni_profesor, fecha]
+            [hora_salida, dni_profesional, fecha]
         );
         if (respuesta.rowCount === 0) {
-            return res.status(404).json({ message: 'No se pudo registrar la salida del profesor o ya fue registrada' });
+            return res.status(404).json({ message: 'No se pudo registrar la salida del profesional o ya fue registrada' });
         }
-        console.log('Salida del profesor registrada exitosamente');
-        res.json({ message: 'Salida del profesor registrada exitosamente' });
+        console.log('Salida del profesional registrada exitosamente');
+        res.json({ message: 'Salida del profesional registrada exitosamente' });
 
     } catch (error) {
-        console.error('Error al registrar la salida del profesor:', error);
-        res.status(500).json({ error: 'Error al registrar la salida del profesor' });
+        console.error('Error al registrar la salida del profesional:', error);
+        res.status(500).json({ error: 'Error al registrar la salida del profesional' });
     }
 };

@@ -36,15 +36,15 @@ export const obtenerMateriaPorDni = async (req, res) => {
             am.nota5,
             am.nota6,
             am.promedio
-            FROM alumnocurso ac
+            FROM alumno_curso ac
             INNER JOIN curso c ON c.id_curso = ac.id_curso 
             INNER JOIN alumno a ON a.dni_alumno = ac.dni_alumno
             INNER JOIN materia_curso mc ON mc.id_curso = c.id_curso
             INNER JOIN materia m ON m.id_materia = mc.id_materia
             LEFT JOIN materia_profesor mp ON mp.id_materia = m.id_materia
-            LEFT JOIN profesores p ON p.id_profesor = mp.id_profesor
+            LEFT JOIN profesional p ON p.dni_profesional = mp.dni_profesional
             LEFT JOIN horario h ON mc.id_materia = h.id_materia AND mc.id_curso = h.id_curso
-            INNER JOIN alumnomateria am ON am.id_materia = m.id_materia AND a.dni_alumno = am.dni_alumno
+            INNER JOIN alumno_materia am ON am.id_materia = m.id_materia AND a.dni_alumno = am.dni_alumno
             WHERE a.dni_alumno = $1 AND ac.id_curso = am.id_curso
             GROUP BY p.nombre, c.detalle, m.detalle, h.dia_semana, am.nota1, am.nota2, am.nota3, am.nota4, am.nota5, am.nota6, am.promedio
         `, [dni_alumno]);

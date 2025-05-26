@@ -14,6 +14,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
 export const ingresarUsuario = async (req, res) => {
     const { dni_usuario, contrasena } = req.body;
     try {

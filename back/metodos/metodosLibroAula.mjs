@@ -1,14 +1,14 @@
 
 import {pool} from "../dataBase/coneccion.mjs"
 
-//Ver si es usuario
+//Ver si es usuario --> Error de usuario
 export const obtenerMateriaPorProfesor = async (req,res) => {
-    const {dni_usuario} = req.params
+    const { dni_profesional } = req.params
     try{
-        const respuesta = await pool.query("SELECT mp.id_materia,m.detalle FROM materia_profesor AS mp " + 
+        const respuesta = await pool.query("SELECT mp.id_materia, m.detalle FROM materia_profesor AS mp " + 
             "INNER JOIN materia m ON m.id_materia = mp.id_materia " +
-            "WHERE dni_usuario = $1", 
-            [dni_usuario])
+            "WHERE mp.dni_profesional = $1", 
+            [dni_profesional])
         if(respuesta.rowCount === 0){
             return res.status(404).json({error: "No se encontraron materias para el profesor especificado"})
         }
@@ -48,11 +48,11 @@ export const obtenerCursoPorMateria = async (req,res) => {
 
 export const registrarLibroAula = async (req,res) => {
  
-    const {id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesor, id_curso} = req.body
+    const {id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesional, id_curso} = req.body
     try{
-        const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesor, id_curso) " +
+        const respuesta = await pool.query("INSERT INTO libro_aula (id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesional, id_curso) " +
             "VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", 
-            [id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesor, id_curso])
+            [id_materia, fecha, numero_clase, unidad, id_caracteristica_unidad, tema_abarcado, dni_profesional, id_curso])
             res.status(201).json(respuesta.rows[0])
             if(respuesta.rowCount === 0){
                 return res.status(404).json({error: "No se pudo registrar el libro de aula"})

@@ -1,16 +1,18 @@
 import { pool } from '../dataBase/coneccion.mjs';
-import bcrypt from 'bcrypt';
-import { encriptarContrasena	} from './metodosLogin.mjs';
+
+import { encriptarContrasena } from './metodosLogin.mjs';
 
 export const registrarUsuario = async (req, res) => {
-    //Se tendria q cambiar el nombre por estadoUsuario y hacerlo global
     const { dni_usuario, contrasena, email, id_rol, id_estado_general } = req.body;
     try {
+        if (!contrasena) {
+            return res.status(400).json({ message: 'La contraseña es obligatoria' });
+        }
         // Hashear la contraseña
         const contrasenaHaseada = await encriptarContrasena(contrasena);
 
         const respuesta = await pool.query(
-            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol,id_estado_general) VALUES ($1, $2, $3, $4,$5)',
+            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol, id_estado_general) VALUES ($1, $2, $3, $4, $5)',
             [dni_usuario, contrasenaHaseada, email, id_rol, id_estado_general]
         );
         
@@ -21,8 +23,6 @@ export const registrarUsuario = async (req, res) => {
         res.status(500).json({ message: 'Error al registrar usuario' });
     }
 };
-
-
 
 
 

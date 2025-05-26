@@ -38,9 +38,9 @@ import { obtenerUsuario, restablecerContrasena } from '../metodos/metodosPerfil.
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
 import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
-import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosSinFiltro, registrarNotaFinal, modificarEstadoEvaluativo} from '../metodos/metodosCargarNotasFinal.mjs'
+import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../metodos/metodosAsignarHoras.mjs'
-import { obtenerProfesoresAsistencia, registrarEntradaProfesor, registrarSalidaProfesor } from '../metodos/metodosAsistenciaProfesores.mjs'
+import { obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/metodosAsistenciaProfesores.mjs'
 import { registrarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/metodosGestionProfesionales.mjs'
 import { obtenerEstadosFaltaProfesionales, obtenerFaltasProfesionales, registrarJustificacionProfesionales} from '../metodos/metodosJustificarFaltaProfesionales.mjs'
 const storage = multer.memoryStorage()
@@ -73,10 +73,6 @@ ruta.post('/alumno/legajo', upload.fields([
     { name: 'partida_nacimiento', maxCount: 1 }
 ]), registrarLegajo)
 
-
-
-
-
 // Modificación de documentos adjuntos en el legajo del alumno
 ruta.put('/alumnosLegajo/modificar/:dni_alumno', upload.fields([
     { name: 'dnifoto', maxCount: 1 },
@@ -98,21 +94,40 @@ ruta.get('/listaDesplegable/certificado', obtenerEstadoCertificado) // 🟢
 ruta.get('/listaDesplegable/estadoAsistencia', obtenerEstadoAsistencia) // 🟢 
 ruta.get('/listaDesplegable/profesor/materia/:id_materia', obtenerProfesorPorMateria); // 🟢 
 ruta.get('/listaDesplegable/profesor', obtenerProfesor) // 🟢
-
+ruta.get('/listaDesplegable/roles', obtenerRoles) // 🟢
+ruta.get('/listaDesplegable/roles/deshabilitados', obtenerRolesDeshabilitados) // 🟢
+ruta.get('/listaDesplegable/rol/tarea/:id_rol', obtenerTareasDeRoles) // 🟢
+ruta.get('/listaDesplegable/tareas', obtenerTareas) // 🟢
+ruta.get('/listaDesplegable/tareas/deshabilitadas', obtenerTareasDeshabilitadas) // 🟢
+ruta.get('/listaDesplegable/tarea/rol/:id_rol', obtenerTareasDeRoles) // 🟢
+ruta.get('/listaDesplegable/rol/tarea/:id_tarea', obtenerRolesDeTarea) // 🟢
+ruta.get('/listaDesplegable/especialidad', obtenerEspecialidad) // 🟢
+ruta.get('/listaDesplegable/alumno/materia/:dni_alumno', obtenerMateriaPorDni) // 🔵
+ruta.get('/listaDesplegable/profesor/materia/:dni_profesional', obtenerMateriaPorProfesor) // 🔴
+ruta.get('/listaDesplegable/caracteristicas', obtenerCaracteristicasUnidad) // 🟢
+ruta.get('/listaDesplegable/curso/materia/:id_materia', obtenerCursoPorMateria) // 🟢
+ruta.get('/listaDesplegable/tipo_de_evaluacion', obtenerTipoDeEvaluacion) // 🟢
+ruta.get('/listaDesplegable/profesor/curso/:dni_profesional', obtenerCursosPorProfesor) // 🟢
+ruta.get('/listaDesplegable/profesor/curso/materia/:dni_profesional', obtenerMateriasPorProfesor) // 🔵
+ruta.get('/listaDesplegable/profesor/curso/alumnos/:dni_profesional', obtenerAlumnosNoRegulares) // 🟢
+ruta.get('/listaDesplegable/profesores', obtenerProfesores) // 🟢
+ruta.get('/listaDesplegable/curso/profesor/:dni_profesional', obtenerCursoPorProfesor) // 🟢
+ruta.get('/listaDesplegable/materia/curso/:id_curso', obtenerMateriaPorCurso) // 🟢
+// Es una grilla
+ruta.get('/listaDesplegable/profesionales/asistencia', obtenerProfesionalesAsistencia) // 🟢
+ruta.get('/listaDesplegable/justificar/profesional/estadoFalta', obtenerEstadosFaltaProfesionales) // 🟢 
 // curso/matieria/alta
-ruta.post('/curso', registrarCursoPorMateria)
+
 
 
 // == OBSERVACION 
-
 ruta.post('/alumno/observacion/alta', registrarObservacion)// 🟢
 
 // == AMONESTACION
-ruta.post('/alumno/amonestacion/alta', registrarAmonestacion) // 🔴
+ruta.post('/alumno/amonestacion/alta', registrarAmonestacion) // 🟢
 ruta.get('/alumno/amonestacion/cantidad/:dni_alumno', obtenerCantidadAmonestaciones) // 🟢
 
 // == ASISTENCIA 
-
 ruta.post('/alumno/asistencia/alta', registrarAsistencia)  // 🔴
 ruta.put('/alumno/asistencia/modificar/:id_asistencia', modificarAsistencia) // 🔴
 ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha', validarFechaAsistencia) // 🔴 
@@ -121,151 +136,91 @@ ruta.get('/alumno/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) // 🔴
 
 // == NOTAS
 ruta.get('/alumno/notas/:id_curso/:id_materia', obtenerNotas) // 🟢
-ruta.post('/alumno/notas/alta', registrarNota) // 🔵
+ruta.post('/alumno/notas/alta', registrarNota) // 🟢
 
 // == MATERIA
-
 ruta.put('/materia/deshabilitar/:id_materia', deshabilitarMateria) // 🟢
 ruta.put('/materia/habilitar/:id_materia', habilitarMateria) // 🟢
 ruta.post('/materia/alta', agregarMateria) // 🟢
 
 // == PASAR AÑO
-ruta.get('/alumno/pasarAno/:id_curso', obtenerAlumnoFinal)  // 🔵
+ruta.get('/alumno/pasarAno/:id_curso', obtenerAlumnoFinal)  // 🟢
 ruta.post('/alumno/pasarAno', registrarCursoNuevo) // 🟢
 
 // == JUSTIFICAR FALTA
-
-ruta.get('/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) // 🔴
-ruta.get('/justificarFalta/estadoalumnos/:fechadesde/:fechahasta', obtenerJustificarFalta) // 🔴
-ruta.get('/justificarFalta/estadofalta', obtenerEstadosFalta)// 🔴
-ruta.get('/justificarFalta', obtenerJustificarFalta)// 🔴
-// justificarFalta/alta
-ruta.post('/justificarFalta', registrarJustificacion)// 🔴
+ruta.get('/alumno/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) // 🔴
+ruta.get('/alumno/justificarFalta/estado_alumnos/:fechadesde/:fechahasta', obtenerJustificarFalta) // 🔴
+ruta.get('/alumno/justificarFalta/estado_falta', obtenerEstadosFalta) // 🔴
+ruta.get('/alumno/justificarFalta', obtenerJustificarFalta) // 🔴
+ruta.post('/alumno/justificarFalta', registrarJustificacion) // 🔴
 
 // == LIBRO MATRIZ
-ruta.get('/alumno/libroMatriz/:dnialumno', obtenerLibroMatriz) // 🔵
+ruta.get('/alumno/libroMatriz/:dni_alumno', obtenerLibroMatriz) // 🟢
 
 // == Gestionar Materias
-
 ruta.post('/profesor/materia/alta', registrarMateriaProfesor) // 🟢
-ruta.put('/profesor/materia/deshabilitar/:id_materia', deshabilitarMateriaProfesor) // 🔵
+ruta.put('/profesor/materia/deshabilitar/:id_materia', deshabilitarMateriaProfesor) // 🟢
 
+// == USUARIOS PERFIL
+ruta.get('/usuario/perfil/:dni_usuario', obtenerUsuario) // 🟢
+ruta.post('/usuario/perfil/recuperarContrasena', enviarNuevaContrasena) // 🟢
 
-
-// == USUARIOS 
-ruta.get('/usuario/:dni_usuario', obtenerUsuario) // 🟢
+// == REGISTRAR USUARIO 
 ruta.get('/usuario/registrar/consultar/:dni_usuario', consultarUsuario) // 🟢
+ruta.post('/usuario/registrar', registrarUsuario) // 🟢
+ruta.post('/usuario/restablecerContrasena/:dni_usuario', restablecerContrasena) // 🟢
+ruta.put('/usuario/deshabilitar/:dni_usuario', deshabilitarUsuario) // 🟢
+ruta.put('/usuario/modificar/:dni_usuario', modificarUsuario)  // 🟢
 
-// =====================================
-//       REGISTRAR USUARIO
-// =====================================
-// usuario/alta
-ruta.post('/registrarUsuario', registrarUsuario)
-ruta.post('/restablecerContrasena/:dni_usuario', restablecerContrasena)
-// usuario/deshabilitar/:dni_usuario
-ruta.put('/deshabilitarUsuario/:dni_usuario',deshabilitarUsuario)
-// usuario/modificar/:dni_usuario
-ruta.put('/modificarUsuario/:dni_usuario', modificarUsuario)
-// =====================================
-//       INGRESAR USUARIO
-// =====================================
-// usuario/ingresarUsuario
-ruta.post('/ingresarUsuario', ingresarUsuario)
-// usuario/recuperarContrasena Enviar Nueva contrasena 
-ruta.post('/recuperarContrasena', enviarNuevaContrasena)
-// =====================================
-//       OBTENER ROLES 
-// =====================================
-ruta.get('/roles', obtenerRoles)
-ruta.get('/roles/rolesdeshabilitados', obtenerRolesDeshabilitados)
-// roles/alta
-ruta.post('/roles', registrarRol)
-ruta.get('/tarearol/rol/:id_rol', obtenerTareasDeRoles)
-// roles/tarea -> PUT NO DELETE
-ruta.put('/tarearol/rol', deshabilitarRolTarea)
-// roles/deshabilitarRol
-ruta.put('/roles/deshabilitarol/:id_rol',deshabilitarRol)
-// roles/habilitarRol
-ruta.put('/roles/habilitarrol/:id_rol', habilitarRol)
-// =====================================
-//       TAREAS
-// =====================================
-ruta.get('/tareas', obtenerTareas)
-ruta.get('/tareas/tareasDeshabilitadas', obtenerTareasDeshabilitadas)
-// tarea/rol/alta
-ruta.post('/tarearol', registrarTareaRol)
-// tarea/rol/deshabilitar -> PUT NO DELETE
-ruta.put('/tarearol/tarea', deshabilitarTareaRol)
-ruta.get('/tarearol/obtenerTareasDeRoles/:id_rol', obtenerTareasDeRoles)
-ruta.get('/tarearol/obtenerRolesDeTarea/:id_tarea', obtenerRolesDeTarea)
-// tarea/alta
-ruta.post('/tareas', agregarTarea)
-// tarea/deshabilitar
-ruta.put('/tareas/deshabilitartarea/:id_tarea', deshabilitarTarea)
-// tarea/habilitar
-ruta.put('/tareas/habilitartarea/:id_tarea', habilitarTarea)
-// =====================================
-//       OBTENER ESPECIALIDAD
-// =====================================
-ruta.get('/especialidad', obtenerEspecialidad)
-// =====================================
-//       AVISOS 
-// =====================================
-ruta.post('/avisos', crearAviso)
-ruta.get('/alumno/avisos', obtenerAvisosGenerales)
-ruta.get('/alumno/avisos/:id_curso', obtenerAvisosCurso)
-// =====================================
-//       OBTENER MATERIAS POR CURSO
-// =====================================
-//ruta.get('/alumno/materia/dni_alumno/:dni_alumno', obtenerMateriaPorDni)
-// =====================================
-//       LIBRO DE AULA
-// =====================================
-ruta.get('/profesor/libroaula/materia/:dni_usuario', obtenerMateriaPorProfesor)
-ruta.get('/profesor/libroaula/caracteristicas', obtenerCaracteristicasUnidad)
-ruta.get('/profesor/libroaula/curso_materia/:id_materia', obtenerCursoPorMateria)
-ruta.post('/profesor/libroaula/registrar_libro_aula', registrarLibroAula)
-// =====================================
-//       ASIGNAR EVALUACIÓN
-// =====================================
-ruta.get('/profesor/tipo_de_evaluacion', obtenerTipoDeEvaluacion)
-ruta.post('/profesor/asignar_evaluacion/:dni_profesor', registrarEvaluacion)
-// =====================================
-//       OBTENER CURSOS POR PROFESORES
-// =====================================
-ruta.get('/profesor/curso_profesor/:dni_profesor', obtenerCursosPorProfesor)
-ruta.get('/profesor/curso_materia/:dni_profesor', obtenerMateriasPorProfesor)
-ruta.get('/profesor/curso_materia/alumnos/:dni_profesor', obtenerAlumnosSinFiltro)
-ruta.post('/profesor/nota', registrarNotaFinal);
-ruta.put('/profesor/estadoevaluativo', modificarEstadoEvaluativo);
-// =====================================
-//       ASIGNAR HORAS
-// =====================================
-ruta.post('/secretaria/profesor/horas', asignacionDeHoras)
-// =====================================
-//       OBTENER PROFESORES
-// =====================================
-ruta.get('/profesores', obtenerProfesores)
-ruta.get('/profesores/cursos/:dni_profesor', obtenerCursoPorProfesor)
-ruta.get('/profesores/materias/:id_curso', obtenerMateriaPorCurso)
-ruta.get('/profesores/horario/:dni_profesor/:id_curso', obtenerHorasProfesor)
-// =====================================
-//       ASISTENCIA PROFESORES -> Profesionales
-// =====================================
-ruta.get('/profesores/asistencia', obtenerProfesoresAsistencia)
-ruta.post('/profesores/asistencia/entrada', registrarEntradaProfesor)
-ruta.put('/profesores/asistencia/salida', registrarSalidaProfesor)
-// =====================================
-//       PROFESIONAL
-// =====================================
+// == INGRESAR USUARIO
+ruta.post('/usuario/ingresar', ingresarUsuario)  // 🟢
 
-// Cambiar dni por dni_profesional
-ruta.get('/profesional/:dni_profesional', obtenerProfesional)
-ruta.post('/profesional/alta', registrarProfesional)
-ruta.put('/profesional/modificar/:dni_profesional', modificarProfesional)
-ruta.put('/profesional/deshabilitar/:dni_profesional', deshabilitarProfesional) 
-//       JUSTIFICAR FALTA PP
-// =====================================
-ruta.get('/justificarFaltaPP/estadoFalta', obtenerEstadosFaltaProfesionales)
-ruta.get('/justificarFaltaPP/faltas/:fechaInicio/:fechaFin', obtenerFaltasProfesionales);
-ruta.post('/justificarFaltaPP/registrar', registrarJustificacionProfesionales);
+// == ROLES 
+ruta.post('/rol/alta', registrarRol) // 🟢
+ruta.put('/rol/deshabilitar/:id_rol', deshabilitarRol) // 🟢
+ruta.put('/rol/habilitar/:id_rol', habilitarRol) // 🟢
+ruta.post('/rol/tarea/deshabilitar', deshabilitarRolTarea) // 🟢
+
+// == TAREAS
+ruta.post('/tarea/rol/alta', registrarTareaRol) // 🟢
+ruta.post('/tarea/rol/deshabilitar', deshabilitarTareaRol) // 🟢 
+ruta.post('/tarea/alta', agregarTarea) 
+ruta.put('/tarea/deshabilitar/:id_tarea', deshabilitarTarea) // 🟢 
+ruta.put('/tarea/habilitar/:id_tarea', habilitarTarea) // 🟢 
+
+// == AVISOS
+ruta.post('/secretaria/aviso/alta', crearAviso) // 🟢
+ruta.get('/alumno/avisos/avisos_generales', obtenerAvisosGenerales) // 🟢
+ruta.get('/alumno/avisos/:id_curso', obtenerAvisosCurso) // 🟢
+
+// == LIBRO AULA
+ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 
+
+// == ASIGNAR EVALUACION 
+ruta.post('/profesor/asignar_evaluacion/alta/:dni_profesional', registrarEvaluacion) // 🟢 
+
+// == NOTA FINAL
+ruta.post('/profesor/nota_final/alta', registrarNotaFinal); // 🟢 
+ruta.put('/profesor/nota_final/estado_evaluativo', modificarEstadoEvaluativo); // 🟢 
+
+// == ASIGNAR HORAS
+ruta.post('/secretaria/profesional/horas/alta', asignacionDeHoras) // 🟢
+ruta.get('/secretaria/profesional/horario/:dni_profesional/:id_curso', obtenerHorasProfesor) // 🟢
+
+// == ASISTENCIA PROFESIONAL
+ruta.post('/secretaria/profesional/asistencia/entrada', registrarEntradaProfesional) // 🟢
+ruta.put('/secretaria/profesional/asistencia/salida', registrarSalidaProfesional) // 🟢
+
+// == PROFESIONALES
+ruta.get('/profesional/:dni_profesional', obtenerProfesional) // 🟢
+ruta.post('/profesional/alta', registrarProfesional) // 🟢
+ruta.put('/profesional/modificar/:dni_profesional', modificarProfesional) // 🟢 
+ruta.put('/profesional/deshabilitar/:dni_profesional', deshabilitarProfesional) // 🟢 
+
+// == JUSTIFICAR FALTA PROFESIONALES
+ruta.get('/justificar/profesional/faltas/:fecha_desde/:fecha_hasta', obtenerFaltasProfesionales); // 🟢 
+ruta.post('/justificar/profesional/alta', registrarJustificacionProfesionales);  // 🟢 
+
+
+// == CURSO
+ruta.post('/curso/materia/alta', registrarCursoPorMateria)  // 🟢 

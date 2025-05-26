@@ -14,7 +14,7 @@ export const registrarProfesional = async (req, res) => {
         const contrasenaHaseada = await encriptarContrasena(dni_profesional.toString());
 
         await pool.query(
-            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol, id_estado_general) VALUES ($1, $2, $3, $4)',
+            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol, id_estado_general) VALUES ($1, $2, $3, $4, $5)',
             [dni_profesional, contrasenaHaseada, email, id_rol, id_estado_general]
         );
 
@@ -27,18 +27,18 @@ export const registrarProfesional = async (req, res) => {
 }
 
 export const deshabilitarProfesional = async (req, res) => {
-    const {dni} = req.params
+    const {dni_profesional} = req.params
     try{
-        const respuesta = await pool.query("UPDATE profesional SET id_estado_general = 2 WHERE dni = $1 RETURNING *", [dni])
+        const respuesta = await pool.query("UPDATE profesional SET id_estado_general = 2 WHERE dni_profesional = $1 RETURNING *", [dni_profesional])
         if(respuesta.rowCount === 0){
-            return res.status(404).json({message: 'No se encontró el profesor preceptor'})
+            return res.status(404).json({message: 'No se encontró el profesional'})
         }
-        await pool.query("UPDATE usuario SET id_estado_general = 2 WHERE dni_usuario = $1", [dni])
-        res.status(200).json({message: 'Profesor preceptor deshabilitado correctamente', data: respuesta.rows[0]})
+        await pool.query("UPDATE usuario SET id_estado_general = 2 WHERE dni_usuario = $1", [dni_profesional])
+        res.status(200).json({message: 'Profesional deshabilitado correctamente', data: respuesta.rows[0]})
         console.log("Todo ok")
     }catch(error){
         console.log(error)
-        res.status(500).json({message: 'Error al deshabilitar el profesor preceptor'})
+        res.status(500).json({message: 'Error al deshabilitar el profesional'})
     }
 }
 
@@ -60,10 +60,10 @@ export const obtenerProfesional = async (req, res) => {
 }
 
 export const modificarProfesional = async (req, res) => {   
-    const { dni } = req.params;
+    const { dni_profesional } = req.params;
     const campos = [
         "nombre", "apellido", "email", "fecha_nacimiento", "cuit", "id_rol", "id_sexo",
-        "domicilio", "departamento", "piso", "id_localidad", "telefono_personal", "telefono_alternativo"
+        "domicilio", "departamento", "piso", "id_localidad", "telefono_personal", "telefono_alternativo", "id_estado_general", "numero", "edificio"
     ];
     const valores = [];
     const sets = [];

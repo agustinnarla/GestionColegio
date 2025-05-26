@@ -3,7 +3,7 @@ import {pool} from '../dataBase/coneccion.mjs'
 //obtenerEstadoFaltaProfesionales
 export async function obtenerEstadosFaltaProfesionales(req, res) {
     try {
-      const result = await pool.query('SELECT * FROM estado_falta_profesionales ORDER BY id_estado_falta_profesional');
+      const result = await pool.query('SELECT * FROM estado_falta_profesionales ORDER BY id_estado_falta_profesionales');
       res.json(result.rows);
     } catch (error) {
       console.error('Error al obtener estados de falta profesionales:', error);
@@ -13,18 +13,18 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
 
   //obtenerProfesionalesAusentes
   export async function obtenerFaltasProfesionales(req, res) {
-    const { hora_entrada, hora_salida } = req.params;
-  
+    const { fecha_desde, fecha_hasta } = req.params;
+
     try {
       const query = `
         SELECT * 
         FROM asistencia_profesional 
-        WHERE hora_entrada BETWEEN $1 AND $2
+        WHERE fecha BETWEEN $1 AND $2
           AND id_estado_asistencia = 2
         ORDER BY hora_entrada ASC
       `;
 
-      const values = [hora_entrada, hora_salida];
+      const values = [fecha_desde, fecha_hasta];
 
       const result = await pool.query(query, values);
       res.json(result.rows);
@@ -51,9 +51,9 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             let estadofaltaActual = registroExistente.id_estadofalta;
             let certificadoActual = registroExistente.id_certificado;
 
-            // Verificamos si id_estadofalta ha cambiado
-            if (id_estadofalta !== estadofaltaActual && id_estadofalta != null) {
-                estadofaltaActual = id_estadofalta;
+            // Verificamos si id_estado_falta ha cambiado
+            if (id_estado_falta !== estadofaltaActual && id_estado_falta != null) {
+                estadofaltaActual = id_estado_falta;
             }
 
             // Verificamos si id_certificado ha cambiado
@@ -71,7 +71,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             // Construimos la consulta de actualización
             const query = `
                 UPDATE justificar_falta_profesionales
-                SET id_estado_falta = $1, id_certificado = $2
+                SET id_estado_falta_profesional = $1, id_certificado = $2
                 WHERE dni_profesional = $3 AND fecha = $4
             `;
 
@@ -88,7 +88,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
         } else {
             // Si no existe, insertamos un nuevo registro
             const respuesta = await pool.query(
-                "INSERT INTO justificar_falta_profesionales (id_estado_falta, dni_profesional, id_certificado, fecha) " +
+                "INSERT INTO justificar_falta_profesionales (id_estado_falta_profesional, dni_profesional, id_certificado, fecha) " +
                 "VALUES ($1, $2, $3, $4) RETURNING *", 
                 [id_estado_falta, dni_profesional, id_certificado, fecha]
             );

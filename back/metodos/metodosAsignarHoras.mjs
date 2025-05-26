@@ -1,7 +1,7 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 export const asignacionDeHoras = async (req, res) => {
-    const { id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesor } = req.body;
+    const { id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional } = req.body;
 
     try {
         // Verificar si el horario ya está ocupado
@@ -11,7 +11,7 @@ export const asignacionDeHoras = async (req, res) => {
         }
 
         // Insertar el nuevo horario
-        const nuevoHorario = await insertarHorario(id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesor);
+        const nuevoHorario = await insertarHorario(id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional);
         res.status(201).json({ message: 'Horas asignadas exitosamente', data: nuevoHorario });
     } catch (error) {
         console.error('Error al asignar horas:', error);
@@ -36,13 +36,13 @@ export const verificarHorario = async (id_curso, dia_semana, hora_inicio, hora_f
     return resultado.rows;
 };
 
-export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesor) => {
+export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional) => {
     const query = `
-        INSERT INTO horario (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesor)
+        INSERT INTO horario (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
     `;
-    const valores = [id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesor];
+    const valores = [id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional];
     const resultado = await pool.query(query, valores);
     return resultado.rows[0];
 };
@@ -50,7 +50,7 @@ export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_ini
 export const obtenerProfesores = async (req, res) => {
     try{
         // Tabla profesionales traer nombre y apellido y de acuerdo al id_rol del profesor 
-        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombre, dni_profesional FROM profesionales WHERE id_rol = 2");
+        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombre, dni_profesional FROM profesional WHERE id_rol = 1");
 
         if (respuesta.rows.length === 0) {
             return res.status(404).json({ message: 'No se encontraron profesores' });
@@ -64,15 +64,15 @@ export const obtenerProfesores = async (req, res) => {
 }
 
 export const obtenerCursoPorProfesor = async (req, res) => {
-    const { dni_profesor } = req.params;
+    const { dni_profesional } = req.params;
     try {
         // Cambiar dni_profesor por dni_profesional
         const respuesta = await pool.query(
             `SELECT pc.id_curso, c.detalle 
             FROM profesor_curso AS pc 
             INNER JOIN curso c ON c.id_curso = pc.id_curso 
-            WHERE pc.profesional = $1`, 
-            [dni_profesor]
+            WHERE pc.dni_profesional = $1`, 
+            [dni_profesional]
         );
 
         if (respuesta.rows.length === 0) {
@@ -110,7 +110,7 @@ export const obtenerMateriaPorCurso = async (req, res) => {
 }
 
 export const obtenerHorasProfesor = async (req, res) => {
-    const { dni_profesor, id_curso } = req.params;
+    const { dni_profesional, id_curso } = req.params;
     try {
         // Cambiar dni_profesor por dni_profesional
         const respuesta = await pool.query(
@@ -123,7 +123,7 @@ export const obtenerHorasProfesor = async (req, res) => {
             INNER JOIN curso AS c ON c.id_curso = h.id_curso
             INNER JOIN materia AS m ON m.id_materia = h.id_materia
             WHERE h.dni_profesional = $1 AND h.id_curso = $2`,
-            [dni_profesor, id_curso]
+            [dni_profesional, id_curso]
         );
 
         if (respuesta.rows.length === 0) {

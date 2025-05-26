@@ -35,18 +35,18 @@ export const crearAviso = async (req, res) => {
                 `INSERT INTO avisos 
                  (informacion, id_motivo, fecha) 
                  VALUES ($1, $2, $3) 
-                 RETURNING id_avisos`,
+                 RETURNING id_aviso`,
                 [informacion, id_motivo, fechaValida]
             );
 
-            const idAviso = avisoResult.rows[0].id_avisos;
+            const idAviso = avisoResult.rows[0].id_aviso;
 
             // 2. Insertar relaciones con profesores (convertir strings a integers)
             if (profesores && profesores.length > 0) {
                 const profesoresInt = profesores.map(p => parseInt(p, 10));
                 await client.query(
                     `INSERT INTO aviso_profesionales
-                     (id_aviso_profesional, dni_profesional) 
+                     (id_aviso_profesionales, dni_profesional) 
                      SELECT $1, unnest($2::int[])`,
                     [idAviso, profesoresInt]
                 );
@@ -66,7 +66,7 @@ export const crearAviso = async (req, res) => {
             await client.query('COMMIT');
 
             res.status(201).json({
-                id_avisos: idAviso,
+                id_aviso: idAviso,
                 mensaje: 'Aviso creado exitosamente',
                 detalles: {
                     profesores_asignados: profesores.length,

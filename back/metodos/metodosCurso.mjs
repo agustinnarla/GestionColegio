@@ -35,7 +35,7 @@ export const obtenerCursoFiltrado = async (req, res) => {
 
 
 export const registrarCursoPorMateria = async (req, res) => {
-    const { detalle, id_materias, id_especialidad } = req.body; 
+    const { detalle, id_materia, id_especialidad } = req.body; 
     try {
         // Insertar el curso en la tabla curso
         const cursoRespuesta = await pool.query(
@@ -47,10 +47,10 @@ export const registrarCursoPorMateria = async (req, res) => {
 
         // Insertar la relación curso-materia en la tabla materia_curso
         const cursomateriaRespuestas = [];
-        for (const id_materia of id_materias) {
+        for (const idMat of id_materia) {
             const cursomateriaRespuesta = await pool.query(
                 "INSERT INTO materia_curso (id_curso, id_materia) VALUES ($1, $2) RETURNING *",
-                [id_curso, id_materia]
+                [id_curso, idMat]
             );
             cursomateriaRespuestas.push(cursomateriaRespuesta.rows[0]);
         }
