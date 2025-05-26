@@ -86,19 +86,3 @@ export const modificarUsuario = async (dni_usuario,formData) => {
     }
 }
 
-
-export const obtenerRoles = async () => {
-    try {
-        const respuesta = await fetch(url_apiRoles);
-        const data = await respuesta.json();
-        if (respuesta.ok) {
-            console.log("Se cargaron los roles");
-            return data.roles;
-        } else {
-            throw new Error(data.error || 'Error desconocido al cargar los roles');
-        }
-    } catch (error) {
-        console.log(error.message);
-        throw new Error("Error al cargar los roles");
-    }
-};

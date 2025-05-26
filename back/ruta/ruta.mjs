@@ -113,10 +113,9 @@ ruta.get('/listaDesplegable/profesor/curso/alumnos/:dni_profesional', obtenerAlu
 ruta.get('/listaDesplegable/profesores', obtenerProfesores) // 🟢
 ruta.get('/listaDesplegable/curso/profesor/:dni_profesional', obtenerCursoPorProfesor) // 🟢
 ruta.get('/listaDesplegable/materia/curso/:id_curso', obtenerMateriaPorCurso) // 🟢
-// Es una grilla
+
 ruta.get('/listaDesplegable/profesionales/asistencia', obtenerProfesionalesAsistencia) // 🟢
 ruta.get('/listaDesplegable/justificar/profesional/estadoFalta', obtenerEstadosFaltaProfesionales) // 🟢 
-// curso/matieria/alta
 
 
 

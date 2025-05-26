@@ -4,56 +4,9 @@ const api_urlAlumnosCursoMateria = 'http://localhost:5000/profesor/curso_materia
 const api_urlAgregarNota = 'http://localhost:5000/profesor/nota';
 const api_urlModificarEstado = 'http://localhost:5000/profesor/estadoevaluativo';
 
-export const obtenerCursosPorProfesor = async (dni_profesor) => {
-    try {
-        const respuesta = await fetch(`${api_urlCursosXProfesor}/${dni_profesor}`);
-        if (!respuesta.ok) {
-            throw new Error(`HTTP error! status: ${respuesta.status}`);
-        }
-        const data = await respuesta.json();
-        if (!data) {
-            throw new Error('No se recibieron datos del servidor');
-        }
-        return data;
-    } catch (error) {
-        console.error('Error en la petición de obtenerCursosPorProfesor:', error);
-        throw error;
-    }
-};
 
-export const obtenerMateriasPorProfesor = async (dni_profesor) => {
-    try {
-        const respuesta = await fetch(`${api_urlMateriasXProfesor}/${dni_profesor}`);
-        if (!respuesta.ok) {
-            throw new Error(`HTTP error! status: ${respuesta.status}`);
-        }
-        const data = await respuesta.json();
-        if (!data) {
-            throw new Error('No se recibieron datos del servidor');
-        }
-        return data;
-    } catch (error) {
-        console.error('Error en la petición de obtenerMateriasPorProfesor:', error);
-        throw error;
-    }
-};
 
-export const obtenerAlumnosPorCursoYMateria = async (dni_profesor) => {
-    try {
-        const respuesta = await fetch(`${api_urlAlumnosCursoMateria}/${dni_profesor}`);
-        if (!respuesta.ok) {
-            throw new Error(`HTTP error! status: ${respuesta.status}`);
-        }
-        const data = await respuesta.json();
-        if (!data || !data.alumnos) {
-            throw new Error('No se recibieron datos de alumnos');
-        }
-        return data.alumnos;  // Asegurate que en tu backend estás haciendo: res.json({ alumnos: respuesta.rows });
-    } catch (error) {
-        console.error('Error en la petición de obtenerAlumnosPorCursoYMateria:', error);
-        throw error;
-    }
-};
+
 export const agregarNota = async ({ id_curso, id_materia, dni_profesor, dni_alumno, notafinal }) => {
     try {
         // Validación antes de enviar

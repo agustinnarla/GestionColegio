@@ -1,21 +1,7 @@
-const api_url = 'http://localhost:5000'
-const api_urlRoles = 'http://localhost:5000/roles'
-const api_urlTareas = 'http://localhost:5000/tareas'
-const api_urlTareasRol = 'http://localhost:5000/tarearol'
 
-export const obtenerTareasDeshabilitadas = async () => {
-    try {
-        const response = await fetch(`${api_urlTareas}/tareasDeshabilitadas`);
-        if (!response.ok) {
-            throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error al obtener tareas:', error);
-        return { tareas: [] };
-    }
-};
+const api_urlTareas = 'http://localhost:5000/tareas'
+
+
 
 export const agregarTarea = async (detalle) => {
     try {

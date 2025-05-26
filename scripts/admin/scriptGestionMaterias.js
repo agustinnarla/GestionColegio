@@ -1,55 +1,11 @@
-import { Alert, Platform } from 'react-native';
+
 const api_url = 'http://localhost:5000'
 const api_urlMaterias = 'http://localhost:5000/materia' 
 const api_urlProfesor = 'http://localhost:5000/profesor'
 const api_urlMateriaProfesor = 'http://localhost:5000/materiaprofesor'
 
-export const obtenerMaterias = async () => {
-    try {
-        const respuesta = await fetch(`${api_urlMaterias}`);
-        
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener las materias');
-        }
-        const data = await respuesta.json();
-        return data; 
-        
-    } catch (error) {
-        console.error('Error en obtenerMaterias:', error);
-        return null;
-    }
-};
 
-export const obtenerMateriasDeshabilitadas = async () => {
-    try {
-        const respuesta = await fetch(`${api_urlMaterias}/materiasDeshabilitadas`);
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener las materias');
-        }
-        const data = await respuesta.json();
-        console.log('Respuesta de la API:', data); // Verifica la estructura de la respuesta
-        return data;
-    } catch (error) {
-        console.error('Error en obtenerMateriasDeshabilitadas:', error);
-        return null;
-    }
-};
 
-export const obtenerProfesor = async () => {
-    try {
-        const respuesta = await fetch(`${api_urlProfesor}`);
-        
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener las materias');
-        }
-        const data = await respuesta.json();
-        return data; 
-        
-    } catch (error) {
-        console.error('Error en obtener profesor:', error);
-        return null;
-    }
-};
 
 export const registrarMateriaProfesor = async (dniProfesores, idMateria) => {
     try {
@@ -100,22 +56,6 @@ export const registrarMateriaProfesor = async (dniProfesores, idMateria) => {
     }
 };
 
-export const obtenerProfesorXMateria = async (idMateria) => {
-    try {
-        const respuesta = await fetch(`${api_urlMateriaProfesor}/${idMateria}`);
-
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener los profesores de la materia');
-        }
-
-        const data = await respuesta.json();
-        return data; // Devuelve los profesores asignados a la materia
-        
-    } catch (error) {
-        console.error('Error en obtenerProfesorXMateria:', error);
-        return null;
-    }
-};
 
 export const deshabilitarMateria = async (id_materia) => {
     try {
@@ -155,6 +95,7 @@ export const habilitarMateria = async (id_materia) => {
         return null;
     }
 }; 
+
 export const registrarMateria = async (detalle) => {
     try {
         const respuesta = await fetch(api_urlMaterias, {

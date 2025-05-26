@@ -220,9 +220,9 @@ export default function GestionarMaterias() {
 
     const handleConfirmarModificacion = async () => {
         try {
-            // Filtra las materias que tienen id_estadoalumno === 1
+            // Filtra las materias que tienen id_estado_general === 1
             const materiasAHabilitar = materiasDeshabilitadas.filter(
-                (materia) => materia.id_estadoalumno === 1
+                (materia) => materia.id_estado_general === 1
             );
     
             // Llama a handleHabilitarMateria para cada materia habilitada
@@ -252,7 +252,7 @@ export default function GestionarMaterias() {
                 materia.id_materia === id_materia
                     ? {
                           ...materia,
-                          id_estadoalumno: 1, // Cambia el estado a 1
+                          id_estado_general: 1, // Cambia el estado a 1
                       }
                     : materia
             )
@@ -336,7 +336,7 @@ export default function GestionarMaterias() {
                                         <View key={materia.id_materia} style={styles.itemContainer}>
                                             <Text style={styles.textoTarea}>{materia.detalle}</Text>
                                             <Switch
-                                                value={materia.id_estadoalumno === 1}
+                                                value={materia.id_estado_general === 1}
                                                 onValueChange={() => toggleSwitch(materia.id_materia)}
                                             />
                                         </View>

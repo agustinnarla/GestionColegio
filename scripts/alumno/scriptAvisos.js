@@ -1,5 +1,6 @@
 const api_urlAvisosGenerales = "http://localhost:5000/alumno/avisos";
 const api_urlAvisosCurso = "http://localhost:5000/alumno/avisos"
+
 export const obtenerAvisosGenerales = async () => {
     try {
         const respuesta = await fetch(api_urlAvisosGenerales, {

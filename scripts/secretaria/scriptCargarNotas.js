@@ -23,44 +23,9 @@ export const obtenerNotas = async (id_curso,id_materia) => {
     }
 }
 
-/*
-    CONSULTA A LA API PARA OBTENER MATERIAS Y CARGARLAS EN LA BASE DE DATOS 
-*/
-export const obtenerMateria = async () => {
-    try {
-        const respuesta = await fetch(`${api_urlObtenerMateria}`); 
-
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener las materias');
-        }
-
-        const data = await respuesta.json();
-        console.log(data);
-        return data.materia; 
-    } catch (error) {
-        console.error('Error en obtenerMaterias:', error);
-    }
-};
 
 
-/*
-    CONSULTA A LA API PARA OBTENER LOS ALUMNOS POR CURSO 
-*/
-export const obtenerAlumnoPorCurso = async (id_curso) => {
-    try{
-        const respuesta = await fetch(`${api_urlObtenerAlumnoPorCurso}/${id_curso}`)
 
-        if(!respuesta.ok){
-            throw new Error('Error al obtener los alumnos')
-        }
-
-        const data = await respuesta.json()
-        console.log(data);
-        return data.alumnos; 
-    }catch(error){
-        console.error('Error en obtenerAlumnoPorCurso:', error);
-    }
-}
 
 /*
     CONSULTA A LA API PARA REGISTRAR NOTAS 

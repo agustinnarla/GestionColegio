@@ -25,7 +25,7 @@ export default function RegistrarUsuario() {
         contrasena: '',
         confirmarContrasena: '',
         id_rol: '',
-        id_estadoalumno: 1,
+        id_estado_general: 1,
     });
 
     const [roles, setRoles] = useState([]);
@@ -54,7 +54,7 @@ export default function RegistrarUsuario() {
             contrasena: '',
             confirmarContrasena: '',
             id_rol: '',
-            id_estadoalumno: 1,
+            id_estado_general: 1,
         });
         setHabilitarBotones(false); // Deshabilitar los botones después de limpiar la interfaz
     };
@@ -137,7 +137,7 @@ export default function RegistrarUsuario() {
                 dni_usuario: parseInt(formData.dni_usuario),
                 contrasena: formData.contrasena,
                 id_rol: parseInt(formData.id_rol),
-                id_estadoalumno: formData.id_estadoalumno,
+                id_estado_general: formData.id_estado_general,
             };
 
             const respuesta = await registrarUsuario(usuarioData);
@@ -153,11 +153,11 @@ export default function RegistrarUsuario() {
 
     const handleModificar = async () => {
         try {
-            const { dni_usuario, email, id_rol, id_estadoalumno, contrasena } = formData;
+            const { dni_usuario, email, id_rol, id_estado_general, contrasena } = formData;
             const formDataToSend = {};
             if (email) formDataToSend.email = email;
             if (id_rol) formDataToSend.id_rol = id_rol;
-            if (id_estadoalumno) formDataToSend.id_estadoalumno = id_estadoalumno;
+            if (id_estado_general) formDataToSend.id_estado_general = id_estado_general;
             if (contrasena) formDataToSend.contrasena = contrasena;
 
             const respuesta = await modificarUsuario(dni_usuario, formDataToSend);

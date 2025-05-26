@@ -128,14 +128,14 @@ export function SolicitanteSelector({ formData, handleChange, solicitantes, styl
 export function EstadoSelector({ formData, handleChange, estadoalumno, styles }) {
     const selectorConfig = {
         label: 'Estado del Alumno',
-        selectedValue: formData.id_estadoalumno,
-        onValueChange: (value) => handleChange('id_estadoalumno', value),
+        selectedValue: formData.id_estado_general,
+        onValueChange: (value) => handleChange('id_estado_general', value),
         items: [
             { label: 'Seleccione estado', value: '' },
             ...(estadoalumno || []).map(item => ({
                 label: item.detalle,
-                value: item.id_estadoalumno,
-                key: item.id_estadoalumno
+                value: item.id_estado_general,
+                key: item.id_estado_general
             }))
         ]
     };

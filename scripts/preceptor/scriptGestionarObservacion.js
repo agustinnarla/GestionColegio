@@ -1,45 +1,6 @@
 import { Alert, Platform } from 'react-native';
 //Rutas que utilizamos
 const api_url = 'http://localhost:5000'
-const api_urlAlumnoCurso = 'http://localhost:5000/alumnosPorCurso'
-
-//Obtenemos los solicitantes para registrar quien manda la observación
-export const obtenerSolicitante = async () => {
-    try{
-        //Consultamos a la api
-        const respuesta = await fetch(`${api_url}/solicitante`)
-        const data = await respuesta.json()
-        if(respuesta.ok){
-            return data.solicitante
-        }else{
-            //console.log('error')
-            throw new Error(data.error)
-
-        }
-    }catch(error){
-        //console.log(error)
-        throw new Error("Error al obtener los solicitantes")
-    }
-}
-
-//Obtenemos alumno por curso para la carga de la lista desplegable
-export const obtenerAlumnoCurso = async (id_curso) =>{
-    try{
-        //Consultamos la api
-        const respuesta = await fetch(`${api_urlAlumnoCurso}/${id_curso}`)
-        const data = await respuesta.json()
-        if(respuesta.ok){
-            return data.alumnos
-        }else{
-            //console.log('error')
-            throw new Error(data.error)
-
-        }
-    }catch(error){
-        //console.log(error)
-        throw new Error("Error al obtener los alumnos")
-    }
-}
 
 //Registramos la observación
 export const registrarObservacion = async (formData) => {

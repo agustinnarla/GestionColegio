@@ -69,17 +69,6 @@ export const habilitarRol = async (id_rol) => {
     }
 };
 
-export const obtenerRolesDeshabilitados = async () => {
-    try {
-        const response = await fetch(`${api_urlRoles}/rolesdeshabilitados`);
-        const data = await response.json();
-        console.log('Respuesta de la API:', data);
-        return data;
-    } catch (error) {
-        console.error('Error al obtener roles:', error);
-        return { roles: [] }; // Devuelve un array vacío en caso de error
-    }
-};
 
 
 

@@ -135,7 +135,7 @@ export default function CargarTareas() {
                 tarea.id_tarea === idTarea
                     ? {
                           ...tarea,
-                          id_estadoalumno: tarea.id_estadoalumno === 1 ? 2 : 1, // Cambia el estado
+                          id_estado_general: tarea.id_estado_general === 1 ? 2 : 1, // Cambia el estado
                       }
                     : tarea
             )
@@ -145,9 +145,9 @@ export default function CargarTareas() {
     //Confirma la habilitacion de la tarea
     const handleConfirmarModificacion = async () => {
         try {
-            // Filtra las tareas que tienen id_estadoalumno === 1
+            // Filtra las tareas que tienen id_estado_general === 1
             const tareasAHabilitar = tareasDeshabilitadas.filter(
-                (tarea) => tarea.id_estadoalumno === 1
+                (tarea) => tarea.id_estado_general === 1
             );
             // Llama a handleHabilitarTarea para cada tarea habilitada
             const resultados = await Promise.all(
@@ -338,7 +338,7 @@ export default function CargarTareas() {
                                         <View key={tarea.id_tarea} style={styles.itemContainer}>
                                             <Text style={styles.textoTarea}>{tarea.detalle}</Text>
                                             <Switch
-                                                value={tarea.id_estadoalumno === 1}
+                                                value={tarea.id_estado_general === 1}
                                                 onValueChange={() => toggleSwitch(tarea.id_tarea)}
                                             />
                                         </View>
