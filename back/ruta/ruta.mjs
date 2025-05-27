@@ -49,16 +49,49 @@ const upload = multer({ storage: storage })
 // Creación del router
 export const ruta = Router()
 
-// =====================================
-//         GESTIÓN DE ALUMNOS
-// =====================================
 
+
+// Listas Desplegables
+ruta.get('/listaDesplegable/sexo', obtenerSexo) // 🟢 
+ruta.get('/listaDesplegable/curso', obtenerCurso)   // 🟢 
+ruta.get('/listaDesplegable/curso/:id_curso', obtenerCursoFiltrado) // 🔵
+ruta.get('/listaDesplegable/estadoGeneral', obtenerEstadoGeneral)  // 🟢 
+ruta.get('/listaDesplegable/localidad', obtenerLocalidad) // 🟢
+ruta.get('/listaDesplegable/materia', obtenerMaterias) // 🟢
+ruta.get('/listaDesplegable/materia/deshabilitada', obtenerMateriasDeshabilitadas) // 🟢
+ruta.get('/listaDesplegable/certificado', obtenerEstadoCertificado) // 🟢
+ruta.get('/listaDesplegable/estadoAsistencia', obtenerEstadoAsistencia) // 🟢 
+ruta.get('/listaDesplegable/profesor/materia/:id_materia', obtenerProfesorPorMateria); // 🟢 
+ruta.get('/listaDesplegable/profesor', obtenerProfesor) // 🟢
+ruta.get('/listaDesplegable/roles', obtenerRoles) // 🟢
+ruta.get('/listaDesplegable/roles/deshabilitados', obtenerRolesDeshabilitados) // 🟢
+ruta.get('/listaDesplegable/rol/tarea/:id_rol', obtenerTareasDeRoles) // 🟢
+ruta.get('/listaDesplegable/tareas', obtenerTareas) // 🟢
+ruta.get('/listaDesplegable/tareas/deshabilitadas', obtenerTareasDeshabilitadas) // 🟢
+ruta.get('/listaDesplegable/tarea/rol/:id_rol', obtenerTareasDeRoles) // 🟢
+ruta.get('/listaDesplegable/rol/tarea/:id_tarea', obtenerRolesDeTarea) // 🟢
+ruta.get('/listaDesplegable/especialidad', obtenerEspecialidad) // 🟢
+ruta.get('/listaDesplegable/materia/profesor/:dni_profesional', obtenerMateriaPorProfesor) // 🟢
+ruta.get('/listaDesplegable/caracteristicas', obtenerCaracteristicasUnidad) // 🟢
+ruta.get('/listaDesplegable/curso/materia/:id_materia', obtenerCursoPorMateria) // 🟢
+ruta.get('/listaDesplegable/tipo_de_evaluacion', obtenerTipoDeEvaluacion) // 🟢
+ruta.get('/listaDesplegable/profesor/curso/:dni_profesional', obtenerCursosPorProfesor) // 🟢
+ruta.get('/listaDesplegable/profesor/curso/materia/:dni_profesional', obtenerMateriasPorProfesor) // 🔵
+ruta.get('/listaDesplegable/profesor/curso/alumnos/:dni_profesional', obtenerAlumnosNoRegulares) // 🟢
+ruta.get('/listaDesplegable/profesores', obtenerProfesores) // 🟢
+ruta.get('/listaDesplegable/curso/profesor/:dni_profesional', obtenerCursoPorProfesor) // 🟢
+ruta.get('/listaDesplegable/materia/curso/:id_curso', obtenerMateriaPorCurso) // 🟢
+ruta.get('/listaDesplegable/alumnos/curso/:id_curso', obtenerAlumnoCurso) // 🟢
+
+ruta.get('/listaDesplegable/profesionales/asistencia', obtenerProfesionalesAsistencia) // 🟢
+ruta.get('/listaDesplegable/justificar/profesional/estadoFalta', obtenerEstadosFaltaProfesionales) // 🟢 
+
+// == GESTION ALUMNO
 
 ruta.get('/alumno/:dni_alumno', obtenerAlumno) // 🟢
 //SACAR
 ruta.get('/alumnos/:dni_alumno', obtenerAlumnoFiltrado)
 ruta.get('/alumnos', obtenerAlumnoNombreApellido) // 🟢
-ruta.get('/alumnos/curso/:id_curso', obtenerAlumnoCurso) // 🟢
 ruta.get('/alumno/legajo/:dni_alumno', obtenerLegajoAlumno) // 🟢
 //SACAR
 ruta.get('/alumno/legajo/:dni_alumno/:imagenTipo', obtenerLegajoAlumnoFiltrado)  // 🔵
@@ -82,42 +115,8 @@ ruta.put('/alumnosLegajo/modificar/:dni_alumno', upload.fields([
 
 ruta.put('/alumnos/actualizarEstadoAlumno', actualizarEstadoAlumno)
 
-// Listas Desplegables
-ruta.get('/listaDesplegable/sexo', obtenerSexo) // 🟢 
-ruta.get('/listaDesplegable/curso', obtenerCurso)   // 🟢 
-ruta.get('/listaDesplegable/curso/:id_curso', obtenerCursoFiltrado) // 🔵
-ruta.get('/listaDesplegable/estadoGeneral', obtenerEstadoGeneral)  // 🟢 
-ruta.get('/listaDesplegable/localidad', obtenerLocalidad) // 🟢
-ruta.get('/listaDesplegable/materia', obtenerMaterias) // 🟢
-ruta.get('/listaDesplegable/materia/deshabilitada', obtenerMateriasDeshabilitadas) // 🟢
-ruta.get('/listaDesplegable/certificado', obtenerEstadoCertificado) // 🟢
-ruta.get('/listaDesplegable/estadoAsistencia', obtenerEstadoAsistencia) // 🟢 
-ruta.get('/listaDesplegable/profesor/materia/:id_materia', obtenerProfesorPorMateria); // 🟢 
-ruta.get('/listaDesplegable/profesor', obtenerProfesor) // 🟢
-ruta.get('/listaDesplegable/roles', obtenerRoles) // 🟢
-ruta.get('/listaDesplegable/roles/deshabilitados', obtenerRolesDeshabilitados) // 🟢
-ruta.get('/listaDesplegable/rol/tarea/:id_rol', obtenerTareasDeRoles) // 🟢
-ruta.get('/listaDesplegable/tareas', obtenerTareas) // 🟢
-ruta.get('/listaDesplegable/tareas/deshabilitadas', obtenerTareasDeshabilitadas) // 🟢
-ruta.get('/listaDesplegable/tarea/rol/:id_rol', obtenerTareasDeRoles) // 🟢
-ruta.get('/listaDesplegable/rol/tarea/:id_tarea', obtenerRolesDeTarea) // 🟢
-ruta.get('/listaDesplegable/especialidad', obtenerEspecialidad) // 🟢
-ruta.get('/listaDesplegable/alumno/materia/:dni_alumno', obtenerMateriaPorDni) // 🔵
-ruta.get('/listaDesplegable/profesor/materia/:dni_profesional', obtenerMateriaPorProfesor) // 🔴
-ruta.get('/listaDesplegable/caracteristicas', obtenerCaracteristicasUnidad) // 🟢
-ruta.get('/listaDesplegable/curso/materia/:id_materia', obtenerCursoPorMateria) // 🟢
-ruta.get('/listaDesplegable/tipo_de_evaluacion', obtenerTipoDeEvaluacion) // 🟢
-ruta.get('/listaDesplegable/profesor/curso/:dni_profesional', obtenerCursosPorProfesor) // 🟢
-ruta.get('/listaDesplegable/profesor/curso/materia/:dni_profesional', obtenerMateriasPorProfesor) // 🔵
-ruta.get('/listaDesplegable/profesor/curso/alumnos/:dni_profesional', obtenerAlumnosNoRegulares) // 🟢
-ruta.get('/listaDesplegable/profesores', obtenerProfesores) // 🟢
-ruta.get('/listaDesplegable/curso/profesor/:dni_profesional', obtenerCursoPorProfesor) // 🟢
-ruta.get('/listaDesplegable/materia/curso/:id_curso', obtenerMateriaPorCurso) // 🟢
-
-ruta.get('/listaDesplegable/profesionales/asistencia', obtenerProfesionalesAsistencia) // 🟢
-ruta.get('/listaDesplegable/justificar/profesional/estadoFalta', obtenerEstadosFaltaProfesionales) // 🟢 
-
-
+// == Materias del Alumno
+ruta.get('/alumno/materia/:dni_alumno', obtenerMateriaPorDni) // 🔵
 
 // == OBSERVACION 
 ruta.post('/alumno/observacion/alta', registrarObservacion)// 🟢
@@ -144,7 +143,7 @@ ruta.post('/materia/alta', agregarMateria) // 🟢
 
 // == PASAR AÑO
 ruta.get('/alumno/pasarAno/:id_curso', obtenerAlumnoFinal)  // 🟢
-ruta.post('/alumno/pasarAno', registrarCursoNuevo) // 🟢
+ruta.post('/alumno/pasarAno/alta', registrarCursoNuevo) // 🟢
 
 // == JUSTIFICAR FALTA
 ruta.get('/alumno/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) // 🔴
@@ -162,17 +161,17 @@ ruta.put('/profesor/materia/deshabilitar/:id_materia', deshabilitarMateriaProfes
 
 // == USUARIOS PERFIL
 ruta.get('/usuario/perfil/:dni_usuario', obtenerUsuario) // 🟢
-ruta.post('/usuario/perfil/recuperarContrasena', enviarNuevaContrasena) // 🟢
+ruta.post('/usuario/perfil/restablecerContrasena/:dni_usuario', restablecerContrasena) // 🟢
 
 // == REGISTRAR USUARIO 
 ruta.get('/usuario/registrar/consultar/:dni_usuario', consultarUsuario) // 🟢
 ruta.post('/usuario/registrar', registrarUsuario) // 🟢
-ruta.post('/usuario/restablecerContrasena/:dni_usuario', restablecerContrasena) // 🟢
 ruta.put('/usuario/deshabilitar/:dni_usuario', deshabilitarUsuario) // 🟢
 ruta.put('/usuario/modificar/:dni_usuario', modificarUsuario)  // 🟢
 
 // == INGRESAR USUARIO
 ruta.post('/usuario/ingresar', ingresarUsuario)  // 🟢
+ruta.post('/usuario/recuperarContrasena', enviarNuevaContrasena) // 🟢
 
 // == ROLES 
 ruta.post('/rol/alta', registrarRol) // 🟢
@@ -189,8 +188,8 @@ ruta.put('/tarea/habilitar/:id_tarea', habilitarTarea) // 🟢
 
 // == AVISOS
 ruta.post('/secretaria/aviso/alta', crearAviso) // 🟢
-ruta.get('/alumno/avisos/avisos_generales', obtenerAvisosGenerales) // 🟢
-ruta.get('/alumno/avisos/:id_curso', obtenerAvisosCurso) // 🟢
+ruta.get('/alumno/avisos/general', obtenerAvisosGenerales) // 🟢
+ruta.get('/alumno/avisos/curso/:id_curso', obtenerAvisosCurso) // 🟢
 
 // == LIBRO AULA
 ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 

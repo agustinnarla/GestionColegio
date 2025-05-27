@@ -2,22 +2,24 @@
 import {pool} from "../dataBase/coneccion.mjs"
 
 //Ver si es usuario --> Error de usuario
-export const obtenerMateriaPorProfesor = async (req,res) => {
-    const { dni_profesional } = req.params
-    try{
-        const respuesta = await pool.query("SELECT mp.id_materia, m.detalle FROM materia_profesor AS mp " + 
+export const obtenerMateriaPorProfesor = async (req, res) => {
+    const { dni_profesional } = req.params;
+    try {
+        const respuesta = await pool.query(
+            "SELECT mp.id_materia, m.detalle FROM materia_profesor AS mp " +
             "INNER JOIN materia m ON m.id_materia = mp.id_materia " +
-            "WHERE mp.dni_profesional = $1", 
-            [dni_profesional])
-        if(respuesta.rowCount === 0){
-            return res.status(404).json({error: "No se encontraron materias para el profesor especificado"})
+            "WHERE mp.dni_profesional = $1",
+            [dni_profesional]
+        );
+        if (respuesta.rowCount === 0) {
+            return res.status(404).json({ error: "No se encontraron materias para el profesor especificado" });
         }
-        res.status(200).json(respuesta.rows)
-    }catch(error){
-        console.log(error)
-        res.status(500).json({error: "Error al obtener la materia por profesor"})
+        res.status(200).json({ materia: respuesta.rows }); 
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Error al obtener la materia por profesor" });
     }
-}
+};
 
 export const obtenerCaracteristicasUnidad = async (req,res) => {
     try{

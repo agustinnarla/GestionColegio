@@ -17,7 +17,6 @@ export const obtenerAvisosGenerales = async (req, res) => {
 };
 
 
-//Ver
 export const obtenerAvisosCurso = async (req, res) => {
     const { id_curso } = req.params;
     try {

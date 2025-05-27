@@ -52,7 +52,7 @@ export const obtenerMateriaPorDni = async (req, res) => {
         console.log('Materias por curso traídas exitosamente:', respuesta.rows);
 
         if (respuesta.rows.length === 0) {
-            return res.status(200).json({ materias: [] }); // Devuelve un arreglo vacío
+            return res.status(200).json({ materias: [] }); 
         }
 
         res.json({ materias: respuesta.rows });
