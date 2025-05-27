@@ -126,11 +126,11 @@ ruta.post('/alumno/amonestacion/alta', registrarAmonestacion) // 🟢
 ruta.get('/alumno/amonestacion/cantidad/:dni_alumno', obtenerCantidadAmonestaciones) // 🟢
 
 // == ASISTENCIA 
-ruta.post('/alumno/asistencia/alta', registrarAsistencia)  // 🔴
-ruta.put('/alumno/asistencia/modificar/:id_asistencia', modificarAsistencia) // 🔴
-ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha', validarFechaAsistencia) // 🔴 
-ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes) // 🔴
-ruta.get('/alumno/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) // 🔴
+ruta.post('/alumno/asistencia/alta', registrarAsistencia)  // 🟢
+ruta.put('/alumno/asistencia/modificar/:id_asistencia', modificarAsistencia) // 🟢
+ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha', validarFechaAsistencia) // 🟢 
+ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes) // 🟢
+ruta.get('/alumno/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) // 🟢
 
 // == NOTAS
 ruta.get('/alumno/notas/:id_curso/:id_materia', obtenerNotas) // 🟢

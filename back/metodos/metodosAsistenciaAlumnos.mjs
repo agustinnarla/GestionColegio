@@ -11,7 +11,6 @@ export const registrarAsistencia = async (req, res) => {
             "SELECT * FROM asistencia_alumno WHERE fecha = $1 AND id_curso = $2 AND dni_alumno = $3",
             [fecha, id_curso, dni_alumno]
         );
-        console.log("Estamos revisando", consultaExistente)
         if (consultaExistente.rows.length > 0) {
             // Si ya existe, actualiza el registro
             const respuesta = await pool.query(
@@ -38,20 +37,22 @@ export const registrarAsistencia = async (req, res) => {
 
 
 //Modificar
-export const modificarAsistencia = async(req,res) => {
-    const {id_curso, dni_alumno, id_estado_asistencia, fecha} = req.body;
-    try{
-        const respuesta = await pool.query("UPDATE asistencia_alumno SET dni_alumno = $1, fecha = $2, id_curso = $3, id_estado_asistencia = $4",
-            [dni_alumno,fecha,id_curso,id_estado_asistencia])
-        console.log(respuesta.rows)
-        res.status(200).json({asistencia: respuesta.rows})
-    }catch{
-        console.log(error)
-        res.status(500).json({ error: 'Error al registrar la asistencia de los alumnos' })
+export const modificarAsistencia = async (req, res) => {
+    const { id_curso, dni_alumno, id_estado_asistencia, fecha } = req.body;
+    try {
+        const respuesta = await pool.query(
+            "UPDATE asistencia_alumno SET id_estado_asistencia = $1 WHERE dni_alumno = $2 AND fecha = $3 AND id_curso = $4",
+            [id_estado_asistencia, dni_alumno, fecha, id_curso]
+        );
+        console.log('Registro actualizado:', respuesta.rowCount);
+        res.status(200).json({ mensaje: 'Asistencia actualizada correctamente' });
+    } catch (error) {
+        console.error('Error al actualizar la asistencia:', error);
+        res.status(500).json({ error: 'Error al actualizar la asistencia de los alumnos' });
     }
-}
+};
 
-// Ver q hace
+// Ver q hace SI TIENE ASISTENCIA ESE CURSO, SE MARCA CON UN ✅ EN LA LISTA DESPLEGABLE
 export const validarFechaAsistencia = async(req, res) =>{
     const { id_curso, fecha } = req.params;
     try {
@@ -104,7 +105,7 @@ export const obtenerFaltasSuperadas = async (req, res) => {
             FROM public.asistencia_alumno a
             JOIN public.alumno al ON a.dni_alumno = al.dni_alumno
             WHERE a.id_estado_asistencia IN (2, 3)
-            AND al.id_estado_alumno <> 2
+            AND al.id_estado_general <> 2
             GROUP BY a.dni_alumno
             HAVING SUM(CASE
                         WHEN a.id_estado_asistencia = 2 THEN 1
