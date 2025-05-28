@@ -111,7 +111,7 @@ export const obtenerFaltasSuperadas = async (req, res) => {
                         WHEN a.id_estado_asistencia = 2 THEN 1
                         WHEN a.id_estado_asistencia = 3 THEN 0.5
                         ELSE 0
-                    END) >= 9;
+                    END) >= 20;
         `;
 
         const { rows } = await pool.query(query);
