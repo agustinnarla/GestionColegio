@@ -2,8 +2,8 @@ import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCursoPorMateria, obtenerMateriaPorProfesor } from '../../scripts/profesor/scriptLibroAula.js';
-import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../../scripts/profesor/scriptAsignarEvaluacion';
+import { obtenerCursoPorMateria, obtenerMateriaPorProfesor, obtenerTipoDeEvaluacion } from '../../scripts/listasDesplegables/listaDesplegable'
+import { registrarEvaluacion } from '../../scripts/profesor/scriptAsignarEvaluacion';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 
 export default function LibroAula({ route }) {
@@ -31,6 +31,7 @@ export default function LibroAula({ route }) {
         }
     
         console.log('DNI Usuario:', dni_usuario);
+        const dni_profesional = dni_usuario
 
             useEffect(() => {
                     const cagarCursoPorMateria = async () => {
@@ -49,7 +50,7 @@ export default function LibroAula({ route }) {
             useEffect(() => {
                 const cargarMaterias = async () => {
                     try {
-                        const data = await obtenerMateriaPorProfesor(dni_usuario);
+                        const data = await obtenerMateriaPorProfesor(dni_profesional);
                         setMaterias(data);
                     } catch (error) {
                         console.error('Error al cargar las materias:', error);
@@ -59,7 +60,7 @@ export default function LibroAula({ route }) {
                 };
         
                 cargarMaterias();
-            }, [dni_usuario]);
+            }, [dni_profesional]);
         
             useEffect(() => {
                 const cargarTipoDeEvaluacion = async () => {

@@ -1,6 +1,7 @@
-const api_urlAvisosGenerales = "http://localhost:5000/alumno/avisos";
-const api_urlAvisosCurso = "http://localhost:5000/alumno/avisos"
+const api_urlAvisosGenerales = "http://localhost:5000/alumno/avisos/general";
+const api_urlAvisosCurso = "http://localhost:5000/alumno/avisos/curso"
 
+// 🟢
 export const obtenerAvisosGenerales = async () => {
     try {
         const respuesta = await fetch(api_urlAvisosGenerales, {
@@ -23,7 +24,7 @@ export const obtenerAvisosGenerales = async () => {
     }
 };
 
-
+// 🟢
 export const obtenerAvisosCurso = async (id_curso) => {
     try{
         const respuesta = await fetch(`${api_urlAvisosCurso}/${id_curso}`)

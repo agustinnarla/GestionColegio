@@ -17,9 +17,7 @@ export const obtenerMateria = async (req, res) => {
     }
 }
 
-
-// VER
-//obtenerNotasPorAlumno -> Cambiar lugar
+//OBTENGO LAS MATERIAS DEL ALUMNO CON LAS RESPECTIVAS NOTAS 
 export const obtenerMateriaPorDni = async (req, res) => {
     const { dni_alumno } = req.params;
     try {
@@ -35,6 +33,10 @@ export const obtenerMateriaPorDni = async (req, res) => {
             am.nota4,
             am.nota5,
             am.nota6,
+            am.tp1,
+            am.tp2,
+            am.tp3,
+            am.aulico,
             am.promedio
             FROM alumno_curso ac
             INNER JOIN curso c ON c.id_curso = ac.id_curso 
@@ -46,7 +48,7 @@ export const obtenerMateriaPorDni = async (req, res) => {
             LEFT JOIN horario h ON mc.id_materia = h.id_materia AND mc.id_curso = h.id_curso
             INNER JOIN alumno_materia am ON am.id_materia = m.id_materia AND a.dni_alumno = am.dni_alumno
             WHERE a.dni_alumno = $1 AND ac.id_curso = am.id_curso
-            GROUP BY p.nombre, c.detalle, m.detalle, h.dia_semana, am.nota1, am.nota2, am.nota3, am.nota4, am.nota5, am.nota6, am.promedio
+            GROUP BY p.nombre, c.detalle, m.detalle, h.dia_semana, am.nota1, am.nota2, am.nota3, am.nota4, am.nota5, am.nota6, am.tp1, am.tp2, am.tp3, am.aulico,am.promedio
         `, [dni_alumno]);
 
         console.log('Materias por curso traídas exitosamente:', respuesta.rows);

@@ -1,12 +1,10 @@
-const api_urlCursosXProfesor = 'http://localhost:5000/profesor/curso_profesor'
-const api_urlMateriasXProfesor = 'http://localhost:5000/profesor/curso_materia'
-const api_urlAlumnosCursoMateria = 'http://localhost:5000/profesor/curso_materia/alumnos';
-const api_urlAgregarNota = 'http://localhost:5000/profesor/nota';
-const api_urlModificarEstado = 'http://localhost:5000/profesor/estadoevaluativo';
+
+const api_urlAgregarNota = 'http://localhost:5000/profesor/nota_final/alta';
+const api_urlModificarEstado = 'http://localhost:5000/profesor/nota_final/estado_evaluativo';
 
 
 
-
+// 🟢
 export const agregarNota = async ({ id_curso, id_materia, dni_profesor, dni_alumno, notafinal }) => {
     try {
         // Validación antes de enviar
@@ -40,7 +38,7 @@ export const agregarNota = async ({ id_curso, id_materia, dni_profesor, dni_alum
     }
 };
 
-
+// 🟢
 export const modificarEstadoEvaluativo = async ({ dni_alumno, id_materia }) => {
     try {
         const respuesta = await fetch(api_urlModificarEstado, {

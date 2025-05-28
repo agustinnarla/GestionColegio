@@ -1,12 +1,13 @@
 import { Alert, Platform } from 'react-native';
+
 //Rutas que utilizamos
-const api_url = 'http://localhost:5000'
+const api_urlObservacion = 'http://localhost:5000/alumno/observacion';
 
 //Registramos la observación
 export const registrarObservacion = async (formData) => {
     try{
         //Consultamos la api 
-        const respuesta = await fetch(`${api_url}/observacion`, {
+        const respuesta = await fetch(`${api_urlObservacion}`, {
             method: 'POST',
             headers: {'Content-Type' : 
             'application/json'},

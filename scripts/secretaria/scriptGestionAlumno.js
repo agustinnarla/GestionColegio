@@ -1,17 +1,19 @@
-const api_urlAlumno = 'http://localhost:5000/alumnos'
+const api_urlAlumno = 'http://localhost:5000/alumno'
 const api_url = 'http://localhost:5000'
 const api_urlLegajo = 'http://localhost:5000/alumnosLegajo'
-const api_urlEliminar = 'http://localhost:5000/alumnos/deshabilitar'
-const api_urlModificar = 'http://localhost:5000/alumnos/modificar'
+const api_urlAlta = 'http://localhost:5000/alumno/alta'
+const api_urlEliminar = 'http://localhost:5000/alumno/deshabilitar'
+const api_urlModificar = 'http://localhost:5000/alumno/modificar'
 const api_urlModificarLegajo = 'http://localhost:5000/alumnosLegajo/modificar'
 
-export const obtenerAlumnoFiltrado = async (dni) => {
+// 🔵
+export const obtenerAlumnoFiltrado = async (dni_alumno) => {
     try {
-        const respuesta = await fetch(`${api_urlAlumno}/${dni}`);
+        const respuesta = await fetch(`${api_urlAlumno}/${dni_alumno}`);
         const data = await respuesta.json();
         
         if (respuesta.ok) {
-            return data.alumnos[0]; 
+            return data.alumno; 
         } else {
             throw new Error(data.error);
         }
@@ -21,6 +23,7 @@ export const obtenerAlumnoFiltrado = async (dni) => {
     }
 }
 
+// 🔴
 //Agregue yo (Roma)
 export const obtenerDniPdf = async (dni) => {
     try {
@@ -37,6 +40,7 @@ export const obtenerDniPdf = async (dni) => {
         throw new Error("Error al obtener el PDF del DNI");
     }
 };
+// 🔴
 //Agregue yo (Roma)
 export const obtenerFichaMedicaPdf = async (dni) => {
     try {
@@ -53,6 +57,7 @@ export const obtenerFichaMedicaPdf = async (dni) => {
         throw new Error("Error al obtener el PDF de la ficha médica");
     }
 };
+// 🔴
 //Agregue yo (Roma)
 export const obtenerPartidaNacimientoPdf = async (dni) => {
     try {
@@ -69,11 +74,11 @@ export const obtenerPartidaNacimientoPdf = async (dni) => {
         throw new Error("Error al obtener el PDF de la partida de nacimiento");
     }
 };
-
+// 🟢
 export const agregarAlumno = async (formData) => {
     try {
         
-        const respuesta = await fetch(api_urlAlumno, {
+        const respuesta = await fetch(api_urlAlta, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -94,6 +99,7 @@ export const agregarAlumno = async (formData) => {
         throw new Error("Error al agregar el alumno: " + error.message);
     }
 }
+//🔴
 //Agregue yo (Roma)
 export const agregarLegajo = async (legajoData) => {
     console.log(legajoData)
@@ -114,10 +120,10 @@ export const agregarLegajo = async (legajoData) => {
         throw new Error("Error al agregar el legajo: " + error.message);
     }
 }
-
+// 🟢
 export const deshabilitarAlumno = async(dni) => {
     try{
-        const respuesta = await fetch(`${api_urlEliminar}/${dni}`,{
+        const respuesta = await fetch(`${api_urlEliminar}/${dni_alumno}`,{
             method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -136,12 +142,11 @@ export const deshabilitarAlumno = async(dni) => {
         throw new Error("Error al deshabilitar el alumno: " + error.message);
     }
 }
-export const modificarAlumno = async (dni, formData) => {
+// 🟢
+export const modificarAlumno = async (dni_alumno, formData) => {
     try {
-        const url = `${api_urlModificar}/${dni}`; 
-        console.log('URL a la que se está haciendo la solicitud:', url);
-        
-        const respuesta = await fetch(url, {
+    
+        const respuesta = await fetch(`${api_urlModificar}/${dni_alumno}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -162,6 +167,7 @@ export const modificarAlumno = async (dni, formData) => {
         throw new Error("Error al modificar el alumno: " + error.message);
     }
 }
+//🔴
 //Agregue yo Roma
 export const modificarLegajo = async (dni, formData) => {
     

@@ -18,7 +18,7 @@ const api_urlTareaRol = 'http://localhost:5000/listaDesplegable/tarea/rol';
 const api_urlRolesDeTarea = 'http://localhost:5000/listaDesplegable/rol/tarea';
 const api_urlEspecialidad = 'http://localhost:5000/listaDesplegable/especialidad';
 const api_urlMateriaPorDni = 'http://localhost:5000/listaDesplegable/alumno/materia';
-const api_urlMateriaPorProfesor = 'http://localhost:5000/listaDesplegable/profesor/materia';
+const api_urlMateriaPorProfesor = 'http://localhost:5000/listaDesplegable/materia/profesor';
 const api_urlCaracteristicasUnidad = 'http://localhost:5000/listaDesplegable/caracteristicas';
 const api_urlCursoPorMateria = 'http://localhost:5000/listaDesplegable/curso/materia';
 const api_urlTipoDeEvaluacion = 'http://localhost:5000/listaDesplegable/tipo_de_evaluacion';
@@ -30,12 +30,13 @@ const api_urlCursoPorProfesor = 'http://localhost:5000/listaDesplegable/curso/pr
 const api_urlMateriaPorCurso = 'http://localhost:5000/listaDesplegable/materia/curso';
 const api_urlProfesionalesAsistencia = 'http://localhost:5000/listaDesplegable/profesionales/asistencia';
 const api_urlEstadosFaltaProfesionales = 'http://localhost:5000/listaDesplegable/justificar/profesional/estadoFalta';
+const api_urlAlumnoCurso = 'http://localhost:5000/listaDesplegable/alumnos/curso'
 
 export const obtenerSexo = async () => {
     try {
         const response = await fetch(`${api_urlSexo}`);
         const data = await response.json();
-        return data;
+        return data.sexo || [];
     } catch (error) {
         console.error('Error al obtener sexo:', error);
         return { sexo: [] };
@@ -46,10 +47,10 @@ export const obtenerCurso = async () => {
     try {
         const response = await fetch(`${api_urlCurso}`);
         const data = await response.json();
-        return data;
+        return data.curso || [];
     } catch (error) {
         console.error('Error al obtener curso:', error);
-        return { curso: [] };
+        return [];
     }
 };
 
@@ -57,7 +58,7 @@ export const obtenerCursoFiltrado = async (id_curso) => {
     try {
         const response = await fetch(`${api_urlCursoFiltrado}/${id_curso}`);
         const data = await response.json();
-        return data;
+        return data.curso || [];
     } catch (error) {
         console.error('Error al obtener curso filtrado:', error);
         return { curso: [] };
@@ -68,7 +69,7 @@ export const obtenerEstadoGeneral = async () => {
     try {
         const response = await fetch(`${api_urlEstadoGeneral}`);
         const data = await response.json();
-        return data;
+        return data.estadoGeneral || [];
     } catch (error) {
         console.error('Error al obtener estado general:', error);
         return { estadoGeneral: [] };
@@ -79,7 +80,7 @@ export const obtenerLocalidad = async () => {
     try {
         const response = await fetch(`${api_urlLocalidad}`);
         const data = await response.json();
-        return data;
+        return data.localidad || [];
     } catch (error) {
         console.error('Error al obtener localidad:', error);
         return { localidad: [] };
@@ -244,7 +245,7 @@ export const obtenerMateriaPorProfesor = async (dni_profesional) => {
     try {
         const response = await fetch(`${api_urlMateriaPorProfesor}/${dni_profesional}`);
         const data = await response.json();
-        return data;
+        return data.materia || [];
     } catch (error) {
         console.error('Error al obtener materia por profesor:', error);
         return { materias: [] };
@@ -380,5 +381,16 @@ export const obtenerRolesDeshabilitados = async () => {
     } catch (error) {
         console.error('Error al obtener roles:', error);
         return { roles: [] }; 
+    }
+};
+
+export const obtenerAlumnoCurso = async (id_curso) => {
+    try {
+        const response = await fetch(`${api_urlAlumnoCurso}/${id_curso}`);
+        const data = await response.json();
+        return data.alumnos || [];
+    } catch (error) {
+        console.error('Error al obtener sexo:', error);
+        return { sexo: [] };
     }
 };

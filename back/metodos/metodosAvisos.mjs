@@ -4,9 +4,10 @@ import { pool } from "../dataBase/coneccion.mjs";
 export const obtenerAvisosGenerales = async (req, res) => {
   try {
       const repuesta = await pool.query(
-        "SELECT * " + 
-        "FROM avisos " +
-        "WHERE id_estado_general = 1 " +
+        "SELECT a.informacion, m.detalle, a.fecha " + 
+        "FROM avisos AS a " +
+        "INNER JOIN motivos m ON m.id_motivo = a.id_motivo " + 
+        "WHERE a.id_estado_general = 1 " +
         "ORDER BY fecha DESC;"
       );
       res.status(200).json({ avisos: repuesta.rows });

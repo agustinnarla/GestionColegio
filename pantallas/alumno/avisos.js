@@ -1,5 +1,5 @@
 import { StyleSheet, View, Image, TextInput, Text, ScrollView, Alert } from 'react-native';
-import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
+import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables';
@@ -69,7 +69,7 @@ export default function Avisos() {
                     avisosFiltrados.map((aviso, index) => (
                         <View key={index} style={styles.tarjeta}>
                             <Text style={styles.textoAviso}>Información: {aviso.informacion || 'No disponible'}</Text>
-                            <Text style={styles.textoMotivo}>Motivo: {aviso.motivo || 'No disponible'}</Text>
+                            <Text style={styles.textoMotivo}>Motivo: {aviso.detalle || 'No disponible'}</Text>
                             <Text style={styles.textoMotivo}>Profesor Afectado: {aviso.nombre || 'General'}</Text>
                             <Text style={styles.textoMotivo}>Cursos Afectados: {aviso.curso || 'General'}</Text>
                             <Text style={styles.textoDH}>{aviso.fecha}</Text>

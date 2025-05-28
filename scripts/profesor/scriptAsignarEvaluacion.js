@@ -1,7 +1,7 @@
 
-const url_apiAsignarEvaluacion = "http://localhost:5000/profesor/asignar_evaluacion"
+const url_apiAsignarEvaluacion = "http://localhost:5000/profesor/asignar_evaluacion/alta"
 
-
+// 🟢
 export const registrarEvaluacion = async (formData) => {
     try{
         const repuesta = await fetch(url_apiAsignarEvaluacion, {

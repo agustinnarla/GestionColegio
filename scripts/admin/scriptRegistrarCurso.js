@@ -1,7 +1,7 @@
 const api_curso = 'http://192.168.0.18:5000/curso'
 
 
-
+// 🔴
 export const regsitrarCurso = async (formData) => {
     try{
         const respuesta = fetch(`${api_curso}`,{

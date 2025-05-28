@@ -2,7 +2,8 @@ import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria, registrarLibroAula } from '../../scripts/profesor/scriptLibroAula';
+import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula';
 
 import ListasDesplegables from '../../componente/ListasDesplegables';
 export default function LibroAula({ route }) {
@@ -24,6 +25,7 @@ export default function LibroAula({ route }) {
     const [cursoPorMateria, setCursoPorMateria] = useState([]);
 
     const { dni_usuario } = route.params;
+    const dni_profesional = dni_usuario
 
     if (!dni_usuario) {
         console.error('DNI Usuario no definido');
@@ -31,7 +33,7 @@ export default function LibroAula({ route }) {
     }
 
     console.log('DNI Usuario:', dni_usuario);
-
+    console.log('El dni usuario se paso a ->', dni_profesional)
 
     useEffect(() => {
             const cagarCursoPorMateria = async () => {
@@ -50,7 +52,7 @@ export default function LibroAula({ route }) {
     useEffect(() => {
         const cargarMaterias = async () => {
             try {
-                const data = await obtenerMateriaPorProfesor(dni_usuario);
+                const data = await obtenerMateriaPorProfesor(dni_profesional);
                 setMaterias(data);
             } catch (error) {
                 console.error('Error al cargar las materias:', error);

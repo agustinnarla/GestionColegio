@@ -1,10 +1,13 @@
 import { Alert, Platform } from 'react-native';
 const api_url = 'http://localhost:5000'
-const api_urlAmonestacion = 'http://localhost:5000/amonestacion'
+const api_urlAmonestacion = 'http://localhost:5000/alumno/amonestacion'
+const api_urlCantidad = 'http://localhost:5000/alumno/amonestacion/cantidad'
 
+
+// 🟢
 export const registrarAmonestacion = async (formData) => {
     try{
-        const respuesta = await fetch(`${api_url}/amonestacion`, {
+        const respuesta = await fetch(`${api_urlAmonestacion}`, {
             method: 'POST',
             headers: {'Content-Type' : 
             'application/json'},
@@ -24,7 +27,7 @@ export const registrarAmonestacion = async (formData) => {
     }
 }
 
-
+// 🟢
 export const imprimirArchivo = async (formData, alumno, solicitante) => {
     try {
         const fecha = new Date().toLocaleDateString();
@@ -77,8 +80,8 @@ export const imprimirArchivo = async (formData, alumno, solicitante) => {
 
 export const obtenerCantidadAmonestaciones = async(dni_alumno) => {
     try{
-        const respuesta = await fetch(`${api_urlAmonestacion}/${dni_alumno}`)
-        
+        const respuesta = await fetch(`${api_urlCantidad}/${dni_alumno}`)
+
         if (!respuesta.ok) {
             throw new Error('Error al obtener las amonestaciones');
         }

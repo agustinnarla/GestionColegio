@@ -1,13 +1,11 @@
-const api_url = 'http://192.168.0.23:5000'
-const api_urlCargarNotas = 'http://192.168.0.23:5000/notas'
-const api_urlObtenerMateria = 'http://192.168.0.23:5000/materia'
-const api_urlObtenerEtapasEvaluativas = 'http://192.168.0.23:5000/etapas'
-const api_urlObtenerAlumnoPorCurso = 'http://192.168.0.23:5000/alumnosPorCurso'
 
+const api_urlCargarNotas = 'http://localhost:5000/alumno/notas'
+const api_urlRegistrarNotas = 'http://localhost:5000/alumno/notas/alta'
 
 /*
     CONSULTA A LA API PARA OBTENER NOTAS 
 */
+// 🟢
 export const obtenerNotas = async (id_curso,id_materia) => {
     try{
         const respuesta = await fetch(`${api_urlCargarNotas}/${id_curso}/${id_materia}`)
@@ -24,15 +22,13 @@ export const obtenerNotas = async (id_curso,id_materia) => {
 }
 
 
-
-
-
 /*
     CONSULTA A LA API PARA REGISTRAR NOTAS 
 */
+// 🟢
 export const registrarNotas= async(formData) => {
     try{
-        const respuesta = await fetch(api_urlCargarNotas, {
+        const respuesta = await fetch(api_urlRegistrarNotas, {
             method: 'POST',
             headers: {'Content-Type' : 
             'application/json'},

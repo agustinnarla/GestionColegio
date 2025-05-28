@@ -1,13 +1,6 @@
-const api_urlLibroAula = 'http://localhost:5000/profesor/libroaula/registrar_libro_aula'
-const api_urlCursoMateria = 'http://localhost:5000/profesor/libroaula/curso_materia'
-const api_urlCaracteristicas = 'http://localhost:5000/profesor/libroaula/caracteristicas'
-const api_urlMateriaPorProfesor = 'http://localhost:5000/profesor/libroaula/materia'
+const api_urlLibroAula = 'http://localhost:5000/profesor/libroAula/alta'
 
-
-
-
-
-
+// 🟢
 export const registrarLibroAula = async (formData) => {
     try{
         const respuesta = await fetch(api_urlLibroAula,{

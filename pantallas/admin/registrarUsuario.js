@@ -3,7 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
-import { consultarUsuario, obtenerRoles, registrarUsuario, modificarUsuario, deshabilitarUsuario } from '../../scripts/admin/scriptRegistrarUsuario';
+import { obtenerRoles } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { consultarUsuario, registrarUsuario, modificarUsuario, deshabilitarUsuario } from '../../scripts/admin/scriptRegistrarUsuario';
 import CustomAlert from '../../componente/CustomAlerts';
 
 export default function RegistrarUsuario() { 

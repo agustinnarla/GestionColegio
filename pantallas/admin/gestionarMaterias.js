@@ -4,7 +4,8 @@ import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorXMateria, deshabilitarMateria, registrarMateria, obtenerMateriasDeshabilitadas, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
+import { obtenerMateria, obtenerProfesorPorMateria, obtenerMateriasDeshabilitadas, obtenerProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { registrarMateriaProfesor, deshabilitarMateria, registrarMateria, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
 import CustomAlert from '../../componente/CustomAlerts';
 
 export default function GestionarMaterias() {

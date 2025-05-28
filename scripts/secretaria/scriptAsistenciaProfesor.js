@@ -1,10 +1,11 @@
-const api_UrlAsistencia = "http://localhost:5000/profesores/asistencia"
-const api_UrlAsistenciaEntrada = "http://localhost:5000/profesores/asistencia/entrada"
-const api_UrlAsistenciaSalida = "http://localhost:5000/profesores/asistencia/salida"
+const api_urlAsistencia = "http://localhost:5000/listaDesplegable/profesionales/asistencia"
+const api_urlAsistenciaEntrada = "http://localhost:5000/secretaria/profesional/asistencia/entrada"
+const api_urlAsistenciaSalida = "http://localhost:5000/secretaria/profesional/asistencia/salida"
 
+// 🔵
 export const obtenerProfesoresAsistencia = async () => {
     try {
-        const respuesta = await fetch(api_UrlAsistencia);
+        const respuesta = await fetch(api_urlAsistencia);
         if (!respuesta.ok) {
             throw new Error(`Error en la API: ${respuesta.status} ${respuesta.statusText}`);
         }
@@ -20,9 +21,10 @@ export const obtenerProfesoresAsistencia = async () => {
     }
 };
 
+//🟢
 export const registrarEntradaProfesor = async (profesorData) => {
     try{
-        const respuesta = await fetch(api_UrlAsistenciaEntrada, {
+        const respuesta = await fetch(api_urlAsistenciaEntrada, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -41,10 +43,10 @@ export const registrarEntradaProfesor = async (profesorData) => {
         throw error; // Lanza el error para que el cliente lo maneje
     }
 }
-
+//🟢
 export const registrarSalidaProfesor = async (profesorData) => {
     try{
-        const respuesta = await fetch(api_UrlAsistenciaSalida, {
+        const respuesta = await fetch(api_urlAsistenciaSalida, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
