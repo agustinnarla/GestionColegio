@@ -91,7 +91,7 @@ export const obtenerMateria = async () => {
     try {
         const response = await fetch(`${api_urlMateria}`);
         const data = await response.json();
-        return data;
+        return data.materias || [];
     } catch (error) {
         console.error('Error al obtener materia:', error);
         return { materia: [] };
@@ -146,7 +146,7 @@ export const obtenerProfesor = async () => {
     try {
         const response = await fetch(`${api_urlProfesor}`);
         const data = await response.json();
-        return data;
+        return data.profesor || [];
     } catch (error) {
         console.error('Error al obtener profesor:', error);
         return { profesor: [] };
@@ -248,7 +248,7 @@ export const obtenerMateriaPorProfesor = async (dni_profesional) => {
         return data.materia || [];
     } catch (error) {
         console.error('Error al obtener materia por profesor:', error);
-        return { materias: [] };
+        return [];
     }
 };
 
@@ -289,7 +289,7 @@ export const obtenerCursosPorProfesor = async (dni_profesional) => {
     try {
         const response = await fetch(`${api_urlCursosPorProfesor}/${dni_profesional}`);
         const data = await response.json();
-        return data;
+        return data.cursos || [];
     } catch (error) {
         console.error('Error al obtener cursos por profesor:', error);
         return { cursos: [] };
@@ -344,7 +344,7 @@ export const obtenerMateriaPorCurso = async (id_curso) => {
     try {
         const response = await fetch(`${api_urlMateriaPorCurso}/${id_curso}`);
         const data = await response.json();
-        return data;
+        return data.materias || [];
     } catch (error) {
         console.error('Error al obtener materia por curso:', error);
         return { materias: [] };

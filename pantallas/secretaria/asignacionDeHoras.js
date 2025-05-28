@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput, FlatList, Image, ScrollView } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor, asignacionDeHoras } from '../../scripts/secretaria/scriptAsignacionHoras';
+import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import {  obtenerHorasProfesor, asignacionDeHoras } from '../../scripts/secretaria/scriptAsignacionHoras';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 
 export default function AsignacionHoras() {
@@ -25,7 +26,7 @@ export default function AsignacionHoras() {
     const [formData, setFormData] = useState({
         id_materia: '',
         id_curso: '',
-        dni_profesor: '',
+        dni_profesional: '',
         dia_semana: '',
         hora_inicio: '',
         hora_final: '',
@@ -50,7 +51,7 @@ export default function AsignacionHoras() {
         setFormData({
             id_materia: '',
             id_curso: '',
-            dni_profesor: '',
+            dni_profesional: '',
             dia_semana: '',
             hora_inicio: '',
             hora_final: '',
@@ -59,9 +60,9 @@ export default function AsignacionHoras() {
 
    const handleConsultar = async () => {
         try {
-            if (formData.dni_profesor && formData.id_curso) {
-                console.log('Enviando parámetros:', formData.dni_profesor, formData.id_curso);
-                const data = await obtenerHorasProfesor(formData.dni_profesor, formData.id_curso);
+            if (formData.dni_profesional && formData.id_curso) {
+                console.log('Enviando parámetros:', formData.dni_profesional, formData.id_curso);
+                const data = await obtenerHorasProfesor(formData.dni_profesional, formData.id_curso);
                 setHoras(data.horas);
                 console.log('Horas traídas exitosamente:', data.horas);
 
@@ -116,7 +117,7 @@ export default function AsignacionHoras() {
                 const profeData = {
                     id_materia: formData.id_materia,
                     id_curso: formData.id_curso,
-                    dni_profesor: formData.dni_profesor,
+                    dni_profesional: formData.dni_profesional,
                     dia_semana: formData.dia_semana,
                     hora_inicio: formData.hora_inicio,
                     hora_final: formData.hora_final,
@@ -153,9 +154,10 @@ export default function AsignacionHoras() {
     useEffect(() => {
         const cargarCursos = async () => {
             try {
-                if (formData.dni_profesor) {
-                    const data = await obtenerCursosPorProfesor(formData.dni_profesor);
-                    setCurso(data.cursos);
+                
+                if (formData.dni_profesional) {
+                    const data = await obtenerCursosPorProfesor(formData.dni_profesional);
+                    setCurso(data);
                     console.log('Cursos traídos exitosamente');
                 }
             } catch (error) {
@@ -163,14 +165,14 @@ export default function AsignacionHoras() {
             }
         };
         cargarCursos();
-    }, [formData.dni_profesor]);
+    }, [formData.dni_profesional]);
 
     useEffect(() => {
         const cargarMaterias = async () => {
             try {
                 if (formData.id_curso) {
                     const data = await obtenerMateriaPorCurso(formData.id_curso);
-                    setMateria(data.materias);
+                    setMateria(data);
                     console.log('Materias traídas exitosamente');
                 }
             } catch (error) {
@@ -212,12 +214,12 @@ export default function AsignacionHoras() {
                             <Text style={styles.diaTitulo}>{dia}</Text>
                             {rangosHorarios.map((rango) => (
                                 <TouchableOpacity
-                                    key={rango}
+                                    key={`${dia}-${rango}`}
                                     style={[
                                         styles.horarioCuadro,
                                         horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
                                     ]}
-                                    onPress={() => toggleHorario(dia, rango)} // Pasa el día y el rango
+                                    onPress={() => toggleHorario(dia, rango)}
                                 >
                                     <Text style={styles.horarioTexto}>{rango}</Text>
                                 </TouchableOpacity>

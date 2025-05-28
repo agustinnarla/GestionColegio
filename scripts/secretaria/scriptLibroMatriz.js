@@ -18,7 +18,7 @@ export const obtenerLibroMatriz = async (dni_alumno) => {
         
         if (respuesta.ok) {
             if (data.grilla && Array.isArray(data.grilla) && data.grilla.length > 0) {
-                return data.grilla;
+                return data;
             } else {
                 throw new Error("No se encontraron datos del alumno");
             }

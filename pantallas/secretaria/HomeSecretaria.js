@@ -39,9 +39,6 @@ export default function HomeSecretaria() {
                         <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Libro Matriz')}>
                             <Text style={styles.textoBoton}>Libro Matriz</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Consultar Libro de Aula')}>
-                            <Text style={styles.textoBoton}>Consultar Libro de Aula</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Pasar De Curso')}>
                             <Text style={styles.textoBoton}>Pasar de curso</Text>
                         </TouchableOpacity>
