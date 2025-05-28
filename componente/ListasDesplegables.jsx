@@ -213,14 +213,14 @@ export function TipoDeEvaluacionSelector({ formData, handleChange, tipo_de_evalu
 export function ProfesorSelector({ formData, handleChange, profesores, styles }) {
     const selectorConfig = {
         label: 'Seleccione un profesor',
-        selectedValue: formData.dni_profesor,
-        onValueChange: (value) => handleChange('dni_profesor', value),
+        selectedValue: formData.dni_profesional,
+        onValueChange: (value) => handleChange('dni_profesional', value),
         items: [
             { label: 'Seleccione un profesor', value: '' },
             ...(profesores || []).map(item => ({
                 label: item.nombre,
-                value: item.dni_profesor,
-                key: item.dni_profesor
+                value: item.dni_profesional,
+                key: item.dni_profesional
             }))
         ]
     };

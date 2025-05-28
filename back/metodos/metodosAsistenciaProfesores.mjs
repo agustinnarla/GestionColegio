@@ -5,12 +5,12 @@ import { pool } from '../dataBase/coneccion.mjs'
 export const obtenerProfesionalesAsistencia = async (req, res) => {
     try {
         // Obtener el día actual del sistema
-        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaActual = diasSemana[new Date().getDay()]; // Obtiene el día de la semana en texto
 
         // Consulta a la base de datos usando el día actual
         const respuesta = await pool.query(
-            "SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional " + // Espacio agregado al final
+            "SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional " + 
             "FROM horario as h INNER JOIN profesional p ON p.dni_profesional = h.dni_profesional WHERE h.dia_semana = $1",
             [diaActual]
         );

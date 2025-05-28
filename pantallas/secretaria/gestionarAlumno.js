@@ -1,9 +1,11 @@
 import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { agregarAlumno, obtenerLocalidad,obtenerCurso,obtenerSexo,obtenerEstadoAlumno,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
+import { obtenerLocalidad, obtenerCurso,obtenerSexo,obtenerEstadoAlumno } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
 import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
 import * as DocumentPicker from 'expo-document-picker';
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 
 
 export default function GestionarAlumno() {
@@ -53,6 +55,7 @@ export default function GestionarAlumno() {
 
     cargarDatos();
     }, []);
+
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
@@ -426,30 +429,6 @@ export default function GestionarAlumno() {
         });
     }
     
-    const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
-        useEffect(() => {
-            console.log("Items en PickerField: ", items);
-        }, [items]);
-
-        return (
-            <>
-                <Text style={styles.label}>{label}</Text>
-                <Picker
-                    style={styles.input}
-                    selectedValue={selectedValue}
-                    onValueChange={onValueChange}
-                >
-                    {items.length > 0 ? (
-                        items.map((item) => (
-                            <Picker.Item key={item.key || item.value} label={item.label} value={item.value} />
-                        ))
-                    ) : (
-                        <Picker.Item label="Cargando..." value="" />
-                    )}
-                </Picker>
-            </>
-        );
-    });
 
     const [documentos, setDocumentos] = useState({
         dni: null,
@@ -611,15 +590,6 @@ export default function GestionarAlumno() {
                         <Text style={styles.label}>CUIL:</Text>
                         <TextInput style={styles.input} placeholder='CUIL' value={formData.cuil} onChangeText={(value) => handleChange('cuil', value)} />
                         
-                        <PickerField 
-                            label="Sexo" 
-                            selectedValue={formData.idsexo} 
-                            onValueChange={(value) => handleChange('idsexo', value)} 
-                            items={[
-                                { label: 'Seleccione el sexo', value: '' },
-                                ...sexo.map(sexo => ({ label: sexo.detalle, value: sexo.idsexo, key: sexo.idsexo })) 
-                            ]} 
-                        />
                         
                         <Text style={styles.label}>Email:</Text>
                         <TextInput style={styles.input} placeholder='Email Personal' value={formData.emailpersonal} onChangeText={(value) => handleChange('emailpersonal', value)} />
@@ -627,17 +597,13 @@ export default function GestionarAlumno() {
                         <Text style={styles.label}>Email Familiar:</Text>
                         <TextInput style={styles.input} placeholder='Email Familiar' value={formData.emailfamiliar} onChangeText={(value) => handleChange('emailfamiliar', value)} />
                         
-                        
-                        
-                        <PickerField  
-                            label="Curso" 
-                            selectedValue={formData.idcurso} 
-                            onValueChange={(value) => handleChange('idcurso', value)} 
-                            items={[
-                                { label: 'Seleccione el curso', value: '' },
-                                ...cursos.map(curso => ({ label: curso.detalle, value: curso.idcurso, key: curso.idcurso })) 
-                            ]} 
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            sexo={sexo}
+                            styles={styles}
                         />
+                       
                     </View>
 
                     {/* Segunda columna */}
@@ -655,17 +621,6 @@ export default function GestionarAlumno() {
                         <Text style={styles.label}>Teléfono Personal:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefonopersonal} onChangeText={(value) => handleChange('telefonopersonal', value)} />
 
-                        <PickerField 
-                            label="Estado Alumno" 
-                            selectedValue={formData.idestadoalumno} 
-                            onValueChange={(value) => handleChange('idestadoalumno', value)} 
-                            items={[
-                                { label: 'Selecciona el estado', value: '' },
-                                ...estadoalumno.map(estado => ({ label: estado.detalle, value: estado.idestadoalumno, key: estado.idestadoalumno })) 
-                            ]} 
-                        />
-                        
-                        
                         
                         
                     </View>
@@ -673,15 +628,15 @@ export default function GestionarAlumno() {
                     
                     {/* Tercera columna */}
                     <View style={styles.columna}>
-                        <PickerField 
-                            label="Localidad" 
-                            selectedValue={formData.idlocalidad} 
-                            onValueChange={(value) => handleChange('idlocalidad', value)} 
-                            items={[
-                                { label: 'Seleccione la localidad', value: '' },
-                                ...localidad.map(localidad => ({ label: localidad.detalle, value: localidad.idlocalidad, key: localidad.idlocalidad })) 
-                            ]} 
-                        />     
+                        
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            localidad={localidad}
+                            estadoalumno={estadoalumno}
+                            curso={cursos}
+                            styles={styles}
+                        />
                         <Text style={styles.label}>Domicilio:</Text>
                         <TextInput style={styles.input} placeholder='Domicilio' value={formData.domicilio} onChangeText={(value) => handleChange('domicilio', value)} />
                         

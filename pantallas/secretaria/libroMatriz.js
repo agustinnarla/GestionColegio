@@ -11,7 +11,7 @@ export default function LibroMatriz() {
         dni_alumno: '',
         id_curso: '',
         id_materia: '',
-        id_estadoevaluativo: '',
+        id_estado_evaluativo: '',
         promedio: '',
     });
 
@@ -23,23 +23,24 @@ export default function LibroMatriz() {
     //Función para consultar un alumno 
     const handleConsultar = async () => {
         try {
-            const alumno = await obtenerLibroMatriz(formData.dni_alumno);
+            const respuesta = await obtenerLibroMatriz(formData.dni_alumno);
+            const alumno = respuesta.libroMatriz || [];
             console.log('Alumno consultado:', alumno);
 
-            if (alumno && alumno.length > 0) {
+            if (alumno.length > 0) {
                 setFormData({
                     ...formData,
-                    dni_alumno: parseInt(alumno[0].dni_alumno), 
+                    dni_alumno: parseInt(alumno[0].dni_alumno),
                     id_curso: alumno[0].id_curso || '',
-                    id_estadoevaluativo: alumno[0].id_estadoevaluativo || '',
+                    id_estado_evaluativo: alumno[0].id_estado_evaluativo || '',
                     id_materia: alumno[0].id_materia || '',
                     promedio: alumno[0].promedio || '',
                 });
 
                 setDatos(alumno);
-                setCursoActual(alumno[0].curso_detalle); 
-                setCursosDisponibles([...new Set(alumno.map(item => item.curso_detalle))]); 
-                setCursoSeleccionado(alumno[0].curso_detalle); 
+                setCursoActual(alumno[0].curso_detalle);
+                setCursosDisponibles([...new Set(alumno.map(item => item.curso_detalle))]);
+                setCursoSeleccionado(alumno[0].curso_detalle);
             } else {
                 Alert.alert('Error', 'Alumno no encontrado');
             }

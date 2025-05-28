@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
+import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable';
 import { CursoSelector } from '../../componente/ListasDesplegables';
-import { obtenerAlumnoFinal, registrarCursoNuevo } from '../../scripts/secretaria/scriptPasarCurso';
+import {  registrarCursoNuevo, obtenerAlumnoFinal } from '../../scripts/secretaria/scriptPasarCurso';
 
 export default function PasarDeAño() {
   //Formulario
   const [formData, setFormData] = useState({
-    dnialumno: '',
-    idcurso: ''
+    dni_alumno: '',
+    id_curso: ''
   });
   
   //Cargamos datos 
@@ -35,7 +35,7 @@ export default function PasarDeAño() {
     // Cargar alumnos cuando se selecciona un curso
     const cargarAlumnos = async () => {
       try {
-        const alumnosData = await obtenerAlumnoFinal(formData.idcurso);
+        const alumnosData = await obtenerAlumnoFinal(formData.id_curso);
         if (alumnosData) {
           console.log('Alumnos cargados:', alumnosData);
           setAlumnos(alumnosData);
@@ -51,8 +51,8 @@ export default function PasarDeAño() {
     const handleRegistrar = async() => {
       try {
         const alumnosData = alumnos.map(alumno => ({
-          dnialumno: alumno.dnialumno,
-          idcurso: parseInt(formData.idcurso) 
+          dni_alumno: alumno.dnialumno,
+          id_curso: parseInt(formData.id_curso) 
         }));
 
         console.log("Datos a enviar:", alumnosData);
@@ -62,8 +62,8 @@ export default function PasarDeAño() {
         console.log("Alumnos Asignados al curso nuevo perfectamente",respuesta)
         setAlumnos([]);
         setFormData({
-          dnialumno: '',
-          idcurso:'',
+          dni_alumno: '',
+          id_curso:'',
       });
       } catch(error) {
         console.error("Error completo:", error);
@@ -91,7 +91,7 @@ export default function PasarDeAño() {
                 contentContainerStyle={styles.scrollViewContent}
             >
                 {alumnos.map((item) => (
-                    <View key={item.dnialumno} style={styles.row}>
+                    <View key={item.dni_alumno} style={styles.row}>
                         <Text style={styles.cellNombre}>{item.nombrecompleto}</Text>
                     </View>
                 ))}

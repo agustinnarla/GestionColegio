@@ -2,10 +2,10 @@ import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Al
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
-import {  obtenerEtapasEvaluativas, obtenerMateria, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
+
+import { obtenerMateria, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
-import { registrarNotas } from '../../scripts/secretaria/scriptCargarNotas';
+import { registrarNotas, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
 
 
@@ -33,11 +33,13 @@ export default function CargarNotas() {
     const [curso,setCursos] = useState([]);
     const [materias,setMaterias] = useState([]);
     const [alumnos, setAlumnos] = useState([]); 
-
+    
     useEffect(() => {
         const cargarDatos = async () => {
+           
             try {
                 const cursosData = await obtenerCurso();
+             
                 const materiasData = await obtenerMateria();
                 setCursos(cursosData);
                 setMaterias(materiasData);

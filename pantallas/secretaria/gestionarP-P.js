@@ -233,7 +233,6 @@ export default function GestionarProfesional() {
                         <ListasDesplegables
                             formData={formData}
                             handleChange={handleChange}
-                            
                             estadoalumno={estadoalumno}
                             localidad={localidad}
                             styles={styles}

@@ -1,22 +1,42 @@
 import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from "react";
+import { obtenerMateriaPorProfesor, obtenerProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import ListasDesplegables from '../../componente/ListasDesplegables';
+import React, { useEffect, useState } from "react";
 import bg from '../../assets/bg1.jpg';
 
 export default function ConsultarLibro() {
     const [datos, setDatos] = useState([]);
-    
-    const consultarDatos = () => {
-        // Simulando datos obtenidos
-        const datosSimulados = [
-            { id: '1', materia: 'Biología', nombre: 'Clase 1', categoria: 'Teoría', queSeDio: 'Genética' },
-            { id: '2', materia: 'Biología', nombre: 'Clase 2', categoria: 'Práctica', queSeDio: 'Genética' },
-        ];
-        setDatos(datosSimulados);
-    };
+    const [materia, setMateria] = useState([])
+    const [profesores, setProfesores] = useState([])
+
+    const [formData, setFormData] = useState({
+        id_materia: '',
+        dni_profesional:''
+    })
+
+    useEffect(() => {
+            const cargarDatos = async () => {
+                try {
+                    const profesoresData = await obtenerProfesor();
+                    const materiaData = await obtenerMateriaPorProfesor(formData.dni_profesional);
+                    setProfesores(profesoresData)
+                    setMateria(materiaData.materia || []);
+                    //setSolicitante(solicitanteData);
+                } catch (error) {
+                    Alert.alert('Error', error.message);
+                }
+            };
+            cargarDatos();
+        }, []);
 
     const reiniciarFiltro = () => {
         setDatos([]);
+    };
+
+     // Manejar cambios en el formulario
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
     };
 
     const renderItem = ({ item }) => (
@@ -28,30 +48,24 @@ export default function ConsultarLibro() {
         </View>
     );
 
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             
             <View style={styles.contenido}>
                 <View style={styles.filtroContainer}>
-                   
-                    <Picker style={styles.materias}>
-                        <Picker.Item label='Seleccionar espacio Curricular' value="" />
-                        <Picker.Item label='Biología' value="Biologia" />
-                        <Picker.Item label='Química' value="Quimica" />
-                    </Picker>
+                    <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
+                        materias={materia} 
+                        profesores={profesores}
+                        styles={styles}
+                    />
                 </View>
                 
-                <View style={styles.filtroContainer}>
-                  
-                    <Picker style={styles.profesores}>
-                        <Picker.Item label='Seleccionar profesor' value="" />
-                        <Picker.Item label='Profesor 1' value="Profesor1" />
-                        <Picker.Item label='Profesor 2' value="Profesor2" />
-                    </Picker>
-                </View>
                 
-                <TouchableOpacity style={styles.botonConsultar} onPress={consultarDatos}>
+                <TouchableOpacity style={styles.botonConsultar} >
                     <Text style={styles.textoBoton}>Consultar</Text>
                 </TouchableOpacity>
                 
