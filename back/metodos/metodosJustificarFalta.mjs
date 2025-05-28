@@ -6,7 +6,7 @@ export const obtenerAlumnosAusentes = async (req, res) => {
         const respuesta = await pool.query(
             "SELECT a.dni_alumno, CONCAT(a.nombre, ' ', a.apellido) AS nombreapellido, asi.fecha " +
             "FROM alumno AS a " +
-            "INNER JOIN asistencia AS asi ON asi.dni_alumno = a.dni_alumno " +
+            "INNER JOIN asistencia_alumno AS asi ON asi.dni_alumno = a.dni_alumno " +
             "WHERE asi.fecha BETWEEN $1 AND $2",
             [fechadesde, fechahasta]
         );
