@@ -2,10 +2,11 @@ import { StyleSheet,View,Image,TouchableOpacity,Text,TextInput,Switch,ScrollView
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
-import { obtenerAlumnoCurso } from '../../scripts/preceptor/scriptGestionarObservacion.js';
+//import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
+//import { obtenerAlumnoCurso } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 import { registrarAsistenciaFrontend, obtenerCursoFrontend, validarFechaAsistencia } from '../../scripts/preceptor/scriptGestionAsistencia.js';
 import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
+import { obtenerCurso, obtenerAlumnoCurso} from '../../scripts/listasDesplegables/listaDesplegable.js';
 
 import bg from '../../assets/bg1.jpg'
 
@@ -19,10 +20,10 @@ export default function GestionarAsistencia(){
 
      //Formulario
     const [formData, setFormData] = useState({
-        dnialumno: '',
+        dni_alumno: '',
         fecha: '',
-        idcurso: '',
-        idestado: ''
+        id_curso: '',
+        id_estado_asistencia: ''
     });
 
      // Listas desplegables
@@ -40,49 +41,48 @@ export default function GestionarAsistencia(){
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const cursosData = await obtenerCurso(); // Obtener los cursos desde la API
-                console.log("Cursos obtenidos:", cursosData);  // Verifica si los datos están llegando bien
-                
+                const cursosData = await obtenerCurso(); // Obtener los cursos desde listaDesplegable.js
+                console.log("Cursos obtenidos:", cursosData); // Verifica si los datos están llegando bien
+
                 if (!cursosData || cursosData.length === 0) {
                     console.log("No hay cursos disponibles.");
                     return;
                 }
-        
+
                 // Fecha actual
-                const fechaActual = obtenerFechaActual();
+                const fechaActual = obtenerFechaActual(); // Asegúrate de que esta función esté definida
                 console.log("Fecha actual:", fechaActual);
-        
+
                 // Validar la asistencia para cada curso
                 const cursosConEstado = await Promise.all(
                     cursosData.map(async (curso) => {
-                        // Asegúrate de que `validarFechaAsistencia` esté funcionando correctamente
-                        const tieneAsistencia = await validarFechaAsistencia(curso.idcurso, fechaActual);
-                        console.log(`Curso ${curso.idcurso} tiene asistencia:`, tieneAsistencia); // Verifica si se obtiene el estado de asistencia correctamente
+                        const tieneAsistencia = await validarFechaAsistencia(curso.id_curso, fechaActual);
+                        console.log(`Curso ${curso.id_curso} tiene asistencia:`, tieneAsistencia);
                         return {
                             ...curso,
                             tieneAsistencia, // Agregar el estado de asistencia al curso
                         };
-                    }),
+                    })
                 );
-                console.log("Cursos con estado de asistencia:", cursosConEstado);  // Verifica si la lista está correctamente procesada
-        
+                console.log("Cursos con estado de asistencia:", cursosConEstado);
+
                 // Actualizar estado con los cursos y su estado de asistencia
-                setCursos(cursosConEstado); // Actualizar el estado de los cursos
-        
+                setCursos(cursosConEstado);
+
             } catch (error) {
                 console.error("Error al cargar los cursos:", error);
                 Alert.alert('Error', 'Hubo un problema al cargar los cursos.');
             }
         };
-        
-        cargarDatos(); // Llamamos a la función para cargar los cursos
+
+        cargarDatos();
     }, []);
 
     // Marca el curso seleccionado y habilita el botón de modificar si tiene asistencia
     useEffect(() => {
-        if (formData.idcurso) {
+        if (formData.id_curso) {
             // Asegura que los datos sean numéricos y encuentra el curso seleccionado
-            const cursoSeleccionado = cursos.find(curso => Number(curso.idcurso) === Number(formData.idcurso));
+            const cursoSeleccionado = cursos.find(curso => Number(curso.id_curso) === Number(formData.id_curso));
             
             if (cursoSeleccionado) {
                 console.log('Curso seleccionado:', cursoSeleccionado);
@@ -102,29 +102,27 @@ export default function GestionarAsistencia(){
         } else {
             setBotonModificarActivado(false); // Desactivar el botón si no hay `idcurso`
         }
-    }, [formData.idcurso, cursos]); // Dependencias: formData.idcurso y cursos
+    }, [formData.id_curso, cursos]); // Dependencias: formData.idcurso y cursos
 
 
     // Carga alumnos en base al curso
     useEffect(() => {
         const cargarAlumnos = async () => {
-            if (formData.idcurso) {
+            if (formData.id_curso) {
                 try {
-                    const alumnosData = await obtenerAlumnoCurso(formData.idcurso);
-
+                    const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
                     // Asegura que todos los estudiantes tengan 'presente: true' y 'formData' propio
                     const alumnosConPresente = alumnosData.map((alumno) => ({
                         ...alumno,
                         presente: true, // Todos están inicialmente marcados como presentes
-                        formData: { // Asignamos un formData único para cada alumno
-                            dnialumno: alumno.dnialumno,
+                        formData: {
+                            dni_alumno: alumno.dni_alumno,
                             fecha: '',
-                            idcurso: formData.idcurso,
-                            idestado: 1, // Asumimos que están presentes inicialmente
+                            id_curso: formData.id_curso,
+                            id_estado_asistencia: 1, // Inicializa como presente
                         },
                     }));
-
-                    setEstudiantes(alumnosConPresente); // Actualiza el estado con los estudiantes cargados
+                    setEstudiantes(alumnosConPresente);
                     setBotonActivado(true); // Activa el botón
                 } catch (error) {
                     console.error('Error al cargar alumnos:', error);
@@ -133,7 +131,7 @@ export default function GestionarAsistencia(){
             }
         };
         cargarAlumnos();
-    }, [formData.idcurso]); // Se ejecuta solo cuando cambia el curso
+    }, [formData.id_curso]); // Se ejecuta solo cuando cambia el curso
     
     //cambia el switch del alumno
     const toggleSwitch = (dni) => {
@@ -141,94 +139,92 @@ export default function GestionarAsistencia(){
             prevEstudiantes.map((estudiante) => {
                 if (estudiante.dnialumno === dni) {
                     const nuevoPresente = !estudiante.presente;
-                    const nuevoEstado = nuevoPresente ? 1 : 2; // 1 si está presente, 2 si no
+                    const nuevoEstado = nuevoPresente ? 1 : 2; // 1 = presente, 2 = ausente
     
-                    // Actualizamos el 'formData' del alumno correspondiente
-                    const nuevoFormData = {
-                        ...estudiante.formData,
-                        idestado: nuevoEstado, // Establecemos el idestado
-                    };
                     return {
                         ...estudiante,
-                        presente: nuevoPresente, // Cambia el estado 'presente'
-                        formData: nuevoFormData, // Actualiza el formData
+                        presente: nuevoPresente,
+                        formData: {
+                            ...estudiante.formData,
+                            id_estado_asistencia: nuevoEstado, // Actualiza id_estado_asistencia
+                        },
                     };
                 }
-                console.log(estudiante)
-                //console.log(formData)
                 return estudiante;
             })
         );
     };
     
     const validarCampos = () => {
-        return formData.dnialumno && 
+        return formData.dni_alumno && 
             formData.idsolicitante && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
-            formData.idcurso; 
+            formData.id_curso; 
     };
     
     const handleRegistrar = async () => {
         try {
             const ausentesTemp = []; // Lista temporal de alumnos ausentes
-            // Iterar sobre cada estudiante y enviar los datos uno a uno
             for (const estudiante of estudiantes) {
-                // Usar el formData de cada estudiante, no el formData global
-                const alumnosData = await obtenerAlumnoFiltrado(estudiante.formData.dnialumno);
+                console.log("FormData del estudiante:", estudiante.formData);
     
-                // Verificar si alumnosData contiene la información del alumno
-                if (alumnosData) {
-                    const asistenciaData = {
-                        dnialumno: parseInt(estudiante.formData.dnialumno, 10),
-                        fecha: obtenerFechaActual(), // Se asigna la fecha actual
-                        idcurso: parseInt(estudiante.formData.idcurso, 10),  // Asegurarse de que es un número
-                        idestado: parseInt(estudiante.formData.idestado, 10),
-                    };
+                const alumnosData = await obtenerAlumnoFiltrado(estudiante.formData.dni_alumno);
+                console.log("Datos del alumno obtenidos:", alumnosData);
     
-                    console.log("Datos que se van a enviar al backend:", asistenciaData); // Verifica los datos antes de enviarlos
-    
-                    // Si el idestado es 2 (ausente), agregar al set de ausentes
-                    if (asistenciaData.idestado === 2) {
-                        ausentesTemp.push({
-                            nombre: alumnosData.nombre, // Nombre del alumno
-                            apellido: alumnosData.apellido,
-                            dnialumno: asistenciaData.dnialumno,
-                        });
-                    }
-                } else {
-                    console.error(`No se encontraron datos para el DNI ${estudiante.formData.dnialumno}`);
+                if (!alumnosData) {
+                    console.error(`No se encontraron datos para el DNI ${estudiante.formData.dni_alumno}`);
+                    continue; // Salta al siguiente estudiante
                 }
+    
+                const asistenciaData = {
+                    dni_alumno: estudiante.formData.dni_alumno ? parseInt(estudiante.formData.dni_alumno, 10) : null,
+                    fecha: obtenerFechaActual(),
+                    id_curso: estudiante.formData.id_curso ? parseInt(estudiante.formData.id_curso, 10) : null,
+                    id_estado_asistencia: estudiante.formData.id_estado_asistencia ? parseInt(estudiante.formData.id_estado_asistencia, 10) : null, // Corregido
+                };
+    
+                console.log("Datos que se van a enviar al backend:", asistenciaData);
+    
+                if (!asistenciaData.dni_alumno || !asistenciaData.id_curso || !asistenciaData.id_estado_asistencia) {
+                    console.error("Datos incompletos en asistenciaData:", asistenciaData);
+                    continue; // Salta al siguiente estudiante si los datos son incompletos
+                }
+    
+                if (asistenciaData.id_estado_asistencia === 2) {
+                    ausentesTemp.push({
+                        nombre: alumnosData.nombre,
+                        apellido: alumnosData.apellido,
+                        dni_alumno: asistenciaData.dni_alumno,
+                    });
+                }
+    
+                // Aquí puedes enviar los datos al backend si es necesario
             }
     
-            // Actualizar el estado con los ausentes encontrados al final de la iteración
             setAusentes(ausentesTemp);
-    
-            // Mostrar el modal si hay ausentes
             if (ausentesTemp.length > 0) {
                 setModalVisible(true);
             } else {
-                // Proceder directamente si no hay ausentes
-                confirmarRegistro();
+                console.log("No hay ausentes. Registro completado.");
             }
-    
         } catch (error) {
             console.error('Error al registrar la asistencia:', error.message);
         }
-    }
+    };
 
     const confirmarRegistro = async () => {
         setModalVisible(false); // Cerrar el modal
         try {
             for (const estudiante of estudiantes) {
                 const asistenciaData = {
-                    dnialumno: parseInt(estudiante.formData.dnialumno, 10),
+                    dni_alumno: parseInt(estudiante.formData.dni_alumno, 10),
                     fecha: obtenerFechaActual(),
-                    idcurso: parseInt(estudiante.formData.idcurso, 10),
-                    idestado: parseInt(estudiante.formData.idestado, 10),
+                    id_curso: parseInt(estudiante.formData.id_curso, 10),
+                    id_estado_asistencia: parseInt(estudiante.formData.id_estado_asistencia, 10),
                 };
                 console.log("Enviando datos al backend:", asistenciaData);
-                const curso = await obtenerCursoFrontend(asistenciaData.idcurso);
+                const curso = await obtenerCursoFrontend(asistenciaData.id_curso);
                 registrarAsistenciaFrontend(asistenciaData)
                 setMensajeConfirmacion(`La asistencia del curso "${curso.curso.detalle}" se registró correctamente.`);
                 setTimeout(() => {
@@ -248,9 +244,6 @@ export default function GestionarAsistencia(){
         const dia = String(fecha.getDate()).padStart(2, '0'); // Asegura que el día sea de dos dígitos
         return `${anio}-${mes}-${dia}`;
     }
-    
-
-
     //Ver reutilización
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
@@ -285,24 +278,23 @@ export default function GestionarAsistencia(){
             <Image source={bg} style={styles.bg}></Image>
             <View style={styles.container}>
             <Picker
-                selectedValue={formData.idcurso}
-                onValueChange={(value) => handleChange('idcurso', value)}
-                style={styles.lista}
-                >
+                selectedValue={formData.id_curso}
+                onValueChange={(value) => setFormData({ ...formData, id_curso: value })}
+                style={{ height: 50, width: 200 }}
+            >
                 <Picker.Item label="Seleccione el curso" value="" />
                 {cursos.map((curso) => (
                     <Picker.Item
-                        key={curso.idcurso}
+                        key={curso.id_curso} // Asegúrate de que `idcurso` es único
                         label={
                             curso.tieneAsistencia
-                            ? `${curso.detalle} ✅`  // Agregar un emoji 
-                            : curso.detalle
+                                ? `${curso.detalle} ✅` // Agregar un emoji si tiene asistencia
+                                : curso.detalle
                         }
-                        value={curso.idcurso}
+                        value={curso.id_curso}
                     />
                 ))}
-
-                </Picker>
+            </Picker>
         </View>
             <View style={styles.busqueda}>
                 <FontAwesome5 name="search" size={15} color="black" style={styles.icon} />

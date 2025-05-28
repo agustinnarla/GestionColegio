@@ -99,7 +99,7 @@ export const obtenerAlumnoFiltrado = async (req, res) => {
             return res.status(404).json({ error: 'Alumno no encontrado' });
         }
 
-        res.json({ alumnos: respuesta.rows });
+        res.json({ alumno: respuesta.rows });
         console.log("Alumno filtrado encontrado");
     } catch (error) {
         console.log('Error al traer el alumno:', error);

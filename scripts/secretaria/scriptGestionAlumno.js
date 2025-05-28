@@ -1,4 +1,4 @@
-const api_urlAlumno = 'http://localhost:5000/alumno'
+const api_urlAlumno = 'http://localhost:5000/alumnos'
 const api_url = 'http://localhost:5000'
 const api_urlLegajo = 'http://localhost:5000/alumnosLegajo'
 const api_urlAlta = 'http://localhost:5000/alumno/alta'
@@ -9,19 +9,18 @@ const api_urlModificarLegajo = 'http://localhost:5000/alumnosLegajo/modificar'
 // 🔵
 export const obtenerAlumnoFiltrado = async (dni_alumno) => {
     try {
-        const respuesta = await fetch(`${api_urlAlumno}/${dni_alumno}`);
-        const data = await respuesta.json();
-        
-        if (respuesta.ok) {
-            return data.alumno; 
-        } else {
-            throw new Error(data.error);
+        console.log('URL generada:', `${api_urlAlumno}/${dni_alumno}`);
+        const response = await fetch(`${api_urlAlumno}/${dni_alumno}`);
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.statusText}`);
         }
+        const data = await response.json();
+        return data.alumno || null; // Asegúrate de que la respuesta contiene la propiedad `alumno`
     } catch (error) {
-        console.log(error);
-        throw new Error("Error al traer el alumno");
+        console.error('Error al obtener el alumno filtrado:', error);
+        return null; // Devuelve `null` en caso de error
     }
-}
+};
 
 // 🔴
 //Agregue yo (Roma)
