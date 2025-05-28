@@ -2,7 +2,8 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Alert } fro
 import React, { useState, useEffect } from 'react';
 import MultiSelect from 'react-native-multiple-select';
 import bg from '../../assets/bg1.jpg';
-import { obtenerMaterias, obtenerEspecialidad, registrarCurso } from '../../scripts/admin/scriptRegistrarCurso';
+import { obtenerMateria, obtenerEspecialidad } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { registrarCurso } from '../../scripts/admin/scriptRegistrarCurso';
 
 export default function RegistrarCurso() {
     const [materias, setMaterias] = useState([]);
@@ -18,7 +19,7 @@ export default function RegistrarCurso() {
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const materiasData = await obtenerMaterias();
+                const materiasData = await obtenerMateria();
                 const especialidadesData = await obtenerEspecialidad();
                 setMaterias(Array.isArray(materiasData) ? materiasData : []);
                 setEspecialidades(Array.isArray(especialidadesData) ? especialidadesData : []);

@@ -1,6 +1,7 @@
-const api_urlPerfil = 'http://localhost:5000/usuario'
-const api_urlRestablecerContrasena = 'http://localhost:5000/restablecerContrasena'
+const api_urlPerfil = 'http://localhost:5000/usuario/perfil'
+const api_urlRestablecerContrasena = 'http://localhost:5000/usuario/perfil/restablecerContrasena'
 
+// 🟢
 export const obtenerUsuario = async (dni_usuario) => {
     try {
         const respuesta = await fetch(`${api_urlPerfil}/${dni_usuario}`);
@@ -22,6 +23,7 @@ export const obtenerUsuario = async (dni_usuario) => {
     }
 };
 
+// 🟢
 export const restablecerContrasena = async (dni_usuario, nuevaContrasena) => {
     try {
         const respuesta = await fetch(`${api_urlRestablecerContrasena}/${dni_usuario}`, {

@@ -1,6 +1,6 @@
-const api_urlMateriasAlumno = 'http://localhost:5000/alumno/materia/dni_alumno'
+const api_urlMateriasAlumno = 'http://localhost:5000/alumno/materia'
 
-
+// 🔵
 export const obtenerMateriasPorDni = async (dni_alumno) => {
     try {
         const respuesta = await fetch(`${api_urlMateriasAlumno}/${dni_alumno}`);

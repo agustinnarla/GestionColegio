@@ -1,8 +1,8 @@
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
-import { obtenerAlumnoCurso, obtenerSolicitante } from '../../scripts/preceptor/scriptGestionarObservacion.js';
+import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
+
 import { registrarAmonestacion, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -98,21 +98,16 @@ export default function GestionarAmonestaciones() {
             validarNumeroPositivo(formData.cantidad) 
     };
 
-   
-  
     const validarFomulario = useMemo(() => validarCampos(), [formData]);
-
-    
-
 
     // Cargar cursos y solicitantes
     useEffect(() => {
         const cargarDatos = async () => {
             try {
                 const cursosData = await obtenerCurso();
-                const solicitanteData = await obtenerSolicitante();
+                //const solicitanteData = await obtenerSolicitante();
                 setCursos(cursosData);
-                setSolicitante(solicitanteData);
+                //setSolicitante(solicitanteData);
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
@@ -229,7 +224,7 @@ export default function GestionarAmonestaciones() {
                 handleChange={handleChange} 
                 curso={cursos} 
                 alumnos={alumnos}
-                solicitantes={solicitantes}
+                //solicitantes={solicitantes}
                 styles={styles}
             />
 

@@ -3,8 +3,8 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView,
 import React, { useState, useEffect, useMemo } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
-import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno.js';
-import { obtenerAlumnoCurso, obtenerSolicitante, registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
+import { obtenerCurso, obtenerAlumnoCurso } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
@@ -163,9 +163,9 @@ export default function GestionarObservaciones() {
         const cargarDatos = async () => {
             try {
                 const cursosData = await obtenerCurso();
-                const solicitanteData = await obtenerSolicitante();
+                //const solicitanteData = await obtenerSolicitante();
                 setCursos(cursosData);
-                setSolicitante(solicitanteData);
+                //setSolicitante(solicitanteData);
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
@@ -201,7 +201,7 @@ export default function GestionarObservaciones() {
                 handleChange={handleChange} 
                 curso={cursos} 
                 alumnos={alumnos}
-                solicitantes={solicitantes}
+                //solicitantes={solicitantes}
                 styles={styles}
             />
 

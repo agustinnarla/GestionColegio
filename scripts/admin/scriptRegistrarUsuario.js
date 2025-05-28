@@ -1,12 +1,12 @@
-const url_apiRegistrarUsuario = 'http://localhost:5000/registrarUsuario';
-const url_apiRoles = 'http://localhost:5000/roles';
-const url_apiDeshabilitarUsuario = 'http://localhost:5000/deshabilitarUsuario'
-const url_apiConsultarUsuario = 'http://localhost:5000/registrarUsuario/consultarUsuario'
-const url_apiModificarUsuario = 'http://localhost:5000/modificarUsuario'
+const api_urlRegistrarUsuario = 'http://localhost:5000/usuario/registrar';
+const api_urlDeshabilitarUsuario = 'http://localhost:5000/usuario/deshabilitar'
+const api_urlConsultarUsuario = 'http://localhost:5000/registrar/usuario/consultar'
+const api_urlModificarUsuario = 'http://localhost:5000/usuario/modificar'
 
+// 🟢
 export const registrarUsuario = async (formData) => {
     try{
-        const respuesta = await fetch(url_apiRegistrarUsuario, {
+        const respuesta = await fetch(api_urlRegistrarUsuario, {
             method: 'POST',
             headers: {'Content-Type' : 'application/json'},
             body: JSON.stringify(formData)
@@ -24,9 +24,10 @@ export const registrarUsuario = async (formData) => {
     }
 }
 
+// 🟢
 export const consultarUsuario = async (dni_usuario) => {
     try {
-        const respuesta = await fetch(`${url_apiConsultarUsuario}/${dni_usuario}`);
+        const respuesta = await fetch(`${api_urlConsultarUsuario}/${dni_usuario}`);
         const data = await respuesta.json();
         
         if (respuesta.ok) {
@@ -44,9 +45,10 @@ export const consultarUsuario = async (dni_usuario) => {
     }
 };
 
+// 🟢
 export const deshabilitarUsuario = async (dni_usuario) => {
     try {
-        const respuesta = await fetch(`${url_apiDeshabilitarUsuario}/${dni_usuario}`, {
+        const respuesta = await fetch(`${api_urlDeshabilitarUsuario}/${dni_usuario}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -62,9 +64,11 @@ export const deshabilitarUsuario = async (dni_usuario) => {
         throw new Error("Error al deshabilitar el usuario");
     }
 };
+
+// 🟢
 export const modificarUsuario = async (dni_usuario,formData) => {
     try{
-        const respuesta = await fetch(`${url_apiModificarUsuario}/${dni_usuario}`,{
+        const respuesta = await fetch(`${api_urlModificarUsuario}/${dni_usuario}`,{
             method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

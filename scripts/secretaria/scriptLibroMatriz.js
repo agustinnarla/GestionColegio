@@ -1,16 +1,19 @@
 const api_urlAlumno = 'http://192.168.0.23:5000/libroMatriz'
+const api_urlLibroMatriz = 'http://localhost:5000/alumno/libroMatriz'
 import {Platform} from 'react-native';
 
 /*
     CONSULTA A LA API PARA LA OBTENCIÓN DEL LIBRO MATRIZ DEL ALUMNO 
 */
+
+// 🟢
 export const obtenerLibroMatriz = async (dni_alumno) => {
     if (!dni_alumno) {
         throw new Error("dnialumno es requerido");
     }
 
     try {
-        const respuesta = await fetch(`${api_urlAlumno}/${dni_alumno}`);
+        const respuesta = await fetch(`${api_urlLibroMatriz}/${dni_alumno}`);
         const data = await respuesta.json();
         
         if (respuesta.ok) {
@@ -31,6 +34,7 @@ export const obtenerLibroMatriz = async (dni_alumno) => {
 /*
     FUNCIÓN PARA IMPRIMIR EL LIBRO MATRIZ
 */
+// 🟢
 export const imprimirLibroMatriz = async (alumno, cursos) => {
     try {
         const fecha = new Date().toLocaleDateString();
@@ -114,6 +118,7 @@ export const imprimirLibroMatriz = async (alumno, cursos) => {
 /*
     OBTENEMOS LETRA DE ACUERDO AL PROMEDIO 
 */
+// 🟢
 export const obtenerLetra = (promedio) => {
     switch (true) {
         case promedio == 10:

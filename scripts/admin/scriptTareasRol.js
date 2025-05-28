@@ -1,15 +1,13 @@
-const api_url = 'http://localhost:5000'
-const api_urlRoles = 'http://localhost:5000/roles'
-const api_urlTareas = 'http://localhost:5000/tareas'
+const api_urlTareaRolAlta = 'http://localhost:5000/tarea/rol/alta'
 const api_urlTareasRol = 'http://localhost:5000/tarearol'
 
 
-
+// 🔴
 export const registrarTareaRol = async (relaciones) => {
     try {
         // Paso 1: Eliminar todas las relaciones existentes para la tarea
         const id_tarea = relaciones[0].id_tarea; // Asume que todas las relaciones tienen el mismo id_tarea
-        const deleteResponse = await fetch(`${api_urlTareasRol}/tarea`, {
+        const deleteResponse = await fetch(`${api_urlTareaRolAlta}/tarea`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -44,7 +42,7 @@ export const registrarTareaRol = async (relaciones) => {
         return { mensaje: 'Error al registrar la relación' };
     }
 };
-
+// 🔴
 export const registrarRolTarea = async (relaciones) => {
     try {
         // Paso 1: Eliminar todas las relaciones existentes para el rol (si es necesario)

@@ -1,11 +1,12 @@
+const api_urlTareaAlta = 'http://localhost:5000/tarea/alta'
+const api_urlTareaDeshabilitar = 'http://localhost:5000/tarea/deshabilitar'
+const api_urlTareaHabilitar = 'http://localhost:5000/tarea/habilitar'
 
-const api_urlTareas = 'http://localhost:5000/tareas'
 
-
-
+// 🟢
 export const agregarTarea = async (detalle) => {
     try {
-        const response = await fetch(api_urlTareas, {
+        const response = await fetch(api_urlTareaAlta, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -23,10 +24,11 @@ export const agregarTarea = async (detalle) => {
     }
 };
 
+// 🟢
 export const deshabilitarTarea = async (id_tarea) => {
     try {
-        const respuesta = await fetch(`${api_urlTareas}/deshabilitartarea/${id_tarea}`, {  // Pasa el ID en la URL
-            method: 'PUT',  // Cambiar a PUT en lugar de DELETE
+        const respuesta = await fetch(`${api_urlTareaDeshabilitar}/${id_tarea}`, {  // Pasa el ID en la URL
+            method: 'PUT',  
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -42,21 +44,22 @@ export const deshabilitarTarea = async (id_tarea) => {
     }
 };
 
+// 🟢
 export const habilitarTarea = async (id_tarea) => {
     try {
-        const respuesta = await fetch(`${api_urlTareas}/habilitartarea/${id_tarea}`, {  // Pasa el ID en la URL
-            method: 'PUT',  // Cambiar a PUT en lugar de DELETE
+        const respuesta = await fetch(`${api_urlTareaHabilitar}/${id_tarea}`, {  // Pasa el ID en la URL
+            method: 'PUT', 
             headers: { 'Content-Type': 'application/json' },
         });
 
         if (!respuesta.ok) {
-            throw new Error('Error al deshabilitar la tarea');
+            throw new Error('Error al habilitar la tarea');
         }
 
         return await respuesta.json();  // Devuelve la respuesta JSON si todo sale bien
 
     } catch (error) {
-        console.error('Error en deshabilitarTarea:', error);
+        console.error('Error en habilitarTarea:', error);
         return null;
     }
 };

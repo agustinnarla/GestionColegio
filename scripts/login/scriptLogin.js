@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-const api_urlLogin = 'http://localhost:5000/ingresarUsuario';
-const api_urlOlvideMiContraseña = 'http://localhost:5000/recuperarContrasena'
+const api_urlLogin = 'http://localhost:5000/usuario/ingresar';
+const api_urlOlvideMiContraseña = 'http://localhost:5000/usuario/recuperarContrasena'
 
+
+// 🟢
 export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostrarMensaje) => {
     try {
         const response = await axios.post(api_urlLogin, {
@@ -29,7 +31,7 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
     }
 };
 
-
+// 🟢
 export const olvideMiContrasena = async (dni_usuario) => {
     try {
         const response = await fetch(api_urlOlvideMiContraseña, {

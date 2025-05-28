@@ -1,9 +1,10 @@
-const api_urlCurso = 'http://192.168.0.22:5000/pasajeCurso'
+const api_urlPasarAno = 'http://localhost:5000/alumno/pasarAno'
+const api_urlPasarAnoAlta = 'http://localhots:5000/alumno/pasarAno/alta' 
 
-
-export const obtenerAlumnoFinal = async(idcurso) => {
+//🟢
+export const obtenerAlumnoFinal = async(id_curso) => {
     try {
-        const respuesta = await fetch(`${api_urlCurso}/${idcurso}`);
+        const respuesta = await fetch(`${api_urlPasarAno}/${id_curso}`);
         const data = await respuesta.json();
         
         if (respuesta.ok) {
@@ -17,9 +18,10 @@ export const obtenerAlumnoFinal = async(idcurso) => {
     }
 }
 
+//🟢
 export const registrarCursoNuevo = async (alumnosData) => {
     try {
-        const response = await fetch('http://192.168.0.22:5000/pasajeCurso', {
+        const response = await fetch(`${api_urlPasarAnoAlta}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

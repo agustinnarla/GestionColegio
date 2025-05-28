@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
-import { registrarRol, deshabilitarRol, obtenerRolesDeshabilitados, habilitarRol} from '../../scripts/admin/scriptCargarRol';
-import { obtenerTareasDeRoles, registrarTareaRol, obtenerTareas, obtenerRoles, registrarRolTarea } from '../../scripts/admin/scriptTareasRol';
+import { obtenerRolesDeshabilitados, obtenerTareasDeRoles, obtenerTareas, obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { registrarRol, deshabilitarRol, habilitarRol} from '../../scripts/admin/scriptCargarRol';
+import { registrarTareaRol,registrarRolTarea } from '../../scripts/admin/scriptTareasRol';
 
 export default function RegistrarRol() {
     const [selectedItems, setSelectedItems] = useState([]);

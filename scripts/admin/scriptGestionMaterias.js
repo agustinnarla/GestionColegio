@@ -1,12 +1,12 @@
 
-const api_url = 'http://localhost:5000'
-const api_urlMaterias = 'http://localhost:5000/materia' 
-const api_urlProfesor = 'http://localhost:5000/profesor'
-const api_urlMateriaProfesor = 'http://localhost:5000/materiaprofesor'
+const api_urlMateriaAlta = 'http://localhost:5000/materia/alta'
+const api_urlMateriaDeshabilitar = 'http://localhost:5000/materia/deshabilitar'
+const api_urlMateriaHabilitar = 'http://localhost:5000/materia/habilitar'
+const api_urlMateriaProfesor = 'http://localhost:5000/profesor/materia/alta'
 
 
 
-
+// 🟢
 export const registrarMateriaProfesor = async (dniProfesores, idMateria) => {
     try {
         // Paso 1: Eliminar todas las relaciones existentes para la materia
@@ -57,9 +57,10 @@ export const registrarMateriaProfesor = async (dniProfesores, idMateria) => {
 };
 
 
+// 🟢
 export const deshabilitarMateria = async (id_materia) => {
     try {
-        const respuesta = await fetch(`${api_urlMaterias}/${id_materia}`, {
+        const respuesta = await fetch(`${api_urlMateriaDeshabilitar}/${id_materia}`, {
             method: 'PUT',  // Cambiar a PUT en lugar de DELETE
             headers: { 'Content-Type': 'application/json' },
         });
@@ -77,9 +78,10 @@ export const deshabilitarMateria = async (id_materia) => {
     }
 };
 
+// 🟢
 export const habilitarMateria = async (id_materia) => {
     try {
-        const respuesta = await fetch(`${api_urlMaterias}/habilitarMateria/${id_materia}`, {  // Pasa el ID en la URL
+        const respuesta = await fetch(`${api_urlMateriaHabilitar}/${id_materia}`, {  // Pasa el ID en la URL
             method: 'PUT',  // Cambiar a PUT en lugar de DELETE
             headers: { 'Content-Type': 'application/json' },
         });
@@ -96,10 +98,11 @@ export const habilitarMateria = async (id_materia) => {
     }
 }; 
 
+// 🟢
 export const registrarMateria = async (detalle) => {
     try {
-        const respuesta = await fetch(api_urlMaterias, {
-            method: 'POST',  
+        const respuesta = await fetch(api_urlMateriaAlta, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detalle }) // Enviar detalle en el cuerpo de la solicitud
         });

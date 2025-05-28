@@ -3,50 +3,9 @@ const api_UrlCurso = 'http://localhost:5000/curso'
 const api_UrlAvisos = 'http://localhost:5000/avisos'
 const api_UrlMotivos = 'http://localhost:5000/motivos'
 
-export const obtenerProfesores = async () => {
-    try {
-        const respuesta = await fetch(`${api_UrlProfesor}`); 
 
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener los profesores');
-        }
 
-        const data = await respuesta.json();
-        return data; 
-    } catch (error) {
-        console.error('Error en obtenerProfesores:', error);
-    }
-};
 
-export const obtenerCursos = async () => {
-    try {
-        const respuesta = await fetch(`${api_UrlCurso}`); 
-
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener los cursos');
-        }
-
-        const data = await respuesta.json();
-        return data; 
-    } catch (error) {
-        console.error('Error en obtenerCurso:', error);
-    }
-};
-
-export const obtenerMotivos = async () => {
-    try {
-        const respuesta = await fetch(`${api_UrlMotivos}`); 
-
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener los motivos');
-        }
-
-        const data = await respuesta.json();
-        return data; 
-    } catch (error) {
-        console.error('Error en obtenerMotivos SCRIPT:', error);
-    }
-};
 
 export const crearAvisos = async (formData) => {
     try {

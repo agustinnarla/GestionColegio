@@ -1,8 +1,12 @@
-const api_UrlProfesional = 'http://localhost:5000/profesional'
+const api_urlProfesional = 'http://localhost:5000/profesional'
+const api_urlProfesionalAlta = 'http://localhost:5000/profesional/alta'
+const api_urlProfesionalDeshabilitar = 'http://localhost:5000/profesional/deshabilitar'
+const api_urlProfesionalModificar = 'http://localhost:5000/profesional/modificar'
 
+//🟢
 export const obtenerProfesional = async (dni) => {
     try{
-        const respuesta = await fetch(`${api_UrlProfesional}/${dni}`)
+        const respuesta = await fetch(`${api_urlProfesional}/${dni}`)
         if (respuesta.ok) {
             const data = await respuesta.json();
             return data.data; 
@@ -14,10 +18,10 @@ export const obtenerProfesional = async (dni) => {
     }
 
 }
-
+//🟢
 export const habilitarProfesional = async (profesionalData) => {
     try{
-        const respuesta = await fetch(`${api_UrlProfesional}/alta`, {
+        const respuesta = await fetch(`${api_urlProfesionalAlta}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -35,10 +39,10 @@ export const habilitarProfesional = async (profesionalData) => {
         console.log(error)
     }
 }
-
-export const deshabilitarProfesional = async (dni) => {
+//🟢
+export const deshabilitarProfesional = async (dni_alumno) => {
     try{
-        const respuesta = await fetch(`${api_UrlProfesional}/deshabilitar/${dni}`, {
+        const respuesta = await fetch(`${api_urlProfesionalDeshabilitar}/${dni_alumno}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -55,10 +59,10 @@ export const deshabilitarProfesional = async (dni) => {
         console.log(error)
     }
 }
-
-export const modificarProfesional = async (dni, profesionalData) => {
+//🟢
+export const modificarProfesional = async (dni_alumno, profesionalData) => {
     try {
-        const url = `${api_UrlProfesional}/modificar/${dni}`; 
+        const url = `${api_urlProfesionalModificar}/${dni_alumno}`; 
         console.log('URL a la que se está haciendo la solicitud:', url);
         
         const respuesta = await fetch(url, {

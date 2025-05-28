@@ -2,7 +2,8 @@ const api_url = 'http://localhost:5000'
 const api_urlRoles = 'http://localhost:5000/roles'
 const api_urlTareas = 'http://localhost:5000/tareas'
 const api_urlTareasRol = 'http://localhost:5000/tarearol'
-//const response = await fetch(`${api_urlTareasRol}/rol/${id_rol}`);
+
+
 
 export const registrarRol = async (nombreRol) => {
     try {

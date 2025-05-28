@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
-import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
-import { obtenerRoles, obtenerTareas, registrarTareaRol, obtenerRolesDeTarea} from '../../scripts/admin/scriptTareasRol';
+import { obtenerRoles, obtenerTareas, obtenerRolesDeTarea, obtenerTareasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { agregarTarea, deshabilitarTarea, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
+import { registrarTareaRol} from '../../scripts/admin/scriptTareasRol';
 import { Picker } from '@react-native-picker/picker';
 
 export default function CargarTareas() {

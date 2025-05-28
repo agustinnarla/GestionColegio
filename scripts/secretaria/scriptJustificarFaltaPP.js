@@ -1,24 +1,11 @@
-const api_urlJustificarFaltaPP = 'http://localhost:5000/justificarFaltaPP'
+const api_urlJustificarFalta = 'http://localhost:5000/justificar/profesional/faltas'
+const api_urlJustificarFaltaAlta = 'http://localhost:5000/justificar/profesional/alta'
 
-export const obtenerEstadosFaltaPP = async () => {
-    try {
-      const respuesta = await fetch(`${api_urlJustificarFaltaPP}/estadoFalta`);
-      const data = await respuesta.json();
-  
-      if (respuesta.ok) {
-        return data; // ← Devuelve el array de estados
-      } else {
-        throw new Error(data.error || 'Error desconocido');
-      }
-    } catch (error) {
-      console.error(error);
-      throw new Error('Error al obtener los estados de falta PP');
-    }
-  };
-  
+
+  // 🟢
   export const obtenerFaltasPP = async (fechaInicio, fechaFin) => {
     try {
-      const respuesta = await fetch(`${api_urlJustificarFaltaPP}/faltas/${fechaInicio}/${fechaFin}`);
+      const respuesta = await fetch(`${api_urlJustificarFalta}/${fechaInicio}/${fechaFin}`);
       const data = await respuesta.json();
   
       if (respuesta.ok) {
@@ -32,11 +19,12 @@ export const obtenerEstadosFaltaPP = async () => {
     }
   };
 
+  // 🟢
   export const registrarJustificacionPP = async (formData) => {
     try {
         const { id_estadofalta, dni_profesor, id_certificado, fecha } = formData;
 
-        const respuesta = await fetch(`${api_urlJustificarFaltaPP}/registrar`, {
+        const respuesta = await fetch(`${api_urlJustificarFaltaAlta}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

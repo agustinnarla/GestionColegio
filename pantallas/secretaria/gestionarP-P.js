@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, Alert } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerSexo, obtenerEstadoAlumno, obtenerLocalidad} from '../../scripts/secretaria/scriptGestionAlumno'
-import { obtenerRoles } from '../../scripts/admin/scriptTareasRol.js'
+import { obtenerSexo, obtenerEstadoGeneral, obtenerLocalidad,obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { obtenerProfesional, habilitarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
 
@@ -44,7 +43,7 @@ export default function GestionarProfesional() {
                     
                     const localidadData = await obtenerLocalidad();
                     const sexosData = await obtenerSexo();
-                    const estadoData = await obtenerEstadoAlumno();
+                    const estadoData = await obtenerEstadoGeneral();
                     const rolData = await obtenerRoles();
                     console.log('rolData:', rolData);
                     setRol(rolData.roles);
