@@ -1,14 +1,14 @@
 //Rutas que utilizamos
 const api_url = 'http://localhost:5000'
-const api_urlAsistencia = 'http://localhost:5000/asistencia'
-const api_urlCurso = 'http://localhost:5000/curso'
+const api_urlAsistencia = 'http://localhost:5000/alumno/asistencia'
+const api_urlCurso = 'http://localhost:5000/listaDesplegable/curso'
 
 // Esta es la función del frontend que hace la solicitud HTTP al backend.
 export const registrarAsistenciaFrontend = async (formData) => {
     try {
         console.log("Datos que se van a enviar al backend:", formData); // Verifica los datos antes de enviarlos
 
-        const respuesta = await fetch(`${api_urlAsistencia}`, {
+        const respuesta = await fetch(`${api_urlAsistencia}/alta`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

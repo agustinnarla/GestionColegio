@@ -390,7 +390,7 @@ export const obtenerAlumnoCurso = async (id_curso) => {
         const data = await response.json();
         return data.alumnos || [];
     } catch (error) {
-        console.error('Error al obtener sexo:', error);
+        console.error('Error al obtener alumnos:', error);
         return { sexo: [] };
     }
 };

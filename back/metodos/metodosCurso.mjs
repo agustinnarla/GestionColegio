@@ -13,12 +13,12 @@ export const obtenerCurso = async (req,res) => {
 
 // VER
 export const obtenerCursoFiltrado = async (req, res) => {
-     // Obtener el idcurso desde los parámetros de la solicitud
-    const { idcurso } = req.params;
+    // Obtener el id_curso desde los parámetros de la solicitud
+    const { id_curso } = req.params; // Cambiar de req.body a req.params
     try {
         const respuesta = await pool.query(
             "SELECT id_curso, detalle FROM curso WHERE id_curso = $1",
-            [idcurso]
+            [id_curso]
         );
         if (respuesta.rows.length > 0) {
             // Enviar solo el curso encontrado
