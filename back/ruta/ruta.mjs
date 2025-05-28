@@ -146,11 +146,10 @@ ruta.get('/alumno/pasarAno/:id_curso', obtenerAlumnoFinal)  // 🟢
 ruta.post('/alumno/pasarAno/alta', registrarCursoNuevo) // 🟢
 
 // == JUSTIFICAR FALTA
-ruta.get('/alumno/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) // 🔴
-ruta.get('/alumno/justificarFalta/estado_alumnos/:fechadesde/:fechahasta', obtenerJustificarFalta) // 🔴
-ruta.get('/alumno/justificarFalta/estado_falta', obtenerEstadosFalta) // 🔴
-ruta.get('/alumno/justificarFalta', obtenerJustificarFalta) // 🔴
-ruta.post('/alumno/justificarFalta', registrarJustificacion) // 🔴
+ruta.get('/alumno/justificarFalta/:fechadesde/:fechahasta', obtenerAlumnosAusentes) // 🟢
+ruta.get('/alumno/justificarFalta/estado_alumnos/:fechadesde/:fechahasta', obtenerJustificarFalta) // 🟢
+ruta.get('/alumno/justificarFalta/estado_falta', obtenerEstadosFalta) // 🟢
+ruta.post('/alumno/justificarFalta', registrarJustificacion) // 🟢
 
 // == LIBRO MATRIZ
 ruta.get('/alumno/libroMatriz/:dni_alumno', obtenerLibroMatriz) // 🟢

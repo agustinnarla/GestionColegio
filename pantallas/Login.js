@@ -33,7 +33,6 @@ export default function Login(props) {
                     setIntentosFallidos(0); // Reiniciar intentos después del bloqueo
                 }, 5000); // 5 segundos
             }
-    
             return nuevosIntentos;
         });
     };
