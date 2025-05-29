@@ -125,14 +125,14 @@ export function SolicitanteSelector({ formData, handleChange, solicitantes, styl
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
-export function EstadoSelector({ formData, handleChange, estadoalumno, styles }) {
+export function EstadoSelector({ formData, handleChange, estado_general, styles }) {
     const selectorConfig = {
-        label: 'Estado del Alumno',
+        label: 'Estado General',
         selectedValue: formData.id_estado_general,
         onValueChange: (value) => handleChange('id_estado_general', value),
         items: [
             { label: 'Seleccione estado', value: '' },
-            ...(estadoalumno || []).map(item => ({
+            ...(estado_general || []).map(item => ({
                 label: item.detalle,
                 value: item.id_estado_general,
                 key: item.id_estado_general
@@ -227,6 +227,8 @@ export function ProfesorSelector({ formData, handleChange, profesores, styles })
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+
+
 // Componente principal que combina todos los selectores
 function ListasDesplegables({
     formData,
@@ -243,7 +245,7 @@ function ListasDesplegables({
     materia,
     tipo_de_evaluacion,
     sexo,
-    estadoalumno,
+    estado_general,
     localidad
 }) {
     return (
@@ -336,11 +338,11 @@ function ListasDesplegables({
                     styles={styles}
                 />
             )}
-            {estadoalumno && (
+            {estado_general && (
                 <EstadoSelector
                     formData={formData}
                     handleChange={handleChange}
-                    estadoalumno={estadoalumno}
+                    estado_general={estado_general}
                     styles={styles}
                 />
             )}
@@ -355,5 +357,6 @@ function ListasDesplegables({
         </View>
     );
 }
+
 
 export default ListasDesplegables;

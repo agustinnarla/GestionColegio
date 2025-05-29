@@ -10,10 +10,10 @@ export default function AsignacionHoras() {
     const [curso, setCurso] = useState([]);
     const [materias, setMateria] = useState([]);
     const [horas, setHoras] = useState([]);
-    const [selectedDay, setSelectedDay] = useState('');
+    const [asignaciones, setAsignaciones] = useState([]);
     const [horariosAsignados, setHorariosAsignados] = useState({});
 
-    const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    const diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
     const rangosHorarios = [
         '08:00 - 09:00',
         '09:00 - 10:00',
@@ -60,9 +60,9 @@ export default function AsignacionHoras() {
 
    const handleConsultar = async () => {
         try {
-            if (formData.dni_profesional && formData.id_curso) {
-                console.log('Enviando parámetros:', formData.dni_profesional, formData.id_curso);
-                const data = await obtenerHorasProfesor(formData.dni_profesional, formData.id_curso);
+            if (formData.dni_profesional && formData.id_curso && formData.id_materia) {
+                console.log('Enviando parámetros:', formData.dni_profesional, formData.id_curso, formData.id_materia);
+                const data = await obtenerHorasProfesor(formData.dni_profesional, formData.id_curso, formData.id_materia);
                 setHoras(data.horas);
                 console.log('Horas traídas exitosamente:', data.horas);
 
@@ -83,104 +83,88 @@ export default function AsignacionHoras() {
         }
     };
 
-    const toggleHorario = (dia, rango) => {
-            setHorariosAsignados((prev) => {
-                const horariosDia = prev[dia] || [];
-                if (horariosDia.includes(rango)) {
-                    // Si el rango ya está asignado, lo eliminamos
-                    return {
-                        ...prev,
-                        [dia]: horariosDia.filter((h) => h !== rango),
-                    };
-                } else {
-                    // Si el rango no está asignado, lo agregamos
-                    return {
-                        ...prev,
-                        [dia]: [...horariosDia, rango],
-                    };
-                }
-            });
+    const alternarHorario = (dia, rango) => {
+        setHorariosAsignados((prev) => {
+            const horariosDia = prev[dia] || [];
+            let nuevosHorariosDia;
+            let nuevaAsignaciones = [...asignaciones];
 
-            // Actualiza el formData con el día y el rango seleccionado
             const [hora_inicio, hora_final] = rango.split(' - ');
-            setFormData((prev) => ({
-                ...prev,
-                dia_semana: dia,
-                hora_inicio,
-                hora_final,
-            }));
-        };
 
-    const handleAsignarHora = async () => {
-        try {
-            try {
-                const profeData = {
+            if (horariosDia.includes(rango)) {
+                // Quitar rango
+                nuevosHorariosDia = horariosDia.filter((h) => h !== rango);
+                nuevaAsignaciones = nuevaAsignaciones.filter(
+                    (a) => !(a.dia_semana === dia && a.hora_inicio === hora_inicio && a.hora_final === hora_final)
+                );
+            } else {
+                // Agregar rango
+                nuevosHorariosDia = [...horariosDia, rango];
+                nuevaAsignaciones.push({
                     id_materia: formData.id_materia,
                     id_curso: formData.id_curso,
                     dni_profesional: formData.dni_profesional,
-                    dia_semana: formData.dia_semana,
-                    hora_inicio: formData.hora_inicio,
-                    hora_final: formData.hora_final,
-                };
-
-
-                console.log('Datos de la asignación de horas', profeData);
-
-                const respuesta = await asignacionDeHoras(profeData);
-
-                console.log('Respuesta del servidor:', respuesta);
-    
-            } catch (error) {
-                console.error('Error al registrar la asignación de horas:', error.message);
-                //mostrarMensaje('Error', 'No se pudo registrar la asignación de horas');
+                    dia_semana: dia,
+                    hora_inicio,
+                    hora_final,
+                });
             }
-        } catch (error) {
-            console.error('Error al asignar la hora:', error);
-        }
+
+            setAsignaciones(nuevaAsignaciones);
+
+            return {
+                ...prev,
+                [dia]: nuevosHorariosDia,
+            };
+        });
     };
 
-    useEffect(() => {
-        const cargarProfesores = async () => {
+    
+            const handleAsignarHora = async () => {
             try {
-                const data = await obtenerProfesores();
-                setProfesor(data.profesores);
+                if (asignaciones.length === 0) {
+                    console.log('No hay asignaciones para enviar');
+                    return;
+                }
+                console.log('Datos de la asignación de horas', asignaciones);
+                const respuesta = await asignacionDeHoras(asignaciones); // Ajusta tu backend para recibir un array
+                console.log('Respuesta del servidor:', respuesta);
             } catch (error) {
-                console.log('Error al cargar los profesores:', error);
+                console.error('Error al asignar la hora:', error);
             }
         };
-        cargarProfesores();
-    }, []);
+    
 
     useEffect(() => {
-        const cargarCursos = async () => {
+        const cargarDatos = async () => {
             try {
-                
+                const profesoresData = await obtenerProfesores();
+
                 if (formData.dni_profesional) {
                     const data = await obtenerCursosPorProfesor(formData.dni_profesional);
                     setCurso(data);
                     console.log('Cursos traídos exitosamente');
+                }else{
+                    console.log('error')
                 }
-            } catch (error) {
-                console.log('Error al cargar los cursos', error);
-            }
-        };
-        cargarCursos();
-    }, [formData.dni_profesional]);
-
-    useEffect(() => {
-        const cargarMaterias = async () => {
-            try {
                 if (formData.id_curso) {
-                    const data = await obtenerMateriaPorCurso(formData.id_curso);
-                    setMateria(data);
+                    const materiaData = await obtenerMateriaPorCurso(formData.id_curso);
+                    setMateria(materiaData);
                     console.log('Materias traídas exitosamente');
+                }else{
+                    console.log('error')
                 }
+                setProfesor(profesoresData.profesores);
             } catch (error) {
-                console.log('Error al cargar las materias', error);
+                console.log('Error al cargar los profesores:', error);
             }
         };
-        cargarMaterias();
-    }, [formData.id_curso]);
+        cargarDatos();
+    }, [formData.dni_profesional, formData.id_curso]);
+
+   
+
+    
 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
@@ -188,68 +172,215 @@ export default function AsignacionHoras() {
 
 
 
-    return (
-        <View style={styles.container}>
-            <Image source={bg} style={styles.bg} />
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <View style={styles.selectorContainer}>
-                    <View style={styles.selector}>
-                        <ListasDesplegables
-                            formData={formData}
-                            handleChange={handleChange}
-                            profesores={profesores}
-                            curso={curso}
-                            materias={materias}
-                            styles={styles}
-                        />
-                    </View>
-                </View>
-                <TouchableOpacity onPress={handleConsultar} style={{ marginBottom: 20 }}>
-                    <Text>Consultar</Text>
-                </TouchableOpacity>
+return (
+    <View style={styles.container}>
+        <Image source={bg} style={styles.bg} />
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            {/* Título */}
+          
 
-                <View style={styles.horariosContainer}>
-                    {diasSemana.map((dia) => (
-                        <View key={dia} style={styles.diaContainer}>
-                            <Text style={styles.diaTitulo}>{dia}</Text>
-                            {rangosHorarios.map((rango) => (
-                                <TouchableOpacity
-                                    key={`${dia}-${rango}`}
-                                    style={[
-                                        styles.horarioCuadro,
-                                        horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
-                                    ]}
-                                    onPress={() => toggleHorario(dia, rango)}
-                                >
-                                    <Text style={styles.horarioTexto}>{rango}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    ))}
-                </View>
-                <TouchableOpacity onPress={handleAsignarHora} style={{ marginBottom: 20 }}>
-                    <Text>Asignar Horas</Text>
+            {/* Selectores */}
+           <View style={styles.filtrosContainer}>
+                 <ListasDesplegables
+                    formData={formData}
+                    handleChange={handleChange}
+                    profesores={profesores}
+                    curso={curso}
+                    materias={materias}
+                    styles={styles}
+                />
+            </View>
+           
+            
+
+            {/* Botones de acción */}
+            <View style={styles.botonesContainer}>
+                <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
+                    <Text style={styles.textoBoton}>Consultar</Text>
                 </TouchableOpacity>
-            </ScrollView>
-        </View>
-    );
+                <TouchableOpacity onPress={handleReiniciar} style={styles.botonSecundario}>
+                    <Text style={styles.textoBoton}>Reiniciar</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Horarios */}
+            <View style={styles.horariosContainer}>
+                {diasSemana.map((dia) => (
+                    <View key={dia} style={styles.diaContainer}>
+                        <Text style={styles.diaTitulo}>{dia}</Text>
+                        {rangosHorarios.map((rango) => (
+                            <TouchableOpacity
+                                key={`${dia}-${rango}`}
+                                style={[
+                                    styles.horarioCuadro,
+                                    horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
+                                ]}
+                                onPress={() => alternarHorario(dia, rango)}
+                            >
+                                <Text style={[
+                                    styles.horarioTexto,
+                                    horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo
+                                ]}>
+                                    {rango}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                ))}
+            </View>
+
+            {/* Botón de asignar */}
+            <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
+                <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
+            </TouchableOpacity>
+        </ScrollView>
+    </View>
+);
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    scrollContainer: { flexGrow: 1, alignItems: 'center', paddingBottom: 20 },
-    bg: { position: 'absolute', width: '100%', height: '100%', opacity: 0.2 },
-    selectorContainer: { flexDirection: 'row', justifyContent: 'space-between', width: '90%', marginBottom: 20, marginTop: 10 },
-    selector: { flex: 1, marginHorizontal: 5 },
-    horariosContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 20 },
-    diaContainer: { flex: 1, marginHorizontal: 5, marginBottom: 20 },
-    diaTitulo: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
-    horarioCuadro: { padding: 10, marginVertical: 5, backgroundColor: '#f0f0f0', borderRadius: 5, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#ccc' },
-    horarioAsignado: { backgroundColor: '#4CAF50', borderColor: '#388E3C' },
-    horarioTexto: { color: '#333' },
-    grilla: { marginTop: 20, width: '90%', backgroundColor: '#fff', borderRadius: 8, padding: 10 },
-    grillaEncabezado: { flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#4CAF50', borderRadius: 8 },
-    grillaEncabezadoCelda: { flex: 1, textAlign: 'center', fontWeight: 'bold', color: '#fff' },
-    grillaFila: { flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#ddd' },
-    grillaCelda: { flex: 1, textAlign: 'center', color: '#333' },
+    container: { flex: 1, backgroundColor: '#f8fafc' },
+    scrollContainer: { flexGrow: 1, alignItems: 'center', paddingBottom: 30 },
+    bg: { position: 'absolute', width: '100%', height: '100%', opacity: 0.15 },
+    selectorContainer: {
+        width: '95%',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 15,
+        marginBottom: 18,
+        marginTop: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.07,
+        shadowRadius: 4,
+    },
+    selector: { flex: 1, marginHorizontal: 7 },
+    horariosContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginTop: 18,
+        width: '95%',
+        alignSelf: 'center',
+    },
+    diaContainer: {
+        flex: 1,
+        minWidth: 140,
+        marginHorizontal: 6,
+        marginBottom: 22,
+        backgroundColor: '#e9f0fa',
+        borderRadius: 10,
+        padding: 10,
+        elevation: 1,
+    },
+    diaTitulo: {
+        fontSize: 17,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 8,
+        color: '#2a3d6c',
+        letterSpacing: 0.5,
+    },
+    horarioCuadro: {
+        paddingVertical: 12,
+        marginVertical: 6,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 7,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#b0b0b0',
+        elevation: 1,
+    },
+    horarioAsignado: {
+        backgroundColor: '#4CAF50',
+        borderColor: '#388E3C',
+    },
+    horarioTexto: {
+        color: '#333',
+        fontSize: 15,
+        fontWeight: '500',
+    },
+    horarioTextoActivo: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    botonesContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 15,
+        marginBottom: 10,
+    },
+    botonPrimario: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 10,
+        paddingHorizontal: 25,
+        borderRadius: 8,
+        marginHorizontal: 5,
+        elevation: 2,
+    },
+    botonSecundario: {
+        backgroundColor: '#f0ad4e',
+        paddingVertical: 10,
+        paddingHorizontal: 25,
+        borderRadius: 8,
+        marginHorizontal: 5,
+        elevation: 2,
+    },
+    botonConfirmar: {
+        backgroundColor: '#2a3d6c',
+        paddingVertical: 15,
+        paddingHorizontal: 40,
+        borderRadius: 10,
+        marginTop: 25,
+        alignSelf: 'center',
+        elevation: 3,
+    },
+    textoBoton: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    textoBotonGrande: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 18,
+        textAlign: 'center',
+        letterSpacing: 1,
+    },
+    grilla: {
+        marginTop: 20,
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 10,
+    },
+    grillaEncabezado: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 10,
+        backgroundColor: '#4CAF50',
+        borderRadius: 8,
+    },
+    grillaEncabezadoCelda: {
+        flex: 1,
+        textAlign: 'center',
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    grillaFila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    },
+    grillaCelda: {
+        flex: 1,
+        textAlign: 'center',
+        color: '#333',
+    }
 });

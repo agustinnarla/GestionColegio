@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerLocalidad, obtenerCurso,obtenerSexo,obtenerEstadoAlumno } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoAlumno } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
 import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
 import * as DocumentPicker from 'expo-document-picker';
@@ -9,21 +9,22 @@ import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 
 
 export default function GestionarAlumno() {
+
     const [formData, setFormData] = useState({
-        dnialumno: '',
+        dni_alumno: '',
         nombre: '',
         apellido: '',
         cuil: '',
-        idsexo: '',
+        id_sexo: '',
         emailpersonal: '',
         emailfamiliar: '',
-        idcurso: '',
+        id_curso: '',
         fechaNacimiento: '',
         telefonomadre: '',
         telefonopadre: '',
-        telefonopersonal:'',
-        idestadoalumno: '',
-        idlocalidad: '',
+        telefonopersonal: '',
+        id_estado_general: '',
+        id_localidad: '',
         domicilio: '',
         edificio: false,
         piso: '',
@@ -42,6 +43,7 @@ export default function GestionarAlumno() {
                 const cursosData = await obtenerCurso();
                 const localidadData = await obtenerLocalidad();
                 const sexosData = await obtenerSexo();
+                console.log('Esto tiene sexo', sexosData)
                 const estadoData = await obtenerEstadoAlumno();
 
                 setSexos(sexosData);
@@ -56,35 +58,37 @@ export default function GestionarAlumno() {
     cargarDatos();
     }, []);
 
-    const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
+     const handleChange = (name, value) => {
+            setFormData({ ...formData, [name]: value });
+        };
+
 
     const handleConsultar = async () => {
         try {
-            const alumno = await obtenerAlumnoFiltrado(formData.dnialumno); 
-            const legajoDNI = await obtenerDniPdf(formData.dnialumno) || null
-            const legajoFichaMedica = await obtenerFichaMedicaPdf(formData.dnialumno) || null
-            const legajoPartidaNacimiento = await obtenerPartidaNacimientoPdf(formData.dnialumno) || null
+            const alumno = await obtenerAlumnoFiltrado(formData.dni_alumno); 
+            const legajoDNI = await obtenerDniPdf(formData.dni_alumno) || null
+            const legajoFichaMedica = await obtenerFichaMedicaPdf(formData.dni_alumno) || null
+            const legajoPartidaNacimiento = await obtenerPartidaNacimientoPdf(formData.dni_alumno) || null
             console.log('Alumno consultado:', alumno);
             
             if (alumno) {
                 setFormData({
                     ...formData,
+                    dni_alumno: alumno.dni_alumno,
                     nombre: alumno.nombre,
                     apellido: alumno.apellido,
                     domicilio: alumno.domicilio,
-                    idsexo: alumno.idsexo,
+                    id_sexo: alumno.id_sexo,
                     cuil: alumno.cuil,
                     fechaNacimiento: new Date(alumno.fechanacimiento).toISOString().split('T')[0].replace(/-/g, '/'),
-                    idlocalidad: alumno.idlocalidad,
-                    idestadoalumno: alumno.idestadoalumno,
+                    id_localidad: alumno.id_localidad,
+                    id_estado_general: alumno.id_estado_alumno,
                     telefonopersonal: alumno.telefonopersonal,
                     telefonomadre: alumno.telefonomadre,
                     telefonopadre: alumno.telefonopadre,
                     emailpersonal: alumno.emailpersonal,
                     emailfamiliar: alumno.emailfamiliar,
-                    idcurso: alumno.idcurso,
+                    id_curso: alumno.id_curso,
                     departamento: alumno.departamento,
                     piso: alumno.piso,
                     edificio: alumno.edificio,
@@ -106,10 +110,10 @@ export default function GestionarAlumno() {
     //Modificar
     const handleAgregar = async () => {
 
-        const dni = parseInt(formData.dnialumno, 10);
+        const dni = parseInt(formData.dni_alumno, 10);
         if (isNaN(dni)) {
             Alert.alert('Error', 'El DNI debe ser un número válido.');
-            console.log('DNI no válido:', formData.dnialumno);
+            console.log('DNI no válido:', formData.dni_alumno);
             return;
         }
 
@@ -146,14 +150,14 @@ export default function GestionarAlumno() {
             return;
         }
 
-        const idsexo = parseInt(formData.idsexo, 10);
-        const idlocalidad = parseInt(formData.idlocalidad, 10);
-        const idestadoalumno = parseInt(formData.idestadoalumno, 10);
-        const idcurso = parseInt(formData.idcurso, 10);
+        const id_sexo = parseInt(formData.id_sexo, 10);
+        const id_localidad = parseInt(formData.id_localidad, 10);
+        const id_estado_alumno = parseInt(formData.id_estado_alumno, 10);
+        const id_curso = parseInt(formData.id_curso, 10);
 
-        if (isNaN(idsexo) || isNaN(idlocalidad) || isNaN(idestadoalumno) || isNaN(idcurso)) {
+        if (isNaN(id_sexo) || isNaN(id_localidad) || isNaN(id_estado_alumno) || isNaN(id_curso)) {
             Alert.alert('Error', 'Los IDs deben ser números válidos.');
-            console.log('IDs no válidos:', { idsexo, idlocalidad, idestadoalumno, idcurso });
+            console.log('IDs no válidos:', { id_sexo, idl_ocalidad, id_estado_alumno, id_curso });
             return;
         }
 
@@ -165,21 +169,21 @@ export default function GestionarAlumno() {
         
         // Crear el objeto alumnoData, omitiendo campos no obligatorios
         const alumnoData = {
-            dnialumno: dni, 
+            dni_alumno: dni, 
             nombre: formData.nombre,
             apellido: formData.apellido,
             domicilio: formData.domicilio,
-            idsexo: idsexo, 
+            id_sexo: id_sexo, 
             cuil: formData.cuil,
             fechanacimiento: fechanacimiento.toISOString().split('T')[0], 
-            idlocalidad: idlocalidad, 
-            idestadoalumno: idestadoalumno,
+            id_localidad: id_localidad, 
+            id_estado_alumno: id_estado_alumno,
             telefonopersonal: telefonoPersonal,
             telefonomadre: telefonoMadre,
             telefonopadre: telefonoPadre,
             emailpersonal: formData.emailpersonal,
             emailfamiliar: formData.emailfamiliar,
-            idcurso: idcurso, // Usar el ID de curso validado
+            id_curso: id_curso, // Usar el ID de curso validado
             edificio: formData.edificio
         };
 
@@ -230,20 +234,20 @@ export default function GestionarAlumno() {
             console.log('Alumno agregado:', response);
 
             setFormData({
-                dnialumno: '',
+                dni_alumno: '',
                 nombre: '',
                 apellido: '',
                 cuil: '',
-                idsexo: '',
+                id_sexo: '',
                 emailpersonal: '',
                 emailfamiliar: '',
-                idcurso: '',
+                id_curso: '',
                 fechaNacimiento: '',
                 telefonomadre: '',
                 telefonopadre: '',
-                telefonopersonal:'',
-                idestadoalumno: '',
-                idlocalidad: '',
+                telefonopersonal: '',
+                id_estado_general: '',
+                id_localidad: '',
                 domicilio: '',
                 edificio: false,
                 piso: '',
@@ -337,7 +341,7 @@ export default function GestionarAlumno() {
                 nombre: '',
                 apellido: '',
                 cuil: '',
-                idsexo: '',
+                id_sexo: '',
                 emailpersonal: '',
                 emailfamiliar: '',
                 idcurso: '',
@@ -379,7 +383,7 @@ export default function GestionarAlumno() {
                 nombre: '',
                 apellido: '',
                 cuil: '',
-                idsexo: '',
+                id_sexo: '',
                 emailpersonal: '',
                 emailfamiliar: '',
                 idcurso: '',
@@ -409,7 +413,7 @@ export default function GestionarAlumno() {
             domicilio: '',
             departamento: '',
             piso: '',
-            idsexo: '',
+            id_sexo: '',
             cuil: '',
             fechaNacimiento: '',
             idlocalidad: '',
@@ -601,9 +605,11 @@ export default function GestionarAlumno() {
                             formData={formData}
                             handleChange={handleChange}
                             sexo={sexo}
+                            curso={cursos}
+                            estadoalumno={estadoalumno}
+                            localidad={localidad}
                             styles={styles}
                         />
-                       
                     </View>
 
                     {/* Segunda columna */}
@@ -629,14 +635,6 @@ export default function GestionarAlumno() {
                     {/* Tercera columna */}
                     <View style={styles.columna}>
                         
-                        <ListasDesplegables
-                            formData={formData}
-                            handleChange={handleChange}
-                            localidad={localidad}
-                            estadoalumno={estadoalumno}
-                            curso={cursos}
-                            styles={styles}
-                        />
                         <Text style={styles.label}>Domicilio:</Text>
                         <TextInput style={styles.input} placeholder='Domicilio' value={formData.domicilio} onChangeText={(value) => handleChange('domicilio', value)} />
                         

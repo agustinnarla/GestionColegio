@@ -16,19 +16,26 @@ export default function ConsultarLibro() {
     })
 
     useEffect(() => {
-            const cargarDatos = async () => {
-                try {
-                    const profesoresData = await obtenerProfesor();
+        const cargarDatos = async () => {
+            try {
+                const profesoresData = await obtenerProfesor();
+                setProfesores(profesoresData);
+
+                // Solo buscar materias si hay un profesor seleccionado
+                if (formData.dni_profesional) {
                     const materiaData = await obtenerMateriaPorProfesor(formData.dni_profesional);
-                    setProfesores(profesoresData)
-                    setMateria(materiaData.materia || []);
-                    //setSolicitante(solicitanteData);
-                } catch (error) {
-                    Alert.alert('Error', error.message);
+                    setMateria(materiaData);
+                } else {
+                    setMateria([]); 
                 }
-            };
-            cargarDatos();
-        }, []);
+            } catch (error) {
+                Alert.alert('Error', error.message);
+            }
+        };
+        cargarDatos();
+    }, [formData.dni_profesional]);
+
+        
 
     const reiniciarFiltro = () => {
         setDatos([]);

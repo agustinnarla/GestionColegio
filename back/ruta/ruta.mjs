@@ -202,7 +202,7 @@ ruta.put('/profesor/nota_final/estado_evaluativo', modificarEstadoEvaluativo); /
 
 // == ASIGNAR HORAS
 ruta.post('/secretaria/profesional/horas/alta', asignacionDeHoras) // 🟢
-ruta.get('/secretaria/profesional/horario/:dni_profesional/:id_curso', obtenerHorasProfesor) // 🟢
+ruta.get('/secretaria/profesional/horario/:dni_profesional/:id_curso/:id_materia', obtenerHorasProfesor) // 🟢
 
 // == ASISTENCIA PROFESIONAL
 ruta.post('/secretaria/profesional/asistencia/entrada', registrarEntradaProfesional) // 🟢

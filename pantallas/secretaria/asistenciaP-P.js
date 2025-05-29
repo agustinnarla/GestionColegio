@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-import { obtenerProfesoresAsistencia, registrarEntradaProfesor, registrarSalidaProfesor } from '../../scripts/secretaria/scriptAsistenciaProfesor';
+import { obtenerProfesionalesAsistencia} from '../../scripts/listasDesplegables/listaDesplegable'
+import { registrarEntradaProfesor, registrarSalidaProfesor } from '../../scripts/secretaria/scriptAsistenciaProfesor';
 
 export default function RegistroAsistencia() {
-  const [profesores, setProfesores] = useState([]); // Estado para almacenar los profesores
-  const [busqueda, setBusqueda] = useState(''); // Estado para la búsqueda
-  const [seleccionado, setSeleccionado] = useState(null); // Profesor seleccionado
-  const [entrada, setEntrada] = useState(false); // Estado para entrada/salida
+  const [profesores, setProfesores] = useState([]); 
+  const [busqueda, setBusqueda] = useState(''); 
+  const [seleccionado, setSeleccionado] = useState(null); 
+  const [entrada, setEntrada] = useState(false); 
 
   const [formData, setFormData] = useState({
-    dni_profesor: '',
+    dni_profesional: '',
     fecha: '',
     hora_entrada: '',
     hora_salida: '',
@@ -17,16 +18,16 @@ export default function RegistroAsistencia() {
 
   // Cargar los profesores al montar el componente
   useEffect(() => {
-    const cargarProfesores = async () => {
+    const cargarProfesionales = async () => {
       try {
-        const data = await obtenerProfesoresAsistencia(); // Llama a la función para obtener los profesores
-        setProfesores(data.profesor); // Actualiza el estado con los profesores obtenidos
+        const data = await obtenerProfesionalesAsistencia();
+        setProfesores(data.profesor); 
       } catch (error) {
         console.log('Error al cargar los profesores:', error);
         Alert.alert('Error', 'No se pudieron cargar los profesores');
       }
     };
-    cargarProfesores();
+    cargarProfesionales();
   }, []);
 
   // Actualizar `formData` al seleccionar un profesor
@@ -34,7 +35,7 @@ export default function RegistroAsistencia() {
     setSeleccionado(profesor);
     setFormData({
       ...formData,
-      dni_profesor: profesor.dni_profesor, // Actualiza el DNI del profesor seleccionado
+      dni_profesional: profesor.dni_profesional, // Actualiza el DNI del profesor seleccionado
       fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
     });
   };
@@ -48,7 +49,7 @@ export default function RegistroAsistencia() {
  const handleRegistrar = async () => {
     try {
         const profesorData = {
-            dni_profesor: parseInt(formData.dni_profesor),
+            dni_profesional: parseInt(formData.dni_profesional),
             fecha: formData.fecha,
             hora_entrada: entrada ? formData.hora_entrada : null,
             hora_salida: !entrada ? formData.hora_salida : null,
@@ -68,7 +69,7 @@ export default function RegistroAsistencia() {
 
         // Reiniciar el formulario después del registro
         setFormData({
-            dni_profesor: "",
+            dni_profesional: "",
             fecha: "",
             hora_entrada: "",
             hora_salida: "",
