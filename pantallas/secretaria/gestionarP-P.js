@@ -14,10 +14,10 @@ export default function GestionarProfesional() {
     const[rol, setRol] = useState([])
     const[localidad,setLocalidad] = useState([])
     const[sexo,setSexos] = useState([])
-    const[estadoalumno,setEstadoAlumno] = useState([])
+    const[estado_general,setEstadoGeneral] = useState([])
 
     const [formData, setFormData] = useState({
-        dni: '',
+        dni_profesional: '',
         nombre: '',
         apellido: '',
         cuit: '',
@@ -45,11 +45,10 @@ export default function GestionarProfesional() {
                     const sexosData = await obtenerSexo();
                     const estadoData = await obtenerEstadoGeneral();
                     const rolData = await obtenerRoles();
-                    console.log('rolData:', rolData);
                     setRol(rolData.roles);
                     setSexos(sexosData);
                     setLocalidad(localidadData);
-                    setEstadoAlumno(estadoData);
+                    setEstadoGeneral(estadoData);
                 
                     
                 } catch (error) {
@@ -68,7 +67,7 @@ export default function GestionarProfesional() {
         const registrarProfesional = async () => {
             try{
                 const profesionalData = {
-                dni: parseInt(formData.dni),
+                dni_profesional: parseInt(formData.dni_profesional),
                 nombre: formData.nombre,
                 apellido: formData.apellido,
                 cuit: parseInt(formData.cuit),
@@ -100,7 +99,7 @@ export default function GestionarProfesional() {
         const consultarProfesional = async () => {
             // Lógica para consultar el profesional
             try{
-                const profesional = await obtenerProfesional(formData.dni)
+                const profesional = await obtenerProfesional(formData.dni_profesional)
                 if(profesional){
                     setFormData({
                         ...formData,
@@ -130,9 +129,9 @@ export default function GestionarProfesional() {
             }
         }
 
-        const limpiarFormulario = () => {
+        const limpiarInterfaz = () => {
             setFormData({
-                dni: '',
+                dni_profesional: '',
                 nombre: '',
                 apellido: '',
                 cuit: '',
@@ -154,11 +153,11 @@ export default function GestionarProfesional() {
         }
         const handleDeshabilitarProfesional = async () => {
             try{
-                const respuesta = await deshabilitarProfesional(formData.dni)
+                const respuesta = await deshabilitarProfesional(formData.dni_profesional)
                 if(respuesta){
                     console.log("El profesional fue deshabilitado correctamente")
                 }
-                limpiarFormulario()
+                limpiarInterfaz()
             }catch(error){
                 console.log(error)
             }
@@ -166,7 +165,7 @@ export default function GestionarProfesional() {
         const handleModificarProfesional = async () => {
             try {
                 const profesionalData = {
-                    dni: parseInt(formData.dni),
+                    dni_profesional: parseInt(formData.dni_profesional),
                     nombre: formData.nombre,
                     apellido: formData.apellido,
                     cuit: parseInt(formData.cuit),
@@ -185,7 +184,7 @@ export default function GestionarProfesional() {
                     departamento: formData.edificio ? formData.departamento : null
                 };
                 console.log(profesionalData)
-                const respuesta = await modificarProfesional(formData.dni, profesionalData)
+                const respuesta = await modificarProfesional(formData.dni_profesional, profesionalData)
                 if(respuesta){
                     console.log("El profesional fue modificado correctamente")
                 }
@@ -200,7 +199,12 @@ export default function GestionarProfesional() {
             <View style={styles.formulario}>
                 <View style={styles.dniContainer}>
                     <Text style={styles.label}>DNI:</Text>
-                    <TextInput style={styles.inputDni} placeholder='DNI' onChangeText={(value) => handleChange('dni', value)} />
+                    <TextInput
+                        style={styles.inputDni}
+                        placeholder='DNI'
+                        value={formData.dni_profesional}
+                        onChangeText={(value) => handleChange('dni_profesional', value)}
+                    />
                     <TouchableOpacity style={styles.consultarButton} onPress={consultarProfesional}>
                         <Text style={styles.consultarText}>Consultar</Text>
                     </TouchableOpacity>
@@ -233,7 +237,7 @@ export default function GestionarProfesional() {
                         <ListasDesplegables
                             formData={formData}
                             handleChange={handleChange}
-                            estadoalumno={estadoalumno}
+                            estado_general={estado_general}
                             localidad={localidad}
                             styles={styles}
                         />
@@ -297,7 +301,7 @@ export default function GestionarProfesional() {
                 <TouchableOpacity style={styles.botonAlta} onPress={registrarProfesional}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarProfesional}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonModificar} onPress={handleModificarProfesional}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarFormulario}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
         </View>
     );

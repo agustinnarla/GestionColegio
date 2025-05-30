@@ -39,7 +39,7 @@ export const obtenerSexo = async () => {
         return data.sexo || [];
     } catch (error) {
         console.error('Error al obtener sexo:', error);
-        return { sexo: [] };
+        return [];
     }
 };
 

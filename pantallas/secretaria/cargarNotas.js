@@ -3,7 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 
-import { obtenerMateria, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { obtenerMateriaPorCurso, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { registrarNotas, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
@@ -24,7 +24,11 @@ export default function CargarNotas() {
         nota3: '',
         nota4: '',
         nota5: '',
-        nota6: ''
+        nota6: '',
+        tp1: '',
+        tp2: '',
+        tp3: '',
+        aulico: ''
     });
     
     /*
@@ -36,24 +40,29 @@ export default function CargarNotas() {
     
     useEffect(() => {
         const cargarDatos = async () => {
-           
+        
             try {
                 const cursosData = await obtenerCurso();
-             
-                const materiasData = await obtenerMateria();
+            
                 setCursos(cursosData);
-                setMaterias(materiasData);
+                if (formData.id_curso) {
+                        const materiasData = await obtenerMateriaPorCurso(formData.id_curso);;
+                    setMaterias(materiasData);
+                } else {
+                    setMaterias([]); 
+                }
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
         };
         cargarDatos();
-    }, []);
+    }, [formData.id_curso]);
 
     
     /*
         CARGAMOS ALUMNOS SEGÚN EL CURSO Y MATERIA SELECCIONADOS
     */
+   
     const cargarAlumnos = async () => {
         if (formData.id_curso && formData.id_materia) {  
             try {
@@ -106,7 +115,12 @@ export default function CargarNotas() {
                     nota3: alumno.nota3 ? parseInt(alumno.nota3) : null,
                     nota4: alumno.nota4 ? parseInt(alumno.nota4) : null,
                     nota5: alumno.nota5 ? parseInt(alumno.nota5) : null,
-                    nota6: alumno.nota6 ? parseInt(alumno.nota6) : null
+                    nota6: alumno.nota6 ? parseInt(alumno.nota6) : null,
+                    tp1: alumno.tp1 ? parseInt(alumno.tp1) : null,
+                    tp2: alumno.tp2 ? parseInt(alumno.tp2) : null,
+                    tp3: alumno.tp3 ? parseInt(alumno.tp3) : null,
+                    aulico: alumno.aulico ? parseInt(alumno.aulico) : null
+       
                 };
             });
 
@@ -123,17 +137,36 @@ export default function CargarNotas() {
         }
     };
 
-    const handleNotaChange = (dni_alumno, campo, valor) => {
+    const validarNota = (dni_alumno, campo, valor) => {
         // Validar que el valor sea un número entre 0 y 10
-        if (valor === '' || (parseInt(valor) >= 0 && parseInt(valor) <= 10)) {
+        if (valor === '' || (parseInt(valor) >= 1 && parseInt(valor) <= 10)) {
             setAlumnos(prevAlumnos => 
                 prevAlumnos.map(alumno => 
-                    alumno.dnialumno === dni_alumno 
+                    alumno.dni_alumno === dni_alumno 
                         ? { ...alumno, [campo]: valor === '' ? '' : valor }
                         : alumno
                 )
             );
         }
+    };
+
+    const limpiarInterfaz = () => {
+        setFormData({
+            dni_alumno: '',
+            id_materia: '',
+            id_curso: '',
+            nota1: '',
+            nota2: '',
+            nota3: '',
+            nota4: '',
+            nota5: '',
+            nota6: '',
+            tp1: '',
+            tp2: '',
+            tp3: '',
+            aulico: ''
+        });
+        setAlumnos([]); // <--- Esto limpia la grilla
     };
 
 
@@ -144,72 +177,85 @@ export default function CargarNotas() {
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
-            
-                <View style={styles.contenedorSuperior}>
-                    <View style={styles.filtrosContainer}>
-                        <ListasDesplegables 
+
+            {/* Filtros y acciones */}
+            <View style={styles.contenedorSuperior}>
+                <View style={styles.filtrosContainer}>
+                    <ListasDesplegables 
                         formData={formData}
                         handleChange={handleChange}
                         curso={curso}
                         materias={materias}
                         styles={styles}
-                        />
-                </View>
-                    <View  style={styles.botonesContainer}>
-                        <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
-                            <Text style={styles.textoBoton}>Consultar</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity style={styles.botonReiniciar} >
-                            <Text style={styles.textoBoton}>Reiniciar Filtro</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity style={styles.botonReiniciar} >
-                        <Text style={styles.textoBoton}>📁</Text>
+                    />
+                    <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos}>
+                        <Text style={styles.textoBoton}>Consultar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
+                        <Text style={styles.textoBoton}>Reiniciar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonConsultar}>
+                        <Text style={styles.textoBoton}>📄</Text>
                     </TouchableOpacity>
                 </View>
-                
-                        {/* Contenedor de la grilla */}
-                        <View style={styles.grillaContainer}>
-                            
-        <View style={styles.headerRow}>
-            <Text style={styles.headerCell}>Alumno</Text>
-            <Text style={styles.headerCell}>Nota 1</Text>
-            <Text style={styles.headerCell}>Nota 2</Text>
-            <Text style={styles.headerCell}>Nota 3</Text>
-            <Text style={styles.headerCell}>Nota 4</Text>
-            <Text style={styles.headerCell}>Nota 5</Text>
-            <Text style={styles.headerCell}>Nota 6</Text>
-        </View>
-        <View style={{ height: 650 }}>
-            <ScrollView 
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-            >
-                {alumnos.map((item) => (
-                    <View key={item.dni_alumno} style={styles.row}>
-                        <Text style={styles.cellNombre}>{item.nombre_completo}</Text>
-                        {[1,2,3,4,5,6].map((num) => (
-                            <TextInput 
-                                key={num}
-                                style={styles.inputNota}
-                                value={item[`nota${num}`]?.toString() || ''}
-                                inputMode="numeric"
-                                maxLength={2}
-                                onChangeText={(text) => handleNotaChange(item.dni_alumno, `nota${num}`, text)}
-                            />
-                        ))}
+            </View>
+
+            {/* Grilla de alumnos y notas */}
+            <View style={styles.grillaContainer}>
+                <ScrollView horizontal>
+                    <View>
+                        <View style={styles.headerRow}>
+                            <Text style={[styles.headerCell, {minWidth: 120}]}>Alumno</Text>
+                            {[1,2,3,4,5,6].map(num => (
+                                <Text key={`hnota${num}`} style={styles.headerCell}>{`Nota ${num}`}</Text>
+                            ))}
+                            {[1,2,3].map(num => (
+                                <Text key={`htp${num}`} style={styles.headerCell}>{`Tp ${num}`}</Text>
+                            ))}
+                            <Text style={styles.headerCell}>Aulico</Text>
+                        </View>
+                        <ScrollView style={{maxHeight: 400}}>
+                            {alumnos.map((item) => (
+                                <View key={item.dni_alumno} style={styles.row}>
+                                    <Text style={[styles.cellNombre, {minWidth: 120}]} numberOfLines={1}>{item.nombre_completo}</Text>
+                                    {[1,2,3,4,5,6].map((num) => (
+                                        <TextInput 
+                                            key={num}
+                                            style={styles.inputNota}
+                                            value={item[`nota${num}`]?.toString() || ''}
+                                            inputMode="numeric"
+                                            maxLength={2}
+                                            onChangeText={(text) => validarNota(item.dni_alumno, `nota${num}`, text)}
+                                        />
+                                    ))}
+                                    {[1,2,3].map((num) => (
+                                        <TextInput 
+                                            key={`tp${num}`}
+                                            style={styles.inputNota}
+                                            value={item[`tp${num}`]?.toString() || ''}
+                                            inputMode="numeric"
+                                            maxLength={2}
+                                            onChangeText={(text) => validarNota(item.dni_alumno, `tp${num}`, text)}
+                                        />
+                                    ))}
+                                    <TextInput 
+                                        style={styles.inputNota}
+                                        value={item.aulico?.toString() || ''}
+                                        inputMode="numeric"
+                                        maxLength={2}
+                                        onChangeText={(text) => validarNota(item.dni_alumno, 'aulico', text)}
+                                    />
+                                </View>
+                            ))}
+                        </ScrollView>
                     </View>
-                ))}
+                </ScrollView>
                 <TouchableOpacity 
-                    style={styles.botonConsultar} 
+                    style={[styles.botonConsultar, {alignSelf: 'center', marginTop: 10, width: 180}]}
                     onPress={handleRegistrar}
                 >
-                    <Text style={styles.textoBoton}>Confirmar</Text>
+                    <Text style={styles.textoBoton}>Confirmar Notas</Text>
                 </TouchableOpacity>
-            </ScrollView>
-                </View>
             </View>
         </View>
     );
@@ -277,10 +323,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'white',
         margin: 20,
-        height: '70%',
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 5,
+        paddingBottom: 10,
+        minHeight: 200,
     },
     headerRow: {
         flexDirection: 'row',
@@ -293,6 +340,8 @@ const styles = StyleSheet.create({
         flex: 1,
         fontWeight: 'bold',
         textAlign: 'center',
+        minWidth: 50, 
+        paddingHorizontal: 2,
     },
     row: {
         flexDirection: 'row',
@@ -304,16 +353,21 @@ const styles = StyleSheet.create({
     cellNombre: {
         flex: 2,
         paddingHorizontal: 5,
+        minWidth: 120,
+        textAlign: 'center',
     },
     inputNota: {
         flex: 1,
-        height: 40,
+        height: 36,
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 5,
         textAlign: 'center',
         marginHorizontal: 2,
         backgroundColor: 'white',
+        minWidth: 50, // igual que headerCell
+        fontSize: 15,
+        padding: 0,
     },
     scrollView: {
         flex: 1,

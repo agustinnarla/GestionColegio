@@ -6,9 +6,9 @@ const api_urlHorasAsignadas = 'http://localhost:5000/secretaria/profesional/hora
 
 
 // 🟢
-export const obtenerHorasProfesor = async (dni_profesor, id_curso) => {
+export const obtenerHorasProfesor = async (dni_profesor, id_curso, id_materia) => {
     try {
-        const respuesta = await fetch(`${api_urlHoras}/${dni_profesor}/${id_curso}`); 
+        const respuesta = await fetch(`${api_urlHoras}/${dni_profesor}/${id_curso}/${id_materia}`); 
 
         if (!respuesta.ok) {
             throw new Error('Error al obtener las horas del profesor');

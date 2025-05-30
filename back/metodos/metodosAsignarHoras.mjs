@@ -1,18 +1,39 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 export const asignacionDeHoras = async (req, res) => {
-    const { id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional } = req.body;
 
+    const asignaciones = Array.isArray(req.body) ? req.body : req.body.asignaciones;
+
+    if (!Array.isArray(asignaciones) || asignaciones.length === 0) {
+        return res.status(400).json({ message: 'No se recibieron asignaciones.' });
+    }
+
+    const resultados = [];
     try {
-        // Verificar si el horario ya está ocupado
-        const horariosOcupados = await verificarHorario(id_curso, dia_semana, hora_inicio, hora_final);
-        if (horariosOcupados.length > 0) {
-            return res.status(400).json({ message: 'El horario ya está ocupado para este curso.' });
+        for (const asignacion of asignaciones) {
+            const { id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional } = asignacion;
+
+            // Verificar si el horario ya está ocupado
+            const horariosOcupados = await verificarHorario(id_curso, dia_semana, hora_inicio, hora_final);
+            if (horariosOcupados.length > 0) {
+                resultados.push({ 
+                    asignacion, 
+                    success: false, 
+                    message: 'El horario ya está ocupado para este curso.' 
+                });
+                continue;
+            }
+
+            // Insertar el nuevo horario
+            const nuevoHorario = await insertarHorario(id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional);
+            resultados.push({ 
+                asignacion, 
+                success: true, 
+                data: nuevoHorario 
+            });
         }
 
-        // Insertar el nuevo horario
-        const nuevoHorario = await insertarHorario(id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional);
-        res.status(201).json({ message: 'Horas asignadas exitosamente', data: nuevoHorario });
+        res.status(201).json({ message: 'Proceso de asignación finalizado', resultados });
     } catch (error) {
         console.error('Error al asignar horas:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
@@ -110,7 +131,7 @@ export const obtenerMateriaPorCurso = async (req, res) => {
 }
 
 export const obtenerHorasProfesor = async (req, res) => {
-    const { dni_profesional, id_curso } = req.params;
+    const { dni_profesional, id_curso, id_materia } = req.params;
     try {
         // Cambiar dni_profesor por dni_profesional
         const respuesta = await pool.query(
@@ -122,8 +143,8 @@ export const obtenerHorasProfesor = async (req, res) => {
             FROM horario AS h
             INNER JOIN curso AS c ON c.id_curso = h.id_curso
             INNER JOIN materia AS m ON m.id_materia = h.id_materia
-            WHERE h.dni_profesional = $1 AND h.id_curso = $2`,
-            [dni_profesional, id_curso]
+            WHERE h.dni_profesional = $1 AND h.id_curso = $2 AND h.id_materia = $3`,
+            [dni_profesional, id_curso, id_materia]
         );
 
         if (respuesta.rows.length === 0) {
