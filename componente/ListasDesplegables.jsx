@@ -227,6 +227,22 @@ export function ProfesorSelector({ formData, handleChange, profesores, styles })
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function CertificadoSelector({ formData, handleChange, certificado, styles }) {
+    const selectorConfig = {
+        selectedValue: formData.id_certificado,
+        onValueChange: (value) => handleChange('id_certificado', value),
+        items: [
+            { label: 'Seleccione un certificado', value: '' },
+            ...(certificado || []).map(item => ({
+                label: item.detalle,
+                value: item.id_certificado,
+                key: item.id_certificado
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 // Componente principal que combina todos los selectores
 function ListasDesplegables({
     formData,
@@ -244,7 +260,8 @@ function ListasDesplegables({
     tipo_de_evaluacion,
     sexo,
     estadoalumno,
-    localidad
+    localidad,
+    certificado
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -349,6 +366,14 @@ function ListasDesplegables({
                     formData={formData}
                     handleChange={handleChange}
                     localidad={localidad}
+                    styles={styles}
+                />
+            )}
+            {certificado && (
+                <CertificadoSelectorSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    certificado={certificado}
                     styles={styles}
                 />
             )}

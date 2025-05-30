@@ -1,7 +1,8 @@
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerAlumnosAusentes, obtenerEstadoFalta, obtenerCertificado, actualizarJustificarFalta, obtenerEstadoAlumnos, obtenerAlumnosConFaltasSuperadas, actualizarEstadoAlumno} from '../../scripts/preceptor/scriptGestionJustificarFalta';
-
+import { obtenerAlumnosAusentes, obtenerEstadoFalta, actualizarJustificarFalta, obtenerEstadoAlumnos, obtenerAlumnosConFaltasSuperadas, actualizarEstadoAlumno} from '../../scripts/preceptor/scriptGestionJustificarFalta';
+import { CertificadoSelector } from '../../componente/ListasDesplegables';
+import { obtenerCertificado } from '../../scripts/listasDesplegables/listaDesplegable';
 import React, {useState, useEffect} from "react";
 import bg from '../../assets/bg1.jpg';
 
@@ -105,37 +106,34 @@ export default function JustificarFalta() {
         }
     };
     
-    const actualizarSeleccionadoAlumno = (tipo, valor, dnialumno) => {
+    const actualizarSeleccionadoAlumno = (tipo, valor, dni_alumno) => {
         if (tipo === 'estadoFalta') {
             setEstadoFaltaPorAlumno(prevState => ({
                 ...prevState,
-                [dnialumno]: valor,  // Asocia el valor con el dnialumno
+                [dni_alumno]: valor,  // Asocia el valor con el dnialumno
             }));
         } else if (tipo === 'certificado') {
-            setCertificadoPorAlumno(prevState => ({
+            setCertificadoPorAlumno((prevState) => ({
                 ...prevState,
-                [dnialumno]: valor,  // Asocia el valor con el dnialumno
+                [dni_alumno]: valor, // Actualiza solo el certificado del alumno correspondiente
             }));
         }
     };
 
-    const actualizarDatosEnBaseDeDatos = async (tipo, valor, dnialumno, fecha) => {
-        console.log("Datos para actualizar:", tipo, valor, dnialumno);
+    const actualizarDatosEnBaseDeDatos = async (tipo, valor, dni_alumno, fecha) => {
+        console.log("Datos para actualizar:", tipo, valor, dni_alumno);
         console.log("estadoFaltaSeleccionado:", estadoFaltaSeleccionado);
         console.log("certificadoSeleccionado:", certificadoSeleccionado);
         
         const datosForm = {
-            idestadofalta: tipo === 'estadoFalta' ? valor : estadoFaltaSeleccionado,
-            dnialumno: dnialumno, 
-            idcertificado: tipo === 'certificado' ? valor : certificadoSeleccionado,
+            id_estado_falta: tipo === 'estadoFalta' ? valor : estadoFaltaSeleccionado,
+            dni_alumno: dni_alumno, 
+            idc_ertificado: tipo === 'certificado' ? valor : certificadoSeleccionado,
             fecha: fecha,
         };
-    
         console.log("datosForm:", datosForm);
-    
         // Llamamos a la función para obtener los alumnos con faltas superadas
         const datosFaltas = await obtenerDatosFaltasSuperadas();
-    
         // Si obtenemos datos de faltas superadas, procesamos cada uno
         if (Array.isArray(datosFaltas) && datosFaltas.length > 0) {
             for (const dnialumnoFalta of datosFaltas) {
@@ -154,17 +152,16 @@ export default function JustificarFalta() {
             const response = await obtenerAlumnosConFaltasSuperadas();
             console.log("✅ Respuesta obtenida:", response);
     
-            if (Array.isArray(response)) {
-                const dnialumnoArray = response.map((item) => item.dnialumno);
-    
+            if (Array.isArray(response) && response.length > 0) {
+                const dnialumnoArray = response.map((item) => item.dni_alumno);
                 setFaltasSuperadas(dnialumnoArray); // Actualizamos el estado con el array
-                return dnialumnoArray; // 🔥 Ahora devuelve un array de dnialumno
+                return dnialumnoArray;
             } else {
-                console.error("Error al obtener datos:", response.error);
+                console.error("No se encontraron datos de faltas superadas.");
                 return [];
             }
         } catch (error) {
-            console.error("Error en la solicitud:", error);
+            console.error("Error en la solicitud:", error.message);
             return [];
         }
     };
@@ -194,8 +191,8 @@ export default function JustificarFalta() {
                 const certificadoMap = {};
     
                 response.estadofalta.forEach((item) => {
-                    estadoMap[item.dnialumno] = item.idestadofalta;
-                    certificadoMap[item.dnialumno] = item.idcertificado;
+                    estadoMap[item.dni_alumno] = item.idestadofalta;
+                    certificadoMap[item.dni_alumno] = item.idcertificado;
                 });
     
                 setEstadoFaltaPorAlumno(estadoMap);
@@ -276,20 +273,20 @@ export default function JustificarFalta() {
                         {Array.isArray(alumnos) && alumnos.length > 0 && alumnos.map((alumno, index) => (
                             <View style={styles.fila} key={index}>
                                 <Text style={styles.celda}>{alumno.nombreapellido}</Text>
-                                <Text style={styles.celda}>{alumno.dnialumno}</Text>
+                                <Text style={styles.celda}>{alumno.dni_alumno}</Text>
                                 <Text style={styles.celda}>{convertirFecha(alumno.fecha.slice(0, 10))}</Text>
 
                                 {/* Picker para estadoFalta */}
                                 <Picker
                                     style={styles.celda}
-                                    selectedValue={estadoFaltaPorAlumno[alumno.dnialumno] ?? ""}
+                                    selectedValue={estadoFaltaPorAlumno[alumno.dni_alumno] ?? ""}
                                     onValueChange={(itemValue) => {
-                                        actualizarSeleccionadoAlumno('estadoFalta', itemValue, alumno.dnialumno);
-                                        actualizarDatosEnBaseDeDatos('estadoFalta', itemValue, alumno.dnialumno, alumno.fecha);
+                                        actualizarSeleccionadoAlumno('estadoFalta', itemValue, alumno.dni_alumno);
+                                        actualizarDatosEnBaseDeDatos('estadoFalta', itemValue, alumno.dni_alumno, alumno.fecha);
                                     }}
                                 >
                                     {/* Si no tiene un estado registrado, se muestra la opción por defecto */}
-                                    {!estadoFaltaPorAlumno[alumno.dnialumno] && (
+                                    {!estadoFaltaPorAlumno[alumno.dni_alumno] && (
                                         <Picker.Item label="Seleccionar estado" value="" enabled={false} />
                                     )}
 
@@ -303,31 +300,19 @@ export default function JustificarFalta() {
                                     ))}
                                 </Picker>
                                 {/* Picker para certificado */}
-                                <Picker
-                                    style={styles.celda}
-                                    selectedValue={certificadoPorAlumno[alumno.dnialumno] ?? ""}
-                                    onValueChange={(itemValue) => {
-                                        actualizarSeleccionadoAlumno('certificado', itemValue, alumno.dnialumno);
-                                        actualizarDatosEnBaseDeDatos('certificado', itemValue, alumno.dnialumno, alumno.fecha);
+                                <CertificadoSelector
+                                    formData={{
+                                        id_certificado: certificadoPorAlumno[alumno.dni_alumno] ?? "", // Valor seleccionado para este alumno
                                     }}
-                                >
-                                    {/* Si no tiene un certificado registrado, se muestra la opción por defecto */}
-                                    {!certificadoPorAlumno[alumno.dnialumno] && (
-                                        <Picker.Item label="Seleccionar certificado" value="" enabled={false} />
-                                    )}
-
-                                    {/* Lista de certificados */}
-                                    {Array.isArray(certificado?.sexo) && certificado.sexo.map((cert) => (
-                                        <Picker.Item 
-                                            key={cert.idcertificado} 
-                                            label={cert.detalle} 
-                                            value={cert.idcertificado} 
-                                        />
-                                    ))}
-                                </Picker>
+                                    handleChange={(field, value) => {
+                                        actualizarSeleccionadoAlumno('certificado', value, alumno.dni_alumno);
+                                        actualizarDatosEnBaseDeDatos('certificado', value, alumno.dni_alumno, alumno.fecha);
+                                    }}
+                                    certificado={certificado || []} // Lista de certificados
+                                    styles={styles.celda} // Estilo del selector
+                                />
                             </View>
                         ))}
-
                     </View>
                 </ScrollView>
             </View>

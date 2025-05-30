@@ -1,6 +1,6 @@
 const api_url = 'http://localhost:5000'
-const api_urlAsistencia = 'http://localhost:5000/justificarFalta'
-const api_urlAlumnoAsistencia = 'http://localhost:5000/asistencia'
+const api_urlAsistencia = 'http://localhost:5000/alumno/justificarFalta'
+const api_urlAlumnoAsistencia = 'http://localhost:5000/alumno/asistencia'
 
 
 export const obtenerAlumnosAusentes = async (fechadesde, fechahasta) => {
@@ -49,7 +49,7 @@ export const obtenerEstadoAlumnos = async (fechadesde, fechahasta) => {
 
 export const obtenerEstadoFalta = async () => {
     try {
-        const url = `${api_urlAsistencia}/estadofalta`
+        const url = `${api_urlAsistencia}/estado_falta`
 
         const respuesta = await fetch(url, {
             method: 'GET',

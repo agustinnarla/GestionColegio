@@ -394,3 +394,4 @@ export const obtenerAlumnoCurso = async (id_curso) => {
         return { sexo: [] };
     }
 };
+

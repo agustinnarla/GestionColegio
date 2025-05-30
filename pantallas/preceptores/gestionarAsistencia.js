@@ -68,13 +68,11 @@ export default function GestionarAsistencia(){
 
                 // Actualizar estado con los cursos y su estado de asistencia
                 setCursos(cursosConEstado);
-
             } catch (error) {
                 console.error("Error al cargar los cursos:", error);
                 Alert.alert('Error', 'Hubo un problema al cargar los cursos.');
             }
         };
-
         cargarDatos();
     }, []);
 
@@ -83,10 +81,8 @@ export default function GestionarAsistencia(){
         if (formData.id_curso) {
             // Asegura que los datos sean numéricos y encuentra el curso seleccionado
             const cursoSeleccionado = cursos.find(curso => Number(curso.id_curso) === Number(formData.id_curso));
-            
             if (cursoSeleccionado) {
                 console.log('Curso seleccionado:', cursoSeleccionado);
-                
                 // Verifica si el curso tiene asistencia
                 if (cursoSeleccionado.tieneAsistencia) {
                     console.log("Activando botón Modificar");
@@ -137,10 +133,9 @@ export default function GestionarAsistencia(){
     const toggleSwitch = (dni) => {
         setEstudiantes((prevEstudiantes) =>
             prevEstudiantes.map((estudiante) => {
-                if (estudiante.dnialumno === dni) {
+                if (estudiante.dni_alumno === dni) {
                     const nuevoPresente = !estudiante.presente;
                     const nuevoEstado = nuevoPresente ? 1 : 2; // 1 = presente, 2 = ausente
-    
                     return {
                         ...estudiante,
                         presente: nuevoPresente,
@@ -154,6 +149,31 @@ export default function GestionarAsistencia(){
             })
         );
     };
+
+    const limpiarInterfaz = async () => {
+        setModalVisible(false); // Cierra el modal
+        setMensajeConfirmacion(''); // Limpia el mensaje de confirmación
+        setBotonActivado(false); // Desactiva el botón de enviar
+        setBotonModificarActivado(false); // Desactiva el botón de modificar
+    
+        // Recargar los cursos para actualizar el Picker
+        try {
+            const cursosData = await obtenerCurso(); // Llama a la función que obtiene los cursos
+            const fechaActual = obtenerFechaActual(); // Obtén la fecha actual
+            const cursosConEstado = await Promise.all(
+                cursosData.map(async (curso) => {
+                    const tieneAsistencia = await validarFechaAsistencia(curso.id_curso, fechaActual);
+                    return {
+                        ...curso,
+                        tieneAsistencia, // Actualiza el estado de asistencia
+                    };
+                })
+            );
+            setCursos(cursosConEstado); // Actualiza el estado de los cursos
+        } catch (error) {
+            console.error("Error al recargar los cursos:", error);
+        }
+    };
     
     const validarCampos = () => {
         return formData.dni_alumno && 
@@ -162,26 +182,31 @@ export default function GestionarAsistencia(){
             formData.motivo.length >= 3 &&
             formData.id_curso; 
     };
-    
     const handleRegistrar = async () => {
         try {
             const ausentesTemp = []; // Lista temporal de alumnos ausentes
             for (const estudiante of estudiantes) {
                 console.log("FormData del estudiante:", estudiante.formData);
     
+                // Obtener datos del alumno
                 const alumnosData = await obtenerAlumnoFiltrado(estudiante.formData.dni_alumno);
                 console.log("Datos del alumno obtenidos:", alumnosData);
     
-                if (!alumnosData) {
-                    console.error(`No se encontraron datos para el DNI ${estudiante.formData.dni_alumno}`);
+                // Manejar ambos casos: si alumnosData es un array o un objeto
+                const alumno = Array.isArray(alumnosData) ? alumnosData[0] : alumnosData;
+                console.log("Datos del alumno procesado:", alumno);
+    
+                if (!alumno || !alumno.nombre || !alumno.apellido) {
+                    console.error(`No se encontraron datos válidos para el DNI ${estudiante.formData.dni_alumno}`);
                     continue; // Salta al siguiente estudiante
                 }
     
+                // Construir el objeto de asistencia
                 const asistenciaData = {
                     dni_alumno: estudiante.formData.dni_alumno ? parseInt(estudiante.formData.dni_alumno, 10) : null,
                     fecha: obtenerFechaActual(),
                     id_curso: estudiante.formData.id_curso ? parseInt(estudiante.formData.id_curso, 10) : null,
-                    id_estado_asistencia: estudiante.formData.id_estado_asistencia ? parseInt(estudiante.formData.id_estado_asistencia, 10) : null, // Corregido
+                    id_estado_asistencia: estudiante.formData.id_estado_asistencia ? parseInt(estudiante.formData.id_estado_asistencia, 10) : null,
                 };
     
                 console.log("Datos que se van a enviar al backend:", asistenciaData);
@@ -191,22 +216,24 @@ export default function GestionarAsistencia(){
                     continue; // Salta al siguiente estudiante si los datos son incompletos
                 }
     
+                // Si el estudiante está ausente, agregarlo a la lista de ausentes
                 if (asistenciaData.id_estado_asistencia === 2) {
                     ausentesTemp.push({
-                        nombre: alumnosData.nombre,
-                        apellido: alumnosData.apellido,
+                        nombre: alumno.nombre,
+                        apellido: alumno.apellido,
                         dni_alumno: asistenciaData.dni_alumno,
                     });
                 }
-    
-                // Aquí puedes enviar los datos al backend si es necesario
             }
     
+            // Actualizar el estado con los ausentes
             setAusentes(ausentesTemp);
+            // Mostrar el modal si hay ausentes
             if (ausentesTemp.length > 0) {
                 setModalVisible(true);
             } else {
                 console.log("No hay ausentes. Registro completado.");
+                await confirmarRegistro(); // Si no hay ausentes, confirmar el registro directamente
             }
         } catch (error) {
             console.error('Error al registrar la asistencia:', error.message);
@@ -232,6 +259,7 @@ export default function GestionarAsistencia(){
                 }, 3000);
             }
             console.log("Registro completado.");
+            limpiarInterfaz();
         } catch (error) {
             console.error("Error al confirmar el registro:", error.message);
         }
@@ -310,7 +338,7 @@ export default function GestionarAsistencia(){
                     <Text style={styles.estudiante}>{estudiante.nombrecompleto}</Text>
                     <Switch
                     value={estudiante.presente}
-                    onValueChange={() => toggleSwitch(estudiante.dnialumno)}
+                    onValueChange={() => toggleSwitch(estudiante.dni_alumno)}
                     thumbColor={estudiante.presente ? "#3b82f6" : "#ccc"}
                     />
                 </View>
@@ -318,32 +346,32 @@ export default function GestionarAsistencia(){
             </ScrollView>
 
             <View style={styles.contenedorBotones}>
-                <TouchableOpacity style={[styles.modificar, { opacity: botonModificarActivado ? 1 : 0.5 }]}disabled={!botonModificarActivado}onPress={() => navegacion.navigate('Modificar Asistencia', { idcurso: formData.idcurso })}><Text style={styles.botonTexto}>Modificar</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.modificar, { opacity: botonModificarActivado ? 1 : 0.5 }]}disabled={!botonModificarActivado}onPress={() => navegacion.navigate('Modificar Asistencia', { id_curso: formData.id_curso })}><Text style={styles.botonTexto}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.enviar, { opacity: botonActivado ? 1 : 0.5 }]} disabled={!botonActivado} onPress={handleRegistrar}><Text style={styles.botonTexto}>Enviar</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.exportar, { opacity: botonActivado ? 1 : 0.5 }]} disabled={!botonActivado}><Text style={styles.botonTexto}>Exportar</Text></TouchableOpacity>
                 {/* Modal de Confirmación */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Confirmar registro</Text>
-                        <Text>Los siguientes alumnos están ausentes:</Text>
-                        {ausentes.map((alumno) => (
-                            <Text key={alumno.dnialumno} style={styles.alumnoItem}>
-                                (Nombre: {alumno.nombre + " "}{alumno.apellido}) (DNI: {alumno.dnialumno})
-                            </Text>
-                        ))}
-                        <View style={styles.modalButtons}>
-                            <Button title="Cancelar" onPress={() => setModalVisible(false)} />
-                            <Button title="Confirmar" onPress={confirmarRegistro} />
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Confirmar registro</Text>
+                            <Text>Los siguientes alumnos están ausentes:</Text>
+                            {ausentes.map((alumno) => (
+                                <Text key={alumno.dni_alumno} style={styles.alumnoItem}>
+                                    Nombre: {alumno.nombre} {alumno.apellido} - DNI: {alumno.dni_alumno}
+                                </Text>
+                            ))}
+                            <View style={styles.modalButtons}>
+                                <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+                                <Button title="Confirmar" onPress={confirmarRegistro} />
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
             {/* Mensaje de confirmación */}
             {mensajeConfirmacion !== '' && (
                 <View style={styles.mensajeOverlay}>
