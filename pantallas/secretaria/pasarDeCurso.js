@@ -51,7 +51,7 @@ export default function PasarDeAño() {
     const handleRegistrar = async() => {
       try {
         const alumnosData = alumnos.map(alumno => ({
-          dni_alumno: alumno.dnialumno,
+          dni_alumno: alumno.dni_alumno,
           id_curso: parseInt(formData.id_curso) 
         }));
 
@@ -95,8 +95,8 @@ export default function PasarDeAño() {
                         <Text style={styles.cellNombre}>{item.nombrecompleto}</Text>
                     </View>
                 ))}
-                <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
-                            <Text style={styles.textoBoton} onPress={handleRegistrar}>Confirmar</Text>
+                <TouchableOpacity style={styles.botonConsultar} onPress={handleRegistrar} >
+                            <Text style={styles.textoBoton} >Confirmar</Text>
                 </TouchableOpacity>
             </ScrollView>
                 </View>

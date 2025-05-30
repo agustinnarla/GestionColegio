@@ -16,7 +16,7 @@ export default function LibroAula({ route }) {
             numero_clase: '',
             unidad: '',
             tema_abarcado: '',
-            dni_profesor: ''
+            dni_profesional: ''
         });
 
     const [materias, setMaterias] = useState([]);
@@ -81,7 +81,7 @@ export default function LibroAula({ route }) {
         return `${año}-${mes}-${dia}`;
     };
 
-    // Registrar amonestación
+    // Registrar 
         const handleRegistrar = async () => {
             try {
                 const libroAulaData = {
@@ -92,7 +92,7 @@ export default function LibroAula({ route }) {
                     numero_clase: formData.numero_clase,
                     unidad: formData.unidad,
                     tema_abarcado: formData.tema_abarcado,
-                    dni_profesor: dni_usuario,
+                    dni_profesional: dni_usuario,
                 };
     
                 // if (!validarCampos()) {
@@ -128,7 +128,7 @@ export default function LibroAula({ route }) {
                 numero_clase: '',
                 unidad: '',
                 tema_abarcado: '',
-                dni_profesor: ''
+                dni_profesional: ''
             });
         };
 
@@ -151,6 +151,11 @@ export default function LibroAula({ route }) {
                     formData={formData} 
                     handleChange={handleChange} 
                     materias={materias}
+                    styles={styles}
+                />
+                <ListasDesplegables 
+                    formData={formData} 
+                    handleChange={handleChange} 
                     curso={cursoPorMateria}
                     caracteristica_unidad={caracteristica_unidad}
                     styles={styles}
@@ -161,18 +166,21 @@ export default function LibroAula({ route }) {
                 <TextInput style={styles.input} 
                 placeholder='--/--/----' 
                 keyboardType="numeric" 
+                 value={formData.fecha}
                 onChangeText={(value) => handleChange('fecha', value)}/>
 
                 <Text style={styles.label}>Clase N°</Text>
                 <TextInput style={styles.input} 
                 placeholder='0' 
                 keyboardType="numeric"
+                value={formData.numero_clase}
                 onChangeText={(value) => handleChange('numero_clase', value)} />
 
-                <Text style={styles.label}>Unidad</Text>
+                <Text style={styles.label} >Unidad</Text>
                 <TextInput style={styles.input} 
                 placeholder='1' 
-                keyboardType="numeric" 
+                keyboardType="numeric"
+                value={formData.unidad} 
                 onChangeText={(value) => handleChange('unidad', value)}/>
 
                 <Text style={styles.label}>Tema abarcado</Text>
@@ -180,6 +188,7 @@ export default function LibroAula({ route }) {
                     style={[styles.input, styles.textArea]}
                     placeholder='Ingresar Tema abarcado en la clase'
                     onChangeText={(value) => handleChange('tema_abarcado', value)}
+                    value={formData.tema_abarcado}
                     multiline={true}
                     numberOfLines={4}
                 />

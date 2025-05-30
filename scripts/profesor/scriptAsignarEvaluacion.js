@@ -2,14 +2,14 @@
 const url_apiAsignarEvaluacion = "http://localhost:5000/profesor/asignar_evaluacion/alta"
 
 // 🟢
-export const registrarEvaluacion = async (formData) => {
+export const registrarEvaluacion = async (asignarEvaluacionData) => {
     try{
         const repuesta = await fetch(url_apiAsignarEvaluacion, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(asignarEvaluacionData)
         })
         if(!repuesta.ok){
             throw new Error(`HTTP error! status: ${repuesta.status}`);

@@ -14,7 +14,7 @@ export default function LibroAula({ route }) {
                 id_tipo_de_evaluacion: '',
                 fecha: '',
                 tema_abarcado: '',
-                dni_profesor: ''
+                dni_profesional: ''
             });
 
     const [materias, setMaterias] = useState([]);
@@ -91,7 +91,7 @@ export default function LibroAula({ route }) {
                                     id_tipo_de_evaluacion: formData.id_tipo_de_evaluacion,
                                     fecha: formatearFecha(formData.fecha),
                                     tema_abarcado: formData.tema_abarcado,
-                                    dni_profesor: dni_usuario,
+                                    dni_profesional: dni_usuario,
                                 };
                     
                                 // if (!validarCampos()) {
@@ -125,7 +125,7 @@ export default function LibroAula({ route }) {
                                 id_tipo_de_evaluacion: '',
                                 fecha: '',
                                 tema_abarcado: '',
-                                dni_profesor: ''
+                                dni_profesional: ''
                             });
                         };
                 
@@ -144,6 +144,11 @@ export default function LibroAula({ route }) {
                         formData={formData} 
                         handleChange={handleChange} 
                         materias={materias}
+                        styles={styles}
+                    />
+                    <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
                         curso={cursoPorMateria}
                         tipo_de_evaluacion={tipo_de_evaluacion}
                         styles={styles}
@@ -154,6 +159,7 @@ export default function LibroAula({ route }) {
                     style={styles.input}
                     placeholder='--/--/----'
                     onChangeText={(value) => handleChange('fecha', value)}
+                    value={formData.fecha}
                     keyboardType='numeric'
                 />
                 <Text style={styles.label}>Temas </Text>
@@ -162,6 +168,7 @@ export default function LibroAula({ route }) {
                     placeholder='Ingrese los temas abarcados separados con - o ,'
                     multiline={true}
                     numberOfLines={4}
+                    value={formData.tema_abarcado}
                     onChangeText={(value) => handleChange('tema_abarcado', value)}
                 />
 
@@ -169,7 +176,7 @@ export default function LibroAula({ route }) {
                     <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar}>
+                    <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
                         <Text style={styles.textoBoton}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>

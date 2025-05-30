@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } fr
 import bg from '../../assets/bg1.jpg'; 
 import { obtenerMateriasPorDni } from '../../scripts/alumno/scripMaterias'; // Importar la función
 
-const Materia = ({ nombre, profesor, dia_semana, notas, promedio }) => {
+const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practico, aulico }) => {
   const [expandido, setExpandido] = useState(false);
 
   const toggleExpandir = () => {
@@ -45,11 +45,23 @@ const Materia = ({ nombre, profesor, dia_semana, notas, promedio }) => {
                 ))}
               </View>
             ))}
+            <View>
+              <Text style={styles.etapaTitulo}>Trabajos Prácticos:</Text>
+                {trabajo_practico.map((tp, i) => (
+                  <Text key={i} style={styles.notaTexto}>
+                    TP {i + 1}: {tp}
+                  </Text>
+                ))}
+            </View>
+            <View style={styles.nota}>
+              <Text style={styles.etapaTitulo}>Aúlico:</Text>
+              <Text style={styles.notaTexto}>{aulico}</Text>
+            </View>
             <View style={styles.notaPromedio}>
               <Text style={styles.promedioTexto}>Promedio: {promedio}</Text>
             </View>
           </View>
-        </View>
+      </View> 
       )}
     </View>
   );
@@ -70,7 +82,7 @@ const Materias = ({ route }) => {
 
         setMaterias(data.materias || []); 
         if (data.materias.length > 0) {
-          setCurso(data.materias[0].curso); // Asume que todas las materias pertenecen al mismo curso
+          setCurso(data.materias[0].curso); 
         }
       } catch (error) {
         console.error("Error al obtener materias:", error);
@@ -95,15 +107,21 @@ const Materias = ({ route }) => {
                 key={index}
                 nombre={materia.materia}
                 profesor={materia.profesor}
-                dia_semana={materia.dia_semana || []}
+                dia_semana={materia.dias_semana || []}
                 notas={[
                   materia.nota1,
                   materia.nota2,
                   materia.nota3,
                   materia.nota4,
                   materia.nota5,
-                  materia.nota6,
+                  materia.nota6
                 ]}
+                trabajo_practico={[
+                  materia.tp1,
+                  materia.tp2,
+                  materia.tp3
+                ]}
+                aulico={materia.aulico}
                 promedio={materia.promedio}
               />
             ))

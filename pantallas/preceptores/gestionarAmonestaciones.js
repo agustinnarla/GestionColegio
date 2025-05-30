@@ -11,7 +11,7 @@ export default function GestionarAmonestaciones() {
     // Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
-        id_solicitante: '',
+        dni_profesional: '',
         cantidad: '',
         fecha: '',
         motivo: '',
@@ -20,7 +20,7 @@ export default function GestionarAmonestaciones() {
 
     // Listas desplegables
     const [cursos, setCursos] = useState([]);
-    const [solicitantes, setSolicitante] = useState([]);
+    const [profesionales, setProfesionales] = useState([]);
     const [alumnos, setAlumnos] = useState([]);
     const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
 
@@ -89,7 +89,7 @@ export default function GestionarAmonestaciones() {
     const validarCampos = () => {
         const fechaEsValida = validarFecha(formData.fecha);
         return formData.dni_alumno && 
-            formData.id_solicitante && 
+            formData.dni_profesional && 
             formData.cantidad.length >= 1 && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
@@ -105,8 +105,9 @@ export default function GestionarAmonestaciones() {
         const cargarDatos = async () => {
             try {
                 const cursosData = await obtenerCurso();
-                //const solicitanteData = await obtenerSolicitante();
+                const profesionalData = await obtenerProfesionales();
                 setCursos(cursosData);
+                setProfesionales(profesionalData)
                 //setSolicitante(solicitanteData);
             } catch (error) {
                 Alert.alert('Error', error.message);
@@ -151,7 +152,7 @@ export default function GestionarAmonestaciones() {
         try {
             const alumnoData = {
                 dni_alumno: parseInt(formData.dni_alumno),
-                id_solicitante: parseInt(formData.id_solicitante),
+                dni_profesional: parseInt(formData.dni_profesional),
                 cantidad: parseInt(formData.cantidad),
                 fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
@@ -179,7 +180,7 @@ export default function GestionarAmonestaciones() {
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
-            id_solicitante: '',
+            dni_profesional: '',
             cantidad: '',
             fecha: '',
             motivo: '',
@@ -193,9 +194,9 @@ export default function GestionarAmonestaciones() {
     const handleImprimir = async () => {
         try {
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
-            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
+            const profesionalSeleccionado = profesionales.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
 
-            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
+            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
             mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
             
             if (Platform.OS === 'web') {
@@ -224,7 +225,7 @@ export default function GestionarAmonestaciones() {
                 handleChange={handleChange} 
                 curso={cursos} 
                 alumnos={alumnos}
-                //solicitantes={solicitantes}
+                profesionales={profesionales}
                 styles={styles}
             />
 

@@ -14,9 +14,9 @@ export const obtenerAlumnoFinal = async (req,res) => {
         }));
 
         const respuesta = await pool.query(
-            "SELECT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, am.promedio as promedio " +
+            "SELECT DISTINCT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, am.promedio as promedio " +
             "FROM alumno a INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno INNER JOIN alumno_materia am ON a.dni_alumno = am.dni_alumno " +
-            "WHERE am.id_curso=$1 AND a.id_estado_general=1 AND am.id_estado_evaluativo=1",
+            "WHERE ac.id_curso= $1 AND a.id_estado_general =1 AND am.id_estado_evaluativo=1",
             [id_curso]
         );
 

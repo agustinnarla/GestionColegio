@@ -8,23 +8,12 @@ import {Platform} from 'react-native';
 
 // 🟢
 export const obtenerLibroMatriz = async (dni_alumno) => {
-    if (!dni_alumno) {
-        throw new Error("dnialumno es requerido");
-    }
-
+ 
     try {
         const respuesta = await fetch(`${api_urlLibroMatriz}/${dni_alumno}`);
         const data = await respuesta.json();
-        
-        if (respuesta.ok) {
-            if (data.grilla && Array.isArray(data.grilla) && data.grilla.length > 0) {
-                return data;
-            } else {
-                throw new Error("No se encontraron datos del alumno");
-            }
-        } else {
-            throw new Error(data.error);
-        }
+        return data
+         
     } catch (error) {
         console.log("Error en obtenerLibroMatriz:", error);
         throw new Error("Error al traer el alumno y sus datos: " + error.message);
