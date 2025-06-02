@@ -108,7 +108,6 @@ export default function GestionarAmonestaciones() {
                 const profesionalData = await obtenerProfesionales();
                 setCursos(cursosData);
                 setProfesionales(profesionalData)
-                //setSolicitante(solicitanteData);
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
@@ -350,14 +349,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#fafafa',
         fontSize: 16,
     },
-    lista: {
-        width: '100%',
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-    },
     botonesContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -443,4 +434,26 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    filtrosContainer: {
+        marginBottom: 5,
+        gap: 10,
+    },
+    pickerContainer: {
+        marginBottom: 5,
+        borderRadius: 5,
+        padding: 5,
+    },
+    pickerLabel: {
+        fontWeight: 'bold',
+        marginBottom: 2,
+        color: '#333',
+    },
+    picker: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: '#fafafa',
+        borderRadius: 8,
+        height: 40,
+    },
 });
+

@@ -1,9 +1,9 @@
-const api_urlLibroAula = 'http://localhost:5000/profesor/libroAula/alta'
-
+const api_urlLibroAulaAlta = 'http://localhost:5000/profesor/libroAula/alta'
+const api_urlLibroAula = 'http://localhost:5000/profesor/libroAula'
 // 🟢
 export const registrarLibroAula = async (formData) => {
     try{
-        const respuesta = await fetch(api_urlLibroAula,{
+        const respuesta = await fetch(api_urlLibroAulaAlta,{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -22,5 +22,23 @@ export const registrarLibroAula = async (formData) => {
     }catch(error){
         console.log('Error en la petición de registrarLibroAula:', error);
         throw error;
+    }
+}
+
+export const obtenerLibroAula = async (dni_profesional, id_curso, id_materia) => {
+    try{
+        const respuesta = await fetch(`${api_urlLibroAula}/${dni_profesional}/${id_curso}/${id_materia}`)
+        if (!respuesta.ok) {
+            throw new Error(`Error en la API: ${respuesta.status} ${respuesta.statusText}`);
+        }
+        const data = await respuesta.json();
+        if (data.length === 0) {
+            throw new Error('No se encontro el libro de aula');
+        }
+        console.log('Libro de aula traídos exitosamente');
+        return data; 
+    }catch(error){
+        console.error('Error al obtener los profesores:', error);
+        throw error; 
     }
 }

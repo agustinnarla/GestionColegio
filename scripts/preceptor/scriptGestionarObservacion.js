@@ -1,7 +1,7 @@
 import { Alert, Platform } from 'react-native';
 
 //Rutas que utilizamos
-const api_urlObservacion = 'http://localhost:5000/alumno/observacion';
+const api_urlObservacion = 'http://localhost:5000/alumno/observacion/alta';
 
 //Registramos la observación
 export const registrarObservacion = async (formData) => {
@@ -29,7 +29,7 @@ export const registrarObservacion = async (formData) => {
 
 
 //Funcion para imprimir el archivo 
-export const imprimirArchivo = async (formData, alumno, solicitante) => {
+export const imprimirArchivo = async (formData, alumno, profesional) => {
     try {
         //Obtenemos la fecha del equipo local
         const fecha = new Date().toLocaleDateString();
@@ -54,7 +54,7 @@ export const imprimirArchivo = async (formData, alumno, solicitante) => {
                         <p><strong>Alumno:</strong> ${alumno.nombrecompleto}</p>
                         <p><strong>DNI:</strong> ${formData.dni_alumno}</p>
                         <p><strong>Fecha de la observación:</strong> ${formData.fecha}</p>
-                        <p><strong>Solicitado por:</strong> ${solicitante.nombre_apellido}</p>
+                        <p><strong>Solicitado por:</strong> ${profesional.nombre_apellido}</p>
                         <p><strong>Motivo:</strong>${formData.motivo}</p>
                     </div>
                     <div class="footer">

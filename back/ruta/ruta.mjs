@@ -36,7 +36,7 @@ import { enviarNuevaContrasena, ingresarUsuario} from '../metodos/metodosLogin.m
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario, restablecerContrasena } from '../metodos/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
-import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../metodos/metodosAsignarHoras.mjs'
@@ -192,6 +192,7 @@ ruta.get('/alumno/avisos/curso/:id_curso', obtenerAvisosCurso) // 🟢
 
 // == LIBRO AULA
 ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 
+ruta.get('/profesor/libroAula/:dni_profesional/:id_curso/:id_materia', obtenerLibroAula)
 
 // == ASIGNAR EVALUACION 
 ruta.post('/profesor/asignar_evaluacion/alta', registrarEvaluacion) // 🟢 

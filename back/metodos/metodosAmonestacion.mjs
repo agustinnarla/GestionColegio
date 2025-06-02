@@ -102,7 +102,7 @@ export const obtenerCantidadAmonestaciones = async (req, res) => {
 export const obtenerProfesionales = async (req,res) => {
     try{
         const respuesta = await pool.query("SELECT DISTINCT CONCAT(nombre, ' ', apellido) AS nombre_apellido, dni_profesional FROM profesional WHERE id_estado_general = 1")
-        res.status(200).json({profesionale: respuesta.rows})
+        res.status(200).json({profesionales: respuesta.rows})
     }catch(erro){
         console.log(erro)
     }

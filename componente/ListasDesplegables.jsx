@@ -3,7 +3,7 @@ import PickerField from './PickerField';
 
 export function CursoSelector({ formData, handleChange, curso, styles }) {
     const selectorConfig = {
-        label: 'Curso',
+        label: 'Seleccione un Curso',
         selectedValue: formData.id_curso,
         onValueChange: (value) => handleChange('id_curso', value),
         items: [
@@ -21,7 +21,7 @@ export function CursoSelector({ formData, handleChange, curso, styles }) {
 
 export function SexoSelector({ formData, handleChange, sexo, styles }) {
     const selectorConfig = {
-        label: 'Sexo',
+        label: 'Seleccione un Sexo',
         selectedValue: formData.id_sexo,
         onValueChange: (value) => handleChange('id_sexo', value),
         items: [
@@ -39,7 +39,7 @@ export function SexoSelector({ formData, handleChange, sexo, styles }) {
 
 export function MateriaPorProfesor({ formData, handleChange, materia, styles }) {
     const selectorConfig = {
-        label: 'Materia',
+        label: 'Seleccione una Materia',
         selectedValue: formData.id_materia,
         onValueChange: (value) => handleChange('id_materia', value),
         items: [
@@ -75,7 +75,7 @@ export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) 
 
 export function MateriaSelector({ formData, handleChange, materias, styles }) {
     const selectorConfig = {
-        label: 'Materias',
+        label: 'Seleccione una Materia',
         selectedValue: formData.id_materia,
         onValueChange: (value) => handleChange('id_materia', value),
         items: [
@@ -93,7 +93,7 @@ export function MateriaSelector({ formData, handleChange, materias, styles }) {
 
 export function AlumnoSelector({ formData, handleChange, alumnos, styles }) {
     const selectorConfig = {
-        label: 'Alumnos',
+        label: 'Seleccione un Alumno',
         selectedValue: formData.dni_alumno,
         onValueChange: (value) => handleChange('dni_alumno', value),
         items: [
@@ -102,6 +102,23 @@ export function AlumnoSelector({ formData, handleChange, alumnos, styles }) {
                 label: item.nombrecompleto,
                 value: item.dni_alumno,
                 key: item.dni_alumno
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+export function ProfesionalSelector({ formData, handleChange, profesionales, styles }) {
+    const selectorConfig = {
+        label: 'Seleccione un Profesional',
+        selectedValue: formData.dni_profesional,
+        onValueChange: (value) => handleChange('dni_profesional', value),
+        items: [
+            { label: 'Seleccione profesional', value: '' },
+            ...(profesionales || []).map(item => ({
+                label: item.nombre_apellido,
+                value: item.dni_profesional,
+                key: item.dni_profesional
             }))
         ]
     };
@@ -195,7 +212,7 @@ export function CaracteristicaSelector({ formData, handleChange, caracteristica_
 
 export function TipoDeEvaluacionSelector({ formData, handleChange, tipo_de_evaluacion, styles }) {
     const selectorConfig = {
-        label: 'Tipo de evaluación',
+        label: 'Seleccion un Tipo de evaluación',
         selectedValue: formData.id_tipo_de_evaluacion,
         onValueChange: (value) => handleChange('id_tipo_de_evaluacion', value),
         items: [
@@ -246,7 +263,8 @@ function ListasDesplegables({
     tipo_de_evaluacion,
     sexo,
     estado_general,
-    localidad
+    localidad,
+    profesionales
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -351,6 +369,14 @@ function ListasDesplegables({
                     formData={formData}
                     handleChange={handleChange}
                     localidad={localidad}
+                    styles={styles}
+                />
+            )}
+            {profesionales && (
+                <ProfesionalSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    profesionales={profesionales}
                     styles={styles}
                 />
             )}

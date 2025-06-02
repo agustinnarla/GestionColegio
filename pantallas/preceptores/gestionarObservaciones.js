@@ -1,9 +1,9 @@
 
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
-import { obtenerCurso, obtenerAlumnoCurso } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -12,7 +12,7 @@ export default function GestionarObservaciones() {
     // Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
-        id_solicitante: '',
+        dni_profesional: '',
         fecha: '',
         motivo: '',
         id_curso: ''
@@ -34,7 +34,7 @@ export default function GestionarObservaciones() {
 
     // Listas desplegables
     const [cursos, setCursos] = useState([]);
-    const [solicitantes, setSolicitante] = useState([]);
+    const [profesional, setProfesional] = useState([]);
     const [alumnos, setAlumnos] = useState([]);
 
     // Validamos que los datos tengan contenido
@@ -43,7 +43,7 @@ export default function GestionarObservaciones() {
     
         return (
             formData.dni_alumno &&
-            formData.id_solicitante &&
+            formData.dni_profesional &&
             formData.fecha.length >= 10 &&
             formData.motivo.length >= 3 &&
             formData.id_curso &&
@@ -55,7 +55,7 @@ export default function GestionarObservaciones() {
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
-            id_solicitante: '',
+            dni_profesional: '',
             fecha: '',
             motivo: '',
             id_curso: ''
@@ -77,7 +77,7 @@ export default function GestionarObservaciones() {
     
             const alumnoData = {
                 dni_alumno: parseInt(formData.dni_alumno),
-                id_solicitante: parseInt(formData.id_solicitante),
+                dni_profesional: parseInt(formData.dni_profesional),
                 fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
             };
@@ -99,9 +99,9 @@ export default function GestionarObservaciones() {
     const handleImprimir = async () => {
         try {
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
-            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
+            const profesionalSeleccionado = profesional.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
 
-            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
+            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
             mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
             
             if (Platform.OS === 'web') {
@@ -163,9 +163,9 @@ export default function GestionarObservaciones() {
         const cargarDatos = async () => {
             try {
                 const cursosData = await obtenerCurso();
-                //const solicitanteData = await obtenerSolicitante();
+                const profesionalData = await obtenerProfesionales();
                 setCursos(cursosData);
-                //setSolicitante(solicitanteData);
+                setProfesional(profesionalData);
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
@@ -201,7 +201,7 @@ export default function GestionarObservaciones() {
                 handleChange={handleChange} 
                 curso={cursos} 
                 alumnos={alumnos}
-                //solicitantes={solicitantes}
+                profesionales={profesional}
                 styles={styles}
             />
 
@@ -255,6 +255,7 @@ export default function GestionarObservaciones() {
             message={alertMessage}
             />
         </View>
+        
     );
 
     return (
@@ -420,5 +421,30 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+    },
+    filtrosContainer: {
+        marginBottom: 10,
+        gap: 10,
+    },
+    pickerContainer: {
+        marginBottom: 5,
+        borderRadius: 5,
+        padding: 5,
+    },
+    pickerLabel: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#333',
+    },
+    picker: {
+        width: '100%',
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        marginBottom: 20,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
     },
 });
