@@ -180,23 +180,28 @@ export default function CargarNotas() {
 
             {/* Filtros y acciones */}
             <View style={styles.contenedorSuperior}>
-                <View style={styles.filtrosContainer}>
-                    <ListasDesplegables 
-                        formData={formData}
-                        handleChange={handleChange}
-                        curso={curso}
-                        materias={materias}
-                        styles={styles}
-                    />
-                    <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos}>
-                        <Text style={styles.textoBoton}>Consultar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
-                        <Text style={styles.textoBoton}>Reiniciar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonConsultar}>
-                        <Text style={styles.textoBoton}>📄</Text>
-                    </TouchableOpacity>
+                <View style={styles.filtrosRow}>
+                    <View style={styles.filtrosContainer}>
+                        <ListasDesplegables 
+                            formData={formData}
+                            handleChange={handleChange}
+                            curso={curso}
+                            showLabel={false}
+                            materias={materias}
+                            styles={{ ...styles, input: styles.inputDesplegable }}
+                        />
+                    </View>
+                    <View style={styles.botonesContainer}>
+                        <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos}>
+                            <Text style={styles.textoBoton}>Consultar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
+                            <Text style={styles.textoBoton}>Reiniciar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonConsultar}>
+                            <Text style={styles.textoBoton}>📄</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
 
@@ -276,20 +281,13 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
-    },
-    filtrosContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-    },
-    picker: {
-        flex: 1,
-        marginHorizontal: 10,
+        margin: 20
+        
     },
     botonesContainer: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 15,
+        alignItems: 'center',
+        gap: 10,
     },
     botonConsultar: {
         backgroundColor: '#CED9EF',
@@ -320,55 +318,62 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     grillaContainer: {
-        flex: 1,
-        backgroundColor: 'white',
-        margin: 20,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
-        paddingBottom: 10,
-        minHeight: 200,
-    },
+    flex: 1,
+    backgroundColor: 'white',
+    margin: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10, // más redondeado
+    paddingBottom: 10,
+    minHeight: 200,
+    overflow: 'hidden',
+},
     headerRow: {
-        flexDirection: 'row',
-        backgroundColor: '#f0f0f0',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-    },
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+},
     headerCell: {
-        flex: 1,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        minWidth: 50, 
-        paddingHorizontal: 2,
-    },
+    flex: 1,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    minWidth: 50,
+    paddingHorizontal: 2,
+    fontSize: 14,
+},
     row: {
-        flexDirection: 'row',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        alignItems: 'center',
-    },
-    cellNombre: {
-        flex: 2,
-        paddingHorizontal: 5,
-        minWidth: 120,
-        textAlign: 'center',
-    },
+    flexDirection: 'row',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+},
+   cellNombre: {
+    flex: 2,
+    paddingHorizontal: 5,
+    minWidth: 120,
+    textAlign: 'center',
+    fontSize: 14,
+    alignSelf: 'center', // agrega esto si ves que no está centrado
+},
     inputNota: {
-        flex: 1,
-        height: 36,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
-        textAlign: 'center',
-        marginHorizontal: 2,
-        backgroundColor: 'white',
-        minWidth: 50, // igual que headerCell
-        fontSize: 15,
-        padding: 0,
-    },
+    flex: 1,
+    height: 32,
+    borderWidth: 1,
+    borderColor: '#bbb',
+    borderRadius: 5,
+    textAlign: 'center',
+    marginHorizontal: 1,
+    backgroundColor: 'white',
+    minWidth: 32, // antes 40
+    fontSize: 14,
+    padding: 0,
+},
     scrollView: {
         flex: 1,
         width: '100%',
@@ -376,4 +381,30 @@ const styles = StyleSheet.create({
     scrollViewContent: {
         flexGrow: 1,
     },
+    filtrosRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 20,
+    },
+    inputDesplegable: {
+    flex: 1,
+    minWidth: 150,
+    maxWidth: 220,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#bbb',
+    borderRadius: 5,
+    backgroundColor: '#fafafa',
+    marginRight: 10,
+    paddingHorizontal: 8,
+},
+filtrosContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+    minWidth: 350,
+    maxWidth: 500,
+},
 });

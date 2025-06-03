@@ -1,9 +1,10 @@
 import { View } from 'react-native';
 import PickerField from './PickerField';
 
-export function CursoSelector({ formData, handleChange, curso, styles }) {
+export function CursoSelector({ formData, handleChange, curso, styles, showLabel = true }) {
     const selectorConfig = {
-        label: 'Seleccione un Curso',
+        // Solo incluye el label si showLabel es true
+        ...(showLabel && { label: 'Seleccione un Curso:' }),
         selectedValue: formData.id_curso,
         onValueChange: (value) => handleChange('id_curso', value),
         items: [
@@ -25,7 +26,7 @@ export function SexoSelector({ formData, handleChange, sexo, styles }) {
         selectedValue: formData.id_sexo,
         onValueChange: (value) => handleChange('id_sexo', value),
         items: [
-            { label: 'Seleccione sexo', value: '' },
+            { label: 'Seleccione sexo:', value: '' },
             ...(sexo || []).map(item => ({
                 label: item.detalle,
                 value: item.id_sexo,
@@ -37,9 +38,9 @@ export function SexoSelector({ formData, handleChange, sexo, styles }) {
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
-export function MateriaPorProfesor({ formData, handleChange, materia, styles }) {
+export function MateriaPorProfesor({ formData, handleChange, materia, styles, showLabel }) {
     const selectorConfig = {
-        label: 'Seleccione una Materia',
+        ...(showLabel && { label: 'Seleccione una Materia:' }),
         selectedValue: formData.id_materia,
         onValueChange: (value) => handleChange('id_materia', value),
         items: [
@@ -73,9 +74,9 @@ export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) 
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
-export function MateriaSelector({ formData, handleChange, materias, styles }) {
+export function MateriaSelector({ formData, handleChange, materias, styles, showLabel }) {
     const selectorConfig = {
-        label: 'Seleccione una Materia',
+        ...(showLabel && { label: 'Seleccione una Materia:' }),
         selectedValue: formData.id_materia,
         onValueChange: (value) => handleChange('id_materia', value),
         items: [
@@ -93,7 +94,7 @@ export function MateriaSelector({ formData, handleChange, materias, styles }) {
 
 export function AlumnoSelector({ formData, handleChange, alumnos, styles }) {
     const selectorConfig = {
-        label: 'Seleccione un Alumno',
+        label: 'Seleccione un Alumno:',
         selectedValue: formData.dni_alumno,
         onValueChange: (value) => handleChange('dni_alumno', value),
         items: [
@@ -110,7 +111,7 @@ export function AlumnoSelector({ formData, handleChange, alumnos, styles }) {
 
 export function ProfesionalSelector({ formData, handleChange, profesionales, styles }) {
     const selectorConfig = {
-        label: 'Seleccione un Profesional',
+        label: 'Seleccione un Profesional:',
         selectedValue: formData.dni_profesional,
         onValueChange: (value) => handleChange('dni_profesional', value),
         items: [
@@ -264,7 +265,8 @@ function ListasDesplegables({
     sexo,
     estado_general,
     localidad,
-    profesionales
+    profesionales,
+    showLabel
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -274,6 +276,7 @@ function ListasDesplegables({
                     handleChange={handleChange}
                     curso={curso}
                     styles={styles}
+                    showLabel={showLabel}
                 />
             )}
             {etapaEscolar && (
@@ -290,6 +293,7 @@ function ListasDesplegables({
                     handleChange={handleChange}
                     materias={materias}
                     styles={styles}
+                    showLabel={showLabel}
                 />
             )}
             {materia && (
@@ -298,6 +302,7 @@ function ListasDesplegables({
                     handleChange={handleChange}
                     materias={materia}
                     styles={styles}
+                    showLabel={showLabel}
                 />
             )}
             {alumnos && (

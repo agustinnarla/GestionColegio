@@ -158,7 +158,7 @@ export const obtenerRoles = async () => {
     try {
         const response = await fetch(`${api_urlRoles}`);
         const data = await response.json();
-        return data;
+        return data.roles || [];
     } catch (error) {
         console.error('Error al obtener roles:', error);
         return { roles: [] };

@@ -251,25 +251,5 @@ const styles = StyleSheet.create({
     celda: {
         flex: 1,
         textAlign: 'center',
-    },
-    filtrosContainer: {
-        marginBottom: 10,
-        gap: 10,
-    },
-    pickerContainer: {
-        marginBottom: 5,
-        borderRadius: 5,
-        padding: 5,
-    },
-    pickerLabel: {
-        fontWeight: 'bold',
-        marginBottom: 2,
-        color: '#333',
-    },
-    picker: {
-        borderColor: '#ccc',
-        backgroundColor: '#fff',
-        borderRadius: 5,
-        height: 40,
-    },
+    }
 });

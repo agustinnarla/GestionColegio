@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula';
+import CustomAlert from '../../componente/CustomAlerts.js';
 
 import ListasDesplegables from '../../componente/ListasDesplegables';
 export default function LibroAula({ route }) {
@@ -18,6 +19,17 @@ export default function LibroAula({ route }) {
             tema_abarcado: '',
             dni_profesional: ''
         });
+
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     const [materias, setMaterias] = useState([]);
     const [caracteristica_unidad, setCaracteristica] = useState('');
@@ -103,7 +115,7 @@ export default function LibroAula({ route }) {
                 console.log('Datos del libro de aula', libroAulaData); 
                 
                 const respuesta = await registrarLibroAula(libroAulaData);
-                //mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
                 //console.log('Libro de Aula Registrada:', respuesta);
                 console.log('Respuesta del servidor:', respuesta);
                 // if (respuesta) {
@@ -114,7 +126,7 @@ export default function LibroAula({ route }) {
                 limpiarInterfaz();
             } catch (error) {
                 console.error('Error al registrar el libro de aula:', error.message);
-                //mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+                mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
             }
         };
     
@@ -147,41 +159,44 @@ export default function LibroAula({ route }) {
             <Image source={bg} style={styles.bg} />
             <ScrollView contentContainerStyle={styles.contenidoScroll}>
                 <View style={styles.contenidoLista}>
-                <ListasDesplegables 
-                    formData={formData} 
-                    handleChange={handleChange} 
-                    materias={materias}
-                    styles={styles}
-                />
-                <ListasDesplegables 
-                    formData={formData} 
-                    handleChange={handleChange} 
-                    curso={cursoPorMateria}
-                    caracteristica_unidad={caracteristica_unidad}
-                    styles={styles}
-                />
+                    <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
+                        materias={materias}
+                        styles={styles}
+                    />
+                    <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
+                        curso={cursoPorMateria}
+                        caracteristica_unidad={caracteristica_unidad}
+                        styles={styles}
+                    />
                 </View>
 
                 <Text style={styles.label}>Fecha</Text>
                 <TextInput style={styles.input} 
-                placeholder='--/--/----' 
-                keyboardType="numeric" 
-                 value={formData.fecha}
-                onChangeText={(value) => handleChange('fecha', value)}/>
+                    placeholder='DD-MM-AAAA' 
+                    keyboardType="numeric" 
+                    value={formData.fecha}
+                    onChangeText={(value) => handleChange('fecha', value)}
+                />
 
                 <Text style={styles.label}>Clase N°</Text>
                 <TextInput style={styles.input} 
-                placeholder='0' 
-                keyboardType="numeric"
-                value={formData.numero_clase}
-                onChangeText={(value) => handleChange('numero_clase', value)} />
+                    placeholder='0' 
+                    keyboardType="numeric"
+                    value={formData.numero_clase}
+                    onChangeText={(value) => handleChange('numero_clase', value)} 
+                />
 
                 <Text style={styles.label} >Unidad</Text>
                 <TextInput style={styles.input} 
-                placeholder='1' 
-                keyboardType="numeric"
-                value={formData.unidad} 
-                onChangeText={(value) => handleChange('unidad', value)}/>
+                    placeholder='1' 
+                    keyboardType="numeric"
+                    value={formData.unidad} 
+                    onChangeText={(value) => handleChange('unidad', value)}
+                />
 
                 <Text style={styles.label}>Tema abarcado</Text>
                 <TextInput
@@ -192,16 +207,21 @@ export default function LibroAula({ route }) {
                     multiline={true}
                     numberOfLines={4}
                 />
-
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar}>
-                        <Text style={styles.textoBoton} onPress={handleRegistrar}>Registrar</Text>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
+                        <Text style={styles.textoBoton} >Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar}>
-                        <Text style={styles.textoBoton} onPress={limpiarInterfaz}>Cancelar</Text>
+                    <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
+                        <Text style={styles.textoBoton} >Cancelar</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
         </View>
     );
 }
@@ -209,6 +229,8 @@ export default function LibroAula({ route }) {
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
+        justifyContent: 'center',
+        //alignItems: 'center',
         backgroundColor: 'white',
     },
     bg: {
@@ -221,32 +243,34 @@ const styles = StyleSheet.create({
         zIndex: -1, 
     },
     contenidoScroll: {
+        marginTop: 10,
+        width:'100%',
+        maxWidth: 800, 
+        alignSelf: 'center', 
+        backgroundColor: '#fff',
         padding: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
     },
     label: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 5,
-        color: '#2c3e50',
-    },
-    contenidoLista: {
-        borderWidth: 1,
-        borderColor: '#bdc3c7',
-        borderRadius: 5,
-        marginBottom: 15,
-        overflow: 'hidden',
-    },
-    picker: {
-        height: 50,
-        width: '100%',
+        marginBottom: 10,
+        color: '#333',
     },
     input: {
+        width: '100%',
+        padding: 12,
         borderWidth: 1,
-        borderColor: '#bdc3c7',
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 15,
-        backgroundColor: '#ecf0f1',
+        borderColor: '#ccc',
+        borderRadius: 8,
+        marginBottom: 20,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
     },
     textArea: {
         height: 100,
@@ -262,18 +286,19 @@ const styles = StyleSheet.create({
         borderColor:'#33FF00',
         borderWidth:1,
         paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         borderRadius: 5,
-
+        flex: 1,
+        marginRight: 10,
     },
     botonCancelar: {
         backgroundColor: '#F3B9B9',
         borderColor:'#FF0000',
         borderWidth:1,
         paddingVertical: 15,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         borderRadius: 5,
+        flex: 1,
     },
     textoBoton: {
         color: 'black',

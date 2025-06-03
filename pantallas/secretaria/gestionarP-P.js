@@ -4,12 +4,24 @@ import bg from '../../assets/bg1.jpg';
 import { obtenerSexo, obtenerEstadoGeneral, obtenerLocalidad,obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { obtenerProfesional, habilitarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
+import CustomAlert from '../../componente/CustomAlerts.js';
 
 
 export default function GestionarProfesional() {
     const [viveEnDepto, setViveEnDepto] = useState(false); // Estado para la checkbox
     const [piso, setPiso] = useState('');
     const [depto, setDepto] = useState('');
+
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     const[rol, setRol] = useState([])
     const[localidad,setLocalidad] = useState([])
@@ -88,11 +100,11 @@ export default function GestionarProfesional() {
                 console.log(profesionalData)
                 const respuesta = await habilitarProfesional(profesionalData)
                 if(respuesta){
+                    mostrarMensaje('Exito', 'Profesional registrado correctamente')
                     console.log("El profesional fue habilitado correctamente")
                 }
-
             }catch(error){
-                
+                mostrarMensaje('Error', 'Error al registrar el profesional')
                 console.log(error.message)
             }
         }
@@ -122,6 +134,7 @@ export default function GestionarProfesional() {
                     })
                     console.log(profesional)
                 }else{
+                    mostrarMensaje('Error', 'El profesional no existe, verifique el DNI')
                     console.log("El profesional no existe, verifique el DNI")
                 }
             }catch(error){
@@ -155,10 +168,12 @@ export default function GestionarProfesional() {
             try{
                 const respuesta = await deshabilitarProfesional(formData.dni_profesional)
                 if(respuesta){
+                    mostrarMensaje('Exito', 'El profesional se deshabilito correctamente')
                     console.log("El profesional fue deshabilitado correctamente")
                 }
                 limpiarInterfaz()
             }catch(error){
+                mostrarMensaje('Error', 'Error al deshabilitar el profesional')
                 console.log(error)
             }
         }
@@ -186,9 +201,11 @@ export default function GestionarProfesional() {
                 console.log(profesionalData)
                 const respuesta = await modificarProfesional(formData.dni_profesional, profesionalData)
                 if(respuesta){
+                    mostrarMensaje('Exito', 'El profesional se modifico correctamente')
                     console.log("El profesional fue modificado correctamente")
                 }
             } catch (error) {
+                mostrarMensaje('Error', 'Error al modificar el profesional')
                 console.log(error.message)
             }
         }
@@ -241,7 +258,17 @@ export default function GestionarProfesional() {
                             localidad={localidad}
                             styles={styles}
                         />
+                        <Text style={styles.label}>Teléfono Personal:</Text>
+                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
+                        <Text style={styles.label}>Teléfono Alternativo:</Text>
+                        <TextInput style={styles.input} placeholder='Teléfono Alternativo' value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
+                        
+                        
 
+                    </View>
+
+                    {/* Tercera columna */}
+                    <View style={styles.columna}>
                         <Text style={styles.label}>Domicilio:</Text>
                         <TextInput
                             style={styles.input}
@@ -269,30 +296,29 @@ export default function GestionarProfesional() {
                         {/* Inputs adicionales si vive en un departamento */}
                         {formData.edificio && (
                             <>
-                                <Text style={styles.label}>Piso:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder='Piso'
-                                    value={formData.piso}
-                                    onChangeText={(value) => handleChange('piso', value)}
-                                />
-                                <Text style={styles.label}>Departamento:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder='Departamento'
-                                    value={formData.depto}
-                                    onChangeText={(value) => handleChange('depto', value)}
-                                />
+                                <View style={styles.filaPisoDepto}>
+                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                        <Text style={styles.label}>Piso:</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder='Piso'
+                                            value={formData.piso}
+                                            onChangeText={(value) => handleChange('piso', value)}
+                                        />
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 8 }}>
+                                        <Text style={styles.label}>Departamento:</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder='Departamento'
+                                            value={formData.departamento}
+                                            onChangeText={(value) => handleChange('departamento', value)}
+                                        />
+                                    </View>
+                                </View>
                             </>
-                        )}
-                    </View>
-
-                    {/* Tercera columna */}
-                    <View style={styles.columna}>
-                        <Text style={styles.label}>Teléfono Personal:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
-                        <Text style={styles.label}>Teléfono Alternativo:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Alternativo' value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
+                            )}
+                        
                     </View>
                 </View>
             </View>
@@ -303,7 +329,14 @@ export default function GestionarProfesional() {
                 <TouchableOpacity style={styles.botonModificar} onPress={handleModificarProfesional}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
+             <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
         </View>
+        
     );
 }
 
@@ -325,6 +358,15 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 10,
         elevation: 5,
+        borderColor:'#45579B',
+        borderWidth: 0.2,
+    },
+    filaPisoDepto: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 0,
+        marginBottom: 5,
     },
     dniContainer: {
         flexDirection: 'row',
@@ -390,7 +432,7 @@ const styles = StyleSheet.create({
         width: '50%',
     },
     botonAlta:{
-        backgroundColor: '#CFEFCE',
+        backgroundColor: '#a3e4a1',
         borderColor: '#33FF00',
         borderWidth: 1,
         paddingVertical: 15,

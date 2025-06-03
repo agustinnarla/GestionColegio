@@ -2,7 +2,6 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView,
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
-
 import { registrarAmonestacion, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -322,7 +321,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
     },
     contenido: {
-        width: '90%',
+        width: '80%',
         maxWidth: 500,
         backgroundColor: '#fff',
         padding: 20,
@@ -433,27 +432,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    filtrosContainer: {
-        marginBottom: 5,
-        gap: 10,
-    },
-    pickerContainer: {
-        marginBottom: 5,
-        borderRadius: 5,
-        padding: 5,
-    },
-    pickerLabel: {
-        fontWeight: 'bold',
-        marginBottom: 2,
-        color: '#333',
-    },
-    picker: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        backgroundColor: '#fafafa',
-        borderRadius: 8,
-        height: 40,
-    },
+    }
 });
 
