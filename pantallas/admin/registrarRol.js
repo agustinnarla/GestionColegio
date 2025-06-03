@@ -5,7 +5,7 @@ import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
 import { obtenerRolesDeshabilitados, obtenerTareasDeRoles, obtenerTareas, obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { registrarRol, deshabilitarRol, habilitarRol} from '../../scripts/admin/scriptCargarRol';
-import { registrarTareaRol,registrarRolTarea } from '../../scripts/admin/scriptTareasRol';
+import { registrarTareaRol ,registrarRolTarea } from '../../scripts/admin/scriptTareasRol';
 
 export default function RegistrarRol() {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -23,8 +23,8 @@ export default function RegistrarRol() {
             const tareasObtenidas = await obtenerTareas();
             console.log('Tareas obtenidas:', tareasObtenidas);
     
-            if (tareasObtenidas && Array.isArray(tareasObtenidas.roles)) {
-                const tareasFormateadas = tareasObtenidas.roles.map((tarea) => ({
+            if (tareasObtenidas && Array.isArray(tareasObtenidas.tareas)) {
+                const tareasFormateadas = tareasObtenidas.tareas.map((tarea) => ({
                     id: tarea.id_tarea?.toString(),
                     name: tarea.detalle,
                 }));
@@ -137,7 +137,7 @@ export default function RegistrarRol() {
     };
 
     //REGISTRA ROL TAREA
-    const cargarRolTarea = async () => {
+    const cargarTareaRol = async () => {
         if (selectedItems.length > 0 && selectedRol) {
             console.log("Tareas seleccionadas:", selectedItems);
             console.log("Rol seleccionado:", selectedRol);
@@ -150,7 +150,7 @@ export default function RegistrarRol() {
                 }));
     
                 // Llamar a registrarRolTarea con el arreglo de relaciones
-                const result = await registrarRolTarea(relaciones);
+                const result = await registrarTareaRol(relaciones);
     
                 // Verificar el mensaje de la respuesta
                 if (result && result.mensaje) {
@@ -245,7 +245,6 @@ export default function RegistrarRol() {
     //Habilitar Rol, confirmacion
     const handleConfirmarRoles = async () => {
         console.log('Roles actualizados:', rolesDeshabilitados);
-    
         try {
             const result = await Promise.all(
                 rolesDeshabilitados.map(rol => {
@@ -334,7 +333,7 @@ export default function RegistrarRol() {
             />
 
             <View style={styles.contenidoBoton}>
-                <TouchableOpacity style={styles.botonRegistrar}onPress={cargarRolTarea}>
+                <TouchableOpacity style={styles.botonRegistrar}onPress={cargarTareaRol}>
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 

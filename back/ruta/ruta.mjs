@@ -30,7 +30,7 @@ import { obtenerLibroMatriz } from '../metodos/metodosLibroMatriz.mjs'
 import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorPorMateria, deshabilitarMateriaProfesor, deshabilitarMateria, agregarMateria, obtenerMateriasDeshabilitadas, habilitarMateria} from '../metodos/metodosGestionMateria.mjs'
 import {registrarRol, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol} from '../metodos/metodosRoles.mjs'
 import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../metodos/metodosCargarTarea.mjs'
-import { obtenerTareas,obtenerRoles, obtenerTareasDeRoles, registrarTareaRol, deshabilitarRolTarea, deshabilitarTareaRol, obtenerRolesDeTarea} from '../metodos/metodosTareasRoles.mjs'
+import { obtenerTareas,obtenerRoles, obtenerTareasDeRoles, registrarTareaRol, registrarRolTarea, deshabilitarRolTarea, deshabilitarTareaRol, obtenerRolesDeTarea} from '../metodos/metodosTareasRoles.mjs'
 import { registrarUsuario, consultarUsuario, modificarUsuario, deshabilitarUsuario} from '../metodos/metodosRegistrarUsuario.mjs'
 import { enviarNuevaContrasena, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
@@ -43,6 +43,7 @@ import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerM
 import { obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/metodosAsistenciaProfesores.mjs'
 import { registrarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/metodosGestionProfesionales.mjs'
 import { obtenerEstadosFaltaProfesionales, obtenerFaltasProfesionales, registrarJustificacionProfesionales} from '../metodos/metodosJustificarFaltaProfesionales.mjs'
+import { registrarCurso} from '../metodos/metodosCurso.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -68,8 +69,8 @@ ruta.get('/listaDesplegable/roles/deshabilitados', obtenerRolesDeshabilitados) /
 ruta.get('/listaDesplegable/rol/tarea/:id_rol', obtenerTareasDeRoles) // 🟢
 ruta.get('/listaDesplegable/tareas', obtenerTareas) // 🟢
 ruta.get('/listaDesplegable/tareas/deshabilitadas', obtenerTareasDeshabilitadas) // 🟢
-ruta.get('/listaDesplegable/tarea/rol/:id_rol', obtenerTareasDeRoles) // 🟢
-ruta.get('/listaDesplegable/rol/tarea/:id_tarea', obtenerRolesDeTarea) // 🟢
+ruta.get('/listaDesplegable/tarea/rol/:id_tarea', obtenerRolesDeTarea) // 🟢
+ruta.get('/listaDesplegable/rol/tarea/:id_rol', obtenerTareasDeRoles) // 🟢
 ruta.get('/listaDesplegable/especialidad', obtenerEspecialidad) // 🟢
 ruta.get('/listaDesplegable/materia/profesor/:dni_profesional', obtenerMateriaPorProfesor) // 🟢
 ruta.get('/listaDesplegable/caracteristicas', obtenerCaracteristicasUnidad) // 🟢
@@ -177,6 +178,7 @@ ruta.post('/rol/alta', registrarRol) // 🟢
 ruta.put('/rol/deshabilitar/:id_rol', deshabilitarRol) // 🟢
 ruta.put('/rol/habilitar/:id_rol', habilitarRol) // 🟢
 ruta.post('/rol/tarea/deshabilitar', deshabilitarRolTarea) // 🟢
+ruta.post('/rol/tarea/alta', registrarRolTarea) // 🟢
 
 // == TAREAS
 ruta.post('/tarea/rol/alta', registrarTareaRol) // 🟢
@@ -184,6 +186,7 @@ ruta.post('/tarea/rol/deshabilitar', deshabilitarTareaRol) // 🟢
 ruta.post('/tarea/alta', agregarTarea) 
 ruta.put('/tarea/deshabilitar/:id_tarea', deshabilitarTarea) // 🟢 
 ruta.put('/tarea/habilitar/:id_tarea', habilitarTarea) // 🟢 
+
 
 // == AVISOS
 ruta.post('/secretaria/aviso/alta', crearAviso) // 🟢
@@ -222,3 +225,4 @@ ruta.post('/justificar/profesional/alta', registrarJustificacionProfesionales); 
 
 // == CURSO
 ruta.post('/curso/materia/alta', registrarCursoPorMateria)  // 🟢 
+ruta.post('/curso/alta', registrarCurso) // 🟢

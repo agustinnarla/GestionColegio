@@ -15,7 +15,7 @@ const api_urlTareasDeRoles = 'http://localhost:5000/listaDesplegable/rol/tarea';
 const api_urlTareas = 'http://localhost:5000/listaDesplegable/tareas';
 const api_urlTareasDeshabilitadas = 'http://localhost:5000/listaDesplegable/tareas/deshabilitadas';
 const api_urlTareaRol = 'http://localhost:5000/listaDesplegable/tarea/rol';
-const api_urlRolesDeTarea = 'http://localhost:5000/listaDesplegable/rol/tarea';
+const api_urlRolesDeTarea = 'http://localhost:5000/listaDesplegable/tarea/rol';
 const api_urlEspecialidad = 'http://localhost:5000/listaDesplegable/especialidad';
 const api_urlMateriaPorDni = 'http://localhost:5000/listaDesplegable/alumno/materia';
 const api_urlMateriaPorProfesor = 'http://localhost:5000/listaDesplegable/materia/profesor';
@@ -31,6 +31,7 @@ const api_urlMateriaPorCurso = 'http://localhost:5000/listaDesplegable/materia/c
 const api_urlProfesionalesAsistencia = 'http://localhost:5000/listaDesplegable/profesionales/asistencia';
 const api_urlEstadosFaltaProfesionales = 'http://localhost:5000/listaDesplegable/justificar/profesional/estadoFalta';
 const api_urlAlumnoCurso = 'http://localhost:5000/listaDesplegable/alumnos/curso'
+const api_urlAsistencia = 'http://localhost:5000/alumno/justificarFalta/estado_falta'
 const api_urlProfesionales = 'http://localhost:5000/listaDesplegable/profesionales'
 
 export const obtenerSexo = async () => {
@@ -393,6 +394,25 @@ export const obtenerAlumnoCurso = async (id_curso) => {
     } catch (error) {
         console.error('Error al obtener alumnos:', error);
         return { sexo: [] };
+    }
+};
+
+export const obtenerEstadoFalta = async () => {
+    try {
+        const url = `${api_urlAsistencia}`
+
+        const respuesta = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await respuesta.json();
+        console.log('Respuesta de la API:', data); // Verifica la respuesta de la API
+        return data;  // Devuelve la respuesta completa
+    } catch (error) {
+        console.error("Error al obtener el estado de falta:", error.message);
+        throw new Error("Error al obtener el estado de falta");
     }
 };
 

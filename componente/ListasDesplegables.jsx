@@ -245,8 +245,37 @@ export function ProfesorSelector({ formData, handleChange, profesores, styles })
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function CertificadoSelector({ formData, handleChange, certificado, styles }) {
+    const selectorConfig = {
+        selectedValue: formData.id_certificado,
+        onValueChange: (value) => handleChange('id_certificado', value),
+        items: [
+            { label: 'Seleccione un certificado', value: '' },
+            ...(certificado || []).map(item => ({
+                label: item.detalle,
+                value: item.id_certificado,
+                key: item.id_certificado
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
 
-
+export function EstadoFaltaAlumnosSelector({ formData, handleChange, estadoFalta, styles }) {
+    const selectorConfig = {
+        selectedValue: formData.id_estado_falta,
+        onValueChange: (value) => handleChange('id_estado_falta', value),
+        items: [
+            { label: 'Seleccione un estado de falta', value: '' },
+            ...(estadoFalta || []).map(item => ({
+                label: item.detalle, // Muestra el detalle del estado de falta
+                value: item.id_estado_falta_alumno, // Usa el ID como valor
+                key: item.id_estado_falta_alumno // Clave única para el selector
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
 // Componente principal que combina todos los selectores
 function ListasDesplegables({
     formData,
@@ -265,6 +294,8 @@ function ListasDesplegables({
     sexo,
     estado_general,
     localidad,
+    certificado,
+    estado_falta_alumnos,
     profesionales,
     showLabel
 }) {
@@ -376,6 +407,21 @@ function ListasDesplegables({
                     localidad={localidad}
                     styles={styles}
                 />
+            )}
+            {certificado && (
+                <CertificadoSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    certificado={certificado}
+                    styles={styles}
+                />
+            )}
+            {estado_falta_alumnos && (
+                <EstadoFaltaAlumnosSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    estado_falta_alumnos={estado_falta_alumnos}
+                    />
             )}
             {profesionales && (
                 <ProfesionalSelector

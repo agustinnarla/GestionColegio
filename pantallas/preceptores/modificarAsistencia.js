@@ -13,9 +13,9 @@ export default function ModificarAsistencia() {
     const navegacion = useNavigation();
     const route = useRoute(); // Hook para acceder a los parámetros de la ruta
 
-    const { idcurso } = route.params; // Aquí recuperamos el idcurso
+    const { id_curso } = route.params; // Aquí recuperamos el idcurso
 
-    console.log('Curso seleccionado:', idcurso); // Verifica si el idcurso se está pasando correctamente
+    console.log('Curso seleccionado:', id_curso); // Verifica si el idcurso se está pasando correctamente
 
     // Estado y lógica para mostrar a los estudiantes
     const [students, setStudents] = useState([]);
@@ -44,17 +44,16 @@ export default function ModificarAsistencia() {
             const fechaActual = obtenerFechaActual();
             try {
                 // Obtener los alumnos ausentes desde la API
-                const respuesta = await obtenerAlumnosAusentes(idcurso, fechaActual);
+                const respuesta = await obtenerAlumnosAusentes(id_curso, fechaActual);
                 console.log('Respuesta del servidor:', respuesta); // Verifica si la respuesta es la esperada
         
                 // Verifica que la propiedad 'alumnos' existe y no está vacía
                 if (respuesta && Array.isArray(respuesta.alumnos) && respuesta.alumnos.length > 0) {
                     const alumnosAusentes = respuesta.alumnos;
-        
                     // Mapeamos los datos de los alumnos para establecer el estado de los switches
                     const estudiantesActualizados = alumnosAusentes.map((alumno) => {
-                        const estado = alumno.idestado === 2 ? false : true; // Si idestado es 2, el switch estará apagado
-                        return { id: alumno.dnialumno, nombre: alumno.nombreapellido, presente: estado };
+                        const estado = alumno.id_estado_asistencia === 2 ? false : true; // Si idestado es 2, el switch estará apagado
+                        return { id: alumno.dni_alumno, nombre: alumno.nombreapellido, presente: estado };
                     });
         
                     // Actualizamos el estado con los alumnos ausentes
@@ -67,7 +66,7 @@ export default function ModificarAsistencia() {
             }
         };
         cargarAlumnosAusentes(); // Llamar a la función al cargar el componente
-    }, [idcurso]); // Dependencia de idcurso para cargar los datos cada vez que cambie el curso
+    }, [id_curso]); // Dependencia de idcurso para cargar los datos cada vez que cambie el curso
     
     const handleRegistrar = async () => {
         try {
@@ -75,17 +74,16 @@ export default function ModificarAsistencia() {
             for (const estudiante of students) {
                 // Usar el ID directamente del objeto estudiante
                 const alumnosData = await obtenerAlumnoFiltrado(estudiante.id);
-    
                 // Verificar si alumnosData contiene la información del alumno
                 if (alumnosData) {
                     // Determinar el estado del estudiante basado en el switch
-                    const idestado = estudiante.presente ? 3 : 2; // Si el switch está marcado, idestado es 3; si está desmarcado, idestado es 2
+                    const id_estado_asistencia = estudiante.presente ? 3 : 2; // Si el switch está marcado, idestado es 3; si está desmarcado, idestado es 2
     
                     const asistenciaData = {
-                        dnialumno: parseInt(estudiante.id, 10), // Usamos el ID directamente
+                        dni_alumno: parseInt(estudiante.id, 10), // Usamos el ID directamente
                         fecha: obtenerFechaActual(), // Se asigna la fecha actual
-                        idcurso: idcurso,  // Asegurarse de que es un número
-                        idestado: idestado,  // Asignar el valor calculado para idestado
+                        id_curso: id_curso,  // Asegurarse de que es un número
+                        id_estado_asistencia: id_estado_asistencia,  // Asignar el valor calculado para idestado
                     };
     
                     console.log("Datos que se van a enviar al backend:", asistenciaData); // Verifica los datos antes de enviarlos
@@ -103,19 +101,18 @@ export default function ModificarAsistencia() {
             console.error('Error al registrar la asistencia:', error.message);
         }
     };
-
     const confirmarRegistro = async () => {
         setModalVisible(false); // Cerrar el modal
         try {
             for (const estudiante of students) {
                 const asistenciaData = {
-                    dnialumno: parseInt(estudiante.id, 10), // Cambié formData.dnialumno por id
+                    dni_alumno: parseInt(estudiante.id, 10),
                     fecha: obtenerFechaActual(),
-                    idcurso: idcurso,
-                    idestado: estudiante.presente ? 3 : 2, // Cambié la lógica para idestado
+                    id_curso: id_curso,
+                    id_estado_asistencia: estudiante.presente ? 3 : 2, // Cambié la lógica para idestado
                 };
                 console.log("Enviando datos al backend:", asistenciaData);
-                const curso = await obtenerCursoFrontend(asistenciaData.idcurso);
+                const curso = await obtenerCursoFrontend(asistenciaData.id_curso);
                 registrarAsistenciaFrontend(asistenciaData);
                 setMensajeConfirmacion(`La asistencia del curso "${curso.curso.detalle}" se registró correctamente.`);
                 setTimeout(() => {
