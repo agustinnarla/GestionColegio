@@ -12,7 +12,7 @@ import { obtenerCurso, obtenerCursoFiltrado, registrarCursoPorMateria } from '..
 import { obtenerEstadoGeneral } from '../metodos/metodosEstadoGeneral.mjs'
 import { obtenerLocalidad } from '../metodos/metodosLocalidad.mjs'
 import { registrarObservacion } from '../metodos/metodosObservacion.mjs'
-import { registrarAmonestacion, obtenerCantidadAmonestaciones } from '../metodos/metodosAmonestacion.mjs'
+import { registrarAmonestacion, obtenerCantidadAmonestaciones, obtenerProfesionales } from '../metodos/metodosAmonestacion.mjs'
 import { 
     modificarAsistencia, registrarAsistencia, validarFechaAsistencia, 
     obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas 
@@ -36,7 +36,7 @@ import { enviarNuevaContrasena, ingresarUsuario} from '../metodos/metodosLogin.m
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario, restablecerContrasena } from '../metodos/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
-import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula } from '../metodos/metodosLibroAula.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor } from '../metodos/metodosAsignarHoras.mjs'
@@ -83,7 +83,7 @@ ruta.get('/listaDesplegable/profesores', obtenerProfesores) // 🟢
 ruta.get('/listaDesplegable/curso/profesor/:dni_profesional', obtenerCursoPorProfesor) // 🟢
 ruta.get('/listaDesplegable/materia/curso/:id_curso', obtenerMateriaPorCurso) // 🟢
 ruta.get('/listaDesplegable/alumnos/curso/:id_curso', obtenerAlumnoCurso) // 🟢
-
+ruta.get('/listaDesplegable/profesionales', obtenerProfesionales) // 🟢 
 ruta.get('/listaDesplegable/profesionales/asistencia', obtenerProfesionalesAsistencia) // 🟢
 ruta.get('/listaDesplegable/justificar/profesional/estadoFalta', obtenerEstadosFaltaProfesionales) // 🟢 
 
@@ -195,9 +195,10 @@ ruta.get('/alumno/avisos/curso/:id_curso', obtenerAvisosCurso) // 🟢
 
 // == LIBRO AULA
 ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 
+ruta.get('/profesor/libroAula/:dni_profesional/:id_curso/:id_materia', obtenerLibroAula)
 
 // == ASIGNAR EVALUACION 
-ruta.post('/profesor/asignar_evaluacion/alta/:dni_profesional', registrarEvaluacion) // 🟢 
+ruta.post('/profesor/asignar_evaluacion/alta', registrarEvaluacion) // 🟢 
 
 // == NOTA FINAL
 ruta.post('/profesor/nota_final/alta', registrarNotaFinal); // 🟢 

@@ -64,3 +64,26 @@ export const registrarLibroAula = async (req,res) => {
         res.status(500).json({error: "Error al registrar el libro de aula"})
     }
 }
+
+export const obtenerLibroAula = async (req, res) => {
+    const { dni_profesional, id_curso, id_materia } = req.params;
+    try {
+        const respuesta = await pool.query(
+            `SELECT 
+                TO_CHAR(l.fecha, 'DD-MM-YYYY') AS fecha, 
+                l.numero_clase, 
+                l.unidad, 
+                cu.detalle AS caracteristica_unidad, 
+                l.tema_abarcado
+            FROM libro_aula AS l
+            INNER JOIN caracteristicas_unidad AS cu ON cu.id_caracteristica_unidad = l.id_caracteristica_unidad
+            WHERE l.dni_profesional = $1 AND l.id_curso = $2 AND l.id_materia = $3
+            ORDER BY l.fecha ASC, l.numero_clase ASC`,
+            [dni_profesional, id_curso, id_materia]
+        );
+        res.status(200).json({ libro_aula: respuesta.rows });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Error al traer el libro de aula" });
+    }
+}

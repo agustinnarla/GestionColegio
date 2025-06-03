@@ -1,5 +1,5 @@
 const api_urlPasarAno = 'http://localhost:5000/alumno/pasarAno'
-const api_urlPasarAnoAlta = 'http://localhots:5000/alumno/pasarAno/alta' 
+const api_urlPasarAnoAlta = 'http://localhost:5000/alumno/pasarAno/alta' 
 
 //🟢
 export const obtenerAlumnoFinal = async(id_curso) => {

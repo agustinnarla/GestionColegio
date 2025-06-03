@@ -5,6 +5,7 @@ import bg from '../../assets/bg1.jpg';
 import { obtenerCursoPorMateria, obtenerMateriaPorProfesor, obtenerTipoDeEvaluacion } from '../../scripts/listasDesplegables/listaDesplegable'
 import { registrarEvaluacion } from '../../scripts/profesor/scriptAsignarEvaluacion';
 import ListasDesplegables from '../../componente/ListasDesplegables';
+import CustomAlert from '../../componente/CustomAlerts.js';
 
 export default function LibroAula({ route }) {
 
@@ -14,8 +15,18 @@ export default function LibroAula({ route }) {
                 id_tipo_de_evaluacion: '',
                 fecha: '',
                 tema_abarcado: '',
-                dni_profesor: ''
+                dni_profesional: ''
             });
+
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     const [materias, setMaterias] = useState([]);
     const [tipo_de_evaluacion, setTipoEvaluacion] = useState('');
@@ -91,7 +102,7 @@ export default function LibroAula({ route }) {
                                     id_tipo_de_evaluacion: formData.id_tipo_de_evaluacion,
                                     fecha: formatearFecha(formData.fecha),
                                     tema_abarcado: formData.tema_abarcado,
-                                    dni_profesor: dni_usuario,
+                                    dni_profesional: dni_usuario,
                                 };
                     
                                 // if (!validarCampos()) {
@@ -102,7 +113,7 @@ export default function LibroAula({ route }) {
                                 console.log('Datos del libro de aula', asignarEvaluacionData); 
                                 
                                 const respuesta = await registrarEvaluacion(asignarEvaluacionData);
-                                //mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                                mostrarMensaje('¡Éxito!', 'Se asigno la evaluación correctamente');
                                 //console.log('Libro de Aula Registrada:', respuesta);
                                 console.log('Respuesta del servidor:', respuesta);
                                 // if (respuesta) {
@@ -112,8 +123,8 @@ export default function LibroAula({ route }) {
                                 // }
                                 limpiarInterfaz();
                             } catch (error) {
-                                console.error('Error al registrar el libro de aula:', error.message);
-                                //mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+                                console.error('Error al asignar la evaluación:', error.message);
+                                mostrarMensaje('Error', 'No se pudo asignar la evaluación');
                             }
                         };
                     
@@ -125,7 +136,7 @@ export default function LibroAula({ route }) {
                                 id_tipo_de_evaluacion: '',
                                 fecha: '',
                                 tema_abarcado: '',
-                                dni_profesor: ''
+                                dni_profesional: ''
                             });
                         };
                 
@@ -144,6 +155,11 @@ export default function LibroAula({ route }) {
                         formData={formData} 
                         handleChange={handleChange} 
                         materias={materias}
+                        styles={styles}
+                    />
+                    <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
                         curso={cursoPorMateria}
                         tipo_de_evaluacion={tipo_de_evaluacion}
                         styles={styles}
@@ -152,8 +168,9 @@ export default function LibroAula({ route }) {
                 <Text style={styles.label}>Fecha:</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder='--/--/----'
+                    placeholder='DD-MM-AAAA'
                     onChangeText={(value) => handleChange('fecha', value)}
+                    value={formData.fecha}
                     keyboardType='numeric'
                 />
                 <Text style={styles.label}>Temas </Text>
@@ -162,6 +179,7 @@ export default function LibroAula({ route }) {
                     placeholder='Ingrese los temas abarcados separados con - o ,'
                     multiline={true}
                     numberOfLines={4}
+                    value={formData.tema_abarcado}
                     onChangeText={(value) => handleChange('tema_abarcado', value)}
                 />
 
@@ -169,11 +187,17 @@ export default function LibroAula({ route }) {
                     <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar}>
+                    <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
                         <Text style={styles.textoBoton}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
         </View>
     );
 }
@@ -181,6 +205,7 @@ export default function LibroAula({ route }) {
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
+        justifyContent: 'center',
         backgroundColor: 'white',
     },
     bg: {
@@ -193,32 +218,34 @@ const styles = StyleSheet.create({
         zIndex: -1, 
     },
     contenidoScroll: {
+        marginTop: 10,
+        width:'100%',
+        maxWidth: 800, 
+        alignSelf: 'center',
+        backgroundColor: '#fff',
         padding: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
     },
     label: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 5,
-        color: '#2c3e50',
-    },
-    contenidoLista: {
-        borderWidth: 1,
-        borderColor: '#bdc3c7',
-        borderRadius: 5,
-        marginBottom: 15,
-        overflow: 'hidden',
-    },
-    picker: {
-        height: 50,
-        width: '100%',
+        marginBottom: 10,
+        color: '#333',
     },
     input: {
         borderWidth: 1,
         borderColor: '#bdc3c7',
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 15,
-        backgroundColor: '#ecf0f1',
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 20,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
+        width: '100%',
     },
     textArea: {
         height: 100,
@@ -236,6 +263,8 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
+        flex: 1,
+        marginRight: 10,
     },
     botonCancelar: {
         backgroundColor: '#F3B9B9',
@@ -244,6 +273,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
+        flex: 1,
     },
     textoBoton: {
         color: 'black',

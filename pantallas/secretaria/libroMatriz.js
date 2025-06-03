@@ -7,7 +7,7 @@ export default function LibroMatriz() {
 
     
     //Formulario
-    const [formData, setFormData] = useState({
+        const [formData, setFormData] = useState({
         dni_alumno: '',
         id_curso: '',
         id_materia: '',
@@ -18,7 +18,12 @@ export default function LibroMatriz() {
     const [datos, setDatos] = useState([]);
     const [cursoActual, setCursoActual] = useState('');
     const [cursosDisponibles, setCursosDisponibles] = useState([]);
-    const [cursoSeleccionado, setCursoSeleccionado] = useState('');
+    const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
+
+    useEffect(() => {
+        console.log('cursosDisponibles actualizado:', cursosDisponibles);
+        console.log('cursoSeleccionado actualizado:', cursoSeleccionado);
+    }, [cursosDisponibles, cursoSeleccionado]);
 
     //Función para consultar un alumno 
     const handleConsultar = async () => {
@@ -37,10 +42,19 @@ export default function LibroMatriz() {
                     promedio: alumno[0].promedio || '',
                 });
 
+                // Array de objetos únicos por id_curso
+                const cursos = [];
+                const ids = new Set();
+                alumno.forEach(item => {
+                    if (!ids.has(item.id_curso)) {
+                        cursos.push({ id_curso: item.id_curso, curso_detalle: String(item.curso_detalle).trim() });
+                        ids.add(item.id_curso);
+                    }
+                });
                 setDatos(alumno);
-                setCursoActual(alumno[0].curso_detalle);
-                setCursosDisponibles([...new Set(alumno.map(item => item.curso_detalle))]);
-                setCursoSeleccionado(alumno[0].curso_detalle);
+                setCursosDisponibles(cursos);
+                setCursoSeleccionado(cursos[0]);
+                setCursoActual(cursos[0]);
             } else {
                 Alert.alert('Error', 'Alumno no encontrado');
             }
@@ -50,14 +64,13 @@ export default function LibroMatriz() {
         }
     };
 
-
     //Función para cambiar de curso
     const cambiarCurso = (direccion) => {
-        const indiceActual = cursosDisponibles.indexOf(cursoSeleccionado);
-        if (direccion === 'anterior' && indiceActual < cursosDisponibles.length - 1) {
-            setCursoSeleccionado(cursosDisponibles[indiceActual + 1]);
-        } else if (direccion === 'siguiente' && indiceActual > 0) {
+        const indiceActual = cursosDisponibles.findIndex(c => c.id_curso === cursoSeleccionado.id_curso);
+        if (direccion === 'anterior' && indiceActual > 0) {
             setCursoSeleccionado(cursosDisponibles[indiceActual - 1]);
+        } else if (direccion === 'siguiente' && indiceActual < cursosDisponibles.length - 1) {
+            setCursoSeleccionado(cursosDisponibles[indiceActual + 1]);
         }
     };
 
@@ -82,14 +95,17 @@ export default function LibroMatriz() {
         );
     };
 
-    const datosFiltrados = datos.filter(item => item.curso_detalle === cursoSeleccionado);
+    // Filtrar datos por id_curso
+    const datosFiltrados = cursoSeleccionado
+        ? datos.filter(item => item.id_curso === cursoSeleccionado.id_curso)
+        : [];
 
     //Función para imprimir el libro matriz
     const handleImprimir = async () => {
         try {
             const cursos = cursosDisponibles.map(curso => ({
-                curso_detalle: curso,
-                datos: datos.filter(item => item.curso_detalle === curso)
+                curso_detalle: curso.curso_detalle,
+                datos: datos.filter(item => item.id_curso === curso.id_curso)
             }));
             await imprimirLibroMatriz(formData, cursos);
             Alert.alert('Éxito', 'Documento listo para imprimir');
@@ -128,7 +144,7 @@ export default function LibroMatriz() {
             </View>
     
             {/* Grilla */}
-            {datos.length > 0 && (
+            {datosFiltrados.length > 0 && (
                 <View style={styles.grilla}>
                     <View style={styles.encabezado}>
                         <Text style={styles.celdaEncabezado}>Espacio Curricular</Text>
@@ -143,26 +159,32 @@ export default function LibroMatriz() {
                     <FlatList
                         data={datosFiltrados}
                         renderItem={renderItem}
-                        keyExtractor={(item) => `${item.dnialumno}-${item.idmateria}`} 
+                        keyExtractor={(item, idx) => `${item.dni_alumno || item.dnialumno || idx}-${item.id_materia || item.idmateria || idx}`}
                     />
                 </View>
             )}
 
             {/* Botones para cambiar de curso */}
-            {cursosDisponibles.length > 0 && (
+            {cursosDisponibles.length > 0 && cursoSeleccionado && (
                 <View style={styles.contenedorBotonesAño}>
                     <TouchableOpacity 
-                        style={[styles.botonAño, cursosDisponibles.indexOf(cursoSeleccionado) === cursosDisponibles.length - 1 && styles.botonDeshabilitado]} 
+                        style={[
+                            styles.botonAño, 
+                            cursosDisponibles.findIndex(c => c.id_curso === cursoSeleccionado.id_curso) === 0 && styles.botonDeshabilitado
+                        ]} 
                         onPress={() => cambiarCurso('anterior')}
-                        disabled={cursosDisponibles.indexOf(cursoSeleccionado) === cursosDisponibles.length - 1}
+                        disabled={cursosDisponibles.findIndex(c => c.id_curso === cursoSeleccionado.id_curso) === 0}
                     >
                         <Text style={styles.textoBotonAño}>{"<"}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.textoAño}>{cursoSeleccionado} Curso</Text>
+                    <Text style={styles.textoAño}>{cursoSeleccionado.curso_detalle} </Text>
                     <TouchableOpacity 
-                        style={[styles.botonAño, cursosDisponibles.indexOf(cursoSeleccionado) === 0 && styles.botonDeshabilitado]} 
+                        style={[
+                            styles.botonAño, 
+                            cursosDisponibles.findIndex(c => c.id_curso === cursoSeleccionado.id_curso) === cursosDisponibles.length - 1 && styles.botonDeshabilitado
+                        ]} 
                         onPress={() => cambiarCurso('siguiente')}
-                        disabled={cursosDisponibles.indexOf(cursoSeleccionado) === 0}
+                        disabled={cursosDisponibles.findIndex(c => c.id_curso === cursoSeleccionado.id_curso) === cursosDisponibles.length - 1}
                     >
                         <Text style={styles.textoBotonAño}>{">"}</Text>
                     </TouchableOpacity>
@@ -171,6 +193,7 @@ export default function LibroMatriz() {
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     padre: {

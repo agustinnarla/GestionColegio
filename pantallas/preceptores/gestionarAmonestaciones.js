@@ -2,7 +2,6 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView,
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
-
 import { registrarAmonestacion, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -11,7 +10,7 @@ export default function GestionarAmonestaciones() {
     // Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
-        id_solicitante: '',
+        dni_profesional: '',
         cantidad: '',
         fecha: '',
         motivo: '',
@@ -20,7 +19,7 @@ export default function GestionarAmonestaciones() {
 
     // Listas desplegables
     const [cursos, setCursos] = useState([]);
-    const [solicitantes, setSolicitante] = useState([]);
+    const [profesionales, setProfesionales] = useState([]);
     const [alumnos, setAlumnos] = useState([]);
     const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
 
@@ -89,7 +88,7 @@ export default function GestionarAmonestaciones() {
     const validarCampos = () => {
         const fechaEsValida = validarFecha(formData.fecha);
         return formData.dni_alumno && 
-            formData.id_solicitante && 
+            formData.dni_profesional && 
             formData.cantidad.length >= 1 && 
             formData.fecha.length >= 10 && 
             formData.motivo.length >= 3 &&
@@ -105,9 +104,9 @@ export default function GestionarAmonestaciones() {
         const cargarDatos = async () => {
             try {
                 const cursosData = await obtenerCurso();
-                //const solicitanteData = await obtenerSolicitante();
+                const profesionalData = await obtenerProfesionales();
                 setCursos(cursosData);
-                //setSolicitante(solicitanteData);
+                setProfesionales(profesionalData)
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
@@ -151,7 +150,7 @@ export default function GestionarAmonestaciones() {
         try {
             const alumnoData = {
                 dni_alumno: parseInt(formData.dni_alumno),
-                id_solicitante: parseInt(formData.id_solicitante),
+                dni_profesional: parseInt(formData.dni_profesional),
                 cantidad: parseInt(formData.cantidad),
                 fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
@@ -179,7 +178,7 @@ export default function GestionarAmonestaciones() {
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
-            id_solicitante: '',
+            dni_profesional: '',
             cantidad: '',
             fecha: '',
             motivo: '',
@@ -193,9 +192,9 @@ export default function GestionarAmonestaciones() {
     const handleImprimir = async () => {
         try {
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
-            const solicitanteSeleccionado = solicitantes.find(s => parseInt(s.id_solicitante) === parseInt(formData.id_solicitante));
+            const profesionalSeleccionado = profesionales.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
 
-            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, solicitanteSeleccionado);
+            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
             mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
             
             if (Platform.OS === 'web') {
@@ -224,7 +223,7 @@ export default function GestionarAmonestaciones() {
                 handleChange={handleChange} 
                 curso={cursos} 
                 alumnos={alumnos}
-                //solicitantes={solicitantes}
+                profesionales={profesionales}
                 styles={styles}
             />
 
@@ -322,7 +321,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
     },
     contenido: {
-        width: '90%',
+        width: '80%',
         maxWidth: 500,
         backgroundColor: '#fff',
         padding: 20,
@@ -348,14 +347,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         backgroundColor: '#fafafa',
         fontSize: 16,
-    },
-    lista: {
-        width: '100%',
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
     },
     botonesContainer: {
         flexDirection: 'row',
@@ -441,5 +432,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    },
+    }
 });
+

@@ -189,18 +189,18 @@ export default function RegistrarUsuario() {
             <Image source={bg} style={styles.bg}></Image>
             <View style={styles.formulario}>
             <Text style={styles.label}>Dni</Text> 
-                <View style={styles.dniContainer}>
-                    <TextInput
-                        style={[styles.input, styles.inputDNI]}
-                        placeholder='DNI'
-                        keyboardType='numeric'
-                        onChangeText={(text) => handleChange('dni_usuario', text)}
-                        value={formData.dni_usuario}
-                    />
-                    <TouchableOpacity style={styles.botonConsultar} onPress={handleConsultar}>
-                        <Text>Consultar</Text>
-                    </TouchableOpacity>
-                </View>
+            <View style={styles.dniContainer}>
+                <TextInput
+                    style={[styles.input, styles.inputDNI]}
+                    placeholder='DNI'
+                    keyboardType='numeric'
+                    onChangeText={(text) => handleChange('dni_usuario', text)}
+                    value={formData.dni_usuario}
+                />
+                <TouchableOpacity style={[styles.botonConsultar, styles.botonBase]} onPress={handleConsultar}>
+                    <Text style={styles.textoBoton}>Consultar</Text>
+                </TouchableOpacity>
+            </View>
                 <Text style={styles.label}>Email</Text>
                 <TextInput
                     style={styles.input}
@@ -228,8 +228,8 @@ export default function RegistrarUsuario() {
                     value={formData.confirmarContrasena}
                 />
 
-                <View style={styles.contenidoRol}>
-                    <View style={styles.contenidoLista}>
+                <View style={styles.rolRow}>
+                    <View style={{ flex: 1 }}>
                         <ListasDesplegables 
                             formData={formData} 
                             handleChange={handleChange} 
@@ -238,7 +238,7 @@ export default function RegistrarUsuario() {
                         />
                     </View>
                     <TouchableOpacity 
-                        style={styles.botonAgregarRol}
+                        style={[styles.botonAgregarRol, styles.botonBase]}
                         onPress={() => navegacion.navigate('Registrar Rol')} 
                     >
                         <Text style={styles.textoBotonAgregarRol}>+</Text>
@@ -249,7 +249,7 @@ export default function RegistrarUsuario() {
                 <TouchableOpacity
                     style={[styles.botonRegistrar, deshabilitarBoton && styles.deshabilitarBoton]}
                     onPress={handleRegistrar}
-                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                    disabled={deshabilitarBoton} 
                 >
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
@@ -257,7 +257,7 @@ export default function RegistrarUsuario() {
                 <TouchableOpacity
                     style={[styles.botonModificar, deshabilitarBoton && styles.deshabilitarBoton]}
                     onPress={handleModificar}
-                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                    disabled={deshabilitarBoton} 
                 >
                     <Text style={styles.textoBoton}>Modificar</Text>
                 </TouchableOpacity>
@@ -265,7 +265,7 @@ export default function RegistrarUsuario() {
                     <TouchableOpacity
                     style={[styles.botonDeshabilitar, deshabilitarBoton && styles.deshabilitarBoton]}
                     onPress={handleDeshabilitar}
-                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                    disabled={deshabilitarBoton} 
                     >
                     <Text style={styles.textoBoton}>Eliminar</Text>
                 </TouchableOpacity>
@@ -273,7 +273,7 @@ export default function RegistrarUsuario() {
                     <TouchableOpacity
                     style={[styles.botonCancelar, deshabilitarBoton && styles.deshabilitarBoton]}
                     onPress={limpiarInterfaz}
-                    disabled={deshabilitarBoton} // Deshabilitar funcionalmente el botón
+                    disabled={deshabilitarBoton} 
                     >
                     <Text style={styles.textoBoton}>Cancelar</Text>
                 </TouchableOpacity>
@@ -306,9 +306,16 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     formulario: {
-        width: '30%',
+        width: '100%',
+        maxWidth: 800, 
         padding: 20,
         borderRadius: 10,
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     dniContainer: {
         flexDirection: 'row',
@@ -329,14 +336,31 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         color: '#2c3e50',
     },
+    botonBase: {
+    height: 48, // igual que los inputs
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    },
+    rolRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+        gap: 10, // si usas React Native Web, si no, usa marginLeft en el botón
+    },
+    botonAgregarRol: {
+        backgroundColor: '#CED9EF',
+        borderColor: '#5245D6',
+        borderWidth: 1,
+        width: 48,
+        marginLeft: 10,
+    },
     botonConsultar: {
         backgroundColor: '#CED9EF',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 25,
-        borderRadius: 5,
-        
+        width: 120,
+        marginLeft: 10,
     },
     input: {
         borderWidth: 1,
@@ -345,26 +369,8 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 15,
         backgroundColor: '#ecf0f1',
-    },
-    contenidoRol: {
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        marginBottom: 15,
-    },
-    contenidoLista: {
-        flex: 1, 
-    },
-    lista: {
-        height: 50,
+        fontSize: 16,
         width: '100%',
-    },
-    botonAgregarRol: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#5245D6',
-        borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
-        marginLeft: 10, 
     },
     textoBotonAgregarRol: {
         fontSize: 20,
@@ -376,6 +382,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 30,
+        gap: 10,
     },
     botonRegistrar: {
         backgroundColor: '#CFEFCE',
@@ -384,6 +391,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
+        flex: 1,
     },
     botonCancelar: {
         backgroundColor: '#f9e0e0',
@@ -392,6 +400,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
+        flex: 1,
     },
     botonDeshabilitar: {
         backgroundColor: '#F3B9B9',
@@ -400,6 +409,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
+        flex: 1,
     },
     botonModificar: {
         backgroundColor: '#CED9EF',
@@ -408,6 +418,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
+        flex: 1,
     },
     textoBoton: {
         color: 'black',

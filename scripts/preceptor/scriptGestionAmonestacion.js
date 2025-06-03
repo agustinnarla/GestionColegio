@@ -1,6 +1,6 @@
 import { Alert, Platform } from 'react-native';
 const api_url = 'http://localhost:5000'
-const api_urlAmonestacion = 'http://localhost:5000/alumno/amonestacion'
+const api_urlAmonestacion = 'http://localhost:5000/alumno/amonestacion/alta'
 const api_urlCantidad = 'http://localhost:5000/alumno/amonestacion/cantidad'
 
 
@@ -28,7 +28,7 @@ export const registrarAmonestacion = async (formData) => {
 }
 
 // 🟢
-export const imprimirArchivo = async (formData, alumno, solicitante) => {
+export const imprimirArchivo = async (formData, alumno, profesional) => {
     try {
         const fecha = new Date().toLocaleDateString();
         
@@ -53,7 +53,7 @@ export const imprimirArchivo = async (formData, alumno, solicitante) => {
                         <p><strong>DNI:</strong> ${formData.dni_alumno}</p>
                         <p><strong>Amonestaciones:</strong> ${formData.cantidad}</p>
                         <p><strong>Fecha de la amonestación:</strong> ${formData.fecha}</p>
-                        <p><strong>Solicitado por:</strong> ${solicitante.nombre_apellido}</p>
+                        <p><strong>Solicitado por:</strong> ${profesional.nombre_apellido}</p>
                         <p><strong>Motivo:</strong>${formData.motivo}</p>
                     </div>
                     <div class="footer">

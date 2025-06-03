@@ -49,18 +49,19 @@ export default function Avisos() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
 
-            <View style={styles.filtro}>
+            <View style={styles.filaFiltros}>
                 <ListasDesplegables
                     formData={formData}
                     handleChange={handleChange}
                     curso={cursos}
                     styles={styles}
+                    showLabel={false}
                 />
                 <TextInput
-                    style={styles.fechaInput}
-                    placeholder="Fecha (YYYY-MM-DD)"
+                    style={styles.filtroInput}
+                    placeholder="Fecha (DD-MM-AAA)"
                     value={fechaFiltro}
-                    onChangeText={(text) => setFechaFiltro(text)} // Actualiza el estado con el texto ingresado
+                    onChangeText={(text) => setFechaFiltro(text)}
                 />
             </View>
 
@@ -86,57 +87,54 @@ export default function Avisos() {
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
+        backgroundColor: 'white',
     },
     bg: {
-        position: 'absolute',
+        position: 'absolute', 
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.1,
-    },
-    titulo: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginTop: 20,
-        marginBottom: 10,
-        textAlign: 'center',
-        color: '#fff',
-        backgroundColor: '#1E88E5',
-        width: '100%',
-        padding: 10,
+        resizeMode: 'cover',
+        zIndex: -1, 
     },
     filtro: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        width: '90%',
+        maxWidth: 900, // más grande
+        width: '100%',
+        alignSelf: 'center',
         marginVertical: 20,
+        gap: 20,
     },
-    lista: {
-        height: 50,
-        width: '45%',
-        backgroundColor: '#f2f2f2',
-        borderRadius: 5,
-        borderColor: '#ccc',
+    input: {
+        height: 48,
         borderWidth: 1,
-        paddingHorizontal: 10,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
+        paddingHorizontal: 12,
+        marginBottom: 0,
+        width: '100%',
     },
     fechaInput: {
-        height: 50,
-        width: '45%',
-        backgroundColor: '#f2f2f2',
-        borderRadius: 5,
-        borderColor: '#ccc',
+        height: 48,
         borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
+        paddingHorizontal: 12,
+        width: 250,
         textAlign: 'center',
-        paddingHorizontal: 10,
     },
     scrollAvisos: {
-        width: '90%',
+        maxWidth: 900,
+        width: '100%',
+        alignSelf: 'center',
     },
     tarjeta: {
         backgroundColor: '#fff',
@@ -166,4 +164,24 @@ const styles = StyleSheet.create({
         marginTop: 10,
         color: '#777',
     },
+    filaFiltros: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    maxWidth: 900,
+    width: '100%',
+    alignSelf: 'center',
+    marginVertical: 20,
+    gap: 20, // o usa marginRight en el primer hijo si tu versión de RN no soporta gap
+    },
+    filtroInput: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    backgroundColor: '#fafafa',
+    fontSize: 16,
+    paddingHorizontal: 12,
+},
 });
