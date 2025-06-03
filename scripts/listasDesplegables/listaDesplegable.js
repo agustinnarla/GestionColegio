@@ -31,11 +31,8 @@ const api_urlMateriaPorCurso = 'http://localhost:5000/listaDesplegable/materia/c
 const api_urlProfesionalesAsistencia = 'http://localhost:5000/listaDesplegable/profesionales/asistencia';
 const api_urlEstadosFaltaProfesionales = 'http://localhost:5000/listaDesplegable/justificar/profesional/estadoFalta';
 const api_urlAlumnoCurso = 'http://localhost:5000/listaDesplegable/alumnos/curso'
-<<<<<<< HEAD
 const api_urlAsistencia = 'http://localhost:5000/alumno/justificarFalta/estado_falta'
-=======
 const api_urlProfesionales = 'http://localhost:5000/listaDesplegable/profesionales'
->>>>>>> daf739b88fe8674ee1c27ab5289b23d756e33396
 
 export const obtenerSexo = async () => {
     try {
@@ -400,7 +397,6 @@ export const obtenerAlumnoCurso = async (id_curso) => {
     }
 };
 
-<<<<<<< HEAD
 export const obtenerEstadoFalta = async () => {
     try {
         const url = `${api_urlAsistencia}`
@@ -420,7 +416,6 @@ export const obtenerEstadoFalta = async () => {
     }
 };
 
-=======
 export const obtenerProfesionales = async () => {
     try {
         const response = await fetch(`${api_urlProfesionales}`);
@@ -431,4 +426,3 @@ export const obtenerProfesionales = async () => {
         return [];
     }
 };
->>>>>>> daf739b88fe8674ee1c27ab5289b23d756e33396
