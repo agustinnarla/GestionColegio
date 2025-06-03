@@ -5,7 +5,7 @@ import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { obtenerRoles, obtenerTareas, obtenerRolesDeTarea, obtenerTareasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { agregarTarea, deshabilitarTarea, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
-import { registrarTareaRol} from '../../scripts/admin/scriptTareasRol';
+import { registrarRolTarea, registrarTareaRol} from '../../scripts/admin/scriptTareasRol';
 import { Picker } from '@react-native-picker/picker';
 
 export default function CargarTareas() {
@@ -22,12 +22,12 @@ export default function CargarTareas() {
     const cargarTareas = async () => {
         try {
             const tareasObtenidas = await obtenerTareas();
-            console.log('Tareas obtenidas:', tareasObtenidas);
+            console.log('Tareas obtenidas 123:', tareasObtenidas);
 
-            if (tareasObtenidas && Array.isArray(tareasObtenidas.roles)) {
-                const tareasFormateadas = tareasObtenidas.roles.map((tarea) => ({
-                    key: tarea.id_tarea?.toString(),
-                    value: tarea.detalle,
+            if (tareasObtenidas && Array.isArray(tareasObtenidas.tareas)) {
+                const tareasFormateadas = tareasObtenidas.tareas.map((tareas) => ({
+                    key: tareas.id_tarea?.toString(),
+                    value: tareas.detalle,
                 }));
                 setTareasDisponibles(tareasFormateadas); // Guardar las tareas disponibles
             } else {
@@ -69,14 +69,13 @@ export default function CargarTareas() {
         }
     };
 
-    //OBTIENE LOS ROLES SEGUN LA TAREA SELECCIONADA
     const cargarRolesTareas = async (id_tarea) => {
         try {
             const data = await obtenerRolesDeTarea(id_tarea); // Obtener los roles asociados a la tarea
     
-            // Verificar si la respuesta es un objeto con la propiedad "tareas" que es un array
+            // Verificar si la respuesta es un objeto con la propiedad "roles" que es un array
             if (data && Array.isArray(data.roles)) {
-                const rolesSeleccionados = data.roles.map((item) => item.id_rol.toString()); // Convertir a strings
+                const rolesSeleccionados = data.roles.map((idRol) => idRol.toString()); // Convertir a strings
                 setSelectedRoles(rolesSeleccionados); // Actualizar los roles seleccionados
             } else {
                 console.error('El formato de roles obtenidos no es válido:', data);
@@ -94,38 +93,41 @@ export default function CargarTareas() {
     };
 
     //ES PARA REGISTRARLO
-    const cargarTareaRol = async () => {
+    const cargarRolTarea = async () => {
         if (selectedRoles.length > 0 && selectedTarea) {
             console.log("Roles seleccionados:", selectedRoles);
             console.log("Tarea seleccionada:", selectedTarea);
     
             try {
-                // Construir el arreglo de relaciones
+                // Construir el arreglo de relaciones (ahora con id_tarea fijo y roles variables)
                 const relaciones = selectedRoles.map(id_rol => ({
                     id_tarea: parseInt(selectedTarea),
                     id_rol: parseInt(id_rol),
                 }));
     
                 // Llamar a registrarTareaRol con el arreglo de relaciones
-                const result = await registrarTareaRol(relaciones);
+                const result = await registrarRolTarea(relaciones);
     
                 // Verificar el mensaje de la respuesta
                 if (result && result.mensaje) {
-                    alert(result.mensaje); // Muestra el mensaje de éxito
+                    console.log(result.mensaje); // Muestra el mensaje de éxito en la consola
+                    alert('Todos los roles se asignaron correctamente a la tarea');
                 } else {
-                    alert('Hubo un error al registrar la relación');
+                    console.error('Hubo un error al registrar las relaciones');
+                    alert('Hubo un error al asignar algunos roles');
                 }
             } catch (error) {
                 console.error('Error al registrar las relaciones:', error);
-                alert('Hubo un error al registrar algunas relaciones');
+                alert('Hubo un error al asignar los roles a la tarea');
             }
     
             // Recargar datos después de registrar
-            cargarRoles();
-            cargarTareas();
-            cargarTareasDeshabilitadas();
+            await cargarTareas();
+            await cargarRoles();
+            await cargarTareasDeshabilitadas();
+            await cargarRolesTareas(selectedTarea); // Recargar los roles específicos de esta tarea
         } else {
-            alert('Selecciona al menos un rol y una tarea');
+            alert('Selecciona una tarea y al menos un rol');
         }
     };
 
@@ -319,7 +321,7 @@ export default function CargarTareas() {
                     Roles seleccionados: {selectedRoles.map(key => rolesDisponibles.find(role => role.key === key)?.value).filter(Boolean).join(', ')}
                 </Text>
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={cargarTareaRol}>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={cargarRolTarea}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.botonEliminar} onPress={eliminarTarea} >

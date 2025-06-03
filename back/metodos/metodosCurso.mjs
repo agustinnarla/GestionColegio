@@ -33,7 +33,6 @@ export const obtenerCursoFiltrado = async (req, res) => {
     }
 };
 
-
 export const registrarCursoPorMateria = async (req, res) => {
     const { detalle, id_materia, id_especialidad } = req.body; 
     try {
@@ -63,5 +62,31 @@ export const registrarCursoPorMateria = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.status(500).json({ error: 'Error al registrar el curso y las materias' });
+    }
+};
+
+export const registrarCurso = async (req, res) => {
+    const { detalle, id_especialidad } = req.body; // Datos enviados en el cuerpo de la solicitud
+
+    try {
+        // Insertar el curso en la tabla curso
+        const cursoRespuesta = await pool.query(
+            "INSERT INTO curso (detalle, id_especialidad) VALUES ($1, $2) RETURNING *",
+            [detalle, id_especialidad]
+        );
+
+        // Obtener el curso registrado
+        const cursoRegistrado = cursoRespuesta.rows[0];
+
+        // Responder con el curso registrado
+        res.status(200).json({
+            message: 'Curso registrado exitosamente',
+            curso: cursoRegistrado,
+        });
+
+        console.log('Curso registrado exitosamente:', cursoRegistrado);
+    } catch (error) {
+        console.error("Error al registrar el curso:", error.message);
+        res.status(500).json({ error: 'Error al registrar el curso' });
     }
 };

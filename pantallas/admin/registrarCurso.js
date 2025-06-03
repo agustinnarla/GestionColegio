@@ -1,5 +1,6 @@
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { Picker } from '@react-native-picker/picker';
 import MultiSelect from 'react-native-multiple-select';
 import bg from '../../assets/bg1.jpg';
 import { obtenerMateria, obtenerEspecialidad } from '../../scripts/listasDesplegables/listaDesplegable.js';
@@ -19,12 +20,36 @@ export default function RegistrarCurso() {
     useEffect(() => {
         const cargarDatos = async () => {
             try {
+                // Cargar materias
                 const materiasData = await obtenerMateria();
+                console.log("Datos obtenidos de la API (Materias):", materiasData);
+    
+                const materiasTransformadas = Array.isArray(materiasData)
+                    ? materiasData.map(materia => ({
+                        id: materia.id_materia, // Cambia `id_materia` a `id`
+                        name: materia.detalle, // Cambia `detalle` a `name`
+                    }))
+                    : [];
+    
+                console.log("Materias transformadas:", materiasTransformadas);
+                setMaterias(materiasTransformadas);
+    
+                // Cargar especialidades
                 const especialidadesData = await obtenerEspecialidad();
-                setMaterias(Array.isArray(materiasData) ? materiasData : []);
-                setEspecialidades(Array.isArray(especialidadesData) ? especialidadesData : []);
+                console.log("Datos obtenidos de la API (Especialidades):", especialidadesData);
+    
+                const especialidadesTransformadas = Array.isArray(especialidadesData.especialidad)
+                    ? especialidadesData.especialidad.map(especialidad => ({
+                        id: especialidad.id_especialidad, // Cambia `id_especialidad` a `id`
+                        name: especialidad.detalle, // Cambia `detalle` a `name`
+                    }))
+                    : [];
+    
+                console.log("Especialidades transformadas:", especialidadesTransformadas);
+                setEspecialidades(especialidadesTransformadas);
             } catch (error) {
-                Alert.alert('Error', error.message);
+                console.error("Error al cargar los datos:", error.message);
+                Alert.alert('Error', 'No se pudieron cargar los datos.');
             }
         };
         cargarDatos();
@@ -40,7 +65,6 @@ export default function RegistrarCurso() {
             Alert.alert('Error', 'Por favor ingrese el nombre del curso');
             return;
         }
-
         if (materiasSeleccionadas.length === 0) {
             Alert.alert('Error', 'Por favor seleccione al menos una materia');
             return;
@@ -51,58 +75,83 @@ export default function RegistrarCurso() {
             id_especialidad: parseInt(formData.id_especialidad),
             id_materias: materiasSeleccionadas
         };
-
+        
         try {
             const respuesta = await registrarCurso(cursoData);
             console.log('Curso Registrado:', respuesta);
-            
-            Alert.alert('Éxito', 'Curso registrado exitosamente');
             limpiarInterfaz();
+            Alert.alert('Éxito', 'Curso registrado exitosamente');
         } catch (error) {
-            console.error('Error al registrar el curso:', error.message);
+            console.error('Error al registrar el curso:', error);
             Alert.alert('Error', 'No se pudo registrar el curso');
         }
     };
 
     const limpiarInterfaz = () => {
-        setFormData({
-            detalle: '',
-            id_especialidad: '',
-            id_materias: [],
-        });
-        setMateriasSeleccionadas([]);
+        try {
+            setFormData({
+                detalle: '',
+                id_especialidad: '',
+                id_materias: [],
+            });
+            setMateriasSeleccionadas([]);
+            console.log('Interfaz limpiada correctamente');
+        } catch (error) {
+            console.error('Error al limpiar la interfaz:', error.message);
+        }
     };
 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.contenido}>
-                <Text style={styles.titulo}>Curso</Text>
+                <Text style={styles.titulo}>Registrar Curso</Text>
                 <TextInput
-                    placeholder='Registrar curso'
+                    placeholder="Nombre del curso"
                     placeholderTextColor="#888"
                     style={styles.input}
                     value={formData.detalle}
                     onChangeText={(text) => handleChange('detalle', text)}
                 />
-                <Text>Materias asignables a un curso</Text>
+                <Text style={styles.label}>Especialidad</Text>
+                <View style={styles.pickerContainer}>
+                    <Picker
+                        selectedValue={formData.id_especialidad}
+                        onValueChange={(itemValue) => handleChange('id_especialidad', itemValue)}
+                        style={styles.picker}
+                    >
+                        <Picker.Item label="Seleccione una especialidad" value="" />
+                        {especialidades.map(especialidad => (
+                            <Picker.Item
+                                key={especialidad.id}
+                                label={especialidad.name}
+                                value={especialidad.id}
+                            />
+                        ))}
+                    </Picker>
+                </View>
+                <Text style={styles.label}>Materias asignables</Text>
                 <MultiSelect
                     items={materias}
                     uniqueKey="id"
-                    onSelectedItemsChange={setMateriasSeleccionadas}
+                    onSelectedItemsChange={(selectedItems) => {
+                        setMateriasSeleccionadas(selectedItems);
+                        handleChange('id_materias', selectedItems);
+                    }}
                     selectedItems={materiasSeleccionadas}
-                    selectText="Seleccionar Materias"
-                    searchInputPlaceholderText="Buscar..."
+                    selectText="Seleccione las materias"
+                    searchInputPlaceholderText="Buscar materias..."
                     tagRemoveIconColor="#CCC"
                     tagBorderColor="#CCC"
-                    tagTextColor="#CCC"
-                    selectedItemTextColor="#CCC"
-                    selectedItemIconColor="#CCC"
+                    tagTextColor="#000"
+                    selectedItemTextColor="#000"
+                    selectedItemIconColor="#000"
                     itemTextColor="#000"
                     displayKey="name"
-                    searchInputStyle={{ color: '#CCC' }}
-                    submitButtonColor="#CCC"
-                    submitButtonText="Seleccionar"
+                    searchInputStyle={{ color: '#000' }}
+                    submitButtonColor="#48d22b"
+                    submitButtonText="Aceptar"
+                    styleDropdownMenuSubsection={styles.multiSelect}
                 />
                 <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
                     <Text style={styles.textoBoton}>Registrar</Text>
@@ -141,34 +190,61 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titulo: {
-        fontSize: 16,
+        fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 20,
         color: '#333',
     },
     input: {
         width: '100%',
-        padding: 12,
+        height: 50,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: '#CCC',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        marginBottom: 20,
+        backgroundColor: '#F9F9F9',
+        fontSize: 16,
+        color: '#333',
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        alignSelf: 'flex-start',
+        color: '#333',
+    },
+    pickerContainer: {
+        width: '100%',
+        height: 50,
+        borderWidth: 1,
+        borderColor: '#CCC',
         borderRadius: 8,
         marginBottom: 20,
-        backgroundColor: '#fafafa',
-        fontSize: 16,
+        justifyContent: 'center',
+        backgroundColor: '#F9F9F9',
+    },
+    picker: {
+        width: '100%',
+        height: '100%',
+        color: '#333',
+    },
+    multiSelect: {
+        width: '100%',
+        marginBottom: 20,
     },
     botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 8,
         width: '100%',
+        height: 50,
+        backgroundColor: '#48d22b',
+        borderRadius: 8,
+        justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 20,
     },
     textoBoton: {
-        color: 'black',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
+        color: '#FFF',
     },
 });
