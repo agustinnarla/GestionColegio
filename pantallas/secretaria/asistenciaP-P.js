@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert, Platform, Dimensions  } from 'react-native';
 import { obtenerProfesionalesAsistencia} from '../../scripts/listasDesplegables/listaDesplegable'
 import { registrarEntradaProfesor, registrarSalidaProfesor } from '../../scripts/secretaria/scriptAsistenciaProfesor';
+import { ImageBackground } from 'react-native-web';
+import bg from '../../assets/bg1.jpg';
+import CustomAlert from '../../componente/CustomAlerts.js';
+
+const { width } = Dimensions.get('window');
+const isDesktop = width >= 768;
+const isWeb = Platform.OS === 'web';
+
 
 export default function RegistroAsistencia() {
   const [profesores, setProfesores] = useState([]); 
@@ -9,12 +17,32 @@ export default function RegistroAsistencia() {
   const [seleccionado, setSeleccionado] = useState(null); 
   const [entrada, setEntrada] = useState(false); 
 
+   useEffect(() => {
+        if (isWeb) {
+        document.body.style.overflow = 'auto'; // Activar scroll en web
+      } else {
+        document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
+      }
+      }, []);
+
   const [formData, setFormData] = useState({
     dni_profesional: '',
     fecha: '',
     hora_entrada: '',
     hora_salida: '',
   });
+
+  // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+  
+  
+     const mostrarMensaje = (titulo, mensaje) => {
+          setAlertTitle(titulo);
+          setAlertMessage(mensaje);
+          setAlertVisible(true);
+      };
 
   // Cargar los profesores al montar el componente
   useEffect(() => {
@@ -65,8 +93,7 @@ export default function RegistroAsistencia() {
             console.log("Registro de salida exitoso:", respuesta);
         }
 
-        Alert.alert("Éxito", `Se registró la ${entrada ? "entrada" : "salida"} correctamente.`);
-
+        mostrarMensaje('¡Éxito!', 'Se registro la asistencia del profesional exitosamente');
         // Reiniciar el formulario después del registro
         setFormData({
             dni_profesional: "",
@@ -77,7 +104,7 @@ export default function RegistroAsistencia() {
         setSeleccionado(null);
     } catch (error) {
         console.error("Error al registrar la entrada/salida:", error.message);
-        Alert.alert("Error", "No se pudo registrar la asistencia.");
+        mostrarMensaje('¡Error!', 'Error al registrar la asistencia del profesiona');
     }
 };
 
@@ -88,6 +115,8 @@ export default function RegistroAsistencia() {
 
   return (
     <View style={styles.container}>
+       <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+      <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
       <Text style={styles.titulo}>Registro de Asistencia</Text>
 
       {/* Botones Entrada / Salida */}
@@ -116,17 +145,21 @@ export default function RegistroAsistencia() {
 
       {/* Lista de profesores */}
       <FlatList
-        data={profesoresFiltrados} // Muestra los profesores filtrados
-        keyExtractor={(item, index) => index.toString()} // Usa el índice como clave
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.profesor, item.registrado ? styles.profesorRegistrado : styles.profesorNoRegistrado]}
-            onPress={() => handleSeleccionarProfesor(item)} // Selecciona el profesor al presionar
-          >
-            <Text style={styles.profesorTexto}>{item.nombre_apellido}</Text>
-          </TouchableOpacity>
-        )}
-      />
+          data={profesoresFiltrados}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.profesor,
+                item.registrado ? styles.profesorRegistrado : styles.profesorNoRegistrado
+              ]}
+              onPress={() => handleSeleccionarProfesor(item)}
+            >
+              <Text style={styles.profesorTexto}>{item.nombre_apellido}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.listaProfesores}
+        />
 
       {/* Formulario para registrar asistencia */}
       {seleccionado && (
@@ -148,6 +181,14 @@ export default function RegistroAsistencia() {
           </TouchableOpacity>
         </View>
       )}
+      </View>
+      <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+    />
+      </ImageBackground>
     </View>
   );
 }
@@ -156,74 +197,152 @@ export default function RegistroAsistencia() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f7fa',
+    width: '100%',
+    height: '100%', 
+    alignItems: 'center',
+  },
+  bg: {
+    width: '100%',
+    height: '100%',
+  },
+  scrollViewDesktop: {
+    width: '100%',
+    flex: 1,
+
+  },
+  scrollViewMobile: {
+    width: '100%',
+    flex: 1,
+  },
+  scrollContainerDesktop: {
+    width: '100%',
+    alignItems: 'center'
+  },
+  scrollContainerMobile: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 80,
   },
   titulo: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
+    color: '#2a3d6c',
+    marginTop: 32,
+    marginBottom: 24,
+    letterSpacing: 0.7,
     textAlign: 'center',
-    marginBottom: 20,
+    textTransform: 'uppercase',
   },
   botonesContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 20,
+    gap: 18,
+    marginBottom: 24,
   },
   boton: {
     borderWidth: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
+    borderColor: '#746BC8',
+    backgroundColor: '#f0f7ff',
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+    borderRadius: 8,
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginHorizontal: 6,
+    minWidth: 120,
+    elevation: 2,
+    shadowColor: '#b6f7b6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
   },
   botonActivoEntrada: {
-    backgroundColor: '#CED9EF',
-    borderColor: '#746BC8',
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
   },
   botonActivoSalida: {
-    backgroundColor: '#F3B9B9',
-    borderColor: '#FF0000',
+    backgroundColor: '#fde8e8',
+    borderColor: '#ef4444',
   },
   input: {
-    borderColor: '#ccc',
+    borderColor: '#e1e8ed',
     borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 10,
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 18,
+    backgroundColor: '#fff',
+    fontSize: 16,
+    width: 370,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  listaProfesores: {
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+    marginBottom: 12,
   },
   profesor: {
-    padding: 15,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginVertical: 5,
+    borderBottomColor: '#e1e8ed',
+    marginVertical: 4,
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
   },
   profesorRegistrado: {
-    backgroundColor: '#d4edda',
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
   },
   profesorNoRegistrado: {
-    backgroundColor: '#f8d7da',
+    backgroundColor: '#fde8e8',
+    borderColor: '#ef4444',
   },
   profesorTexto: {
-    fontSize: 16,
+    fontSize: 17,
+    color: '#374151',
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textAlign: 'center',
   },
   formulario: {
-    marginTop: 20,
-    padding: 10,
+    marginTop: 28,
+    padding: 24,
     backgroundColor: '#fff',
-    borderRadius: 5,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#e1e8ed',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    width: 400,
+    alignSelf: 'center',
+    marginBottom: 80,
   },
   botonRegistrar: {
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
     borderWidth: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 8,
     alignItems: 'center',
-    marginTop: 20,
-    backgroundColor: '#CFEFCE',
-    borderColor: '#33FF00',
+    marginTop: 18,
+    elevation: 2,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
   },
 });

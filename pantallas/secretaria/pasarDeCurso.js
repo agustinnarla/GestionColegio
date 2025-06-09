@@ -1,20 +1,46 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ScrollView, Platform, Dimensions, ImageBackground } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import {  registrarCursoNuevo, obtenerAlumnoFinal } from '../../scripts/secretaria/scriptPasarCurso';
+import CustomAlert from '../../componente/CustomAlerts.js';
 
+
+const { width } = Dimensions.get('window');
+const isDesktop = width >= 768;
+const isWeb = Platform.OS === 'web';
 export default function PasarDeAño() {
+   useEffect(() => {
+          if (isWeb) {
+          document.body.style.overflow = 'auto'; // Activar scroll en web
+        } else {
+          document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
+        }
+        }, []);
+
   //Formulario
   const [formData, setFormData] = useState({
     dni_alumno: '',
     id_curso: ''
   });
   
+  
   //Cargamos datos 
   const [alumnos, setAlumnos] = useState([]);
   const [curso, setCursos] = useState([]);
+
+  // Mensajes 
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+
+
+   const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -60,6 +86,7 @@ export default function PasarDeAño() {
         const respuesta = await registrarCursoNuevo(alumnosData);
         
         console.log("Alumnos Asignados al curso nuevo perfectamente",respuesta)
+        mostrarMensaje('¡Éxito!', 'Alumnos asignados al nuevo curso');
         setAlumnos([]);
         setFormData({
           dni_alumno: '',
@@ -67,13 +94,15 @@ export default function PasarDeAño() {
       });
       } catch(error) {
         console.error("Error completo:", error);
-        Alert.alert('Error', 'Hubo un problema al actualizar los alumnos: ' + error.message);
+        mostrarMensaje('¡Error!', 'Error al asignar el curso nuevo');
       }
     }
  return (
   <View style={styles.container}>
-    <Image source={bg} style={styles.bg} resizeMode="cover" />
+    <ImageBackground source={bg} style={styles.bg} resizeMode="cover" >
+    <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
     <View style={styles.card}>
+        
       <View style={styles.filaFiltros}>
         <View style={styles.filtrosHorizontales}>
           <ListasDesplegables
@@ -105,43 +134,65 @@ export default function PasarDeAño() {
         <Text style={styles.textoBotonGrande}>Confirmar</Text>
       </TouchableOpacity>
     </View>
+    </View>
+    <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
+    </ImageBackground>
   </View>
 );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f7fa',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    position: 'relative',
-    minHeight: '100vh', // Para web scroll
-  },
+  flex: 1,
+  backgroundColor: '#f5f7fa',
+  alignItems: 'center',
+  justifyContent: 'center', // Centrado vertical
+  position: 'relative',
+},
   bg: {
-    position: 'absolute',
     width: '100%',
     height: '100%',
     zIndex: -1,
-    opacity: 0.13,
+  },
+   scrollViewDesktop: {
+    width: '100%',
+    flex: 1,
+
+  },
+  scrollViewMobile: {
+    width: '100%',
+    flex: 1,
+  },
+  scrollContainerDesktop: {
+    width: '100%',
+    alignItems: 'center'
+  },
+  scrollContainerMobile: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 80,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 32,
-    width: '97%',
-    maxWidth: 600,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    elevation: 6,
-    alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-  },
+  backgroundColor: '#fff',
+  borderRadius: 18,
+  padding: 32,
+  width: '97%',
+  maxWidth: 600,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.10,
+  shadowRadius: 12,
+  elevation: 6,
+  alignItems: 'center',
+  marginTop: 20,  
+  borderWidth: 1,
+  borderColor: '#e1e8ed',
+},
   filaFiltros: {
     flexDirection: 'row',
     alignItems: 'flex-end',

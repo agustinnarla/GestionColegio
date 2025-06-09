@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, FlatList, Image, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ImageBackground,TextInput, FlatList, Platform, Dimensions } from 'react-native';
+import { ScrollView } from 'react-native-web';
 import bg from '../../assets/bg1.jpg';
 import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import {  obtenerHorasProfesor, asignacionDeHoras } from '../../scripts/secretaria/scriptAsignacionHoras';
 import ListasDesplegables from '../../componente/ListasDesplegables';
+import CustomAlert from '../../componente/CustomAlerts.js';
+
+// Obtén el ancho de la ventana
+const { width } = Dimensions.get('window');
+const isDesktop = width >= 768;
+const isWeb = Platform.OS === 'web';
 
 export default function AsignacionHoras() {
+
+  
+    useEffect(() => {
+      if (isWeb) {
+      document.body.style.overflow = 'auto'; // Activar scroll en web
+    } else {
+      document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
+    }
+    }, []);
+
     const [profesores, setProfesor] = useState([]);
     const [curso, setCurso] = useState([]);
     const [materias, setMateria] = useState([]);
@@ -32,6 +49,18 @@ export default function AsignacionHoras() {
         hora_final: '',
     });
 
+    // Mensajes 
+        const [alertVisible, setAlertVisible] = useState(false);
+        const [alertTitle, setAlertTitle] = useState('');
+        const [alertMessage, setAlertMessage] = useState('');
+      
+      
+         const mostrarMensaje = (titulo, mensaje) => {
+              setAlertTitle(titulo);
+              setAlertMessage(mensaje);
+              setAlertVisible(true);
+          };
+
     useEffect(() => {
         const inicializarHorarios = () => {
             const inicial = {};
@@ -56,6 +85,7 @@ export default function AsignacionHoras() {
             hora_inicio: '',
             hora_final: '',
         });
+        setHorariosAsignados([]);
     };
 
    const handleConsultar = async () => {
@@ -80,6 +110,7 @@ export default function AsignacionHoras() {
             }
         } catch (error) {
             console.error('Error en obtenerHorasProfesor:', error);
+            mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
         }
     };
 
@@ -129,8 +160,10 @@ export default function AsignacionHoras() {
                 console.log('Datos de la asignación de horas', asignaciones);
                 const respuesta = await asignacionDeHoras(asignaciones); // Ajusta tu backend para recibir un array
                 console.log('Respuesta del servidor:', respuesta);
+                mostrarMensaje('¡Éxito!', 'Se registro el horario exitosamente');
             } catch (error) {
                 console.error('Error al asignar la hora:', error);
+                mostrarMensaje('¡Error!', 'Error al asignar el horario');
             }
         };
     
@@ -172,108 +205,104 @@ export default function AsignacionHoras() {
 
 
 
-  return (
-    <View
-      style={styles.container}
-    >
-      <Image source={bg} style={styles.bg} />
-      <View style={styles.filtrosScroll}>
-        <View style={styles.filaFiltros}>
-          <View style={styles.filtrosHorizontales}>
-            <ListasDesplegables
-              formData={formData}
-              handleChange={handleChange}
-              profesores={profesores}
-              showLabel={true}
-              styles={styles}
-              label="Profesor"
-            />
-            <ListasDesplegables
-              formData={formData}
-              handleChange={handleChange}
-              curso={curso}
-              showLabel={true}
-              styles={styles}
-              label="Curso"
-            />
-            <ListasDesplegables
-              formData={formData}
-              handleChange={handleChange}
-              materias={materias}
-              showLabel={true}
-              styles={styles}
-              label="Materia"
-            />
-          </View>
-          <View style={styles.botonesFiltrosAbajo}>
-            <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
-              <Text style={styles.textoBoton}>Consultar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleReiniciar} style={styles.botonSecundario}>
-              <Text style={styles.textoBoton}>Reiniciar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.horariosContainer}>
-          {diasSemana.map((dia) => (
-            <View key={dia} style={styles.diaContainer}>
-              <Text style={styles.diaTitulo}>{dia}</Text>
-              {rangosHorarios.map((rango) => (
-                <TouchableOpacity
-                  key={`${dia}-${rango}`}
-                  style={[
-                    styles.horarioCuadro,
-                    horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
-                  ]}
-                  onPress={() => alternarHorario(dia, rango)}
-                >
-                  <Text style={[
-                    styles.horarioTexto,
-                    horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo
-                  ]}>
-                    {rango}
-                  </Text>
+return (
+  <View style={styles.padre}>
+    <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+      
+        <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
+          <View style={styles.filtrosScroll}>
+            <View style={styles.filaFiltros}>
+              <View style={styles.filtrosHorizontales}>
+                <ListasDesplegables formData={formData} handleChange={handleChange} profesores={profesores} showLabel={true} styles={styles} label="Profesor" />
+                <ListasDesplegables formData={formData} handleChange={handleChange} curso={curso} showLabel={true} styles={styles} label="Curso" />
+                <ListasDesplegables formData={formData} handleChange={handleChange} materias={materias} showLabel={true} styles={styles} label="Materia" />
+              </View>
+            
+            </View>
+              <View style={styles.botonesFiltrosAbajo}>
+                <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
+                  <Text style={styles.textoBoton}>Consultar</Text>
                 </TouchableOpacity>
+                <TouchableOpacity onPress={handleReiniciar} style={styles.botonSecundario}>
+                  <Text style={styles.textoBoton}>Reiniciar</Text>
+                </TouchableOpacity>
+              </View>
+            <View style={styles.horariosContainer}>
+              {diasSemana.map((dia) => (
+                <View key={dia} style={styles.diaContainer}>
+                  <Text style={styles.diaTitulo}>{dia}</Text>
+                  {rangosHorarios.map((rango) => (
+                    <TouchableOpacity
+                      key={`${dia}-${rango}`}
+                      style={[styles.horarioCuadro, horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado]}
+                      onPress={() => alternarHorario(dia, rango)}
+                    >
+                      <Text style={[styles.horarioTexto, horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo]}>
+                        {rango}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               ))}
             </View>
-          ))}
+          </View>
+          <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
+            <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-      <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
-        <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
-      </TouchableOpacity>
-    </View>
-  );
+        <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+    />        
+    </ImageBackground>
+  </View>
+);
 }
 
 // ---
 // Ajustes en los estilos
 // ---
 const styles = StyleSheet.create({
-  // Contenedor principal
-  container: {
-    backgroundColor: '#f5f7fa',
+ 
+    padre: {
     flex: 1,
+    width: '100%',
+    height: '100%', 
     alignItems: 'center',
+    backgroundColor: 'white',
   },
-
-  // Imagen de fondo
   bg: {
-    position: 'absolute',
     width: '100%',
     height: '100%',
-    opacity: 2,
-    zIndex: -1,
   },
-  botonesFiltrosAbajo: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: 12,
+  scrollViewDesktop: {
     width: '100%',
+    flex: 1,
+
+  },
+  scrollViewMobile: {
+    width: '100%',
+    flex: 1,
+  },
+  scrollContainerDesktop: {
+    width: '100%',
+    alignItems: 'center'
+  },
+  scrollContainerMobile: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 80,
+  },
+  botonesFiltrosAbajo:{
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 10,
     marginBottom: 10,
   },
-
   // Sección de filtros mejorada
   filaFiltros: {
     flexDirection: 'row',
@@ -299,16 +328,18 @@ const styles = StyleSheet.create({
 
   filtrosHorizontales: {
     flex: 1,
-    minWidth: 500,
-    gap: 15,
+  minWidth: 500,
+  gap: 20,
+  flexDirection: 'column'
   },
 
   botonesFiltros: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
-    gap: 12,
-    minWidth: 160,
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 10,
+    marginBottom: 10,
   },
 
   // Botones con el estilo consistente
@@ -320,7 +351,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 5,
     flex: 1,
-    maxWidth: 200,
+    maxWidth: 250,
     height: 40,
     justifyContent: 'center',
   },
@@ -333,7 +364,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 5,
     flex: 1,
-    maxWidth: 200,
+    maxWidth: 250,
     height: 40,
     justifyContent: 'center',
   },
@@ -341,20 +372,27 @@ const styles = StyleSheet.create({
   botonConfirmar: {
     backgroundColor: '#e8f5e9',
     borderColor: '#4caf50',
-   borderWidth: 1,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    flex: 1,
-    maxWidth: 200,
-    height: 40,
+    borderWidth: 1,
+    paddingVertical: 16,      
+    paddingHorizontal: 32,   
+    borderRadius: 8,          
+    maxWidth: 350,            
+    minWidth: 220,            
+    height: 40,              
     justifyContent: 'center',
+    alignSelf: 'center',      
+    marginTop: 12,            
+    elevation: 4,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
 
   // Textos de botones
   textoBoton: {
     color: '#2c3e50',
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -372,7 +410,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 15,
-    marginTop: 20,
+    marginTop: 10,
     paddingHorizontal: 15,
     width: '100%',
     maxWidth: 1400,
@@ -383,7 +421,7 @@ const styles = StyleSheet.create({
     minWidth: 160,
     maxWidth: 200,
     flexGrow: 1,
-    margin: 5,
+    margin: 3,
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
