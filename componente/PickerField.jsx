@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 
 export default function PickerField({ label, selectedValue, onValueChange, items, style }) {
     return (
-        <View>
+        <View style={{ marginBottom: 12 }}>
             <Text style={style?.label}>{label}</Text>
             {Platform.OS === 'web' ? (
                 <select
@@ -15,6 +15,11 @@ export default function PickerField({ label, selectedValue, onValueChange, items
                         outline: 'none',
                         width: '100%',
                         fontSize: 16,
+                        backgroundColor: '#fafafa',
+                        border: '1px solid #bbb',
+                        borderRadius: 5,
+                        padding: '8px 12px',
+                        marginTop: 4,
                     }}
                 >
                     {items.map(item => (
@@ -24,7 +29,18 @@ export default function PickerField({ label, selectedValue, onValueChange, items
                     ))}
                 </select>
             ) : (
-                <View style={style.input}>
+                <View style={[
+                    style.input,
+                    {
+                        backgroundColor: '#fafafa',
+                        borderWidth: 1,
+                        borderColor: '#bbb',
+                        borderRadius: 5,
+                        paddingHorizontal: 8,
+                        marginTop: 4,
+                        justifyContent: 'center',
+                    }
+                ]}>
                     <Picker
                         selectedValue={selectedValue}
                         onValueChange={onValueChange}

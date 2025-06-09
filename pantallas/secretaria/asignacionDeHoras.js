@@ -172,215 +172,364 @@ export default function AsignacionHoras() {
 
 
 
-return (
-    <View style={styles.container}>
-        <Image source={bg} style={styles.bg} />
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-            {/* Título */}
-          
-
-            {/* Selectores */}
-           <View style={styles.filtrosContainer}>
-                 <ListasDesplegables
-                    formData={formData}
-                    handleChange={handleChange}
-                    profesores={profesores}
-                    curso={curso}
-                    materias={materias}
-                    styles={styles}
-                />
-            </View>
-           
-            
-
-            {/* Botones de acción */}
-            <View style={styles.botonesContainer}>
-                <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
-                    <Text style={styles.textoBoton}>Consultar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleReiniciar} style={styles.botonSecundario}>
-                    <Text style={styles.textoBoton}>Reiniciar</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Horarios */}
-            <View style={styles.horariosContainer}>
-                {diasSemana.map((dia) => (
-                    <View key={dia} style={styles.diaContainer}>
-                        <Text style={styles.diaTitulo}>{dia}</Text>
-                        {rangosHorarios.map((rango) => (
-                            <TouchableOpacity
-                                key={`${dia}-${rango}`}
-                                style={[
-                                    styles.horarioCuadro,
-                                    horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
-                                ]}
-                                onPress={() => alternarHorario(dia, rango)}
-                            >
-                                <Text style={[
-                                    styles.horarioTexto,
-                                    horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo
-                                ]}>
-                                    {rango}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                ))}
-            </View>
-
-            {/* Botón de asignar */}
-            <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
-                <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
+  return (
+    <View
+      style={styles.container}
+    >
+      <Image source={bg} style={styles.bg} />
+      <View style={styles.filtrosScroll}>
+        <View style={styles.filaFiltros}>
+          <View style={styles.filtrosHorizontales}>
+            <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              profesores={profesores}
+              showLabel={true}
+              styles={styles}
+              label="Profesor"
+            />
+            <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              curso={curso}
+              showLabel={true}
+              styles={styles}
+              label="Curso"
+            />
+            <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              materias={materias}
+              showLabel={true}
+              styles={styles}
+              label="Materia"
+            />
+          </View>
+          <View style={styles.botonesFiltrosAbajo}>
+            <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
+              <Text style={styles.textoBoton}>Consultar</Text>
             </TouchableOpacity>
-        </ScrollView>
+            <TouchableOpacity onPress={handleReiniciar} style={styles.botonSecundario}>
+              <Text style={styles.textoBoton}>Reiniciar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.horariosContainer}>
+          {diasSemana.map((dia) => (
+            <View key={dia} style={styles.diaContainer}>
+              <Text style={styles.diaTitulo}>{dia}</Text>
+              {rangosHorarios.map((rango) => (
+                <TouchableOpacity
+                  key={`${dia}-${rango}`}
+                  style={[
+                    styles.horarioCuadro,
+                    horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
+                  ]}
+                  onPress={() => alternarHorario(dia, rango)}
+                >
+                  <Text style={[
+                    styles.horarioTexto,
+                    horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo
+                  ]}>
+                    {rango}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+        </View>
+      </View>
+      <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
+        <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
+      </TouchableOpacity>
     </View>
-);
+  );
 }
 
+// ---
+// Ajustes en los estilos
+// ---
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    scrollContainer: { flexGrow: 1, alignItems: 'center', paddingBottom: 30 },
-    bg: { position: 'absolute', width: '100%', height: '100%', opacity: 0.15 },
-    selectorContainer: {
-        width: '95%',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 18,
-        marginTop: 15,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOpacity: 0.07,
-        shadowRadius: 4,
-    },
-    selector: { flex: 1, marginHorizontal: 7 },
-    horariosContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginTop: 18,
-        width: '95%',
-        alignSelf: 'center',
-    },
-    diaContainer: {
-        flex: 1,
-        minWidth: 140,
-        marginHorizontal: 6,
-        marginBottom: 22,
-        backgroundColor: '#e9f0fa',
-        borderRadius: 10,
-        padding: 10,
-        elevation: 1,
-    },
-    diaTitulo: {
-        fontSize: 17,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 8,
-        color: '#2a3d6c',
-        letterSpacing: 0.5,
-    },
-    horarioCuadro: {
-        paddingVertical: 12,
-        marginVertical: 6,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 7,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#b0b0b0',
-        elevation: 1,
-    },
-    horarioAsignado: {
-        backgroundColor: '#4CAF50',
-        borderColor: '#388E3C',
-    },
-    horarioTexto: {
-        color: '#333',
-        fontSize: 15,
-        fontWeight: '500',
-    },
-    horarioTextoActivo: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    botonesContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 15,
-        marginBottom: 10,
-    },
-    botonPrimario: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 10,
-        paddingHorizontal: 25,
-        borderRadius: 8,
-        marginHorizontal: 5,
-        elevation: 2,
-    },
-    botonSecundario: {
-        backgroundColor: '#f0ad4e',
-        paddingVertical: 10,
-        paddingHorizontal: 25,
-        borderRadius: 8,
-        marginHorizontal: 5,
-        elevation: 2,
-    },
-    botonConfirmar: {
-        backgroundColor: '#2a3d6c',
-        paddingVertical: 15,
-        paddingHorizontal: 40,
-        borderRadius: 10,
-        marginTop: 25,
-        alignSelf: 'center',
-        elevation: 3,
-    },
-    textoBoton: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    textoBotonGrande: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 18,
-        textAlign: 'center',
-        letterSpacing: 1,
-    },
-    grilla: {
-        marginTop: 20,
-        width: '90%',
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 10,
-    },
-    grillaEncabezado: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        backgroundColor: '#4CAF50',
-        borderRadius: 8,
-    },
-    grillaEncabezadoCelda: {
-        flex: 1,
-        textAlign: 'center',
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    grillaFila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-    },
-    grillaCelda: {
-        flex: 1,
-        textAlign: 'center',
-        color: '#333',
-    }
+  // Contenedor principal
+  container: {
+    backgroundColor: '#f5f7fa',
+    flex: 1,
+    alignItems: 'center',
+  },
+
+  // Imagen de fondo
+  bg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    opacity: 2,
+    zIndex: -1,
+  },
+  botonesFiltrosAbajo: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    marginBottom: 10,
+  },
+
+  // Sección de filtros mejorada
+  filaFiltros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 12,
+    padding: 20,
+    marginVertical: 15,
+    width: '95%',
+    maxWidth: 1200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    gap: 20,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+    overflow: 'visible',
+  },
+
+  filtrosHorizontales: {
+    flex: 1,
+    minWidth: 500,
+    gap: 15,
+  },
+
+  botonesFiltros: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    gap: 12,
+    minWidth: 160,
+  },
+
+  // Botones con el estilo consistente
+  botonPrimario: {
+    backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
+    borderWidth: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    flex: 1,
+    maxWidth: 200,
+    height: 40,
+    justifyContent: 'center',
+  },
+
+  botonSecundario: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#9e9e9e',
+    borderWidth: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    flex: 1,
+    maxWidth: 200,
+    height: 40,
+    justifyContent: 'center',
+  },
+
+  botonConfirmar: {
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
+   borderWidth: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    flex: 1,
+    maxWidth: 200,
+    height: 40,
+    justifyContent: 'center',
+  },
+
+  // Textos de botones
+  textoBoton: {
+    color: '#2c3e50',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  textoBotonGrande: {
+    color: '#2c3e50',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // Contenedor de horarios mejorado
+  horariosContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 15,
+    marginTop: 20,
+    paddingHorizontal: 15,
+    width: '100%',
+    maxWidth: 1400,
+  },
+
+  // Contenedor de cada día
+  diaContainer: {
+    minWidth: 160,
+    maxWidth: 200,
+    flexGrow: 1,
+    margin: 5,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+  },
+
+  // Título del día
+  diaTitulo: {
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 15,
+    color: '#1f2937',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    paddingBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: '#e5e7eb',
+  },
+
+  // Cuadros de horario
+  horarioCuadro: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginVertical: 6,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    // transition: 'all 0.2s ease', // Esto es más CSS web directo, puede no aplicar 1:1 en RN.
+  },
+
+  // Horario seleccionado/asignado
+  horarioAsignado: {
+    backgroundColor: '#10b981',
+    borderColor: '#059669',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  // Texto de horario
+  horarioTexto: {
+    color: '#4b5563',
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  horarioTextoActivo: {
+    color: 'white',
+    fontWeight: '600',
+  },
+
+  // Estados adicionales para horarios
+  horarioHover: {
+    backgroundColor: '#e5e7eb',
+    borderColor: '#9ca3af',
+  },
+
+  horarioDisponible: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#a7f3d0',
+  },
+
+  horarioOcupado: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+    opacity: 0.6,
+  },
+
+  // Labels para los filtros
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
+
+  // Indicadores de estado
+  estadoIndicador: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    gap: 20,
+  },
+
+  estadoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  estadoColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+
+  estadoTexto: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
 });
+
+  
+// Constantes de colores para mantener consistencia
+export const HORARIOS_COLORS = {
+  primary: '#4f46e5',
+  secondary: '#6366f1',
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  disponible: '#10b981',
+  ocupado: '#ef4444',
+  seleccionado: '#059669',
+  gray: {
+    50: '#f9fafb',
+    100: '#f3f4f6',
+    200: '#e5e7eb',
+    300: '#d1d5db',
+    400: '#9ca3af',
+    500: '#6b7280',
+    600: '#4b5563',
+    700: '#374151',
+    800: '#1f2937',
+    900: '#111827',
+  },
+  white: '#ffffff',
+  background: '#f5f7fa',
+};

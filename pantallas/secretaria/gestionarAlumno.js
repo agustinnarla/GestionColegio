@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoAlumno } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoAlumno, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
 import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
 import * as DocumentPicker from 'expo-document-picker';
@@ -35,7 +35,7 @@ export default function GestionarAlumno() {
     const[cursos,setCursos] = useState([])
     const[localidad,setLocalidad] = useState([])
     const[sexo,setSexos] = useState([])
-    const[estadoalumno,setEstadoAlumno] = useState([])
+    const[estado_general,setEstadoGeneral] = useState([])
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -44,12 +44,12 @@ export default function GestionarAlumno() {
                 const localidadData = await obtenerLocalidad();
                 const sexosData = await obtenerSexo();
                 console.log('Esto tiene sexo', sexosData)
-                const estadoData = await obtenerEstadoAlumno();
+                const estadoData = await obtenerEstadoGeneral();
 
                 setSexos(sexosData);
                 setCursos(cursosData); 
                 setLocalidad(localidadData);
-                setEstadoAlumno(estadoData);
+                setEstadoGeneral(estadoData);
             } catch (error) {
                 Alert.alert('Error', error.message);
             }
@@ -606,8 +606,6 @@ export default function GestionarAlumno() {
                             handleChange={handleChange}
                             sexo={sexo}
                             curso={cursos}
-                            estadoalumno={estadoalumno}
-                            localidad={localidad}
                             styles={styles}
                         />
                     </View>
@@ -615,6 +613,14 @@ export default function GestionarAlumno() {
                     {/* Segunda columna */}
                     <View style={styles.columna}>
                         
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            estado_general={estado_general}
+                            localidad={localidad}
+                            styles={styles}
+                        />
+
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
                         <TextInput style={styles.input} placeholder='AAAA/MM/DD' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
                         
@@ -773,165 +779,226 @@ export default function GestionarAlumno() {
 }
 
 const styles = StyleSheet.create({
-    padre: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-    },
-    bg: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    formulario: {
-        width: '90%',
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        elevation: 5,
-    },
-    dniContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10, 
-    },
-    consultarButton: {
-        backgroundColor: '#CED9EF',
+
+  // Contenedores principales
+  padre: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  bg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  formulario: {
+    width: '95%',
+    maxWidth: 1200,
+    backgroundColor: '#fff',
+    padding: 30,
+    borderRadius: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    marginBottom: 20,
+  },
+
+  // Sección DNI - Ajustada según la imagen
+  dniContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    width: '100%',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: '600',
+    color: '#2c3e50',
+  },
+  inputDni: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  consultarButton: {
+   backgroundColor: '#f0f7ff',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+        paddingVertical: 0,
+        paddingHorizontal: 14,
         borderRadius: 5,
-        marginLeft:10
-    },
-    consultarText: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+        height: 38,
+        justifyContent: 'center',
+        marginLeft: 10,
+  },
+  consultarText: {
+    color: '#746BC8',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
+  },
+  // Layout de columnas - Ajustado a 3 columnas iguales
+  fila: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  columna: {
+    width: '32%', // Ligeramente menos que 33.33% para dejar espacio entre columnas
+  },
+
+  // Estilos de campos
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+    height: 40,
+  },
+  
+  // Checkbox
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  check: {
+    marginLeft: 10,
+  },
+
+  // Botones de legajo - Colores ajustados a la imagen
+  boton: {
+    backgroundColor: '#6c7ae0', // Color azul-violeta como en la imagen
+    padding: 12,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 8,
+    height: 45,
+  },
+  botonVer: {
+    backgroundColor: '#28a745', // Verde como en la imagen
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginTop: 5,
+    height: 35,
+  },
+  
+  // Botones inferiores - Ajustados al tamaño de la imagen
+  contenidoBotones: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 800,
+    gap: 10,
+  },
+  botonAlta: {
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
+        borderWidth: 1,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        flex: 1,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 6,
+  },
+  botonBaja: {
+    backgroundColor: '#ffebee',
+        borderColor: '#f44336',
+        borderWidth: 1,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        flex: 1,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+        marginLeft: 6,
+        marginRight: 6,
+  },
+  botonModificar: {
+     backgroundColor: '#e3f2fd',
+        borderColor: '#746BC8',
+        borderWidth: 1,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        flex: 1,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 6,
+  },
+  botonLimpiar: {
+    backgroundColor: '#f5f5f5',
+        borderColor: '#9e9e9e',
+        borderWidth: 1,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        flex: 1,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+  },
+  
+  // Textos
+  textoBoton: {
+    color: '#2c3e50',
+    fontSize: 14, // Texto más pequeño
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  
+  // Responsive
+  '@media (max-width: 768)': {
     fila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+      flexDirection: 'column',
     },
     columna: {
-        flex: 1,
-        marginRight: 10,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 8,
-        fontWeight: 'bold'
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 15,
-        backgroundColor: '#f9f9f9',
-    },
-    inputLegajo:{
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 15,
-        backgroundColor: '#f9f9f9',
-        borderColor:'#FF0000',
-        borderWidth:1,
-    },
-    inputDni: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        backgroundColor: '#f9f9f9',
-        width: 200,
-        marginLeft:10
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    check:{
-        marginLeft:10
+      maxWidth: '100%',
+      marginBottom: 15,
     },
     contenidoBotones: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        width: '50%',
+      width: '100%',
+      flexWrap: 'wrap',
     },
-    botonAlta:{
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-    },
-    botonBaja:{
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginLeft: 10,
-        marginRight:10
-    },
-    botonModificar:{
-        backgroundColor: '#CED9EF',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-    },
-    botonLimpiar:{
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-    },
-    textoBoton:{
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    boton: {
-        backgroundColor: '#788CC8', // Color azul
-        padding: 15, // Espaciado interno
-        borderRadius: 8, // Bordes redondeados
-        alignItems: 'center', // Centrar el texto
-        marginVertical: 10, // Separación entre botones
-    },
-    webview: {
-        height: 300, // Altura del visor
-        marginVertical: 10,
-    },
-    botonVer: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        backgroundColor: '#28a745', // Color de fondo para el botón "Ver"
-        borderRadius: 5,
-    },
-    row: {
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        marginBottom: 10, 
-    },
-    
+  },
 });
 
+// Constantes de colores
+export const COLORS = {
+  primary: '#3f51b5',
+  secondary: '#2196f3',
+  success: '#4caf50',
+  error: '#f44336',
+  warning: '#ff9800',
+  light: '#f5f5f5',
+  dark: '#2c3e50',
+};
+
+
+
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 15,
+  lg: 20,
+  xl: 30,
+};

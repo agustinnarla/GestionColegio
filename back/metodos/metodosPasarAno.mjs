@@ -1,39 +1,43 @@
 import {pool} from '../dataBase/coneccion.mjs'
 
 
-export const obtenerAlumnoFinal = async (req,res) => {
-    const {id_curso} = req.params
-    try{
-        // Obtener promedios de cada alumno en distintas materias
-        const promedios = await pool.query('SELECT dni_alumno, AVG(promedio) as promedio FROM alumno_materia GROUP BY dni_alumno')
-        
-        // Comprobar si hay algún promedio menor a 6
-        const alumnosConFinales = promedios.rows.map(alumno => ({
-            dni_alumno: alumno.dni_alumno,
-            tieneFinal: alumno.promedio < 6 
-        }));
-
+export const obtenerAlumnoFinal = async (req, res) => {
+    const { id_curso } = req.params;
+    try {
+        // Traer alumnos del curso y contar cuántas materias tienen promedio < 6 (finales)
         const respuesta = await pool.query(
-            "SELECT DISTINCT a.dni_alumno, CONCAT(nombre,' ',apellido) as nombrecompleto, am.promedio as promedio " +
-            "FROM alumno a INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno INNER JOIN alumno_materia am ON a.dni_alumno = am.dni_alumno " +
-            "WHERE ac.id_curso= $1 AND a.id_estado_general =1 AND am.id_estado_evaluativo=1",
+            `SELECT 
+                a.dni_alumno, 
+                CONCAT(a.nombre, ' ', a.apellido) AS nombrecompleto,
+                COUNT(CASE WHEN am.promedio < 6 THEN 1 END) AS finales,
+                AVG(am.promedio) AS promedio
+            FROM alumno a
+            INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno
+            INNER JOIN alumno_materia am ON a.dni_alumno = am.dni_alumno
+            WHERE ac.id_curso = $1 
+              AND a.id_estado_general = 1 
+              AND am.id_estado_evaluativo = 1
+            GROUP BY a.dni_alumno, a.nombre, a.apellido`,
             [id_curso]
         );
 
-        // Agregar información sobre finales pendientes a la respuesta
-        const alumnosConInfo = respuesta.rows.map(alumno => {
-            const infoFinal = alumnosConFinales.find(a => a.dni_alumno === alumno.dni_alumno);
-            return {
-                ...alumno,
-                tieneFinal: infoFinal ? infoFinal.tieneFinal : false // Asigna el estado de final
-            };
-        });
+        // Solo alumnos con menos de 3 finales
+        const alumnosConInfo = respuesta.rows
+            .filter(alumno => Number(alumno.finales) < 3)
+            .map(alumno => ({
+                dni_alumno: alumno.dni_alumno,
+                nombrecompleto: alumno.nombrecompleto,
+                promedio: Number(alumno.promedio),
+                finales: Number(alumno.finales),
+                tieneFinal: Number(alumno.finales) > 0 // true si tiene al menos un final
+            }));
 
-        res.status(200).json({alumnos: alumnosConInfo});
-    }catch(error){
-        console.log(error)
+        res.status(200).json({ alumnos: alumnosConInfo });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Error al obtener alumnos' });
     }
-}
+};
 
 export const registrarCursoNuevo = async (req, res) => {
     try {

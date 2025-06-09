@@ -228,9 +228,9 @@ export function TipoDeEvaluacionSelector({ formData, handleChange, tipo_de_evalu
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
-export function ProfesorSelector({ formData, handleChange, profesores, styles }) {
+export function ProfesorSelector({ formData, handleChange, profesores, styles, showLabel }) {
     const selectorConfig = {
-        label: 'Seleccione un profesor',
+        ...(showLabel && { label: 'Seleccione un Profesor:' }),
         selectedValue: formData.dni_profesional,
         onValueChange: (value) => handleChange('dni_profesional', value),
         items: [
@@ -350,6 +350,7 @@ function ListasDesplegables({
                     handleChange={handleChange}
                     profesores={profesores}
                     styles={styles}
+                    showLabel={showLabel}
                 />
             )}
             {tipo_de_evaluacion && (

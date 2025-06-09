@@ -166,7 +166,7 @@ export default function CargarNotas() {
             tp3: '',
             aulico: ''
         });
-        setAlumnos([]); // <--- Esto limpia la grilla
+        setAlumnos([]); 
     };
 
 
@@ -267,144 +267,302 @@ export default function CargarNotas() {
 }
 
 const styles = StyleSheet.create({
-    padre: {
-        flex: 1,
-        backgroundColor: 'white',
-    },
-    bg: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    contenedorSuperior: {
-        padding: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        margin: 20
-        
-    },
-    botonesContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    botonConsultar: {
-        backgroundColor: '#CED9EF',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#0500FF',
-    },
-    botonGuardar: {
-        backgroundColor: '#90EE90',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#006400',
-    },
-    botonReiniciar: {
-        backgroundColor: '#DADADA',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#000000',
-    },
-    textoBoton: {
-        color: 'black',
-        fontWeight: 'bold',
-    },
-    grillaContainer: {
+  padre: {
     flex: 1,
-    backgroundColor: 'white',
-    margin: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10, // más redondeado
-    paddingBottom: 10,
-    minHeight: 200,
-    overflow: 'hidden',
-},
-    headerRow: {
+    backgroundColor: '#fafaff',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    position: 'relative',
+  },
+  bg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    opacity: 0.13,
+    zIndex: -1,
+  },
+
+  // Sección superior
+  contenedorSuperior: {
+    width: '97%',
+    maxWidth: 1200,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 24,
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  filtrosRow: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 14,
+    width: '100%',
+  },
+
+  filtrosContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minWidth: 320,
+  },
+
+  inputDesplegable: {
+    flex: 1,
+    minWidth: 120,
+    maxWidth: 200,
+    height: 38,
+    borderWidth: 1.5,
+    borderColor: '#d1d9e6',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+    marginRight: 8,
+    paddingHorizontal: 10,
+    fontSize: 15,
+  },
+
+  // Botones
+  botonesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  botonConsultar: {
+    backgroundColor: '#CED9EF',
+    borderColor: '#0500FF',
+    borderWidth: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: '#b6f7b6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    height: 38,
+    justifyContent: 'center',
+    marginLeft: 4,
+    minWidth: 90,
+  },
+  botonReiniciar: {
+    backgroundColor: '#ffebee',
+    borderColor: '#f44336',
+    borderWidth: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: '#f44336',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    height: 38,
+    justifyContent: 'center',
+    minWidth: 90,
+  },
+  textoBoton: {
+    color: '#2c3e50',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    lineHeight: 38,
+  },
+
+  // Grilla
+  grillaContainer: {
+    width: '97%',
+    maxWidth: 1200,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    marginBottom: 24,
+    paddingBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+    alignSelf: 'center',
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    backgroundColor: '#e3f2fd',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#b6c6e0',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  headerCell: {
+    textAlign: 'center',
+    fontWeight: '700',
+    fontSize: 14,
+    color: '#1a237e',
+    letterSpacing: 0.5,
+    paddingHorizontal: 2,
+    // Alineación perfecta con inputs:
+    minWidth: 60,
+    flex: 1,
+  },
+  headerCellNombre: {
+    textAlign: 'left',
+    fontWeight: '700',
+    fontSize: 14,
+    color: '#1a237e',
+    letterSpacing: 0.5,
+    paddingHorizontal: 6,
+    minWidth: 120,
+    flex: 2,
+  },
+
+  row: {
+    flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-},
-    headerCell: {
-    flex: 1,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    minWidth: 50,
-    paddingHorizontal: 2,
-    fontSize: 14,
-},
-    row: {
-    flexDirection: 'row',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e0e0e0',
     alignItems: 'center',
     backgroundColor: '#fff',
-},
-   cellNombre: {
+  },
+  rowEven: {
+    backgroundColor: '#f4f8fd',
+  },
+  cellNombre: {
     flex: 2,
-    paddingHorizontal: 5,
+    paddingHorizontal: 6,
     minWidth: 120,
-    textAlign: 'center',
+    textAlign: 'left',
     fontSize: 14,
-    alignSelf: 'center', // agrega esto si ves que no está centrado
-},
-    inputNota: {
+    fontWeight: '500',
+    color: '#2a3d6c',
+  },
+
+  inputNota: {
     flex: 1,
     height: 32,
     borderWidth: 1,
-    borderColor: '#bbb',
-    borderRadius: 5,
+    borderColor: '#b6c6e0',
+    borderRadius: 7,
     textAlign: 'center',
-    marginHorizontal: 1,
-    backgroundColor: 'white',
-    minWidth: 32, // antes 40
+    marginHorizontal: 2,
+    backgroundColor: '#f9f9f9',
+    minWidth: 60,
     fontSize: 14,
-    padding: 0,
-},
-    scrollView: {
-        flex: 1,
-        width: '100%',
-    },
-    scrollViewContent: {
-        flexGrow: 1,
+    color: '#2a3d6c',
+  },
+
+  // Botón confirmar
+  botonConfirmar: {
+    backgroundColor: '#b6f7b6',
+    borderColor: '#33FF00',
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    marginTop: 10,
+    alignSelf: 'center',
+    elevation: 3,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    minWidth: 120,
+  },
+  textoBotonConfirmar: {
+    color: 'black',
+    fontSize: 17,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+
+  // Scroll views
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+
+  // Responsive
+  '@media (max-width: 768)': {
+    contenedorSuperior: {
+      marginTop: 10,
+      marginBottom: 10,
+      padding: 10,
     },
     filtrosRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 20,
+      flexDirection: 'column',
+      gap: 10,
+    },
+    filtrosContainer: {
+      flexDirection: 'column',
+      width: '100%',
+      minWidth: 'auto',
+      gap: 8,
     },
     inputDesplegable: {
-    flex: 1,
-    minWidth: 150,
-    maxWidth: 220,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#bbb',
-    borderRadius: 5,
-    backgroundColor: '#fafafa',
-    marginRight: 10,
-    paddingHorizontal: 8,
-},
-filtrosContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-    minWidth: 350,
-    maxWidth: 500,
-},
+      width: '100%',
+      maxWidth: 'none',
+      marginRight: 0,
+      marginBottom: 8,
+    },
+    botonesContainer: {
+      width: '100%',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    grillaContainer: {
+      marginBottom: 10,
+    },
+    headerCell: {
+      fontSize: 12,
+      minWidth: 50,
+    },
+    headerCellNombre: {
+      fontSize: 12,
+      minWidth: 90,
+    },
+    inputNota: {
+      minWidth: 32,
+      height: 28,
+    },
+    cellNombre: {
+      fontSize: 13,
+      minWidth: 90,
+    },
+  },
 });
+
+// Constantes de colores para mantener consistencia
+export const COLORS = {
+  primary: '#4f46e5',
+  secondary: '#6366f1',
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  gray: {
+    50: '#f9fafb',
+    100: '#f3f4f6',
+    200: '#e5e7eb',
+    300: '#d1d5db',
+    400: '#9ca3af',
+    500: '#6b7280',
+    600: '#4b5563',
+    700: '#374151',
+    800: '#1f2937',
+    900: '#111827',
+  },
+  white: '#ffffff',
+  background: '#f5f7fa',
+};

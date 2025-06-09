@@ -28,10 +28,10 @@ export const obtenerNotas = async (req, res) => {
                 ON a.dni_alumno = ac.dni_alumno
             LEFT JOIN alumno_materia am 
                 ON a.dni_alumno = am.dni_alumno 
-                AND am.id_materia = $2
                 AND am.id_curso = $1  
+                AND am.id_materia = $2
             WHERE ac.id_curso = $1 
-                AND a.id_estado_general = 1
+            AND a.id_estado_general = 1
             ORDER BY a.apellido, a.nombre
         `, [id_curso, id_materia]);
         

@@ -57,7 +57,7 @@ export default function GestionarProfesional() {
                     const sexosData = await obtenerSexo();
                     const estadoData = await obtenerEstadoGeneral();
                     const rolData = await obtenerRoles();
-                    setRol(rolData.roles);
+                    setRol(rolData);
                     setSexos(sexosData);
                     setLocalidad(localidadData);
                     setEstadoGeneral(estadoData);
@@ -351,15 +351,87 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: '100%',
+        resizeMode: 'cover',
     },
     formulario: {
-        width: '90%',
+        width: '92%',
+        maxWidth: 1200,
         backgroundColor: '#fff',
         padding: 20,
         borderRadius: 10,
         elevation: 5,
-        borderColor:'#45579B',
-        borderWidth: 0.2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+    },
+    dniContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+        width: '100%',
+    },
+    label: {
+        fontSize: 15,
+        marginBottom: 8,
+        fontWeight: '600',
+        color: '#2c3e50',
+        width: 80,
+    },
+    inputDni: {
+        flex: 1,
+        height: 38,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        padding: 8,
+        borderRadius: 5,
+        backgroundColor: '#f9f9f9',
+        marginRight: 10,
+        fontSize: 15,
+        marginLeft: 10,
+    },
+    consultarButton: {
+        backgroundColor: '#f0f7ff',
+        borderColor: '#746BC8',
+        borderWidth: 1,
+        paddingVertical: 0,
+        paddingHorizontal: 14,
+        borderRadius: 5,
+        height: 38,
+        justifyContent: 'center',
+        marginLeft: 10,
+    },
+    consultarText: {
+        color: '#746BC8',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    fila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 0,
+    },
+    columna: {
+        flex: 1,
+        paddingHorizontal: 10,
+        maxWidth: '33.33%',
+    },
+    label: {
+        fontSize: 15,
+        marginBottom: 8,
+        fontWeight: '600',
+        color: '#2c3e50',
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 8,
+        borderRadius: 5,
+        marginBottom: 13,
+        backgroundColor: '#f9f9f9',
+        height: 38,
+        fontSize: 15,
     },
     filaPisoDepto: {
         flexDirection: 'row',
@@ -368,114 +440,77 @@ const styles = StyleSheet.create({
         gap: 0,
         marginBottom: 5,
     },
-    dniContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10, 
-    },
-    consultarButton: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        marginLeft:10
-    },
-    consultarText: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    fila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    columna: {
-        flex: 1,
-        marginRight: 10,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 8,
-        fontWeight: 'bold'
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 15,
-        backgroundColor: '#f9f9f9',
-    },
-    inputDni: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        backgroundColor: '#f9f9f9',
-        width: 200,
-        marginLeft:10
-    },
     checkboxContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 13,
     },
-    check:{
-        marginLeft:10
+    check: {
+        marginLeft: 10,
     },
     contenidoBotones: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        width: '50%',
+        justifyContent: 'center',
+        marginTop: 18,
+        width: '80%',
+        gap: 8,
     },
-    botonAlta:{
-        backgroundColor: '#a3e4a1',
-        borderColor: '#33FF00',
+    botonAlta: {
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
         borderRadius: 5,
         flex: 1,
-        marginRight: 10,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 6,
     },
-    botonBaja:{
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+    botonBaja: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
         borderRadius: 5,
         flex: 1,
-        marginLeft: 10,
-        marginRight:10
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+        marginLeft: 6,
+        marginRight: 6,
     },
-    botonModificar:{
-        backgroundColor: '#CED9EF',
+    botonModificar: {
+        backgroundColor: '#e3f2fd',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
         borderRadius: 5,
         flex: 1,
-        marginRight: 10,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 6,
     },
-    botonLimpiar:{
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
+    botonLimpiar: {
+        backgroundColor: '#f5f5f5',
+        borderColor: '#9e9e9e',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        paddingVertical: 7,
+        paddingHorizontal: 10,
         borderRadius: 5,
         flex: 1,
+        maxWidth: 200,
+        height: 40,
+        justifyContent: 'center',
     },
-    textoBoton:{
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
+    textoBoton: {
+        color: '#2c3e50',
+        fontSize: 13,
+        fontWeight: '600',
         textAlign: 'center',
-    }
-    
+    },
 });

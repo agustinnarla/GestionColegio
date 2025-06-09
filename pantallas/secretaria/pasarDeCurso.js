@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable';
-import { CursoSelector } from '../../componente/ListasDesplegables';
+import ListasDesplegables from '../../componente/ListasDesplegables';
 import {  registrarCursoNuevo, obtenerAlumnoFinal } from '../../scripts/secretaria/scriptPasarCurso';
 
 export default function PasarDeAño() {
@@ -70,114 +70,229 @@ export default function PasarDeAño() {
         Alert.alert('Error', 'Hubo un problema al actualizar los alumnos: ' + error.message);
       }
     }
-  return (
-    <View style={styles.container}>
-      <Image source={bg} style={styles.bg} resizeMode="cover" />
-      <CursoSelector 
-          formData={formData}
-          handleChange={handleChange}
-          curso={curso}
-          styles={styles}
-      />
-      <TouchableOpacity style={styles.botonConsultar} onPress={cargarAlumnos} >
-                            <Text style={styles.textoBoton}>Consultar</Text>
-                        </TouchableOpacity>
-      <View style={styles.headerRow}>
-            <Text style={styles.headerCell}>Alumnos</Text>
+ return (
+  <View style={styles.container}>
+    <Image source={bg} style={styles.bg} resizeMode="cover" />
+    <View style={styles.card}>
+      <View style={styles.filaFiltros}>
+        <View style={styles.filtrosHorizontales}>
+          <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              curso={curso}
+              showLabel={false}
+              styles={styles}
+          />
         </View>
-        <View style={{ height: 650 }}>
-            <ScrollView 
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-            >
-                {alumnos.map((item) => (
-                    <View key={item.dni_alumno} style={styles.row}>
-                        <Text style={styles.cellNombre}>{item.nombrecompleto}</Text>
-                    </View>
-                ))}
-                <TouchableOpacity style={styles.botonConsultar} onPress={handleRegistrar} >
-                            <Text style={styles.textoBoton} >Confirmar</Text>
-                </TouchableOpacity>
-            </ScrollView>
-                </View>
+        
+      </View>
+      <View style={styles.botonesFiltros}>
+          <TouchableOpacity style={styles.botonPrimario} onPress={cargarAlumnos}>
+            <Text style={styles.textoBoton}>Consultar</Text>
+          </TouchableOpacity>
+        </View>
+      <Text style={styles.tituloLista}>Alumnos</Text>
+      <View style={styles.listaAlumnosContainer}>
+        <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.scrollViewContent}>
+          {alumnos.map((item) => (
+            <View key={item.dni_alumno} style={styles.row}>
+              <Text style={styles.cellNombre}>{item.nombrecompleto}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+      <TouchableOpacity style={styles.botonConfirmar} onPress={handleRegistrar}>
+        <Text style={styles.textoBotonGrande}>Confirmar</Text>
+      </TouchableOpacity>
     </View>
-  );
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#f5f7fa',
     alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1, 
+    justifyContent: 'flex-start',
+    position: 'relative',
+    minHeight: '100vh', // Para web scroll
   },
   bg: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    zIndex: -1, 
+    zIndex: -1,
+    opacity: 0.13,
   },
-  picker: {
-    height: 50,
-    width: '100%',
-    marginBottom: 20,
-  },
-  alumno: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-  },
-  boton: {
-    backgroundColor: '#CFEFCE',
-    borderColor: '#33FF00',
-    borderWidth: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 32,
+    width: '97%',
+    maxWidth: 600,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
+    elevation: 6,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 32,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
   },
-  textoBoton: {
-    color: 'black',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerRow: {
+  filaFiltros: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    marginTop: 20,
-  },
-  headerCell: {
-    flex: 1,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  scrollView: {
+    alignItems: 'flex-end',
     width: '100%',
+    marginBottom: 18,
+    gap: 18,
   },
-  scrollViewContent: {
-    paddingBottom: 20,
+  filtrosHorizontales: {
+    flex: 3,
+    marginRight: 12,
+  },
+  botonesFiltros: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  botonPrimario: {
+    backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
+    borderWidth: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#b6f7b6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    height: 40,
+    justifyContent: 'center',
+    marginBottom: 20,
+    minWidth: 110,
+  },
+  tituloLista: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2a3d6c',
+    marginBottom: 10,
+    alignSelf: 'center',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
+  listaAlumnosContainer: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 14,
+    width: '100%',
+    maxHeight: 350,
+    marginBottom: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   row: {
     flexDirection: 'row',
-    padding: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#e0e0e0',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
   },
   cellNombre: {
     flex: 1,
     textAlign: 'center',
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
-  botonConsultar: {
-    backgroundColor: '#CFEFCE',
-    borderColor: '#33FF00',
+  botonConfirmar: {
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
     borderWidth: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderRadius: 8,
+    marginTop: 10,
+    alignSelf: 'center',
+    elevation: 3,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    minWidth: 140,
+  },
+  textoBoton: {
+    color: '#2c3e50',
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    lineHeight: 40,
+  },
+  textoBotonGrande: {
+    color: '#2c3e50',
+    fontSize: 18,    // ...existing code...
+      filaFiltros: {
+        flexDirection: 'row',
+        alignItems: 'center', // Cambia 'flex-end' por 'center' para alinear verticalmente
+        width: '100%',
+        marginBottom: 18,
+        gap: 18,
+      },
+      filtrosHorizontales: {
+        flex: 3,
+        marginRight: 0, // Quita el margen derecho para que no se separe tanto
+      },
+      botonesFiltros: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'flex-start', // Cambia a 'flex-start' para que quede pegado al desplegable
+        gap: 10,
+        alignItems: 'center', // Asegura alineación vertical
+      },
+      botonPrimario: {
+        backgroundColor: '#f0f7ff',
+        borderColor: '#746BC8',
+        borderWidth: 1,
+        paddingVertical: 0, // Ajusta para que el alto sea igual al desplegable
+        paddingHorizontal: 18,
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#b6f7b6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 4,
+        height: 40, // Igual que el desplegable
+        justifyContent: 'center',
+        marginLeft: 0, // Quita el margen izquierdo
+        minWidth: 110,
+      },
+    // ...existing code...
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  scrollViewContent: {
+    paddingBottom: 10,
   },
 });
