@@ -92,12 +92,14 @@ export default function ConsultarLibro() {
                 formData={formData}
                 handleChange={handleChange}
                 profesores={profesores}
+                showLabel={true}
                 styles={styles}
             />
             <ListasDesplegables
                 formData={formData}
                 handleChange={handleChange}
                 materias={materia}
+                showLabel={true}
                 styles={styles}
             />
             <ListasDesplegables

@@ -140,7 +140,7 @@ export default function PasarDeAño() {
             onClose={() => setAlertVisible(false)}
             title={alertTitle}
             message={alertMessage}
-            />
+    />
     </ImageBackground>
   </View>
 );

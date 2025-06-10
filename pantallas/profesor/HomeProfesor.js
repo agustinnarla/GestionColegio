@@ -3,7 +3,6 @@ import React from 'react'
 import { useNavigation } from '@react-navigation/native'
 
 
-
 import bg from '../../assets/bg1.jpg'
 
 
@@ -11,13 +10,7 @@ import bg from '../../assets/bg1.jpg'
 export default function HomeProfesor({ dni_usuario }) {
     const navegacion = useNavigation();
 
-    if (!dni_usuario) {
-        console.error('DNI Usuario no definido');
-        return <Text>Error: DNI Usuario no definido</Text>;
-    }else{
-        console.log('DNI Usuario:', dni_usuario);
-    }
-
+    
     return (
         <View style={styles.padre}>
             <ImageBackground source={bg} style={styles.bg}>

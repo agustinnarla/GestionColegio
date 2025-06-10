@@ -1,222 +1,25 @@
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
-import { registrarAmonestacion, imprimirArchivo, obtenerCantidadAmonestaciones } from '../../scripts/preceptor/scriptGestionAmonestacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
+import ScrollContainer from '../../componente/ScrollContainer.jsx'
+import useAmonestacion from '../../hooks/useAmonestacion.js';
 
 export default function GestionarAmonestaciones() {
-    // Formulario
-    const [formData, setFormData] = useState({
-        dni_alumno: '',
-        dni_profesional: '',
-        cantidad: '',
-        fecha: '',
-        motivo: '',
-        id_curso: ''
-    });
-
-    // Listas desplegables
-    const [cursos, setCursos] = useState([]);
-    const [profesionales, setProfesionales] = useState([]);
-    const [alumnos, setAlumnos] = useState([]);
-    const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
-
-    // Modal
-    const [modalVisible, setModalVisible] = useState(false);
-
-    // Mensajes 
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertTitle, setAlertTitle] = useState('');
-    const [alertMessage, setAlertMessage] = useState('');
-
-    const mostrarMensaje = (titulo, mensaje) => {
-        setAlertTitle(titulo);
-        setAlertMessage(mensaje);
-        setAlertVisible(true);
-    };
-
-    // Validar que sea un número positivo
-    const validarNumeroPositivo = (numero) => {
-        return !isNaN(numero) && parseInt(numero) > 0;
-    };
-
-    const validarFecha = (fecha) => {
-        // Verificar formato DD-MM-AAAA
-        const regex = /^\d{2}-\d{2}-\d{4}$/;
-        if (!regex.test(fecha)) {
-            return false;
-        }
     
-        // Dividir la fecha en día, mes y año
-        const [dia, mes, año] = fecha.split('-').map(Number);
+    const {
+        formData, cursos, profesionales, alumnos, totalAmonestaciones,
+        modalVisible, setModalVisible,
+        alertVisible, setAlertVisible, alertTitle, alertMessage,
+        mostrarMensaje, validarFomulario,
+        handleRegistrar, limpiarInterfaz, handleImprimir, handleChange
+    } = useAmonestacion();
     
-        // Crear un objeto de fecha y verificar si es válida
-        const fechaValida = new Date(año, mes - 1, dia);
-        if (
-            fechaValida.getFullYear() !== año ||
-            fechaValida.getMonth() !== mes - 1 ||
-            fechaValida.getDate() !== dia
-        ) {
-            return false;
-        }
-    
-        // Verificar que el año sea mayor a 2024
-        if (año <= 2024) {
-            return false;
-        }
-    
-        // Verificar que la fecha esté dentro del rango del 21 de febrero al 21 de diciembre
-        const inicioRango = new Date(año, 1, 21); // 21 de febrero
-        const finRango = new Date(año, 11, 21); // 21 de diciembre
-        if (fechaValida < inicioRango || fechaValida > finRango) {
-            return false;
-        }
-    
-        return true;
-    };
-
-      // Formatear fecha en formato AAAA-MM-DD
-    const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('-');
-        return `${año}-${mes}-${dia}`;
-    };
-
-
-    // Validar campos del formulario
-    const validarCampos = () => {
-        const fechaEsValida = validarFecha(formData.fecha);
-        return formData.dni_alumno && 
-            formData.dni_profesional && 
-            formData.cantidad.length >= 1 && 
-            formData.fecha.length >= 10 && 
-            formData.motivo.length >= 3 &&
-            formData.id_curso && 
-            fechaEsValida &&
-            validarNumeroPositivo(formData.cantidad) 
-    };
-
-    const validarFomulario = useMemo(() => validarCampos(), [formData]);
-
-    // Cargar cursos y solicitantes
-    useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                const cursosData = await obtenerCurso();
-                const profesionalData = await obtenerProfesionales();
-                setCursos(cursosData);
-                setProfesionales(profesionalData)
-            } catch (error) {
-                Alert.alert('Error', error.message);
-            }
-        };
-        cargarDatos();
-    }, []);
-    
-    // Cargar alumnos cuando se selecciona un curso
-    useEffect(() => {
-        const cargarAlumnos = async () => {
-            if (formData.id_curso) {
-                try {
-                    const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
-                    setAlumnos(alumnosData);
-                } catch (error) {
-                    console.error('Error al cargar alumnos:', error);
-                }
-            }
-        };
-        cargarAlumnos();
-    }, [formData.id_curso]);
-
-    // Cargar cantidad de amonestaciones de acuerdo al DNI
-    useEffect(() => {
-        const cargarAmonestacion = async () => {
-            if (formData.dni_alumno) {
-                try {
-                    const total = await obtenerCantidadAmonestaciones(formData.dni_alumno);
-                    setTotalAmonestaciones(total ? total.toString() : "0");
-                } catch (error) {
-                    console.error('Error al obtener total de amonestaciones:', error);
-                    setTotalAmonestaciones("0");
-                }
-            }
-        };
-        cargarAmonestacion();
-    }, [formData.dni_alumno]);
-
-    // Registrar amonestación
-    const handleRegistrar = async () => {
-        try {
-            const alumnoData = {
-                dni_alumno: parseInt(formData.dni_alumno),
-                dni_profesional: parseInt(formData.dni_profesional),
-                cantidad: parseInt(formData.cantidad),
-                fecha: formatearFecha(formData.fecha),
-                motivo: formData.motivo
-            };
-
-            if (!validarCampos()) {
-                mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
-                return;
-            }
-
-            console.log('Datos de la amonestación', alumnoData); 
-            
-            const respuesta = await registrarAmonestacion(alumnoData);
-            mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
-            console.log('Amonestación Registrada:', respuesta);
-            
-            setModalVisible(true); // Abrir el modal después de registrar la amonestación
-        } catch (error) {
-            console.error('Error al registrar la amonestación:', error.message);
-            mostrarMensaje('Error', 'No se pudo registrar la amonestación');
-        }
-    };
-
-    // Limpiar formulario
-    const limpiarInterfaz = () => {
-        setFormData({
-            dni_alumno: '',
-            dni_profesional: '',
-            cantidad: '',
-            fecha: '',
-            motivo: '',
-            id_curso: ''
-        });
-        setTotalAmonestaciones('0'); 
-        setModalVisible(false);
-    };
-
-    // Imprimir archivo
-    const handleImprimir = async () => {
-        try {
-            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
-            const profesionalSeleccionado = profesionales.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
-
-            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
-            mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
-            
-            if (Platform.OS === 'web') {
-                window.open(rutaPDF);
-            }
-
-            limpiarInterfaz(); // Limpiar la interfaz después de imprimir
-            setModalVisible(false); // Cerrar el modal
-        } catch (error) {
-            console.error('Error al imprimir:', error);
-            mostrarMensaje('Error', 'No se pudo generar el PDF');
-        }
-    };
-
-    // Manejar cambios en el formulario
-    const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
-
-    
-
     const Content = (
+        
+  
+
         <View style={styles.contenido}>
             <ListasDesplegables 
                 formData={formData} 
@@ -288,10 +91,12 @@ export default function GestionarAmonestaciones() {
             message={alertMessage}
             />
         </View>
+        
     );
 
     return (
         <View style={styles.padre}>
+            <ScrollContainer />
             <Image source={bg} style={styles.bg} />
             {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
         </View>
@@ -303,81 +108,99 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#f5f7fa',
     },
     bg: {
         position: 'absolute',
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
         zIndex: -1,
     },
     scroll: {
-        flexGrow: 1,  
+        flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 20,
     },
     contenido: {
-        width: '80%',
-        maxWidth: 500,
+        width: '100%',
+        maxWidth: 520,
         backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
+        padding: 32,
+        borderRadius: 16,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.10,
+        shadowRadius: 12,
+        elevation: 6,
+        alignSelf: 'center',
+        alignItems: 'stretch',
+        marginTop: 36,
+        marginBottom: 36,
     },
     label: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#333',
+        marginBottom: 6,
+        color: '#2a3d6c',
+        textAlign: 'left',
     },
     input: {
         width: '100%',
         padding: 12,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 1.5,
+        borderColor: '#b6c6e0',
         borderRadius: 8,
-        marginBottom: 20,
-        backgroundColor: '#fafafa',
+        marginBottom: 18,
+        backgroundColor: '#f9f9f9',
         fontSize: 16,
+        color: '#2a3d6c',
     },
     botonesContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        marginBottom: 60,
+        justifyContent: 'center',
+        gap: 18,
+        marginTop: 18,
+        marginBottom: 36,
+        width: '100%',
     },
     botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#CED9EF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 4,
+        minWidth: 120,
+        alignItems: 'center',
+        marginRight: 8,
     },
     botonCancelar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#f44336',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 4,
+        minWidth: 120,
+        alignItems: 'center',
+        marginLeft: 8,
     },
     textoBoton: {
-        color: 'black',
+        color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+        letterSpacing: 0.5,
     },
     botonDeshabilitado: {
         opacity: 0.5,
@@ -391,47 +214,53 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        width: '80%',
+        width: '90%',
+        maxWidth: 400,
         backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
+        borderRadius: 14,
+        padding: 28,
         alignItems: 'center',
     },
     titulo: {
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 20,
-        color: '#333',
+        color: '#2a3d6c',
+        textAlign: 'center',
     },
     botonesModal: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '50%',
+        width: '100%',
+        gap: 10,
+        marginTop: 10,
     },
     botonImprimirModal: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#0500FF',
+        backgroundColor: '#e0e7ff',
+        borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 5,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
         flex: 1,
-        marginRight: 10,
+        alignItems: 'center',
+        marginRight: 8,
     },
     botonCancelarModal: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 5,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
         flex: 1,
+        alignItems: 'center',
+        marginLeft: 8,
     },
     textoBotonModal: {
-        color: 'black',
+        color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
     }
 });
-

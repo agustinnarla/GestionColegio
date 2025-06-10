@@ -7,6 +7,7 @@ import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../sc
 import { registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 export default function GestionarObservaciones() {
     // Formulario
@@ -260,6 +261,7 @@ export default function GestionarObservaciones() {
 
     return (
         <View style={styles.padre}>
+            <ScrollContainer />
             <Image source={bg} style={styles.bg} />
             {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
         </View>
@@ -275,11 +277,8 @@ const styles = StyleSheet.create({
     },
     bg: {
         position: 'absolute',
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
         zIndex: -1,
     },
     scroll:{
@@ -300,6 +299,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 5,
+        marginBottom: 120,
     },
     label: {
         fontSize: 18,

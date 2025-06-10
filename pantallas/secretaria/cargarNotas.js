@@ -1,16 +1,26 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert,ScrollView } from 'react-native';
+import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert,ScrollView, Platform, Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-
+import CustomAlert from '../../componente/CustomAlerts.js';
 import { obtenerMateriaPorCurso, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { registrarNotas, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
 
-
+const { width } = Dimensions.get('window');
+const isDesktop = width >= 768;
+const isWeb = Platform.OS === 'web';
 
 export default function CargarNotas() {
     
+  useEffect(() => {
+          if (isWeb) {
+          document.body.style.overflow = 'auto'; // Activar scroll en web
+        } else {
+          document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
+        }
+        }, []);
+
     /*
         FORMULARIO
     */
@@ -58,7 +68,18 @@ export default function CargarNotas() {
         cargarDatos();
     }, [formData.id_curso]);
 
-    
+     // Mensajes 
+        const [alertVisible, setAlertVisible] = useState(false);
+        const [alertTitle, setAlertTitle] = useState('');
+        const [alertMessage, setAlertMessage] = useState('');
+      
+      
+         const mostrarMensaje = (titulo, mensaje) => {
+              setAlertTitle(titulo);
+              setAlertMessage(mensaje);
+              setAlertVisible(true);
+          };
+
     /*
         CARGAMOS ALUMNOS SEGÚN EL CURSO Y MATERIA SELECCIONADOS
     */
@@ -129,11 +150,11 @@ export default function CargarNotas() {
             // Llamar al backend para registrar las notas
             const respuesta = await registrarNotas(notasParaRegistrar);
             console.log('Respuesta del servidor:', respuesta);
-            Alert.alert('Éxito', 'Las notas se registraron correctamente');
+            mostrarMensaje('¡Éxito!', 'Se registro las notas de los alumnos exitosamente');
 
         } catch (error) {
             console.log("Error detallado:", error);
-            Alert.alert('Error', `Error al registrar las notas: ${error.message}`);
+            mostrarMensaje('¡Error!', 'Error al registrar las notas ');
         }
     };
 
@@ -207,54 +228,53 @@ export default function CargarNotas() {
 
             {/* Grilla de alumnos y notas */}
             <View style={styles.grillaContainer}>
-                <ScrollView horizontal>
+                <ScrollView>
                     <View>
                         <View style={styles.headerRow}>
-                            <Text style={[styles.headerCell, {minWidth: 120}]}>Alumno</Text>
-                            {[1,2,3,4,5,6].map(num => (
-                                <Text key={`hnota${num}`} style={styles.headerCell}>{`Nota ${num}`}</Text>
-                            ))}
-                            {[1,2,3].map(num => (
-                                <Text key={`htp${num}`} style={styles.headerCell}>{`Tp ${num}`}</Text>
-                            ))}
-                            <Text style={styles.headerCell}>Aulico</Text>
+                          <Text style={styles.headerCellNombre}>Alumno</Text>
+                          {[1,2,3,4,5,6].map(num => (
+                            <Text key={`hnota${num}`} style={styles.headerCell}>{`Nota ${num}`}</Text>
+                          ))}
+                          {[1,2,3].map(num => (
+                            <Text key={`htp${num}`} style={styles.headerCell}>{`Tp ${num}`}</Text>
+                          ))}
+                          <Text style={styles.headerCell}>Aulico</Text>
                         </View>
-                        <ScrollView style={{maxHeight: 400}}>
-                            {alumnos.map((item) => (
-                                <View key={item.dni_alumno} style={styles.row}>
-                                    <Text style={[styles.cellNombre, {minWidth: 120}]} numberOfLines={1}>{item.nombre_completo}</Text>
-                                    {[1,2,3,4,5,6].map((num) => (
-                                        <TextInput 
-                                            key={num}
-                                            style={styles.inputNota}
-                                            value={item[`nota${num}`]?.toString() || ''}
-                                            inputMode="numeric"
-                                            maxLength={2}
-                                            onChangeText={(text) => validarNota(item.dni_alumno, `nota${num}`, text)}
-                                        />
-                                    ))}
-                                    {[1,2,3].map((num) => (
-                                        <TextInput 
-                                            key={`tp${num}`}
-                                            style={styles.inputNota}
-                                            value={item[`tp${num}`]?.toString() || ''}
-                                            inputMode="numeric"
-                                            maxLength={2}
-                                            onChangeText={(text) => validarNota(item.dni_alumno, `tp${num}`, text)}
-                                        />
-                                    ))}
-                                    <TextInput 
-                                        style={styles.inputNota}
-                                        value={item.aulico?.toString() || ''}
-                                        inputMode="numeric"
-                                        maxLength={2}
-                                        onChangeText={(text) => validarNota(item.dni_alumno, 'aulico', text)}
-                                    />
-                                </View>
+                        {alumnos.map((item) => (
+                          <View key={item.dni_alumno} style={styles.row}>
+                            <Text style={styles.cellNombre} numberOfLines={1}>{item.nombre_completo}</Text>
+                            {[1,2,3,4,5,6].map((num) => (
+                              <TextInput
+                                key={num}
+                                style={styles.inputNota}
+                                value={item[`nota${num}`]?.toString() || ''}
+                                inputMode="numeric"
+                                maxLength={2}
+                                onChangeText={(text) => validarNota(item.dni_alumno, `nota${num}`, text)}
+                              />
                             ))}
-                        </ScrollView>
+                            {[1,2,3].map((num) => (
+                              <TextInput
+                                key={`tp${num}`}
+                                style={styles.inputNota}
+                                value={item[`tp${num}`]?.toString() || ''}
+                                inputMode="numeric"
+                                maxLength={2}
+                                onChangeText={(text) => validarNota(item.dni_alumno, `tp${num}`, text)}
+                              />
+                            ))}
+                            <TextInput
+                              style={styles.inputNota}
+                              value={item.aulico?.toString() || ''}
+                              inputMode="numeric"
+                              maxLength={2}
+                              onChangeText={(text) => validarNota(item.dni_alumno, 'aulico', text)}
+                            />
+                          </View>
+                        ))}
                     </View>
-                </ScrollView>
+                        </ScrollView>
+              
                 <TouchableOpacity 
                     style={[styles.botonConsultar, {alignSelf: 'center', marginTop: 10, width: 180}]}
                     onPress={handleRegistrar}
@@ -262,6 +282,12 @@ export default function CargarNotas() {
                     <Text style={styles.textoBoton}>Confirmar Notas</Text>
                 </TouchableOpacity>
             </View>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+      />
         </View>
     );
 }
@@ -269,16 +295,15 @@ export default function CargarNotas() {
 const styles = StyleSheet.create({
   padre: {
     flex: 1,
-    backgroundColor: '#fafaff',
+    backgroundColor: '#f5f7fa',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center', // Centrado vertical
     position: 'relative',
   },
   bg: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    opacity: 0.13,
     zIndex: -1,
   },
 
@@ -287,22 +312,23 @@ const styles = StyleSheet.create({
     width: '97%',
     maxWidth: 1200,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 18,
-    marginTop: 24,
-    marginBottom: 18,
+    borderRadius: 18,
+    padding: 28,
+    marginTop: 36,
+    marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
+    elevation: 6,
+    alignSelf: 'center',
   },
 
   filtrosRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 14,
+    gap: 18,
     width: '100%',
   },
 
@@ -310,7 +336,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     minWidth: 320,
   },
 
@@ -318,25 +344,25 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 120,
     maxWidth: 200,
-    height: 38,
+    height: 40,
     borderWidth: 1.5,
     borderColor: '#d1d9e6',
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
     marginRight: 8,
     paddingHorizontal: 10,
-    fontSize: 15,
+    fontSize: 16,
   },
 
   // Botones
   botonesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   botonConsultar: {
-    backgroundColor: '#CED9EF',
-    borderColor: '#0500FF',
+    backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
     borderWidth: 1,
     paddingVertical: 0,
     paddingHorizontal: 18,
@@ -344,12 +370,12 @@ const styles = StyleSheet.create({
     elevation: 2,
     shadowColor: '#b6f7b6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
-    height: 38,
+    height: 40,
     justifyContent: 'center',
     marginLeft: 4,
-    minWidth: 90,
+    minWidth: 100,
   },
   botonReiniciar: {
     backgroundColor: '#ffebee',
@@ -363,17 +389,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 4,
-    height: 38,
+    height: 40,
     justifyContent: 'center',
-    minWidth: 90,
+    minWidth: 100,
   },
   textoBoton: {
-    color: '#2c3e50',
-    fontSize: 15,
+    color: '#2a3d6c',
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
     letterSpacing: 0.5,
-    lineHeight: 38,
+    lineHeight: 40,
   },
 
   // Grilla
@@ -381,52 +407,51 @@ const styles = StyleSheet.create({
     width: '97%',
     maxWidth: 1200,
     backgroundColor: '#fff',
-    borderRadius: 14,
-    marginBottom: 24,
-    paddingBottom: 12,
+    borderRadius: 16,
+    marginBottom: 32,
+    paddingBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.10,
     shadowRadius: 12,
-    elevation: 5,
+    elevation: 6,
     alignSelf: 'center',
   },
 
   headerRow: {
     flexDirection: 'row',
-    backgroundColor: '#e3f2fd',
-    paddingVertical: 10,
+    backgroundColor: '#f0f7ff',
+    paddingVertical: 12,
     paddingHorizontal: 8,
     borderBottomWidth: 1.5,
     borderBottomColor: '#b6c6e0',
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   headerCell: {
-    textAlign: 'center',
-    fontWeight: '700',
-    fontSize: 14,
-    color: '#1a237e',
-    letterSpacing: 0.5,
-    paddingHorizontal: 2,
-    // Alineación perfecta con inputs:
-    minWidth: 60,
-    flex: 1,
-  },
+  textAlign: 'center',
+  fontWeight: '700',
+  fontSize: 15,
+  color: '#2a3d6c',
+  letterSpacing: 0.5,
+  paddingHorizontal: 4,
+  minWidth: 80, // Cambia a 80 para que no se superpongan
+  flex: 1,
+},
   headerCellNombre: {
-    textAlign: 'left',
-    fontWeight: '700',
-    fontSize: 14,
-    color: '#1a237e',
-    letterSpacing: 0.5,
-    paddingHorizontal: 6,
-    minWidth: 120,
-    flex: 2,
+   textAlign: 'left',
+  fontWeight: '700',
+  fontSize: 15,
+  color: '#2a3d6c',
+  letterSpacing: 0.5,
+  paddingHorizontal: 8,
+  minWidth: 120,
+  flex: 2,
   },
 
   row: {
     flexDirection: 'row',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -438,47 +463,47 @@ const styles = StyleSheet.create({
   },
   cellNombre: {
     flex: 2,
-    paddingHorizontal: 6,
-    minWidth: 120,
-    textAlign: 'left',
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#2a3d6c',
+  paddingHorizontal: 8,
+  minWidth: 120,
+  textAlign: 'left',
+  fontSize: 15,
+  fontWeight: '500',
+  color: '#2a3d6c',
   },
 
   inputNota: {
-    flex: 1,
-    height: 32,
-    borderWidth: 1,
-    borderColor: '#b6c6e0',
-    borderRadius: 7,
-    textAlign: 'center',
-    marginHorizontal: 2,
-    backgroundColor: '#f9f9f9',
-    minWidth: 60,
-    fontSize: 14,
-    color: '#2a3d6c',
-  },
+  height: 34,
+  borderWidth: 1,
+  borderColor: '#b6c6e0',
+  borderRadius: 7,
+  textAlign: 'center',
+  marginHorizontal: 4, // Menos separación para mejor alineación
+  backgroundColor: '#f9f9f9',
+  minWidth: 80, // Igual que headerCell
+  fontSize: 15,
+  color: '#2a3d6c',
+  flex: 1,
+},
 
   // Botón confirmar
   botonConfirmar: {
-    backgroundColor: '#b6f7b6',
-    borderColor: '#33FF00',
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
     borderWidth: 1,
     paddingVertical: 10,
     paddingHorizontal: 28,
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 16,
     alignSelf: 'center',
     elevation: 3,
     shadowColor: '#CED9EF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
-    minWidth: 120,
+    minWidth: 140,
   },
   textoBotonConfirmar: {
-    color: 'black',
+    color: '#2a3d6c',
     fontSize: 17,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -543,26 +568,3 @@ const styles = StyleSheet.create({
     },
   },
 });
-
-// Constantes de colores para mantener consistencia
-export const COLORS = {
-  primary: '#4f46e5',
-  secondary: '#6366f1',
-  success: '#10b981',
-  warning: '#f59e0b',
-  error: '#ef4444',
-  gray: {
-    50: '#f9fafb',
-    100: '#f3f4f6',
-    200: '#e5e7eb',
-    300: '#d1d5db',
-    400: '#9ca3af',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
-    900: '#111827',
-  },
-  white: '#ffffff',
-  background: '#f5f7fa',
-};

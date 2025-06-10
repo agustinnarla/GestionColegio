@@ -1,13 +1,20 @@
-import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity, Dimensions, Platform,FlatList, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula';
 import CustomAlert from '../../componente/CustomAlerts.js';
-
+import ScrollContainer from '../../componente/ScrollContainer.jsx'
 import ListasDesplegables from '../../componente/ListasDesplegables';
+import { ImageBackground } from 'react-native-web';
+
+
+
 export default function LibroAula({ route }) {
+
+
+    
 
      const [formData, setFormData] = useState({
             id_materia: '',
@@ -156,13 +163,15 @@ export default function LibroAula({ route }) {
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg} />
-            <ScrollView contentContainerStyle={styles.contenidoScroll}>
+            <ScrollContainer />
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover"> 
+            <View style={styles.contenidoScroll}>
                 <View style={styles.contenidoLista}>
                     <ListasDesplegables 
                         formData={formData} 
                         handleChange={handleChange} 
                         materias={materias}
+                        showLabel={true}
                         styles={styles}
                     />
                     <ListasDesplegables 
@@ -174,7 +183,7 @@ export default function LibroAula({ route }) {
                     />
                 </View>
 
-                <Text style={styles.label}>Fecha</Text>
+                <Text style={styles.label}>Fecha:</Text>
                 <TextInput style={styles.input} 
                     placeholder='DD-MM-AAAA' 
                     keyboardType="numeric" 
@@ -182,7 +191,7 @@ export default function LibroAula({ route }) {
                     onChangeText={(value) => handleChange('fecha', value)}
                 />
 
-                <Text style={styles.label}>Clase N°</Text>
+                <Text style={styles.label}>Clase N°:</Text>
                 <TextInput style={styles.input} 
                     placeholder='0' 
                     keyboardType="numeric"
@@ -190,7 +199,7 @@ export default function LibroAula({ route }) {
                     onChangeText={(value) => handleChange('numero_clase', value)} 
                 />
 
-                <Text style={styles.label} >Unidad</Text>
+                <Text style={styles.label} >Unidad:</Text>
                 <TextInput style={styles.input} 
                     placeholder='1' 
                     keyboardType="numeric"
@@ -198,7 +207,7 @@ export default function LibroAula({ route }) {
                     onChangeText={(value) => handleChange('unidad', value)}
                 />
 
-                <Text style={styles.label}>Tema abarcado</Text>
+                <Text style={styles.label}>Tema abarcado:</Text>
                 <TextInput
                     style={[styles.input, styles.textArea]}
                     placeholder='Ingresar Tema abarcado en la clase'
@@ -215,7 +224,8 @@ export default function LibroAula({ route }) {
                         <Text style={styles.textoBoton} >Cancelar</Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
+            </ImageBackground>
             <CustomAlert
             isVisible={alertVisible}
             onClose={() => setAlertVisible(false)}
@@ -235,11 +245,8 @@ const styles = StyleSheet.create({
     },
     bg: {
         position: 'absolute', 
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
         zIndex: -1, 
     },
     contenidoScroll: {
@@ -268,7 +275,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 8,
-        marginBottom: 20,
+        marginBottom: 15,
         backgroundColor: '#fafafa',
         fontSize: 16,
     },
