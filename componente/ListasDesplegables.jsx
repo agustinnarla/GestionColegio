@@ -22,7 +22,7 @@ export function CursoSelector({ formData, handleChange, curso, styles, showLabel
 
 export function SexoSelector({ formData, handleChange, sexo, styles }) {
     const selectorConfig = {
-        label: 'Seleccione un Sexo',
+        label: 'Seleccione un Sexo:',
         selectedValue: formData.id_sexo,
         onValueChange: (value) => handleChange('id_sexo', value),
         items: [
@@ -196,7 +196,7 @@ export function LocalidadSelector({ formData, handleChange, localidad, styles })
 
 export function CaracteristicaSelector({ formData, handleChange, caracteristica_unidad, styles }) {
     const selectorConfig = {
-        label: 'Características de la unidad',
+        label: 'Seleccione la característica de la unidad:',
         selectedValue: formData.id_caracteristica_unidad,
         onValueChange: (value) => handleChange('id_caracteristica_unidad', value),
         items: [
@@ -213,7 +213,7 @@ export function CaracteristicaSelector({ formData, handleChange, caracteristica_
 
 export function TipoDeEvaluacionSelector({ formData, handleChange, tipo_de_evaluacion, styles }) {
     const selectorConfig = {
-        label: 'Seleccion un Tipo de evaluación',
+        label: 'Seleccion un Tipo de evaluación:',
         selectedValue: formData.id_tipo_de_evaluacion,
         onValueChange: (value) => handleChange('id_tipo_de_evaluacion', value),
         items: [

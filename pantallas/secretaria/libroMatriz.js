@@ -1,10 +1,22 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert } from 'react-native';
+import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert, Dimensions,Platform, ImageBackground } from 'react-native';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerLibroMatriz, obtenerLetra,imprimirLibroMatriz } from '../../scripts/secretaria/scriptLibroMatriz';
 
+
+const { width } = Dimensions.get('window');
+const isDesktop = width >= 768;
+const isWeb = Platform.OS === 'web';
+
 export default function LibroMatriz() {
 
+     useEffect(() => {
+            if (isWeb) {
+            document.body.style.overflow = 'auto'; // Activar scroll en web
+          } else {
+            document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
+          }
+          }, []);
     
     //Formulario
         const [formData, setFormData] = useState({
@@ -117,9 +129,9 @@ export default function LibroMatriz() {
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg} />
+            <ImageBackground source={bg} style={styles.bg}>
             
-            <View style={styles.contenido}>
+            <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
                 <View style={styles.filtroContainer}>
                     <Text>DNI:</Text>
                     <TextInput 
@@ -190,144 +202,208 @@ export default function LibroMatriz() {
                     </TouchableOpacity>
                 </View>
             )}
+        </ImageBackground>
         </View>
     );
 }
 
 
 const styles = StyleSheet.create({
-    padre: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-    },
-    bg: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    contenido: {
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginTop: 20,
-        width: '90%',
-        paddingHorizontal: 10,
-    },
-    contenidoBoton:{
-        flexDirection: 'row', 
-        justifyContent: 'space-between'
-    },
-    filtroContainer: {
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
-    textInput: {
-        height: 40,
-        borderColor: '#000',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        width: 150,
-        marginTop: 5,
-        textAlign: 'center',
-    },
-    botonConsultar: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#0500FF',
-        borderWidth: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 5,
-        marginHorizontal: 10, 
-        alignItems: 'center',
-    },
-    botonImprimir: {
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
-        borderWidth: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    textoBoton: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    grilla: {
-        marginTop: 20,
-        width: '90%',
-    },
-    encabezado: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        backgroundColor: '#ccc',
-    },
-    fila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-    },
-    celdaEncabezado: {
-        flex: 1,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    celdaEncabezadoPrincipal: {
-        flex: 1,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        minWidth: 50, 
-    },
-    celda: {
-        flex: 1,
-        textAlign: 'center',
-    },
-    cursosContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    botonCurso: {
-        padding: 10,
-        backgroundColor: '#007bff',
-        borderRadius: 5,
-        marginHorizontal: 10,
-    },
-    botonCursoSeleccionado: {
-        backgroundColor: '#0056b3',
-    },
-    textoBotonCurso: {
-        color: 'black',
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    contenedorBotonesAño: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginVertical: 20,
-    },
-    botonAño: {
-        padding: 10,
-        backgroundColor: '#CED9EF',
-        borderRadius: 5,
-        marginHorizontal: 20,
-    },
-    textoBotonAño: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#0500FF',
-    },
-    botonDeshabilitado: {
-        backgroundColor: '#D3D3D3', // Color para el botón deshabilitado
-        borderColor: '#A9A9A9', // Color del borde para el botón deshabilitado
-    },
+  padre: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#f5f7fa',
+    width: '100%',
+    height: '100%',  
+  },
+  bg: {
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+  },
+  scrollViewDesktop: {
+    width: '100%',
+    flex: 1,
+
+  },
+  scrollViewMobile: {
+    width: '100%',
+    flex: 1,
+  },
+  scrollContainerDesktop: {
+    width: '100%',
+    alignItems: 'center'
+  },
+  scrollContainerMobile: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 80,
+  },
+  filtroContainer: {
+  flexDirection: 'column',
+  alignItems: 'center',
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  padding: 18,
+  marginTop: 30,
+  marginBottom: 18,
+  borderWidth: 1,
+  borderColor: '#e1e8ed',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.06,
+  shadowRadius: 6,
+  elevation: 2,
+  },
+  textInput: {
+   marginTop: 10,
+    height: 40,
+    borderColor: '#746BC8',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    width: 170,
+    marginTop: 8,
+    backgroundColor: '#f9fafb',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  contenidoBoton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center', 
+  gap: 16,
+  marginBottom: 18,
+},
+  botonConsultar: {
+    backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 8,
+    marginHorizontal: 8,
+    alignItems: 'center',
+    minWidth: 110,
+    elevation: 2,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+  },
+  botonImprimir: {
+    backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 8,
+    alignItems: 'center',
+    minWidth: 110,
+    elevation: 2,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+  },
+  textoBoton: {
+    color: '#2c3e50',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  imprimir: {
+    color: '#2c3e50',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  grilla: {
+    marginTop: 24,
+    width: '92%',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+    shadowColor: '#000',
+      maxWidth: 1200,
+    alignSelf: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    paddingBottom: 10,
+    marginBottom: 18,
+  },
+  encabezado: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    backgroundColor: '#f0f7ff',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e8ed',
+  },
+  fila: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  celdaEncabezado: {
+    flex: 1,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#2a3d6c',
+    fontSize: 15,
+  },
+  celda: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#374151',
+    fontSize: 14,
+  },
+  contenedorBotonesAño: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 18,
+    gap: 18,
+  },
+  botonAño: {
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    backgroundColor: '#f0f7ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#746BC8',
+    marginHorizontal: 10,
+    elevation: 2,
+    shadowColor: '#CED9EF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+  },
+  textoBotonAño: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#746BC8',
+    textAlign: 'center',
+  },
+  textoAño: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2a3d6c',
+    marginHorizontal: 8,
+    textAlign: 'center',
+  },
+  botonDeshabilitado: {
+    backgroundColor: '#e5e7eb',
+    borderColor: '#cbd5e1',
+    opacity: 0.7,
+  },
 });

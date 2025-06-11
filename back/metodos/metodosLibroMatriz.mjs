@@ -17,7 +17,7 @@ export const obtenerLibroMatriz = async (req, res) => {
             INNER JOIN estado_evaluativo AS ev ON ev.id_estado_evaluativo = am.id_estado_evaluativo
             INNER JOIN curso AS c ON c.id_curso = am.id_curso
             INNER JOIN alumno_curso AS ac ON ac.dni_alumno = am.dni_alumno AND ac.id_curso = am.id_curso
-            WHERE am.dni_alumno = $1
+            WHERE am.dni_alumno = $1 AND am.id_estado_evaluativo = 1
             ORDER BY c.id_curso DESC`,
             [dni_alumno]
         );

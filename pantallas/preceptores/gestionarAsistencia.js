@@ -386,124 +386,135 @@ export default function GestionarAsistencia(){
 }
 
 const styles = StyleSheet.create({
-    padre:{
+    padre: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#f5f7fa',
     },
-    bg:{
+    bg: {
         position: 'absolute',
         width: '100%',
         height: '100%',
+        opacity: 0.13,
+        zIndex: -1,
     },
-    lista:{
-        width: '100%',
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
+    container: {
+        width: '95%',
+        maxWidth: 420,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 32,
+        marginTop: 36,
+        marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.10,
+        shadowRadius: 12,
+        elevation: 6,
+        alignItems: 'center',
+        alignSelf: 'center',
     },
-    busqueda:{
+    busqueda: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#f2f2f2',
-        borderRadius: 5,
-        width: '90%',
-        padding: 10,
-        marginBottom: 20,
+        borderRadius: 8,
+        width: '100%',
+        padding: 12,
+        marginBottom: 18,
+        marginTop: 8,
     },
-    textBusqueda:{
+    textBusqueda: {
         flex: 1,
         marginLeft: 10,
         fontSize: 16,
+        color: '#2a3d6c',
     },
-    listaEstudiantes:{
-        width: '90%',
+    listaEstudiantes: {
+        width: '100%',
         marginTop: 10,
+        maxHeight: 320,
+        borderRadius: 10,
+        backgroundColor: '#f9f9f9',
+        paddingHorizontal: 4,
     },
-    filaEstudiantes:{
+    filaEstudiantes: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 10,
-        borderBottomWidth: 1,   
-        borderBottomColor: '#ddd',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+        backgroundColor: '#fff',
+        borderRadius: 6,
+        marginBottom: 2,
+        paddingHorizontal: 8,
     },
-    estudiante:{
-        fontSize: 18,
+    estudiante: {
+        fontSize: 16,
+        color: '#374151',
+        flex: 1,
+    },
+    contenedorTexto: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 10,
+        marginBottom: 2,
+        paddingHorizontal: 8,
+    },
+    texto: {
+        fontWeight: 'bold',
+        color: '#2a3d6c',
+        fontSize: 15,
     },
     contenedorBotones: {
         flexDirection: 'row',
         justifyContent: 'space-evenly',
-        width: '90%',
-        marginTop: 20,
-        marginBottom: 60,
+        width: '100%',
+        marginTop: 24,
+        marginBottom: 36,
+        gap: 10,
     },
     modificar: {
-        backgroundColor: '#CED9EF',
+        backgroundColor: '#e0e7ff',
         paddingVertical: 12,
         paddingHorizontal: 20,
-        borderRadius: 5,
-        borderColor: '#0500FF',
-        borderWidth: 0.4,
+        borderRadius: 8,
+        borderColor: '#746BC8',
+        borderWidth: 1,
         alignItems: 'center',
-        shadowColor: '#BAAFFF',
-        shadowOffset: {
-            width: 5,
-            height: 5,
-        },
-        shadowOpacity: 0.71,
-        shadowRadius: 6,
-        elevation: 4,
+        elevation: 2,
+        minWidth: 90,
     },
     enviar: {
-        backgroundColor: '#D5EFCE',
+        backgroundColor: '#e8f5e9',
         paddingVertical: 12,
         paddingHorizontal: 20,
-        borderRadius: 5,
-        borderColor: '#1FB741',
-        borderWidth: 0.4,
+        borderRadius: 8,
+        borderColor: '#4caf50',
+        borderWidth: 1,
         alignItems: 'center',
-        shadowColor: '#B6FFCA',
-        shadowOffset: {
-            width: 5,
-            height: 5,
-        },
-        shadowOpacity: 0.71,
-        shadowRadius: 6,
-        elevation: 4,
+        elevation: 2,
+        minWidth: 90,
     },
     exportar: {
-        backgroundColor: '#CED9EF',
+        backgroundColor: '#fff8e1',
         paddingVertical: 12,
         paddingHorizontal: 20,
-        borderRadius: 5,
-        borderColor: '#0500FF',
-        borderWidth: 0.4,
+        borderRadius: 8,
+        borderColor: '#ffb300',
+        borderWidth: 1,
         alignItems: 'center',
-        shadowColor: '#BAAFFF',
-        shadowOffset: {
-            width: 5,
-            height: 5,
-        },
-        shadowOpacity: 0.71,
-        shadowRadius: 6,
-        elevation: 4,
+        elevation: 2,
+        minWidth: 90,
     },
-    contenedorTexto:{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '80%',
-    },
-    texto:{
-       fontWeight:'bold'
-    },
-    botonTexto:{
-        color: 'black',
+    botonTexto: {
+        color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
+        textAlign: 'center',
     },
     modalOverlay: {
         flex: 1,
@@ -512,26 +523,30 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        width: '80%',
-        padding: 20,
+        width: '90%',
+        maxWidth: 400,
+        padding: 24,
         backgroundColor: 'white',
-        borderRadius: 10,
+        borderRadius: 14,
         alignItems: 'center',
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
+        color: '#2a3d6c',
     },
     alumnoItem: {
         fontSize: 16,
         marginVertical: 5,
+        color: '#374151',
     },
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 20,
         width: '100%',
+        gap: 10,
     },
     mensajeOverlay: {
         position: 'absolute',
@@ -541,8 +556,8 @@ const styles = StyleSheet.create({
         bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo semitransparente
-        zIndex: 10, // Asegura que aparezca sobre otros elementos
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 10,
     },
     mensajeConfirmacion: {
         backgroundColor: '#28A745',
@@ -556,15 +571,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: 'center',
     },
-    lista: {
-        height: 50,
+    picker: {
         width: '100%',
+        backgroundColor: '#f9f9f9',
+        borderRadius: 8,
+        borderColor: '#b6c6e0',
+        borderWidth: 1.5,
+        marginBottom: 16,
+        color: '#2a3d6c',
     },
-    cursoConAsistencia: {
-        color: '#2b9f7e', // Verde pastel
-    },
-    cursoSinAsistencia: {
-        color: '#000000', // Negro por defecto
-    }
-    
-})
+});
