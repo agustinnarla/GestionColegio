@@ -58,7 +58,7 @@ export function MateriaPorProfesor({ formData, handleChange, materia, styles, sh
 
 export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) {
     const selectorConfig = {
-        label: 'Etapas evaluativa',
+        label: 'Seleccione una etapa evaluativa',
         selectedValue: formData.id_etapas,
         onValueChange: (value) => handleChange('id_etapas', value),
         items: [
@@ -128,7 +128,7 @@ export function ProfesionalSelector({ formData, handleChange, profesionales, sty
 
 export function SolicitanteSelector({ formData, handleChange, solicitantes, styles }) {
     const selectorConfig = {
-        label: 'Solicitante',
+        label: 'Seleccione un solicitante:',
         selectedValue: formData.id_solicitante,
         onValueChange: (value) => handleChange('id_solicitante', value),
         items: [
@@ -145,7 +145,7 @@ export function SolicitanteSelector({ formData, handleChange, solicitantes, styl
 
 export function EstadoSelector({ formData, handleChange, estado_general, styles }) {
     const selectorConfig = {
-        label: 'Estado General',
+        label: 'Seleccione un estado general:',
         selectedValue: formData.id_estado_general,
         onValueChange: (value) => handleChange('id_estado_general', value),
         items: [
@@ -162,7 +162,7 @@ export function EstadoSelector({ formData, handleChange, estado_general, styles 
 
 export function RolesSelector({ formData, handleChange, roles, styles }) {
     const selectorConfig = {
-        label: 'Roles',
+        label: 'Seleccione un rol:',
         selectedValue: formData.id_rol,
         onValueChange: (value) => handleChange('id_rol', value),
         items: [
@@ -179,7 +179,7 @@ export function RolesSelector({ formData, handleChange, roles, styles }) {
 
 export function LocalidadSelector({ formData, handleChange, localidad, styles }) {
     const selectorConfig = {
-        label: 'Localidad',
+        label: 'Seleccione una localidad:',
         selectedValue: formData.id_localidad,
         onValueChange: (value) => handleChange('id_localidad', value),
         items: [

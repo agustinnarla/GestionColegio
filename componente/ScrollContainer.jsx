@@ -1,32 +1,23 @@
-import React, { useEffect } from 'react';
-import { ScrollView, Platform } from 'react-native';
+import { useEffect } from 'react';
+import { Platform, Dimensions } from 'react-native';
 
-const ScrollContainer = ({ children, style }) => {
-  const isWeb = Platform.OS === 'web';
-
+export default function ScrollContainer({ desktopMinWidth = 768 }) {
   useEffect(() => {
+    const { width } = Dimensions.get('window');
+    const isWeb = Platform.OS === 'web';
+    const isDesktop = width >= desktopMinWidth;
+
     if (isWeb) {
       document.body.style.overflow = 'auto';
     } else {
       document.body.style.overflow = 'hidden';
     }
-  }, []);
 
-  if (isWeb) {
-    // Solo pasá height, width y padding como CSS plano
-    const webStyle = {
-      overflowY: 'auto',
-      height: '100%',
-      width: '100%'
+    // Limpieza al desmontar
+    return () => {
+      if (isWeb) document.body.style.overflow = '';
     };
-    return <div style={webStyle}>{children}</div>;
-  }
+  }, [desktopMinWidth]);
 
-  return (
-    <ScrollView style={style} contentContainerStyle={{ flexGrow: 1 }}>
-      {children}
-    </ScrollView>
-  );
-};
-
-export default ScrollContainer;
+  return null;
+}

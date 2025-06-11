@@ -18,8 +18,6 @@ export default function GestionarAmonestaciones() {
     
     const Content = (
         
-  
-
         <View style={styles.contenido}>
             <ListasDesplegables 
                 formData={formData} 
@@ -91,7 +89,6 @@ export default function GestionarAmonestaciones() {
             message={alertMessage}
             />
         </View>
-        
     );
 
     return (

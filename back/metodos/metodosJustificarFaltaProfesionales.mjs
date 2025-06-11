@@ -36,7 +36,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
 
  
   export const registrarJustificacionProfesionales = async (req, res) => {
-    const { id_estado_falta, dni_profesional, id_certificado, fecha } = req.body;
+    const { id_estado_falta_profesional, dni_profesional, id_certificado, fecha } = req.body;
     
     try {
         // Primero verificamos si ya existe una entrada con el mismo dni_profesional y fecha
@@ -48,12 +48,12 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
         if (existe.rows.length > 0) {
             // Si existe, obtenemos los datos actuales
             const registroExistente = existe.rows[0];
-            let estadofaltaActual = registroExistente.id_estadofalta;
+            let estadofaltaActual = registroExistente.id_estado_falta_profesional;
             let certificadoActual = registroExistente.id_certificado;
 
             // Verificamos si id_estado_falta ha cambiado
-            if (id_estado_falta !== estadofaltaActual && id_estado_falta != null) {
-                estadofaltaActual = id_estado_falta;
+            if (id_estado_falta_profesional !== estadofaltaActual && id_estado_falta_profesional != null) {
+                estadofaltaActual = id_estado_falta_profesional;
             }
 
             // Verificamos si id_certificado ha cambiado
@@ -62,7 +62,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             }
 
             // Si no se realizaron cambios, devolvemos un mensaje sin actualizar
-            if (estadofaltaActual === registroExistente.id_estado_falta && 
+            if (estadofaltaActual === registroExistente.id_estado_falta_profesional && 
                 certificadoActual === registroExistente.id_certificado) {
                 console.log("No se realizaron cambios en la justificación profesionales");
                 return res.status(200).json({ justificado: "No se realizaron cambios" });
@@ -90,7 +90,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             const respuesta = await pool.query(
                 "INSERT INTO justificar_falta_profesionales (id_estado_falta_profesional, dni_profesional, id_certificado, fecha) " +
                 "VALUES ($1, $2, $3, $4) RETURNING *", 
-                [id_estado_falta, dni_profesional, id_certificado, fecha]
+                [id_estado_falta_profesional, dni_profesional, id_certificado, fecha]
             );
             console.log("Nuevo registro profesionales insertado");
             res.status(200).json({ justificado: respuesta.rows[0] });
