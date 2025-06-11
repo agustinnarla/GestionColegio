@@ -56,6 +56,8 @@ export const obtenerAlumnosNoRegulares = async (req, res) => {
                 a.nombre,
                 a.apellido,
                 am.dni_alumno,
+                am.id_materia, -- Incluye el ID de la materia
+                ac.id_curso, -- Incluye el ID del curso
                 m.detalle AS detalle_materia,
                 c.detalle AS detalle_curso
             FROM 
@@ -111,7 +113,7 @@ export const registrarNotaFinal = async (req, res) => {
         `, [id_curso, id_materia, dni_profesional, dni_alumno, nota_final]);
 
         res.status(201).json({
-            mensaje: "Nota registrada con éxito",
+            mensaje: 'Nota registrada con éxito',
             id_nota_final: respuesta.rows[0].id_nota_final
         });
     } catch (error) {

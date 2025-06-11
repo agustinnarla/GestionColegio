@@ -3,21 +3,26 @@ import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosPorCursoYMateria, agregarNota, modificarEstadoEvaluativo } from '../../scripts/profesor/scriptCargarNotaFinal';
+import { agregarNota, modificarEstadoEvaluativo } from '../../scripts/profesor/scriptCargarNotaFinal';
+import { obtenerCursoPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosNoRegulares } from '../../scripts/listasDesplegables/listaDesplegable';
 
 export default function CargarNotasFinal({route}) {
     const [datos, setDatos] = useState([]);
     const [notas, setNotas] = useState({});
     const [rolesSeleccionados, setRolesSeleccionados] = useState([]);
     const [cursos, setCursos] = useState([]);
-    const [cursosSeleccionados, setCursosSeleccionados] = useState([]);
+    const [cursosSeleccionados, setCursosSeleccionados] = useState([]); // Estado para los cursos seleccionados
+    const [cursoSeleccionado, setCursoSeleccionado] = useState(null); // Estado para un curso único seleccionado
     const [materias, setMaterias] = useState([]);
-    const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
+    const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]); // Debe contener los ID de las materias seleccionadas    const [modalVisible, setModalVisible] = useState(false);
     const [notasAEnviar, setNotasAEnviar] = useState([]);
 
     const consultarDatos = () => {
-        cargarAlumnosFiltrados();
+        console.log("Consultando datos con filtros:");
+        console.log("Cursos seleccionados:", cursosSeleccionados);
+        console.log("Materias seleccionadas:", materiasSeleccionadas);
+        cargarAlumnosFiltrados(); // Llama al método que aplica el filtro
     };
 
     const { dni_usuario } = route.params;
@@ -31,31 +36,29 @@ export default function CargarNotasFinal({route}) {
 
     const cargarAlumnosFiltrados = async () => {
         try {
-            // Obtener todos los alumnos del profesor (sin filtrar aún)
-            const todosLosAlumnos = await obtenerAlumnosPorCursoYMateria(dni_usuario);
-            
-            console.log("Todos los alumnos:", todosLosAlumnos);
-            console.log("Cursos seleccionados:", cursosSeleccionados);
-            console.log("Materias seleccionadas:", materiasSeleccionadas);
+            const respuesta = await obtenerAlumnosNoRegulares(dni_usuario);
+            const todosLosAlumnos = respuesta.alumnos || []; // Accede a la propiedad "alumnos" o usa un array vacío si no está definido
+    
+            console.log("Todos los alumnos:", todosLosAlumnos); // Verifica el formato aquí
+    
+            if (!Array.isArray(todosLosAlumnos)) {
+                throw new Error("El formato de todosLosAlumnos no es un array");
+            }
     
             // Filtrar localmente según las selecciones
             const alumnosFiltrados = todosLosAlumnos.filter(alumno => {
-                // Verificar filtro de cursos (si hay selección)
                 const cumpleCurso = cursosSeleccionados.length === 0 || 
-                                  cursosSeleccionados.includes(alumno.id_curso.toString());
-                
-                // Verificar filtro de materias (si hay selección)
+                                    cursosSeleccionados.includes(alumno.id_curso?.toString());
                 const cumpleMateria = materiasSeleccionadas.length === 0 || 
-                                    materiasSeleccionadas.includes(alumno.id_materia.toString());
-                
-                return cumpleCurso && cumpleMateria;
+                                      materiasSeleccionadas.includes(alumno.id_materia?.toString());
+                return cumpleCurso && cumpleMateria; // Filtra por curso y materia
             });
     
             console.log("Alumnos filtrados:", alumnosFiltrados);
     
             // Mapear los datos al formato necesario
             const datosFiltrados = alumnosFiltrados.map((alumno) => ({
-                id: alumno.dni_alumno?.toString(), // Usar dni_alumno en lugar de id_alumno
+                id: alumno.dni_alumno?.toString(),
                 id_materia: alumno.id_materia?.toString(),
                 materia: alumno.detalle_materia,
                 nombre: `${alumno.nombre} ${alumno.apellido}`,
@@ -63,16 +66,8 @@ export default function CargarNotasFinal({route}) {
                 id_curso: alumno.id_curso?.toString()
             }));
     
-            setDatos(datosFiltrados);
-    
-            // Inicializar notas manteniendo las existentes
-            const nuevasNotas = {};
-            datosFiltrados.forEach(alumno => {
-                const key = `${alumno.id}-${alumno.id_materia}`;
-                nuevasNotas[key] = notas[key] || { nota_final: '' };
-            });
-            setNotas(nuevasNotas);
-    
+            setDatos(datosFiltrados); // Actualiza el estado con los datos filtrados
+            console.log("Datos filtrados:", datosFiltrados); // Verifica los datos filtrados
         } catch (error) {
             console.error("Error al cargar alumnos filtrados:", error);
             Alert.alert("Error", "No se pudieron cargar los datos filtrados");
@@ -87,7 +82,7 @@ export default function CargarNotasFinal({route}) {
 
     const cargarCursosPorProfesor = async () => {
         try {
-            const data = await obtenerCursosPorProfesor(dni_usuario);
+            const data = await obtenerCursoPorProfesor(dni_usuario);
             console.log("DATA RECIBIDA:", data);
             setCursos(data.cursos);
         } catch (error) {
@@ -102,10 +97,10 @@ export default function CargarNotasFinal({route}) {
     
             if (data && data.materias) {
                 const materiasFormateadas = data.materias.map(materia => ({
-                    key: materia.id_materia.toString(),
-                    value: materia.detalle
+                    key: materia.id_materia.toString(), // Clave única para el MultipleSelectList
+                    value: materia.detalle // Nombre de la materia
                 }));
-                setMaterias(materiasFormateadas);
+                setMaterias(materiasFormateadas); // Actualiza el estado con las materias formateadas
             }
         } catch (error) {
             console.error("Error al cargar materias del profesor:", error);
@@ -130,43 +125,41 @@ export default function CargarNotasFinal({route}) {
         }));
     };
 
+    const handleCursoChange = (curso) => {
+        setCursoSeleccionado(curso); // Actualiza el estado del curso seleccionado
+        console.log("Curso seleccionado:", curso);
+    };
+
     const prepararEnvio = () => {
-        // 1. Obtener solo las notas modificadas
         const notasParaEnviar = datos
             .map(alumno => {
                 const key = `${alumno.id}-${alumno.id_materia}`;
                 const notaActual = notas[key]?.nota_final?.trim() || '';
-                
-                // Solo incluir si la nota fue modificada y no está vacía
+    
                 if (notaActual === '' || notaActual === alumno.nota_original) {
                     return null;
                 }
     
                 return {
-                    dni_alumno: alumno.id, // Cambiado de id_alumno a dni_alumno
+                    id_curso: alumno.id_curso,
                     id_materia: alumno.id_materia,
-                    id_curso: alumno.id_curso, // Añadido campo requerido
-                    dni_profesor: dni_usuario, // Añadido campo requerido
-                    nombre: alumno.nombre,
-                    materia: alumno.materia,
-                    nota_final: notaActual
+                    dni_profesional: dni_usuario,
+                    dni_alumno: alumno.id,
+                    nota_final: Number(notaActual),
+                    nombre: alumno.nombre // 👉 agregamos nombre para mostrarlo en errores
                 };
             })
             .filter(Boolean);
     
         console.log("Notas modificadas para enviar:", notasParaEnviar);
     
-        // Si no hay notas para enviar
         if (notasParaEnviar.length === 0) {
             Alert.alert("Aviso", "No hay notas modificadas para enviar.");
             return;
         }
     
-        // Validación
         const algunaNotaInvalida = notasParaEnviar.some(nota => {
-            const valor = nota.nota_final;
-            const numero = Number(valor);
-            return isNaN(numero) || numero < 1 || numero > 10;
+            return isNaN(nota.nota_final) || nota.nota_final < 1 || nota.nota_final > 10;
         });
     
         if (algunaNotaInvalida) {
@@ -177,44 +170,42 @@ export default function CargarNotasFinal({route}) {
         setNotasAEnviar(notasParaEnviar);
         setModalVisible(true);
     };
+    
+    
 
     const confirmarEnvio = async () => {
         try {
-            if (!notasAEnviar || notasAEnviar.length === 0) {
-                Alert.alert("Error", "No hay notas para enviar");
-                return;
-            }
-    
             const resultados = [];
             const errores = [];
-            
-            for (const nota of notasAEnviar) {
-                // Validación completa de campos requeridos
-                if (!nota.dni_alumno || !nota.id_materia || !nota.nota_final || !nota.id_curso) {
-                    const errorMsg = `Faltan datos requeridos para ${nota.nombre}`;
-                    console.error("Datos incompletos:", nota);
-                    errores.push(errorMsg);
-                    continue;
-                }
     
+            for (const nota of notasAEnviar) {
                 try {
-                    const resultado = await agregarNota({
-                        id_curso: nota.id_curso, // Usamos el id_curso de la nota
-                        id_materia: nota.id_materia,
-                        dni_profesor: dni_usuario, // Usamos dni_usuario del route.params
-                        dni_alumno: nota.dni_alumno,
-                        notafinal: nota.nota_final
-                    });
-                    
+                    // Validar que todos los campos están presentes
+                    if (!nota.id_curso || !nota.id_materia || !nota.dni_profesional || !nota.dni_alumno || nota.nota_final === undefined || !nota.nombre) {
+                        throw new Error('Faltan campos requeridos');
+                    }
+            
+                    // Convertir los valores al tipo correcto
+                    const notaParaEnviar = {
+                        id_curso: Number(nota.id_curso), // Convertir a número
+                        id_materia: Number(nota.id_materia), // Convertir a número
+                        dni_profesional: String(nota.dni_profesional), // Asegurarse de que sea cadena
+                        dni_alumno: String(nota.dni_alumno), // Asegurarse de que sea cadena
+                        nota_final: Number(nota.nota_final) // Convertir a número
+                    };
+            
+                    // Enviar nota al backend
+                    console.log(notaParaEnviar)
+                    const resultado = await agregarNota(notaParaEnviar);
                     resultados.push(resultado);
-                    
+            
                     // Actualizar estado evaluativo
                     await modificarEstadoEvaluativo({
-                        dni_alumno: nota.dni_alumno,
-                        id_materia: nota.id_materia
+                        dni_alumno: notaParaEnviar.dni_alumno,
+                        id_materia: notaParaEnviar.id_materia
                     });
                 } catch (error) {
-                    const errorMsg = `Error al procesar nota para ${nota.nombre}: ${error.message}`;
+                    const errorMsg = `Error al procesar nota para ${nota.nombre || 'undefined'}: ${error.message}`;
                     console.error(errorMsg);
                     errores.push(errorMsg);
                 }
@@ -239,7 +230,6 @@ export default function CargarNotasFinal({route}) {
             Alert.alert("Error", "Ocurrió un problema al enviar las notas");
         }
     };
-
     const renderItem = ({ item }) => {
         const key = `${item.id}-${item.id_materia}`;
         const nota = notas[key] || { nota_final: '' };
@@ -270,49 +260,36 @@ export default function CargarNotasFinal({route}) {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.filtrosContainer}>
                     <View style={styles.filtroGroup}>
-                        <MultipleSelectList
+                    <MultipleSelectList
                             setSelected={(val) => {
                                 console.log("Cursos seleccionados:", val);
-                                setCursosSeleccionados(val);
-                                // Si solo se selecciona un curso, actualizar cursoSeleccionado
-                                if (val.length === 1) {
-                                    setCursoSeleccionado(val[0]);
-                                } else {
-                                    setCursoSeleccionado(null);
-                                }
+                                setCursosSeleccionados(val); // Actualiza el estado con los cursos seleccionados
                             }}
                             data={cursos.map(curso => ({
-                                key: curso.id_curso.toString(),
-                                value: `${curso.detalle}`
+                                key: curso.id_curso?.toString() || '', // Clave única para cada curso
+                                value: curso.detalle || 'Sin detalle' // Nombre del curso
                             }))}
                             save="key"
-                            label="Cursos (opcional)"
-                            placeholder="Todos los cursos"
+                            label="Cursos"
+                            placeholder="Seleccionar cursos"
                             boxStyles={styles.dropdown}
                             dropdownTextStyles={styles.dropdownText}
-                            searchPlaceholder="Buscar cursos..."
-                            notFoundText="No se encontraron cursos"
                         />
                     </View>
 
                     <View style={styles.filtroGroup}>
-                        <MultipleSelectList
-                            setSelected={(val) => {
-                                console.log("Materias seleccionadas:", val);
-                                setMateriasSeleccionadas(val);
-                            }}
-                            data={materias.map(materia => ({
-                                key: materia.key, // id_materia como string
-                                value: `${materia.value}` // Muestra ID para referencia
-                            }))}
-                            save="key"
-                            label="Materias (opcional)"
-                            placeholder="Todas las materias"
-                            boxStyles={styles.dropdown}
-                            dropdownTextStyles={styles.dropdownText}
-                            searchPlaceholder="Buscar materias..."
-                            notFoundText="No se encontraron materias"
-                        />
+                    <MultipleSelectList
+                        setSelected={(val) => {
+                            console.log("Materias seleccionadas:", val);
+                            setMateriasSeleccionadas(val); // Actualiza el estado con los ID de las materias seleccionadas
+                        }}
+                        data={materias} // Usa el estado `materias` directamente
+                        save="key" // Clave que se guardará en el estado
+                        label="Materias"
+                        placeholder="Seleccionar materias"
+                        boxStyles={styles.dropdown}
+                        dropdownTextStyles={styles.dropdownText}
+                    />
                     </View>
                     <View style={styles.botonesContainer}>
                         <TouchableOpacity style={styles.botonConsultar} onPress={consultarDatos}>
