@@ -9,7 +9,7 @@ import { registrarRolTarea, registrarTareaRol} from '../../scripts/admin/scriptT
 import { Picker } from '@react-native-picker/picker';
 
 export default function CargarTareas() {
-    const [rolesDisponibles, setRolesDisponibles] = useState([]); // Roles disponibles
+    const [rolesDisponibles, setRolesDisponibles] = useState([]); // Lista de roles disponibles
     const [selectedRoles, setSelectedRoles] = useState([]); // Roles seleccionados
     const [tareasDisponibles, setTareasDisponibles] = useState([]); // Tareas disponibles
     const [selectedTarea, setSelectedTarea] = useState(''); // Tarea seleccionada (para el Picker)
@@ -43,13 +43,13 @@ export default function CargarTareas() {
         try {
             const rolesObtenidos = await obtenerRoles();
             console.log('Roles obtenidos:', rolesObtenidos);
-
-            if (rolesObtenidos && Array.isArray(rolesObtenidos.roles)) {
-                const rolesFormateados = rolesObtenidos.roles.map((rol) => ({
-                    key: rol.id_rol?.toString(),
-                    value: rol.detalle,
+    
+            if (rolesObtenidos && Array.isArray(rolesObtenidos)) {
+                const rolesFormateados = rolesObtenidos.map((rol) => ({
+                    id: rol.id_rol?.toString(), // Clave única para el MultiSelect
+                    name: rol.detalle, // Usa `detalle` como el texto visible
                 }));
-                setRolesDisponibles(rolesFormateados); // Guardar los roles disponibles
+                setRolesDisponibles(rolesFormateados); // Actualiza el estado con los roles formateados
             } else {
                 console.error('El formato de roles obtenidos no es válido:', rolesObtenidos);
             }
@@ -72,10 +72,11 @@ export default function CargarTareas() {
     const cargarRolesTareas = async (id_tarea) => {
         try {
             const data = await obtenerRolesDeTarea(id_tarea); // Obtener los roles asociados a la tarea
+            console.log('Roles obtenidos para la tarea:', data);
     
             // Verificar si la respuesta es un objeto con la propiedad "roles" que es un array
             if (data && Array.isArray(data.roles)) {
-                const rolesSeleccionados = data.roles.map((idRol) => idRol.toString()); // Convertir a strings
+                const rolesSeleccionados = data.roles.map((rol) => rol.id_rol.toString()); // Convertir IDs a strings
                 setSelectedRoles(rolesSeleccionados); // Actualizar los roles seleccionados
             } else {
                 console.error('El formato de roles obtenidos no es válido:', data);
@@ -300,25 +301,22 @@ export default function CargarTareas() {
                 </Modal>
                 <Text style={styles.subtitulo}>Roles asignables a las Tareas</Text>
                 <MultiSelect
-                    items={rolesDisponibles}
-                    uniqueKey="key"
-                    onSelectedItemsChange={(selectedItems) => setSelectedRoles(selectedItems)}
-                    selectedItems={selectedRoles}
-                    selectText="Seleccionar Roles"
-                    searchInputPlaceholderText="Buscar..."
-                    tagRemoveIconColor="#CCC"
-                    tagBorderColor="#CCC"
-                    tagTextColor="#CCC"
-                    selectedItemTextColor="#CCC"
-                    selectedItemIconColor="#CCC"
-                    itemTextColor="#000"
-                    displayKey="value"
-                    searchInputStyle={{ color: '#CCC' }}
-                    submitButtonColor="#CCC"
+                    items={rolesDisponibles} // Lista de roles disponibles
+                    uniqueKey="id" // Clave única para cada rol
+                    onSelectedItemsChange={setSelectedRoles} // Actualiza los roles seleccionados
+                    selectedItems={selectedRoles} // Roles seleccionados
+                    selectText="Seleccionar roles"
+                    searchInputPlaceholderText="Buscar roles..."
+                    displayKey="name" // Clave para mostrar el nombre del rol
+                    submitButtonColor="#48d22b"
                     submitButtonText="Seleccionar"
+                    styleDropdownMenu={styles.dropdown}
                 />
                 <Text style={styles.seleccionadas}>
-                    Roles seleccionados: {selectedRoles.map(key => rolesDisponibles.find(role => role.key === key)?.value).filter(Boolean).join(', ')}
+                    Roles seleccionados: {selectedRoles.map(id => {
+                        const rol = rolesDisponibles.find(r => r.id === id);
+                        return rol ? rol.name : null;
+                    }).filter(Boolean).join(', ')}
                 </Text>
                 <View style={styles.contenidoBoton}>
                     <TouchableOpacity style={styles.botonRegistrar} onPress={cargarRolTarea}>

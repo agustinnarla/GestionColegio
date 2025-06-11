@@ -5,10 +5,10 @@ const api_urlModificarEstado = 'http://localhost:5000/profesor/nota_final/estado
 
 
 // 🟢
-export const agregarNota = async ({ id_curso, id_materia, dni_profesor, dni_alumno, notafinal }) => {
+export const agregarNota = async ({ id_curso, id_materia, dni_profesional, dni_alumno, nota_final }) => {
     try {
         // Validación antes de enviar
-        if (!id_curso || !id_materia || !dni_profesor || !dni_alumno || !notafinal) {
+        if (!id_curso || !id_materia || !dni_profesional || !dni_alumno || nota_final === undefined) {
             throw new Error('Faltan campos requeridos');
         }
 
@@ -18,11 +18,11 @@ export const agregarNota = async ({ id_curso, id_materia, dni_profesor, dni_alum
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                id_curso: Number(id_curso),
-                id_materia: Number(id_materia),
-                dni_profesor: String(dni_profesor),
-                dni_alumno: String(dni_alumno),
-                notafinal: Number(notafinal)
+                id_curso: Number(id_curso), // Convertir a número
+                id_materia: Number(id_materia), // Convertir a número
+                dni_profesional: String(dni_profesional), // Convertir a cadena
+                dni_alumno: String(dni_alumno), // Convertir a cadena
+                nota_final: Number(nota_final) // Convertir a número
             })
         });
 

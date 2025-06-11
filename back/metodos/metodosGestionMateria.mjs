@@ -113,7 +113,7 @@ export const obtenerProfesorPorMateria = async (req, res) => {
 
     try {
         const respuesta = await pool.query(
-            'SELECT dni_usuario FROM materia_profesor WHERE id_materia = $1',
+            'SELECT dni_profesional FROM materia_profesor WHERE id_materia = $1',
             [id_materia]
         );
 

@@ -4,8 +4,8 @@ import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
-import { obtenerMateria, obtenerProfesorPorMateria, obtenerMateriasDeshabilitadas, obtenerProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { registrarMateriaProfesor, deshabilitarMateria, registrarMateria, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
+import { obtenerMateria, obtenerProfesor, obtenerProfesorPorMateria, obtenerMateriasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import CustomAlert from '../../componente/CustomAlerts';
 
 export default function GestionarMaterias() {
@@ -30,13 +30,15 @@ export default function GestionarMaterias() {
 
     const cargarMaterias = async () => {
         try {
-            const materiasObtenidas = await obtenerMaterias();
-            if (materiasObtenidas && Array.isArray(materiasObtenidas.materias)) {
-                const materiasFormateadas = materiasObtenidas.materias.map((materia) => ({
-                    key: materia.id_materia.toString(),
-                    value: materia.detalle,
+            const materiasObtenidas = await obtenerMateria();
+            console.log('Materias obtenidas:', materiasObtenidas);
+    
+            if (materiasObtenidas && Array.isArray(materiasObtenidas)) {
+                const materiasFormateadas = materiasObtenidas.map((materia) => ({
+                    key: materia.id_materia?.toString(), // Clave única para el Picker
+                    value: materia.detalle, // Texto visible en el Picker
                 }));
-                setMaterias(materiasFormateadas);
+                setMaterias(materiasFormateadas); // Actualiza el estado con las materias formateadas
             } else {
                 console.error('El formato de materias obtenidas no es válido:', materiasObtenidas);
             }
@@ -60,19 +62,18 @@ export default function GestionarMaterias() {
             // Obtener los datos de los profesores desde la API
             const profesoresObtenidos = await obtenerProfesor();
             // Verificar que los datos obtenidos estén en el formato esperado
-            if (profesoresObtenidos && Array.isArray(profesoresObtenidos.profesor)) {
+            if (profesoresObtenidos && Array.isArray(profesoresObtenidos)) {
                 // Mapear los datos para transformarlos en el formato necesario para MultipleSelectList
-                const profesoresFormateados = profesoresObtenidos.profesor.map((profesor) => ({
-                    key: profesor.dni_profesor.toString(),  // Asegúrate de que `key` sea un string
+                const profesoresFormateados = profesoresObtenidos.map((profesor) => ({
+                    key: profesor.dni_profesional.toString(),  // Usa `dni_profesional` como clave única
                     value: `${profesor.nombre} ${profesor.apellido}`,  // Concatenar el nombre y apellido
                 }));
-                console.log(profesoresFormateados)
+                console.log(profesoresFormateados);
                 // Guardar los profesores formateados en el estado
                 setProfesores(profesoresFormateados);
             } else {
                 console.error('El formato de profesores obtenidos no es válido:', profesoresObtenidos);
             }
-            
         } catch (error) {
             console.error('Error al cargar los profesores:', error);
         }
@@ -94,10 +95,21 @@ export default function GestionarMaterias() {
         }
     };
     const cargarProfesoresPorMateria = async (idMateria) => {
-        const data = await obtenerProfesorXMateria(idMateria);
-        if (data && data.profesor) {
-            const dniProfesores = data.profesor.map(prof => prof.dni_profesor.toString());
-            setSelectedProfesores(dniProfesores);  // Actualizar con las claves correctas
+        try {
+            const data = await obtenerProfesorPorMateria(idMateria);
+            if (data && Array.isArray(data.profesor)) {
+                const dniProfesores = data.profesor
+                    .filter(prof => prof.dni_profesional) // Filtrar objetos que tengan `dni_profesor` definido
+                    .map(prof => prof.dni_profesional.toString()); // Convertir a string
+                setSelectedProfesores(dniProfesores); // Actualizar con las claves correctas
+                console.log(data.profesor);
+            } else {
+                console.error('El formato de profesores obtenidos no es válido:', data);
+                setSelectedProfesores([]); // Limpiar en caso de error
+            }
+        } catch (error) {
+            console.error('Error al cargar los profesores por materia:', error);
+            setSelectedProfesores([]); // Limpiar en caso de error
         }
     };
 
@@ -196,7 +208,6 @@ export default function GestionarMaterias() {
         } catch (error) {
             console.error('Error al registrar la materia:', error);
             mostrarMensaje('Error', 'Error al registrar la materia.');
-
         }
     };
 
@@ -282,38 +293,32 @@ export default function GestionarMaterias() {
             <View style={styles.contenido}>
                 <Text style={styles.titulo}>Materias</Text>
                 <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={selectedMateria}
-                        onValueChange={handleMateriaChange}
-                        style={styles.input}
-                    >
-                        <Picker.Item label="Seleccionar Materia" value="" />
-                        {materias.map((materia) => (
-                            <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
-                        ))}
-                    </Picker>
+                <Picker
+                    selectedValue={selectedMateria}
+                    onValueChange={handleMateriaChange}
+                    style={styles.input}
+                >
+                    <Picker.Item label="Seleccionar Materia" value="" />
+                    {materias.map((materia) => (
+                        <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
+                    ))}
+                </Picker>
                     <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
                         <Text style={styles.textoBotonAgregar}>+</Text>
                     </TouchableOpacity>
                 </View>
                 <Text style={styles.subtitulo}>Profesores asignables a la Materia</Text>
                 <MultiSelect
-                    items={profesores}
-                    uniqueKey="key"
-                    onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)}
-                    selectedItems={selectedProfesores}
+                    items={profesores} // Lista de profesores disponibles
+                    uniqueKey="key" // Clave única para cada profesor
+                    onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)} // Actualiza los profesores seleccionados
+                    selectedItems={selectedProfesores} // Profesores seleccionados
                     selectText="Seleccionar Profesores"
                     searchInputPlaceholderText="Buscar..."
-                    tagRemoveIconColor="#CCC"
-                    tagBorderColor="#CCC"
-                    tagTextColor="#CCC"
-                    selectedItemTextColor="#CCC"
-                    selectedItemIconColor="#CCC"
-                    itemTextColor="#000"
-                    displayKey="value"
-                    searchInputStyle={{ color: '#CCC' }}
-                    submitButtonColor="#CCC"
+                    displayKey="value" // Clave para mostrar el nombre del profesor
+                    submitButtonColor="#48d22b"
                     submitButtonText="Seleccionar"
+                    styleDropdownMenu={styles.dropdown}
                 />
                 <Text style={styles.seleccionadas}>Profesores seleccionados: {selectedProfesores.join(', ')}</Text>
                 <View style={styles.contenidoBoton}>
@@ -464,6 +469,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#007BFF',
         padding: 10,
         borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     textoBotonAgregar: {
         color: 'white',
@@ -483,6 +490,109 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 5,
-        flex: 1
-    }
+        flex: 1,
+        marginRight: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    botonEliminar: {
+        backgroundColor: '#F3B9B9',
+        borderColor: '#FF0000',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 5,
+        flex: 1,
+        marginLeft: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    botonModificar: {
+        backgroundColor: '#CED9EF',
+        borderColor: '#746BC8',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 5,
+        flex: 1,
+        marginRight: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    botonCancelar: {
+        backgroundColor: '#DADADA',
+        borderColor: '#000000',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 5,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    textoBoton: {
+        color: 'black',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    inputModal: {
+        borderBottomWidth: 1,
+        borderColor: '#ccc',
+        width: '100%',
+        padding: 10,
+        marginBottom: 20,
+        fontSize: 16,
+    },
+    botonesModal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    botonModal: {
+        backgroundColor: '#4CAF50',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    botonModalCancelar: {
+        backgroundColor: '#F44336',
+        padding: 10,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    textoBotonModal: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginVertical: 10,
+        width: '100%',
+    },
+    textoTarea: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+    },
 });

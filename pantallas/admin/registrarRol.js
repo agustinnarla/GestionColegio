@@ -42,12 +42,12 @@ export default function RegistrarRol() {
             const rolesObtenidos = await obtenerRoles();
             console.log('Roles obtenidos:', rolesObtenidos);
     
-            if (rolesObtenidos && Array.isArray(rolesObtenidos.roles)) {
-                const rolesFormateados = rolesObtenidos.roles.map((rol) => ({
-                    label: rol.detalle, // Lo que se muestra en el Picker
-                    value: rol.id_rol?.toString(), // El valor del Picker
+            if (rolesObtenidos && Array.isArray(rolesObtenidos)) {
+                const rolesFormateados = rolesObtenidos.map((rol) => ({
+                    label: rol.detalle, // Usa `detalle` como el texto visible
+                    value: rol.id_rol?.toString(), // Usa `id_rol` como el valor único
                 }));
-                setRoles(rolesFormateados);
+                setRoles(rolesFormateados); // Actualiza el estado con los roles formateados
             } else {
                 console.error('El formato de roles obtenidos no es válido:', rolesObtenidos);
             }
@@ -279,16 +279,15 @@ export default function RegistrarRol() {
             <Text style={styles.titulo}>Agregar Rol</Text>
             <View style={styles.pickerContainer}>
             <Picker
-                selectedValue={selectedRol}
-                onValueChange={handleRolChange}
+                selectedValue={selectedRol} // Valor seleccionado
+                onValueChange={handleRolChange} // Actualiza el estado al cambiar el valor
                 style={styles.inputPicker}
             >
-                <Picker.Item label="Selecciona un rol" value="" />
+                <Picker.Item label="Selecciona un rol" value="" /> {/* Opción por defecto */}
                 {roles.map((rol) => (
                     <Picker.Item key={rol.value} label={rol.label} value={rol.value} />
                 ))}
             </Picker>
-            
             <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
                 <Text style={styles.textoBotonAgregar}>+</Text>
             </TouchableOpacity>
@@ -318,7 +317,6 @@ export default function RegistrarRol() {
                     </View>
                 </View>
             </Modal>
-
             <MultiSelect
                 items={tareas}
                 uniqueKey="id"
@@ -331,7 +329,6 @@ export default function RegistrarRol() {
                 submitButtonText="Seleccionar"
                 styleDropdownMenu={styles.dropdown}
             />
-
             <View style={styles.contenidoBoton}>
                 <TouchableOpacity style={styles.botonRegistrar}onPress={cargarTareaRol}>
                     <Text style={styles.textoBoton}>Registrar</Text>
