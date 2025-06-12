@@ -276,6 +276,7 @@ export default function RegistrarRol() {
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg}></Image>
+            <View style={styles.contenido}>
             <Text style={styles.titulo}>Agregar Rol</Text>
             <View style={styles.pickerContainer}>
             <Picker
@@ -293,85 +294,80 @@ export default function RegistrarRol() {
             </TouchableOpacity>
         </View>
             <Text style={styles.titulo}>Tareas asignables al rol</Text>
-            <Modal visible={modalVisible} transparent animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.titulo}>Nuevo Rol</Text>
-                        <TextInput
-                            style={styles.inputModal}
-                            placeholder="Ingrese el nombre del rol"
-                            value={nuevoRol}
-                            onChangeText={setNuevoRol}
-                        />
-                        <View style={styles.botonesModal}>
-                            <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarRol}>
-                                <Text style={styles.textoBotonModal}>Agregar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.botonModalCancelar}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={styles.textoBotonModal}>Cancelar</Text>
-                            </TouchableOpacity>
+                <Modal visible={modalVisible} transparent animationType="slide">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.titulo}>Nuevo Rol</Text>
+                            <TextInput
+                                style={styles.inputModal}
+                                placeholder="Ingrese el nombre del rol"
+                                value={nuevoRol}
+                                onChangeText={setNuevoRol}
+                            />
+                            <View style={styles.botonesModal}>
+                                <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarRol}>
+                                    <Text style={styles.textoBotonModal}>Agregar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.botonModalCancelar}
+                                    onPress={() => setModalVisible(false)}
+                                >
+                                    <Text style={styles.textoBotonModal}>Cancelar</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
-            <MultiSelect
-                items={tareas}
-                uniqueKey="id"
-                onSelectedItemsChange={setSelectedItems}
-                selectedItems={selectedItems}
-                selectText="Seleccionar tareas"
-                searchInputPlaceholderText="Buscar tareas..."
-                displayKey="name"
-                submitButtonColor="#48d22b"
-                submitButtonText="Seleccionar"
-                styleDropdownMenu={styles.dropdown}
-            />
-            <View style={styles.contenidoBoton}>
-                <TouchableOpacity style={styles.botonRegistrar}onPress={cargarTareaRol}>
-                    <Text style={styles.textoBoton}>Registrar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    style={styles.botonEliminar} 
-                    onPress={handleDeshabilitarRol}>
-                    <Text style={styles.textoBoton}>Eliminar</Text>
-                </TouchableOpacity>
+                </Modal>
+                <View style={styles.seleccionadasContainer}>
+                <MultiSelect
+                    items={tareas}
+                    uniqueKey="id"
+                    onSelectedItemsChange={setSelectedItems}
+                    selectedItems={selectedItems}
+                    selectText="Seleccionar tareas"
+                    searchInputPlaceholderText="Buscar tareas..."
+                    displayKey="name"
+                    submitButtonColor="#48d22b"
+                    submitButtonText="Seleccionar"
+                    styleDropdownMenu={styles.dropdown}
+                />
             </View>
+                <View style={styles.contenidoBoton}>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrarRol}>
+                        <Text style={styles.textoBoton}>Registrar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonEliminar} onPress={handleDeshabilitarRol}>
+                        <Text style={styles.textoBoton}>Eliminar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                        <Text style={styles.textoBoton}>Modificar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonCancelar}>
+                        <Text style={styles.textoBoton}>Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <View style={styles.contenidoBoton}>
-                <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
-                    <Text style={styles.textoBoton}>Modificar</Text>
-                </TouchableOpacity>
-            
-            <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        {Array.isArray(rolesDeshabilitados) &&
-                            rolesDeshabilitados.map((rol) => (
-                                <View key={rol.id_rol} style={styles.itemContainer}>
-                                    <Text style={styles.textoRol}>{rol.detalle}</Text>
-                                    <Switch
-                                        value={rol.id_estado === 1} 
-                                        onValueChange={() => toggleSwitchRol(rol.id_rol)}
-                                    />
-                                </View>
-                            ))}
-                        <View style={styles.botonesModal}>
-                            <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
-                                <Text>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.botonModal} onPress={handleConfirmarRoles}>
-                                <Text>Confirmar</Text>
-                            </TouchableOpacity>
+                <Modal visible={modalVisible} transparent animationType="slide">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.titulo}>Nuevo Rol</Text>
+                            <TextInput
+                                style={styles.inputModal}
+                                placeholder="Ingrese el nombre del rol"
+                                value={nuevoRol}
+                                onChangeText={setNuevoRol}
+                            />
+                            <View style={styles.botonesModal}>
+                                <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarRol}>
+                                    <Text style={styles.textoBotonModal}>Agregar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalVisible(false)}>
+                                    <Text style={styles.textoBotonModal}>Cancelar</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
-                <TouchableOpacity style={styles.botonCancelar}>
-                    <Text style={styles.textoBoton}>Cancelar</Text>
-                </TouchableOpacity>
+                </Modal>
             </View>
         </View>
     );
@@ -382,7 +378,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#f5f5f5',
     },
     bg: {
         position: 'absolute',
@@ -394,9 +390,10 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     titulo: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginVertical: 10,
+        marginBottom: 20,
+        textAlign: 'center',
     },
     input: {
         borderWidth: 1,
@@ -412,78 +409,87 @@ const styles = StyleSheet.create({
         width: '85%',
     },
     contenidoBoton: {
-        flexDirection: 'row', 
-        justifyContent: 'space-between', // Separa los botones horizontalmente
-        alignItems: 'center',
-        marginTop: 20,
-        width: '85%',
+        flexDirection: 'row', // Alinea los botones horizontalmente
+        justifyContent: 'space-between', // Distribuye espacio uniforme entre los botones
+        alignItems: 'center', // Centra los botones verticalmente
+        marginTop: 20, // Separación del contenido superior
+        width: '100%', // Asegura que el contenedor ocupe el ancho completo
+    },
+    contenido: {
+        width: '90%', // Ajusta el ancho del contenido principal
+        backgroundColor: '#fff', // Fondo blanco
+        borderRadius: 10, // Bordes redondeados
+        padding: 20, // Espaciado interno
+        shadowColor: '#000', // Sombra
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5, // Elevación para sombra en Android
+        alignSelf: 'center', // Centra el contenedor horizontalmente
     },
     botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 10,
         borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
+        alignItems: 'center',
+        width: '22%',
     },
     botonCancelar: {
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
+        backgroundColor: '#f5f5f5',
+        borderColor: '#9e9e9e',
         borderWidth: 1,
-        paddingVertical: 15,
+        padding: 10,
         borderRadius: 5,
-        flex: 1, // Ocupa la mitad del contenedor
         alignItems: 'center',
+        width: '22%',
     },
     botonModificar: {
-        backgroundColor: '#CED9EF',
+        backgroundColor: '#e3f2fd',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
+        padding: 10,
         borderRadius: 5,
-        flex: 1, // Ocupa la mitad del contenedor
-        marginRight: 10, // Espacio entre los botones
         alignItems: 'center',
+        width: '22%',
     },
     botonEliminar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 10,
         borderRadius: 5,
-        flex: 1,
-        marginLeft: 10,
+        alignItems: 'center',
+        width: '22%',
     },
     textoBoton: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
+        color: '#000',
+        fontWeight: '600',
+        fontSize: 14,
     },
     pickerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%', 
-        marginBottom: 20, 
+        flexDirection: 'row', // Alinea los elementos horizontalmente
+        alignItems: 'center', // Centra los elementos verticalmente
+        justifyContent: 'space-between', // Distribuye espacio entre los elementos
+        width: '100%', // Asegura que el contenedor ocupe el ancho completo
+        marginBottom: 20, // Espaciado inferior
     },
     inputPicker: {
-        flex: 1, 
+        flex: 1, // Ocupa el espacio restante
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 8,
         padding: 12,
         backgroundColor: '#fafafa',
         fontSize: 16,
-        marginRight: 10, 
+        marginRight: 10, // Espaciado entre el picker y el botón
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: '#fff',
@@ -527,8 +533,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     botonAgregar: {
-        marginLeft: 10,
-        backgroundColor: '#007BFF',
+        backgroundColor: '#007BFF', // Color azul para el botón
         padding: 10,
         borderRadius: 5,
     },
@@ -549,5 +554,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 10,
         width: '100%',
+    },
+    seleccionadasContainer: {
+        flexDirection: 'column', // Asegura que los elementos estén en una columna
+        justifyContent: 'center', // Centra el contenido verticalmente
+        alignItems: 'center', // Centra el contenido horizontalmente
+        marginTop: 20, // Separación del contenido superior
+        width: '100%', // Asegura que el contenedor ocupe el ancho completo
     },
 });
