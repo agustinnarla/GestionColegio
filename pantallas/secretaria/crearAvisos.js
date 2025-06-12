@@ -3,7 +3,8 @@ import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity,
 import DatePicker from 'react-native-date-picker'
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import { obtenerProfesores, obtenerCursos, obtenerAvisos, obtenerMotivos, crearAvisos} from '../../scripts/secretaria/scriptCargarAvisos';
+import { obtenerMotivos, obtenerCurso, obtenerProfesores} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerAvisos, crearAvisos} from '../../scripts/secretaria/scriptCargarAvisos';
 import bg from '../../assets/bg1.jpg';
 
 export default function Avisos() {
@@ -71,7 +72,7 @@ export default function Avisos() {
 
   const cargarCursos = async () => {
     try {
-      const response = await obtenerCursos();
+      const response = await obtenerCurso();
       console.log("Datos crudos de cursos:", response); 
       
       // Accedemos al array de cursos dentro del objeto

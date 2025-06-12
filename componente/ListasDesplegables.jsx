@@ -276,6 +276,23 @@ export function EstadoFaltaAlumnosSelector({ formData, handleChange, estadoFalta
     };
     return <PickerField {...selectorConfig} style={styles} />;
 }
+
+export function EstadoFaltaProfesionalSelector({ formData, handleChange, estado_falta_profesional, styles }) {
+    const selectorConfig = {
+        selectedValue: formData.id_estado_falta_profesional,
+        onValueChange: (value) => handleChange('id_estado_falta_profesional', value),
+        items: [
+            { label: 'Seleccione un estado de falta', value: '' },
+            ...(estado_falta_profesional || []).map(item => ({
+                label: item.detalle, // Muestra el detalle del estado de falta
+                value: item.id_estado_falta_profesional, // Usa el ID como valor
+                key: item.id_estado_falta_profesional // Clave única para el selector
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 // Componente principal que combina todos los selectores
 function ListasDesplegables({
     formData,
@@ -297,7 +314,8 @@ function ListasDesplegables({
     certificado,
     estado_falta_alumnos,
     profesionales,
-    showLabel
+    showLabel,
+    estado_falta_profesional
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -429,6 +447,14 @@ function ListasDesplegables({
                     formData={formData}
                     handleChange={handleChange}
                     profesionales={profesionales}
+                    styles={styles}
+                />
+            )}
+            {estado_falta_profesional && (
+                <EstadoFaltaProfesionalSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    estado_falta_profesional={estado_falta_profesional}
                     styles={styles}
                 />
             )}

@@ -1,21 +1,19 @@
 import { Text, StyleSheet, View, ScrollView, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-
+import ScrollContainer from '../../componente/ScrollContainer';
 import bg from '../../assets/bg1.jpg';
 
 // Obtén el ancho de la ventana
-const { width } = Dimensions.get('window');
-const isDesktop = width >= 768; // Ajusta el valor según lo que consideres como pantalla de escritorio
+
 
 export default function HomeSecretaria() {
     const navegacion = useNavigation();
     return (
         <View style={styles.padre}>
+             <ScrollContainer />
             <ImageBackground source={bg} style={styles.bg}>
-                <ScrollView
-                    contentContainerStyle={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}
-                >
+                
                     
                     <View style={styles.contenedorFilas}>
                         <View style={styles.filaBotones}>
@@ -50,7 +48,6 @@ export default function HomeSecretaria() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </ScrollView>
             </ImageBackground>
         </View>
     );
@@ -67,9 +64,7 @@ const styles = StyleSheet.create({
         width: '100%',
         maxWidth: 900,
         alignSelf: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: '20%',
+        paddingTop: '10%',
     },
     filaBotones: {
         flexDirection: 'row',

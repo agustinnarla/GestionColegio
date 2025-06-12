@@ -368,12 +368,13 @@ export const obtenerEstadosFaltaProfesionales = async () => {
     try {
         const response = await fetch(`${api_urlEstadosFaltaProfesionales}`);
         const data = await response.json();
-        return data;
+        return data.estado || [];
     } catch (error) {
         console.error('Error al obtener estados falta profesionales:', error);
-        return { estados: [] };
+        return { estado: [] };
     }
 };
+
 export const obtenerRolesDeshabilitados = async () => {
     try {
         const response = await fetch(`${api_urlRolesDeshabilitados}`);

@@ -22,7 +22,7 @@ const api_urlJustificarFaltaAlta = 'http://localhost:5000/justificar/profesional
   // 🟢
   export const registrarJustificacionPP = async (formData) => {
     try {
-        const { id_estado_falta_profesional, dni_profesional, id_certificado, fecha } = formData;
+        const { id_estado_falta_profesionales, dni_profesional, id_certificado, fecha } = formData;
 
         const respuesta = await fetch(`${api_urlJustificarFaltaAlta}`, {
             method: 'POST',
@@ -30,7 +30,7 @@ const api_urlJustificarFaltaAlta = 'http://localhost:5000/justificar/profesional
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                id_estado_falta_profesional,
+                id_estado_falta_profesionales,
                 dni_profesional,
                 id_certificado,
                 fecha

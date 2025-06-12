@@ -68,10 +68,7 @@ export default function RegistrarRol() {
     };
 
     const handleRegistrarRol = async () => {
-        if (!nuevoRol.trim()) {
-            console.warn('El nombre del rol es obligatorio');
-            return;
-        }
+        
         try {
             const response = await registrarRol(nuevoRol);
             if (response && response.data) {

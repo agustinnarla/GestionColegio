@@ -46,7 +46,7 @@ export const BottomTab = ({ route }) => {
       screenOptions={({ route })  => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          let iconColor = focused ? 'black' : color;
+          let iconColor = focused ? '#2A3D6C' : '#94A3B8';
           if (route.name === "MENU") {
             iconName = "home";
           } else if (route.name === "CALENDARIO") {
@@ -56,22 +56,39 @@ export const BottomTab = ({ route }) => {
           }
 
           return (
-          <View style={styles.tabBarIconContainer}>
-            <View style={[styles.circle, { backgroundColor: focused ? '#ECECEC' : 'transparent', top: focused ? -40 : -20 }]}>
-                  <FontAwesome
+            <View style={styles.tabBarIconContainer}>
+              <View style={[
+                styles.circle, 
+                { 
+                  backgroundColor: focused ? '#F0F7FF' : 'transparent',
+                  top: focused ? -25 : -10,
+                  borderWidth: focused ? 1 : 0,
+                  borderColor: '#2A3D6C'
+                }
+              ]}>
+                <FontAwesome
                   name={iconName}
-                  size={size}
+                  size={focused ? 18 : 16}
                   color={iconColor}
-                  />
+                />
+              </View>
             </View>
-          </View>
           );
         },
+        tabBarStyle: styles.tabBar,
+        tabBarShowLabel: false,
+        headerStyle: {
+          height: 50,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 0,
+        },
+        headerTitleStyle: {
+          fontSize: 16,
+          fontWeight: '600',
+          color: '#FFFFFF',
+        },
       })}
-      tabBarOptions={{
-        activeTintColor: 'blue',
-        inactiveTintColor: 'gray',
-      }}
     >
       <Tab.Screen
         name="MENU"
@@ -132,25 +149,47 @@ export const BottomTab = ({ route }) => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: "#000000",
-    height:60,
-    position:'absolute',
-    bottom: 16,
-    right: 16,
-    left: 16,
-  },
-    tabBarIconContainer: {
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    height: 50,
+    position: 'absolute',
+    bottom: 20,
+    left: 15,
+    right: 15,
+    borderRadius: 15,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
-    circle: {
-      width: 40, 
-      height: 40,
-      borderRadius: 20, 
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'absolute',
-      top: -20, 
-    }
-  });
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    borderTopWidth: 0,
+    paddingBottom: 3,
+  },
+  tabBarIconContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 35,
+    marginTop: 3,
+  },
+  circle: {
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    top: -15,
+    backgroundColor: '#F0F7FF',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  }
+});

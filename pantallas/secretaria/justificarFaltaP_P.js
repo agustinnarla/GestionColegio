@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import bg from '../../assets/bg1.jpg';
 import { obtenerFaltasPP, registrarJustificacionPP } from '../../scripts/secretaria/scriptJustificarFaltaPP';
 import { obtenerCertificado, obtenerEstadosFaltaProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { ImageBackground } from 'react-native-web';
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 const formatFecha = (fechaISO) => {
     if (!fechaISO) return '--/--/----';
@@ -15,7 +17,13 @@ const formatFecha = (fechaISO) => {
 };
 
 export default function JustificarFaltaP_P() {
-    const [estadosFalta, setEstadosFalta] = useState([]);
+    
+    const [formData, setFormData] = useState({
+        id_certificado: '',
+        id_estado_falta_profesionales: ''
+    })
+
+    const [estado_falta_profesional, setEstadosFalta] = useState([]);
     const [certificados, setCertificados] = useState([]);
     const [faltas, setFaltas] = useState([]);
     const [fechaDesde, setFechaDesde] = useState('');
@@ -26,20 +34,34 @@ export default function JustificarFaltaP_P() {
     const cargarEstadosFaltaPP = async () => {
         try {
             const estados = await obtenerEstadosFaltaProfesionales();
-            setEstadosFalta(estados);
+            console.log("Estados de falta cargados:", estados);
+            if (Array.isArray(estados)) {
+                setEstadosFalta(estados);
+            } else {
+                console.error("Los estados de falta no son un array:", estados);
+                setEstadosFalta([]);
+            }
         } catch (error) {
             console.error('Error al cargar estados de falta:', error.message);
             Alert.alert('Error', 'No se pudieron cargar los estados de falta');
+            setEstadosFalta([]);
         }
     };
 
     const cargarCertificados = async () => {
         try {
             const certificados = await obtenerCertificado();
-            setCertificados(Array.isArray(certificados) ? certificados : []);
+            console.log("Certificados cargados:", certificados);
+            if (Array.isArray(certificados)) {
+                setCertificados(certificados);
+            } else {
+                console.error("Los certificados no son un array:", certificados);
+                setCertificados([]);
+            }
         } catch (error) {
             console.error('Error al cargar certificados:', error.message);
             Alert.alert('Error', 'No se pudieron cargar los certificados');
+            setCertificados([]);
         }
     };
 
@@ -53,8 +75,8 @@ export default function JustificarFaltaP_P() {
             const certificadoInicial = {};
             
             faltasData.forEach(falta => {
-                estadoInicial[falta.dni_profesional] = falta.id_estado_falta_profesional || null;
-                certificadoInicial[falta.dni_profesional] = falta.id_certificado || null;
+                estadoInicial[falta.dni_profesional] = falta.id_estado_falta_profesionales || undefined;
+                certificadoInicial[falta.dni_profesional] = falta.id_certificado || undefined;
             });
             
             setEstadoFaltaPorProfesor(estadoInicial);
@@ -80,34 +102,44 @@ export default function JustificarFaltaP_P() {
     };
 
     const actualizarSeleccionProfesor = (tipo, valor, dni_profesional, fecha) => {
-      // Actualizar el estado local
-      if (tipo === 'estadoFalta') {
-          setEstadoFaltaPorProfesor(prev => ({
-              ...prev,
-              [dni_profesional]: valor
-          }));
-      } else if (tipo === 'certificado') {
-          setCertificadoPorProfesor(prev => ({
-              ...prev,
-              [dni_profesional]: valor
-          }));
-      }
-  
-      // Preparar datos para enviar al backend
-      const datosParaEnviar = {
-        dni_profesional,
-        fecha,
-        id_estado_falta_profesional: tipo === 'estadoFalta' ? Number(valor) : Number(estadoFaltaPorProfesor[dni_profesional]),
-        id_certificado: tipo === 'certificado' ? Number(valor) : Number(certificadoPorProfesor[dni_profesional])
-    };
-  
-      // Solo enviar si tenemos al menos el estado de falta
-      if (datosParaEnviar.id_estado_falta_profesional) {
-          registrarJustificacion(datosParaEnviar);
-      }
+        // Actualizar el estado local
+        if (tipo === 'estadoFalta') {
+            setEstadoFaltaPorProfesor(prev => ({
+                ...prev,
+                [dni_profesional]: valor
+            }));
+        } else if (tipo === 'certificado') {
+            setCertificadoPorProfesor(prev => ({
+                ...prev,
+                [dni_profesional]: valor
+            }));
+        }
+
+        // Preparar datos para enviar al backend
+        const datosParaEnviar = {
+            dni_profesional,
+            fecha,
+            id_estado_falta_profesionales: tipo === 'estadoFalta' 
+                ? (valor !== undefined && valor !== null ? parseInt(valor, 10) : undefined)
+                : (estadoFaltaPorProfesor[dni_profesional] !== undefined && estadoFaltaPorProfesor[dni_profesional] !== null 
+                    ? parseInt(estadoFaltaPorProfesor[dni_profesional], 10) 
+                    : undefined),
+            id_certificado: tipo === 'certificado'
+                ? (valor !== undefined && valor !== null ? parseInt(valor, 10) : undefined)
+                : (certificadoPorProfesor[dni_profesional] !== undefined && certificadoPorProfesor[dni_profesional] !== null 
+                    ? parseInt(certificadoPorProfesor[dni_profesional], 10) 
+                    : undefined)
+        };
+
+        console.log('Datos a enviar:', datosParaEnviar);
+
+        // Solo enviar si tenemos al menos el estado de falta
+        if (datosParaEnviar.id_estado_falta_profesionales !== undefined && !isNaN(datosParaEnviar.id_estado_falta_profesionales)) {
+            registrarJustificacion(datosParaEnviar);
+        }
     };
 
-      const formatFechaParaBackend = (fechaISO) => {
+    const formatFechaParaBackend = (fechaISO) => {
         if (!fechaISO) return null;
         const fecha = new Date(fechaISO);
         const año = fecha.getFullYear();
@@ -116,41 +148,45 @@ export default function JustificarFaltaP_P() {
         return `${año}-${mes}-${dia}`;
     };
 
-    const registrarJustificacion = async ({ dni_profesional, fecha, id_estado_falta_profesional, id_certificado }) => {
-      if (!dni_profesional || !fecha) {
-          console.log('Faltan datos requeridos');
-          return;
-      }
-  
-      try {
-          // Preparar los datos para enviar
-          const formData = {
-              dni_profesional,
-              fecha: formatFechaParaBackend(fecha),
-              id_estado_falta_profesional: id_estado_falta_profesional || null,  // Puede ser null
-              id_certificado: id_certificado || null   // Puede ser null
-          };
-  
-          console.log('Enviando datos:', formData);
-  
-          const resultado = await registrarJustificacionPP(formData);
-          console.log('Respuesta del servidor:', resultado);
-          
-          if (resultado.justificado === "No se realizaron cambios") {
-              Alert.alert('Información', 'No se realizaron cambios en la justificación');
-          } else {
-              Alert.alert('Éxito', 'Justificación registrada correctamente');
-          }
-      } catch (error) {
-          console.error('Error al registrar justificación:', error);
-          Alert.alert('Error', error.response?.data?.error || 'No se pudo registrar la justificación');
-      }
-  };
-  
+    const registrarJustificacion = async ({ dni_profesional, fecha, id_estado_falta_profesionales, id_certificado }) => {
+        if (!dni_profesional || !fecha) {
+            console.log('Faltan datos requeridos');
+            return;
+        }
+
+        try {
+            // Preparar los datos para enviar
+            const formData = {
+                dni_profesional,
+                fecha: formatFechaParaBackend(fecha),
+                id_estado_falta_profesionales: id_estado_falta_profesionales !== undefined ? id_estado_falta_profesionales : undefined,
+                id_certificado: id_certificado !== undefined ? id_certificado : undefined
+            };
+
+            console.log('Enviando datos:', formData);
+
+            const resultado = await registrarJustificacionPP(formData);
+            console.log('Respuesta del servidor:', resultado);
+            
+            if (resultado.justificado === "No se realizaron cambios") {
+                Alert.alert('Información', 'No se realizaron cambios en la justificación');
+            } else {
+                Alert.alert('Éxito', 'Justificación registrada correctamente');
+            }
+        } catch (error) {
+            console.error('Error al registrar justificación:', error);
+            Alert.alert('Error', error.response?.data?.error || 'No se pudo registrar la justificación');
+        }
+    };
+
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg}></Image>
+            <ScrollContainer />
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover"> 
             <View style={styles.contenido}>
                 <View style={styles.contenidoFecha}>
                     <View style={styles.filaInputs}>
@@ -190,40 +226,62 @@ export default function JustificarFaltaP_P() {
                                 <View key={index} style={styles.fila}>
                                     <Text style={styles.celda}>{falta.dni_profesional}</Text>
                                     <Text style={styles.celda}>{formatFecha(falta.fecha)}</Text>
-                                    
                                     <Picker
-                                    style={styles.celda}
-                                    selectedValue={estadoFaltaPorProfesor[falta.dni_profesional] || null}
-                                    onValueChange={(itemValue) => {
-                                        actualizarSeleccionProfesor('estadoFalta', itemValue, falta.dni_profesional, falta.fecha);
-                                    }}
-                                >
-                                    <Picker.Item label="Seleccione estado de falta" value={null} />
-                                    {estadosFalta.map(estado => (
+                                        style={styles.celda}
+                                        selectedValue={
+                                            estadoFaltaPorProfesor[falta.dni_profesional] !== undefined
+                                                ? estadoFaltaPorProfesor[falta.dni_profesional]
+                                                : undefined
+                                        }
+                                        onValueChange={(itemValue) => {
+                                            actualizarSeleccionProfesor(
+                                                "estadoFalta",
+                                                itemValue,
+                                                falta.dni_profesional,
+                                                falta.fecha
+                                            );
+                                        }}
+                                    >
                                         <Picker.Item
-                                            key={estado.id_estado_falta_profesional}
-                                            label={estado.detalle}
-                                            value={Number(estado.id_estado_falta_profesional)}
+                                            label="Seleccione estado de falta"
+                                            value={undefined}
                                         />
-                                    ))}
-                                </Picker>
-
-                                <Picker
-                                    style={styles.celda}
-                                    selectedValue={certificadoPorProfesor[falta.dni_profesional] || null}
-                                    onValueChange={(itemValue) => {
-                                        actualizarSeleccionProfesor('certificado', itemValue, falta.dni_profesional, falta.fecha);
-                                    }}
-                                >
-                                    <Picker.Item label="Seleccione certificado médico" value={null} />
-                                    {certificados.map(certificado => (
+                                        {estado_falta_profesional.map((estado) => (
+                                            <Picker.Item
+                                                key={estado.id_estado_falta_profesionales}
+                                                label={estado.detalle}
+                                                value={Number(estado.id_estado_falta_profesionales)}
+                                            />
+                                        ))}
+                                    </Picker>
+                                    <Picker
+                                        style={styles.celda}
+                                        selectedValue={
+                                            certificadoPorProfesor[falta.dni_profesional] !== undefined
+                                                ? certificadoPorProfesor[falta.dni_profesional]
+                                                : undefined
+                                        }
+                                        onValueChange={(itemValue) => {
+                                            actualizarSeleccionProfesor(
+                                                "certificado",
+                                                itemValue,
+                                                falta.dni_profesional,
+                                                falta.fecha
+                                            );
+                                        }}
+                                    >
                                         <Picker.Item
-                                            key={certificado.id_certificado}
-                                            label={certificado.detalle}
-                                            value={Number(certificado.id_certificado)}
+                                            label="Seleccione certificado médico"
+                                            value={undefined}
                                         />
-                                    ))}
-                                </Picker>
+                                        {certificados.map((certificado) => (
+                                            <Picker.Item
+                                                key={certificado.id_certificado}
+                                                label={certificado.detalle}
+                                                value={Number(certificado.id_certificado)}
+                                            />
+                                        ))}
+                                    </Picker>
                                 </View>
                             ))
                         ) : (
@@ -237,6 +295,7 @@ export default function JustificarFaltaP_P() {
                     </View>
                 </ScrollView>
             </View>
+            </ImageBackground>
         </View>
     );
 }
@@ -254,7 +313,6 @@ const styles = StyleSheet.create({
         height: '100%',
         position: 'absolute',
         zIndex: -1,
-        opacity: 0.13,
     },
     contenido: {
         width: '95%',

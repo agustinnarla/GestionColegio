@@ -3,8 +3,8 @@ import {pool} from '../dataBase/coneccion.mjs'
 //obtenerEstadoFaltaProfesionales
 export async function obtenerEstadosFaltaProfesionales(req, res) {
     try {
-      const result = await pool.query('SELECT * FROM estado_falta_profesionales ORDER BY id_estado_falta_profesionales');
-      res.json(result.rows);
+      const respuesta  = await pool.query('SELECT id_estado_falta_profesionales, detalle FROM estado_falta_profesionales ORDER BY id_estado_falta_profesionales');
+      res.status(200).json({estado: respuesta.rows})
     } catch (error) {
       console.error('Error al obtener estados de falta profesionales:', error);
       res.status(500).json({ error: 'Error al obtener estados de falta profesionales' });
@@ -36,7 +36,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
 
  
   export const registrarJustificacionProfesionales = async (req, res) => {
-    const { id_estado_falta_profesional, dni_profesional, id_certificado, fecha } = req.body;
+    const { id_estado_falta_profesionales, dni_profesional, id_certificado, fecha } = req.body;
     
     try {
         // Primero verificamos si ya existe una entrada con el mismo dni_profesional y fecha
@@ -48,12 +48,12 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
         if (existe.rows.length > 0) {
             // Si existe, obtenemos los datos actuales
             const registroExistente = existe.rows[0];
-            let estadofaltaActual = registroExistente.id_estado_falta_profesional;
+            let estadofaltaActual = registroExistente.id_estado_falta_profesionales;
             let certificadoActual = registroExistente.id_certificado;
 
             // Verificamos si id_estado_falta ha cambiado
-            if (id_estado_falta_profesional !== estadofaltaActual && id_estado_falta_profesional != null) {
-                estadofaltaActual = id_estado_falta_profesional;
+            if (id_estado_falta_profesionales !== estadofaltaActual && id_estado_falta_profesionales != null) {
+                estadofaltaActual = id_estado_falta_profesionales;
             }
 
             // Verificamos si id_certificado ha cambiado
@@ -62,7 +62,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             }
 
             // Si no se realizaron cambios, devolvemos un mensaje sin actualizar
-            if (estadofaltaActual === registroExistente.id_estado_falta_profesional && 
+            if (estadofaltaActual === registroExistente.id_estado_falta_profesionales && 
                 certificadoActual === registroExistente.id_certificado) {
                 console.log("No se realizaron cambios en la justificación profesionales");
                 return res.status(200).json({ justificado: "No se realizaron cambios" });
@@ -71,7 +71,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             // Construimos la consulta de actualización
             const query = `
                 UPDATE justificar_falta_profesionales
-                SET id_estado_falta_profesional = $1, id_certificado = $2
+                SET id_estado_falta_profesionales = $1, id_certificado = $2
                 WHERE dni_profesional = $3 AND fecha = $4
             `;
 
@@ -88,9 +88,9 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
         } else {
             // Si no existe, insertamos un nuevo registro
             const respuesta = await pool.query(
-                "INSERT INTO justificar_falta_profesionales (id_estado_falta_profesional, dni_profesional, id_certificado, fecha) " +
+                "INSERT INTO justificar_falta_profesionales (id_estado_falta_profesionales, dni_profesional, id_certificado, fecha) " +
                 "VALUES ($1, $2, $3, $4) RETURNING *", 
-                [id_estado_falta_profesional, dni_profesional, id_certificado, fecha]
+                [id_estado_falta_profesionales, dni_profesional, id_certificado, fecha]
             );
             console.log("Nuevo registro profesionales insertado");
             res.status(200).json({ justificado: respuesta.rows[0] });
