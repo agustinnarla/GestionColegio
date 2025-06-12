@@ -300,37 +300,34 @@ export default function CargarTareas() {
                     </View>
                 </Modal>
                 <Text style={styles.subtitulo}>Roles asignables a las Tareas</Text>
-                <MultiSelect
-                    items={rolesDisponibles} // Lista de roles disponibles
-                    uniqueKey="id" // Clave única para cada rol
-                    onSelectedItemsChange={setSelectedRoles} // Actualiza los roles seleccionados
-                    selectedItems={selectedRoles} // Roles seleccionados
-                    selectText="Seleccionar roles"
-                    searchInputPlaceholderText="Buscar roles..."
-                    displayKey="name" // Clave para mostrar el nombre del rol
-                    submitButtonColor="#48d22b"
-                    submitButtonText="Seleccionar"
-                    styleDropdownMenu={styles.dropdown}
-                />
-                <Text style={styles.seleccionadas}>
-                    Roles seleccionados: {selectedRoles.map(id => {
-                        const rol = rolesDisponibles.find(r => r.id === id);
-                        return rol ? rol.name : null;
-                    }).filter(Boolean).join(', ')}
-                </Text>
+                <View style={styles.seleccionadasContainer}>
+                    <MultiSelect
+                        items={rolesDisponibles} // Lista de roles disponibles
+                        uniqueKey="id" // Clave única para cada rol
+                        onSelectedItemsChange={setSelectedRoles} // Actualiza los roles seleccionados
+                        selectedItems={selectedRoles} // Roles seleccionados
+                        selectText="Seleccionar roles"
+                        searchInputPlaceholderText="Buscar roles..."
+                        displayKey="name" // Clave para mostrar el nombre del rol
+                        submitButtonColor="#48d22b"
+                        submitButtonText="Seleccionar"
+                        styleDropdownMenu={styles.dropdown}
+                    />
+                </View>
                 <View style={styles.contenidoBoton}>
                     <TouchableOpacity style={styles.botonRegistrar} onPress={cargarRolTarea}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonEliminar} onPress={eliminarTarea} >
+                    <TouchableOpacity style={styles.botonEliminar} onPress={eliminarTarea}>
                         <Text style={styles.textoBoton}>Eliminar</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                        <Text style={styles.textoBoton}>Modificar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonCancelar} onPress={() => Alert.alert('Acción cancelada')}>
+                        <Text style={styles.textoBoton}>Cancelar</Text>
+                    </TouchableOpacity>
                 </View>
-
-                <View style={styles.contenidoBoton}>
-                <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
-                    <Text style={styles.textoBoton}>Modificar</Text>
-                </TouchableOpacity>
                     <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
                         <View style={styles.modalContainer}>
                             <View style={styles.modalContent}>
@@ -346,22 +343,17 @@ export default function CargarTareas() {
                                     ))}
                                 <View style={styles.botonesModal}>
                                     <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
-                                        <Text>Cancelar</Text>
+                                        <Text style={styles.textoBotonModal}>Cancelar</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={styles.botonModal} onPress={handleConfirmarModificacion}>
-                                        <Text>Confirmar</Text>
+                                    <TouchableOpacity style={styles.botonModalConfirmar} onPress={handleConfirmarModificacion}>
+                                        <Text style={styles.textoBotonModal}>Confirmar</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
                     </Modal>
-                    <TouchableOpacity style={styles.botonCancelar}>
-                        <Text style={styles.textoBoton}>Cancelar</Text>
-                    </TouchableOpacity>
                 </View>
             </View>
-            
-        </View>
     );
 }
 
@@ -388,22 +380,21 @@ const styles = StyleSheet.create({
         padding: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
         elevation: 5,
-        alignItems: 'center',
     },
     titulo: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#333',
+        marginBottom: 20,
+        textAlign: 'center',
     },
     subtitulo: {
         fontSize: 18,
-        marginBottom: 10,
-        color: '#333',
-        fontWeight: '600',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginVertical: 20,
     },
     input: {
         borderWidth: 1,
@@ -416,75 +407,77 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     dropdown: {
-        width: '100%',
-        borderRadius: 8,
-        borderWidth: 1,
+        width: '85%', 
         borderColor: '#ccc',
         backgroundColor: '#fafafa',
         marginBottom: 15,
-        padding: 10,
+        paddingVertical: 8, 
+        paddingHorizontal: 10,
     },
     dropdownText: {
         fontSize: 16,
         color: '#333',
     },
     seleccionadas: {
-        marginTop: 10,
         fontSize: 16,
-        color: '#333',
-        fontStyle: 'italic',
+        color: '#333', 
+        textAlign: 'center', 
+        marginBottom: 10, 
     },
-    
+    seleccionadasContainer: {
+    flexDirection: 'column', // Asegura que los elementos estén en una columna
+    justifyContent: 'center', // Centra el contenido verticalmente
+    alignItems: 'center', // Centra el contenido horizontalmente
+    marginTop: 20, // Separación del contenido superior
+    width: '100%', // Asegura que el contenedor ocupe el ancho completo
+},
     contenidoBoton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         marginTop: 20,
-        width: '85%',
+        width: '100%',
     },
     botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 10,
         borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
+        alignItems: 'center',
+        width: '22%',
     },
     botonModificar: {
-        backgroundColor: '#CED9EF',
+        backgroundColor: '#e3f2fd',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 10,
         borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
+        alignItems: 'center',
+        width: '22%',
     },
     botonEliminar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 10,
         borderRadius: 5,
-        flex: 1,
-        marginLeft: 10,
+        alignItems: 'center',
+        width: '22%',
     },
-    botonCancelar:{
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
+    botonCancelar: {
+        backgroundColor: '#f5f5f5',
+        borderColor: '#9e9e9e',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
+        padding: 10,
         borderRadius: 5,
-        flex: 1,
+        alignItems: 'center',
+        width: '22%',
     },
-    textoBoton:{
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
+    textoBoton: {
+        color: '#000',
+        fontWeight: '600',
+        fontSize: 14,
     },
     pickerContainer: {
         flexDirection: 'row',
@@ -519,7 +512,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: '#fff',
@@ -539,6 +532,8 @@ const styles = StyleSheet.create({
     botonesModal: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 20,
         width: '100%',
     },
     botonModal: {
@@ -550,28 +545,33 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     botonModalCancelar: {
-        backgroundColor: '#F44336',
+        backgroundColor: '#ff4d4d',
         padding: 10,
         borderRadius: 5,
-        flex: 1,
         alignItems: 'center',
-        marginHorizontal: 5,
+        width: '45%',
+    },
+    botonModalConfirmar: {
+        backgroundColor: '#4caf50',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        width: '45%',
     },
     textoBotonModal: {
-        color: 'white',
-        fontSize: 16,
+        color: '#fff',
         fontWeight: 'bold',
+        fontSize: 16,
     },
     textoTarea: {
-        flex: 1,
         fontSize: 16,
-        color: '#333',
+        flex: 1,
     },
     itemContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginVertical: 10,
         width: '100%',
+        marginBottom: 10,
     },
 });
