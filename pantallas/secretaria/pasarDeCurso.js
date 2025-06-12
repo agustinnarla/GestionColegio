@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   flex: 1,
   backgroundColor: '#f5f7fa',
   alignItems: 'center',
-  justifyContent: 'center', // Centrado vertical
+  justifyContent: 'center', 
   position: 'relative',
 },
   bg: {

@@ -1,10 +1,13 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert} from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, ImageBackground} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { obtenerAlumnosAusentes, actualizarJustificarFalta, obtenerEstadoAlumnos, obtenerAlumnosConFaltasSuperadas, actualizarEstadoAlumno} from '../../scripts/preceptor/scriptGestionJustificarFalta';
 import { CertificadoSelector, EstadoFaltaAlumnosSelector} from '../../componente/ListasDesplegables';
 import { obtenerCertificado ,obtenerEstadoFalta} from '../../scripts/listasDesplegables/listaDesplegable';
 import React, {useState, useEffect} from "react";
 import bg from '../../assets/bg1.jpg';
+import ScrollContainer from '../../componente/ScrollContainer';
+
+
 
 export default function JustificarFalta() {
 
@@ -254,174 +257,238 @@ export default function JustificarFalta() {
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg}></Image>
-            <View style={styles.contenido}>
-                <View style={styles.contenidoFecha}>
-                    <View style={styles.filaInputs}>
-                        <Text style={styles.label}>Fecha desde:</Text>
-                        <TextInput
-                            placeholder="----/--/--"
-                            style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
-                            value={fechaDesde}
-                            onChangeText={setFechaDesde}
-                        />
-                    </View>
-                    <View style={styles.filaInputs}>
-                        <Text style={styles.label}>Fecha hasta:</Text>
-                        <TextInput
-                            placeholder="----/--/--"
-                            style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
-                            value={fechaHasta}
-                            onChangeText={setFechaHasta}
-                        />
-                    </View>
-                    <TouchableOpacity style={styles.boton} onPress={handleConsultar}>
-                        <Text style={styles.botonTexto}>Consultar</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <ScrollView horizontal>
-                    <View style={styles.tabla}>
-                        <View style={styles.fila}>
-                            <Text style={styles.encabezado}>Alumno</Text>
-                            <Text style={styles.encabezado}>DNI</Text>
-                            <Text style={styles.encabezado}>Fecha</Text>
-                            <Text style={styles.encabezado}>Estado de la Falta</Text>
-                            <Text style={styles.encabezado}>Certificado Médico</Text>
-                        </View>
-
-                        {/* Mostrar una fila para cada alumno */}
-                        {Array.isArray(alumnos) && alumnos.length > 0 && alumnos.map((alumno, index) => (
-                            <View style={styles.fila} key={index}>
-                                <Text style={styles.celda}>{alumno.nombreapellido}</Text>
-                                <Text style={styles.celda}>{alumno.dni_alumno}</Text>
-                                <Text style={styles.celda}>{convertirFecha(alumno.fecha.slice(0, 10))}</Text>
-
-                                {/* Picker para estadoFalta */}
-                                <EstadoFaltaAlumnosSelector
-                                    formData={{
-                                        id_estado_falta: estadoFaltaPorAlumno[alumno.dni_alumno] ?? "",
-                                    }}
-                                    handleChange={(field, value) => {
-                                        console.log(`Cambiando estado de falta para alumno ${alumno.dni_alumno}:`, value);
-                                        actualizarSeleccionadoAlumno('estadoFalta', value, alumno.dni_alumno);
-                                        actualizarDatosEnBaseDeDatos('estadoFalta', value, alumno.dni_alumno, alumno.fecha);
-                                    }}
-                                    estadoFalta={estadoFalta || []}
-                                    styles={styles.celda}
-                                />
-                                {/* Picker para certificado */}
-                                <CertificadoSelector
-                                    formData={{
-                                        id_certificado: certificadoPorAlumno[alumno.dni_alumno] ?? "", // Valor seleccionado para este alumno
-                                    }}
-                                    handleChange={(field, value) => {
-                                        actualizarSeleccionadoAlumno('certificado', value, alumno.dni_alumno);
-                                        actualizarDatosEnBaseDeDatos('certificado', value, alumno.dni_alumno, alumno.fecha);
-                                    }}
-                                    certificado={certificado || []} // Lista de certificados
-                                    styles={styles.celda} // Estilo del selector
+            <ImageBackground source={bg} style={styles.bg}> 
+                <ScrollView style={styles.scrollView}>
+                    <View style={styles.contenido}>
+                        <View style={styles.contenidoFecha}>
+                            <View style={styles.filaInputs}>
+                                <Text style={styles.label}>Fecha desde:</Text>
+                                <TextInput
+                                    placeholder="DD-MM-AAAA"
+                                    style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
+                                    value={fechaDesde}
+                                    onChangeText={setFechaDesde}
                                 />
                             </View>
-                        ))}
+                            <View style={styles.filaInputs}>
+                                <Text style={styles.label}>Fecha hasta:</Text>
+                                <TextInput
+                                    placeholder="----/--/--"
+                                    style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
+                                    value={fechaHasta}
+                                    onChangeText={setFechaHasta}
+                                />
+                            </View>
+                            <TouchableOpacity style={styles.boton} onPress={handleConsultar}>
+                                <Text style={styles.botonTexto}>Consultar</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{width: '100%'}}>
+                            <View style={styles.tabla}>
+                                <View style={styles.headerRow}>
+                                    <Text style={styles.headerCellNombre}>Alumno</Text>
+                                    <Text style={styles.headerCell}>DNI</Text>
+                                    <Text style={styles.headerCell}>Fecha</Text>
+                                    <Text style={styles.headerCell}>Estado de la Falta</Text>
+                                    <Text style={styles.headerCell}>Certificado Médico</Text>
+                                </View>
+                                {Array.isArray(alumnos) && alumnos.length > 0 ? (
+                                    alumnos.map((alumno, index) => (
+                                        <View style={styles.fila} key={index}>
+                                            <Text style={styles.celdaNombre}>{alumno.nombreapellido}</Text>
+                                            <Text style={styles.celda}>{alumno.dni_alumno}</Text>
+                                            <Text style={styles.celda}>{convertirFecha(alumno.fecha.slice(0, 10))}</Text>
+                                            <View style={styles.celda}>
+                                                <EstadoFaltaAlumnosSelector
+                                                    formData={{
+                                                        id_estado_falta: estadoFaltaPorAlumno[alumno.dni_alumno] ?? "",
+                                                    }}
+                                                    handleChange={(field, value) => {
+                                                        actualizarSeleccionadoAlumno('estadoFalta', value, alumno.dni_alumno);
+                                                        actualizarDatosEnBaseDeDatos('estadoFalta', value, alumno.dni_alumno, alumno.fecha);
+                                                    }}
+                                                    estadoFalta={estadoFalta || []}
+                                                    styles={styles.celda}
+                                                />
+                                            </View>
+                                            <View style={styles.celda}>
+                                                <CertificadoSelector
+                                                    formData={{
+                                                        id_certificado: certificadoPorAlumno[alumno.dni_alumno] ?? "",
+                                                    }}
+                                                    handleChange={(field, value) => {
+                                                        actualizarSeleccionadoAlumno('certificado', value, alumno.dni_alumno);
+                                                        actualizarDatosEnBaseDeDatos('certificado', value, alumno.dni_alumno, alumno.fecha);
+                                                    }}
+                                                    certificado={certificado || []}
+                                                    styles={styles.celda}
+                                                />
+                                            </View>
+                                        </View>
+                                    ))
+                                ) : (
+                                    <View style={styles.fila}>
+                                        <Text style={styles.celdaNombre}>Sin datos</Text>
+                                        <Text style={styles.celda}></Text>
+                                        <Text style={styles.celda}></Text>
+                                        <Text style={styles.celda}></Text>
+                                        <Text style={styles.celda}></Text>
+                                    </View>
+                                )}
+                            </View>
+                        </ScrollView>
                     </View>
                 </ScrollView>
-            </View>
+            </ImageBackground>
         </View>
     );
 }
 
+
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
-        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
         alignItems: 'center',
         backgroundColor: 'white',
     },
     bg: {
-        alignItems: 'center',
         width: '100%',
         height: '100%',
         position: 'absolute',
         zIndex: -1,
     },
+    scrollView: {
+        flex: 1,
+        width: '100%',
+    },
     contenido: {
-        width: '40%',
+        width: '95%',
+        maxWidth: 1200,
         backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 10,
+        padding: 24,
+        borderRadius: 12,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 6,
+        marginTop: 36,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: '#e1e8ed',
+        alignSelf: 'center',
     },
     contenidoFecha: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 20,
+        backgroundColor: '#f9fafb',
+        padding: 16,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
     },
     filaInputs: {
         flexDirection: 'column',
         flex: 1,
-        marginRight: 10,
+        marginRight: 16,
     },
     label: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 8,
+        letterSpacing: 0.3,
     },
     input: {
-        width: '40%',
-        padding: 10,
+        width: '100%',
+        padding: 12,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 15,
-        backgroundColor: '#f9f9f9',
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        backgroundColor: '#fff',
+        color: '#374151',
+        fontSize: 14,
     },
     inputPequeño: {
-        width: '40%',
-        padding: 8,
+        width: '100%',
+        padding: 10,
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        backgroundColor: '#f9f9f9',
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        backgroundColor: '#fff',
+        color: '#374151',
+        fontSize: 14,
     },
     boton: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#0500FF',
+        backgroundColor: '#f0f7ff',
+        borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 5,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 120,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
     botonTexto: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
+        color: '#2c3e50',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
     },
-    tabla: {
-        marginTop: 20,
+    headerRow: {
+        flexDirection: 'row',
+        backgroundColor: '#f1f5f9',
+        paddingVertical: 12,
+        borderBottomWidth: 1.5,
+        borderBottomColor: '#e2e8f0',
+    },
+    headerCell: {
+        flex: 1,
+        textAlign: 'center',
+        fontWeight: '700',
+        fontSize: 15,
+        color: '#334155',
+        paddingHorizontal: 4,
+    },
+    headerCellNombre: {
+        flex: 2,
+        textAlign: 'left',
+        fontWeight: '700',
+        fontSize: 15,
+        color: '#334155',
+        paddingHorizontal: 8,
     },
     fila: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        padding: 10,
-    },
-    encabezado: {
-        fontWeight: 'bold',
-        width: 120,
-        marginRight: 10,
-        textAlign: 'center',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e2e8f0',
+        backgroundColor: '#fff',
+        minHeight: 48,
     },
     celda: {
-        width: 120,
-        textAlign: 'center',
-        borderWidth: 1,
-        marginRight: 10,
-        borderColor: '#ccc',
-        padding: 8,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+    },
+    celdaNombre: {
+        flex: 2,
+        textAlign: 'left',
+        fontSize: 15,
+        color: '#2a3d6c',
+        paddingHorizontal: 8,
     },
 });

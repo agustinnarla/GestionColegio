@@ -283,11 +283,11 @@ export default function CargarNotas() {
                 </TouchableOpacity>
             </View>
             <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
-      />
+              isVisible={alertVisible}
+              onClose={() => setAlertVisible(false)}
+              title={alertTitle}
+              message={alertMessage}
+            />
         </View>
     );
 }

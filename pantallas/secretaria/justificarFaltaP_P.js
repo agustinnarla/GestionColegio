@@ -2,8 +2,8 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView,
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import bg from '../../assets/bg1.jpg';
-import { obtenerEstadosFaltaPP, obtenerFaltasPP, registrarJustificacionPP } from '../../scripts/secretaria/scriptJustificarFaltaPP';
-import { obtenerCertificado } from '../../scripts/preceptor/scriptGestionJustificarFalta';
+import { obtenerFaltasPP, registrarJustificacionPP } from '../../scripts/secretaria/scriptJustificarFaltaPP';
+import { obtenerCertificado, obtenerEstadosFaltaProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
 
 const formatFecha = (fechaISO) => {
     if (!fechaISO) return '--/--/----';
@@ -25,7 +25,7 @@ export default function JustificarFaltaP_P() {
 
     const cargarEstadosFaltaPP = async () => {
         try {
-            const estados = await obtenerEstadosFaltaPP();
+            const estados = await obtenerEstadosFaltaProfesionales();
             setEstadosFalta(estados);
         } catch (error) {
             console.error('Error al cargar estados de falta:', error.message);
@@ -53,8 +53,8 @@ export default function JustificarFaltaP_P() {
             const certificadoInicial = {};
             
             faltasData.forEach(falta => {
-                estadoInicial[falta.dni_profesor] = falta.id_estadofalta_pp || null;
-                certificadoInicial[falta.dni_profesor] = falta.id_certificado || null;
+                estadoInicial[falta.dni_profesional] = falta.id_estado_falta_profesional || null;
+                certificadoInicial[falta.dni_profesional] = falta.id_certificado || null;
             });
             
             setEstadoFaltaPorProfesor(estadoInicial);
@@ -79,30 +79,30 @@ export default function JustificarFaltaP_P() {
         }
     };
 
-    const actualizarSeleccionProfesor = (tipo, valor, dni_profesor, fecha) => {
+    const actualizarSeleccionProfesor = (tipo, valor, dni_profesional, fecha) => {
       // Actualizar el estado local
       if (tipo === 'estadoFalta') {
           setEstadoFaltaPorProfesor(prev => ({
               ...prev,
-              [dni_profesor]: valor
+              [dni_profesional]: valor
           }));
       } else if (tipo === 'certificado') {
           setCertificadoPorProfesor(prev => ({
               ...prev,
-              [dni_profesor]: valor
+              [dni_profesional]: valor
           }));
       }
   
       // Preparar datos para enviar al backend
       const datosParaEnviar = {
-          dni_profesor,
-          fecha,
-          id_estadofalta: tipo === 'estadoFalta' ? valor : estadoFaltaPorProfesor[dni_profesor],
-          id_certificado: tipo === 'certificado' ? valor : certificadoPorProfesor[dni_profesor]
-      };
+        dni_profesional,
+        fecha,
+        id_estado_falta_profesional: tipo === 'estadoFalta' ? Number(valor) : Number(estadoFaltaPorProfesor[dni_profesional]),
+        id_certificado: tipo === 'certificado' ? Number(valor) : Number(certificadoPorProfesor[dni_profesional])
+    };
   
       // Solo enviar si tenemos al menos el estado de falta
-      if (datosParaEnviar.id_estadofalta) {
+      if (datosParaEnviar.id_estado_falta_profesional) {
           registrarJustificacion(datosParaEnviar);
       }
     };
@@ -116,8 +116,8 @@ export default function JustificarFaltaP_P() {
         return `${año}-${mes}-${dia}`;
     };
 
-    const registrarJustificacion = async ({ dni_profesor, fecha, id_estadofalta, id_certificado }) => {
-      if (!dni_profesor || !fecha) {
+    const registrarJustificacion = async ({ dni_profesional, fecha, id_estado_falta_profesional, id_certificado }) => {
+      if (!dni_profesional || !fecha) {
           console.log('Faltan datos requeridos');
           return;
       }
@@ -125,9 +125,9 @@ export default function JustificarFaltaP_P() {
       try {
           // Preparar los datos para enviar
           const formData = {
-              dni_profesor,
+              dni_profesional,
               fecha: formatFechaParaBackend(fecha),
-              id_estadofalta: id_estadofalta || null,  // Puede ser null
+              id_estado_falta_profesional: id_estado_falta_profesional || null,  // Puede ser null
               id_certificado: id_certificado || null   // Puede ser null
           };
   
@@ -188,42 +188,42 @@ export default function JustificarFaltaP_P() {
                         {faltas.length > 0 ? (
                             faltas.map((falta, index) => (
                                 <View key={index} style={styles.fila}>
-                                    <Text style={styles.celda}>{falta.dni_profesor}</Text>
+                                    <Text style={styles.celda}>{falta.dni_profesional}</Text>
                                     <Text style={styles.celda}>{formatFecha(falta.fecha)}</Text>
                                     
                                     <Picker
-                                      style={styles.celda}
-                                      selectedValue={estadoFaltaPorProfesor[falta.dni_profesor] || null}
-                                      onValueChange={(itemValue) => {
-                                          actualizarSeleccionProfesor('estadoFalta', itemValue, falta.dni_profesor, falta.fecha);
-                                      }}
-                                  >
-                                      <Picker.Item label="Seleccione estado de falta" value={null} />
-                                      {estadosFalta.map(estado => (
-                                          <Picker.Item
-                                              key={estado.id_estadofalta_pp}
-                                              label={estado.detalle}
-                                              value={estado.id_estadofalta_pp}
-                                          />
-                                      ))}
-                                  </Picker>
+                                    style={styles.celda}
+                                    selectedValue={estadoFaltaPorProfesor[falta.dni_profesional] || null}
+                                    onValueChange={(itemValue) => {
+                                        actualizarSeleccionProfesor('estadoFalta', itemValue, falta.dni_profesional, falta.fecha);
+                                    }}
+                                >
+                                    <Picker.Item label="Seleccione estado de falta" value={null} />
+                                    {estadosFalta.map(estado => (
+                                        <Picker.Item
+                                            key={estado.id_estado_falta_profesional}
+                                            label={estado.detalle}
+                                            value={Number(estado.id_estado_falta_profesional)}
+                                        />
+                                    ))}
+                                </Picker>
 
-                                  <Picker
-                                      style={styles.celda}
-                                      selectedValue={certificadoPorProfesor[falta.dni_profesor] || null}
-                                      onValueChange={(itemValue) => {
-                                          actualizarSeleccionProfesor('certificado', itemValue, falta.dni_profesor, falta.fecha);
-                                      }}
-                                  >
-                                      <Picker.Item label="Seleccione certificado médico" value={null} />
-                                      {certificados.map(certificado => (
-                                          <Picker.Item
-                                              key={certificado.id_certificado}
-                                              label={certificado.detalle}
-                                              value={certificado.id_certificado}
-                                          />
-                                      ))}
-                                  </Picker>
+                                <Picker
+                                    style={styles.celda}
+                                    selectedValue={certificadoPorProfesor[falta.dni_profesional] || null}
+                                    onValueChange={(itemValue) => {
+                                        actualizarSeleccionProfesor('certificado', itemValue, falta.dni_profesional, falta.fecha);
+                                    }}
+                                >
+                                    <Picker.Item label="Seleccione certificado médico" value={null} />
+                                    {certificados.map(certificado => (
+                                        <Picker.Item
+                                            key={certificado.id_certificado}
+                                            label={certificado.detalle}
+                                            value={Number(certificado.id_certificado)}
+                                        />
+                                    ))}
+                                </Picker>
                                 </View>
                             ))
                         ) : (
@@ -381,6 +381,8 @@ const styles = StyleSheet.create({
     celda: {
         flex: 1,
         minWidth: 180,
+        marginLeft: 10,
+        marginTop: 10,
         textAlign: 'center',
         fontSize: 15,
         color: '#374151',

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, Alert } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, Alert, ImageBackground } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { obtenerSexo, obtenerEstadoGeneral, obtenerLocalidad,obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { obtenerProfesional, habilitarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 
 export default function GestionarProfesional() {
@@ -40,11 +41,10 @@ export default function GestionarProfesional() {
         telefono_personal: '',
         telefono_alternativo:'',
         id_estado_general: '',
-        idlocalidad: '',
+        id_localidad: '',
         domicilio: '',
         edificio: false,
         numero:'',
-        id_localidad: '',
         piso: '',
         departamento: ''
     });
@@ -155,7 +155,7 @@ export default function GestionarProfesional() {
                 telefono_personal: '',
                 telefono_alternativo:'',
                 id_estado_general: '',
-                idlocalidad: '',
+                id_localidad: '',
                 domicilio: '',
                 edificio: false,
                 numero:'',
@@ -212,7 +212,8 @@ export default function GestionarProfesional() {
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg}></Image>
+            <ScrollContainer />
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
             <View style={styles.formulario}>
                 <View style={styles.dniContainer}>
                     <Text style={styles.label}>DNI:</Text>
@@ -329,6 +330,7 @@ export default function GestionarProfesional() {
                 <TouchableOpacity style={styles.botonModificar} onPress={handleModificarProfesional}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
+            </ImageBackground>
              <CustomAlert
             isVisible={alertVisible}
             onClose={() => setAlertVisible(false)}
@@ -351,10 +353,11 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
     },
     formulario: {
-        width: '92%',
+        marginTop: 8,
+        alignSelf: 'center',
+        width: '100%',
         maxWidth: 1200,
         backgroundColor: '#fff',
         padding: 20,
@@ -450,6 +453,7 @@ const styles = StyleSheet.create({
     },
     contenidoBotones: {
         flexDirection: 'row',
+        alignSelf: 'center',
         justifyContent: 'center',
         marginTop: 18,
         width: '80%',

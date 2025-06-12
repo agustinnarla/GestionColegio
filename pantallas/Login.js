@@ -5,6 +5,7 @@ import { ingresarUsuario, olvideMiContrasena } from '../scripts/login/scriptLogi
 import bg from '../assets/bg1.jpg';
 import logo from '../assets/logo_huerto.png';
 import CustomAlert from '../componente/CustomAlerts.js';
+import ScrollContainer from '../componente/ScrollContainer.jsx';
 
 export default function Login(props) {
     const [dniUsuario, setDniUsuario] = useState('');
@@ -80,7 +81,8 @@ export default function Login(props) {
 
     return (
         <View style={styles.padre}>
-            <ImageBackground source={bg} style={styles.bg}>
+            <ScrollContainer/>
+            <ImageBackground source={bg} style={styles.bg} resizeMode='cover'>
                 <View>
                     <Image source={logo} style={styles.logo} />
                 </View>
@@ -130,42 +132,69 @@ export default function Login(props) {
 
 
 const styles = StyleSheet.create({
-
     padre: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white'
+        backgroundColor: '#f5f7fa',
+    },
+    bg: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     logo: {
-        marginTop: 50,
-        width: 170,
-        height: 260
+        marginTop: 10,
+        marginBottom: 10,
+        width: 180,
+        height: 180,
+        alignSelf: 'center',
+        resizeMode: 'contain',
     },
     tarjeta: {
-        margin: 20,
-        borderRadius: 10,
-        width: '30%',
-        padding: 20,
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderRadius: 18,
+        width: 350,
+        maxWidth: '90%',
+        padding: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.10,
+        shadowRadius: 24,
+        elevation: 8,
+        alignItems: 'center',
     },
     cajaTexto: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 15,
-        borderColor: '#000AFF',
-        borderWidth: 0.5,
-        backgroundColor: '#cccccc40',
+        borderColor: '#b6c6e0',
+        borderWidth: 1.2,
+        backgroundColor: '#f8fafc',
         borderRadius: 10,
-        marginVertical: 10,
+        marginVertical: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 0,
+        height: 48,
+        width: '100%',
     },
     textInput: {
-        paddingHorizontal: 15,
+        flex: 1,
+        fontSize: 16,
+        color: '#2a3d6c',
+        paddingHorizontal: 10,
+        backgroundColor: 'transparent',
+        outlineStyle: 'none',
+        borderWidth: 0,
     },
     icon: {
-        marginHorizontal: 8,
+        marginHorizontal: 6,
+        color: '#6366f1',
     },
     padreBoton: {
         alignItems: 'center',
+        width: '100%',
     },
     cajaBoton: {
         backgroundColor: '#F0F4FF',
@@ -173,8 +202,8 @@ const styles = StyleSheet.create({
         borderColor: '#000AFF',
         borderWidth: 0.5,
         paddingVertical: 15,
-        width: 150,
-        marginTop: 20,
+        width: '100%',
+        marginTop: 24,
         shadowColor: '#6D8FE5',
         shadowOffset: {
             width: 5,
@@ -190,15 +219,18 @@ const styles = StyleSheet.create({
     },
     textoBoton: {
         textAlign: 'center',
-        color: 'black',
+        color: '#000',
+        fontWeight: '400',
+        fontSize: 16,
+        letterSpacing: 0.5,
     },
     textoOlvide: {
-        textAlign: 'center',
-        color: '#005FB7'
+        textAlign: 'right',
+        color: '#6366f1',
+        fontSize: 13,
+        marginTop: 8,
+        marginBottom: 0,
+        alignSelf: 'flex-end',
+        textDecorationLine: 'underline',
     },
-    bg: {
-        alignItems: 'center',
-        width: '100%',
-        height: '100%',
-    }
 });

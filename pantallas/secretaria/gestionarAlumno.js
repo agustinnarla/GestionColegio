@@ -1,12 +1,13 @@
 import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoAlumno, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
 import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
 import * as DocumentPicker from 'expo-document-picker';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
-
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
+import { ImageBackground } from 'react-native-web';
 
 export default function GestionarAlumno() {
 
@@ -407,7 +408,7 @@ export default function GestionarAlumno() {
     const handleLimpiar = async() => {
         
         setFormData({
-            dnialumno: '',
+            dni_alumno: '',
             nombre: '',
             apellido: '',
             domicilio: '',
@@ -416,15 +417,15 @@ export default function GestionarAlumno() {
             id_sexo: '',
             cuil: '',
             fechaNacimiento: '',
-            idlocalidad: '',
-            idestadoalumno: '',
+            id_localidad: '',
+            id_estado_general: '',
             telefonopersonal: '',
             telefonomadre: '',
             telefonopadre: '',
             emailpersonal: '',
             emailfamiliar: '',
             edificio: false,
-            idcurso: '',
+            id_curso: '',
         });
         setDocumentos({
             dni: null,
@@ -572,7 +573,8 @@ export default function GestionarAlumno() {
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg}></Image>
+            <ScrollContainer/>
+            <ImageBackground source={bg} style={styles.bg}>
             <View style={styles.formulario}>
                 <View style={styles.dniContainer}>
                     <Text style={styles.label}>DNI:</Text>
@@ -774,6 +776,7 @@ export default function GestionarAlumno() {
                 <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonLimpiar} onPress={handleLimpiar}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
+            </ImageBackground>
         </View>
     );
 }
@@ -794,7 +797,9 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   formulario: {
-    width: '95%',
+    width: '100%',
+    alignSelf: 'center',
+    marginTop: 10,
     maxWidth: 1200,
     backgroundColor: '#fff',
     padding: 30,
@@ -904,6 +909,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 800,
     gap: 10,
+    alignSelf: 'center',
   },
   botonAlta: {
         backgroundColor: '#e8f5e9',
