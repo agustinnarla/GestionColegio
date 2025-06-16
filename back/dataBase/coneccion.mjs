@@ -9,6 +9,9 @@ export const pool = new pg.Pool({
   database: process.env.DATABASE || 'gestion-colegio',
   user: process.env.USER || 'postgres',
   password: process.env.PASSWORD || 'roma'
+
+  //connectionString: process.env.DATA_BASE_URL,
+  //ssl:true
 });
 try {
     await pool.query("SELECT NOW()");

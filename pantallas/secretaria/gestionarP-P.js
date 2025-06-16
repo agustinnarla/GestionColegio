@@ -102,6 +102,7 @@ export default function GestionarProfesional() {
                 if(respuesta){
                     mostrarMensaje('Exito', 'Profesional registrado correctamente')
                     console.log("El profesional fue habilitado correctamente")
+                    limpiarInterfaz()
                 }
             }catch(error){
                 mostrarMensaje('Error', 'Error al registrar el profesional')
@@ -203,6 +204,7 @@ export default function GestionarProfesional() {
                 if(respuesta){
                     mostrarMensaje('Exito', 'El profesional se modifico correctamente')
                     console.log("El profesional fue modificado correctamente")
+                    limpiarInterfaz()
                 }
             } catch (error) {
                 mostrarMensaje('Error', 'Error al modificar el profesional')

@@ -10,7 +10,7 @@ const api_urlMateriaProfesor = 'http://localhost:5000/profesor/materia/alta'
 export const registrarMateriaProfesor = async (dniProfesores, idMateria) => {
     try {
         // Paso 1: Eliminar todas las relaciones existentes para la materia
-        const deleteResponse = await fetch(`${api_urlMateriaProfesor}`, {
+        const deleteResponse = await fetch(`${api_urlMateriaDeshabilitar}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

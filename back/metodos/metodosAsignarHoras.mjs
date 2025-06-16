@@ -69,9 +69,8 @@ export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_ini
 };
 
 export const obtenerProfesores = async (req, res) => {
-    try{
-        // Tabla profesionales traer nombre y apellido y de acuerdo al id_rol del profesor 
-        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombre, dni_profesional FROM profesional WHERE id_rol = 1");
+    try {
+        const respuesta = await pool.query("SELECT CONCAT(nombre, ' ', apellido) AS nombre, dni_profesional FROM profesional WHERE id_rol = 2");
 
         if (respuesta.rows.length === 0) {
             return res.status(404).json({ message: 'No se encontraron profesores' });
@@ -155,5 +154,44 @@ export const obtenerHorasProfesor = async (req, res) => {
     } catch (error) {
         console.error('Error al obtener las horas del profesor:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
+export const obtenerHorarioProfesional = async (req, res) => {
+    const { dni_profesional } = req.params;
+    try {
+        const respuesta = await pool.query(
+            `SELECT dia_semana, hora_inicio, hora_final 
+             FROM horario 
+             WHERE dni_profesional = $1`,
+            [dni_profesional]
+        );
+        
+        
+        res.status(200).json({ horarios: respuesta.rows });
+    } catch (error) {
+        console.error('Error al obtener horarios del profesor:', error);
+        res.status(500).json({ message: 'Error al obtener los horarios del profesor' });
+    }
+};
+
+export const obtenerHorarioCurso = async (req, res) => {
+    const { id_curso } = req.params;
+    try {
+        const respuesta = await pool.query(
+            `SELECT h.dia_semana, h.hora_inicio, h.hora_final 
+             FROM horario h
+             JOIN materia_curso mc ON h.id_materia = mc.id_materia AND h.id_curso = mc.id_curso
+             WHERE h.id_curso = $1`,
+            [id_curso]
+        );
+        
+        
+        
+
+        res.status(200).json({ horarios: respuesta.rows });
+    } catch (error) {
+        console.error('Error al obtener horarios del curso:', error);
+        res.status(500).json({ message: 'Error al obtener los horarios del curso' });
     }
 };
