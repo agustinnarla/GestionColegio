@@ -1,4 +1,3 @@
-
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import { Picker } from '@react-native-picker/picker';
@@ -8,6 +7,7 @@ import { registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scri
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
+import { ImageBackground } from 'react-native-web';
 
 export default function GestionarObservaciones() {
     // Formulario
@@ -249,12 +249,7 @@ export default function GestionarObservaciones() {
                     </View>
                 </View>
             </Modal>
-            <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
-            />
+           
         </View>
         
     );
@@ -262,8 +257,15 @@ export default function GestionarObservaciones() {
     return (
         <View style={styles.padre}>
             <ScrollContainer />
-            <Image source={bg} style={styles.bg} />
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
             {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
+            />
+            </ImageBackground>
         </View>
     );
 }
@@ -289,6 +291,7 @@ const styles = StyleSheet.create({
         
     },
     contenido: {
+        marginTop:20,
         width: '100%',
         maxWidth: 700,
         backgroundColor: '#fff',
@@ -300,6 +303,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
         marginBottom: 120,
+        alignSelf: 'center'
     },
     label: {
         fontSize: 18,
@@ -330,26 +334,29 @@ const styles = StyleSheet.create({
     botonesContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 20,
+        marginTop: 25,
+        alignSelf: 'center'
     },
     botonRegistrar: {
         backgroundColor: '#CFEFCE',
         borderColor: '#33FF00',
         borderWidth: 1,
         paddingVertical: 15,
-        paddingHorizontal: 20,
+        paddingHorizontal: 50,
         borderRadius: 5,
         flex: 1,
         marginRight: 10,
+        minWidth: 200,
     },
     botonCancelar: {
         backgroundColor: '#F3B9B9',
         borderColor: '#FF0000',
         borderWidth: 1,
         paddingVertical: 15,
-        paddingHorizontal: 20,
+        paddingHorizontal: 50,
         borderRadius: 5,
         flex: 1,
+        minWidth: 200,
     },
     botonImprimir:{
         flex: 1,

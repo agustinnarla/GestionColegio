@@ -39,7 +39,7 @@ export const habilitarMateria = async (req, res) => {
 //Trae todos los datos 
 export const obtenerProfesor = async (req,res) => {
     try{
-        const respuesta = await pool.query('SELECT * FROM profesional WHERE id_rol = 1 AND id_estado_general = 1')
+        const respuesta = await pool.query('SELECT * FROM profesional WHERE id_rol = 2 AND id_estado_general = 1')
         res.json({profesor: respuesta.rows})
     }catch{
         console.log('Error al traer las materias')

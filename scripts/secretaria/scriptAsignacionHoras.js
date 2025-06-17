@@ -1,8 +1,7 @@
-
 const api_urlHoras = 'http://localhost:5000/secretaria/profesional/horario'
 const api_urlHorasAsignadas = 'http://localhost:5000/secretaria/profesional/horas/alta'
-
-
+const api_urlHorasProfesional = 'http://localhost:5000/secretaria/profesional/horario'
+const api_urlHorasCurso = 'http://localhost:5000/secretaria/curso/horario'
 
 
 // 🟢
@@ -40,3 +39,33 @@ export const asignacionDeHoras = async (profeData) => {
         console.error('Error en asignacionDeHoras:', error);
     }
 }
+
+export const obtenerHorariosProfesional = async (dni_profesional) => {
+    try {
+        const respuesta = await fetch(`${api_urlHorasProfesional}/${dni_profesional}`);
+        if (!respuesta.ok) {
+            throw new Error('Error al obtener las horas del profesor');
+        }
+        const data = await respuesta.json();
+        return data; 
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+};
+
+
+
+export const obtenerHorariosCurso = async (id_curso) => {
+    try {
+        const respuesta = await fetch(`${api_urlHorasCurso}/${id_curso}`);
+        if (!respuesta.ok) {
+            throw new Error('Error al obtener las horas del profesor');
+        }
+        const data = await respuesta.json();
+        return data; 
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+};

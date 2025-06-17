@@ -82,12 +82,21 @@ export const modificarProfesional = async (req, res) => {
     valores.push(dni_profesional); // Para el WHERE
 
     const query = `UPDATE profesional SET ${sets.join(', ')} WHERE dni_profesional = $${valores.length} RETURNING *`;
-
+    
     try {
         const respuesta = await pool.query(query, valores);
         if (respuesta.rowCount === 0) {
             return res.status(404).json({ message: 'No se encontró el profesor preceptor' });
         }
+
+        // Si se modificó el estado general, actualizar también en la tabla usuario
+        if (req.body.id_estado_general !== undefined) {
+            await pool.query(
+                "UPDATE usuario SET id_estado_general = $1 WHERE dni_usuario = $2",
+                [req.body.id_estado_general, dni_profesional]
+            );
+        }
+
         res.status(200).json({ message: 'Profesor preceptor modificado correctamente', data: respuesta.rows[0] });
     } catch (error) {
         console.log(error);

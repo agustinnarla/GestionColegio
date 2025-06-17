@@ -148,7 +148,7 @@ export const obtenerProfesor = async () => {
     try {
         const response = await fetch(`${api_urlProfesor}`);
         const data = await response.json();
-        return data.profesor || [];
+        return data;
     } catch (error) {
         console.error('Error al obtener profesor:', error);
         return { profesor: [] };
@@ -324,7 +324,7 @@ export const obtenerProfesores = async () => {
     try {
         const response = await fetch(`${api_urlProfesores}`);
         const data = await response.json();
-        return data;
+        return data.profesores || [];
     } catch (error) {
         console.error('Error al obtener profesores:', error);
         return { profesores: [] };

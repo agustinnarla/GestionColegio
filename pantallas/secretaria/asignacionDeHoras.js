@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, ImageBackground,TextInput, Fl
 import { ScrollView } from 'react-native-web';
 import bg from '../../assets/bg1.jpg';
 import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso} from '../../scripts/listasDesplegables/listaDesplegable.js'
-import {  obtenerHorasProfesor, asignacionDeHoras } from '../../scripts/secretaria/scriptAsignacionHoras';
+import {  obtenerHorasProfesor, asignacionDeHoras, obtenerHorariosProfesional, obtenerHorariosCurso } from '../../scripts/secretaria/scriptAsignacionHoras';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
@@ -29,6 +29,8 @@ export default function AsignacionHoras() {
     const [horas, setHoras] = useState([]);
     const [asignaciones, setAsignaciones] = useState([]);
     const [horariosAsignados, setHorariosAsignados] = useState({});
+    const [horariosOcupados, setHorariosOcupados] = useState({});
+    const [tipoConsulta, setTipoConsulta] = useState('asignar'); // 'asignar', 'profesor', 'curso'
 
     const diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
     const rangosHorarios = [
@@ -72,7 +74,7 @@ export default function AsignacionHoras() {
         inicializarHorarios();
     }, []);
 
-    const handleReiniciar = () => {
+    const limpiarInterfaz = () => {
         setProfesor([]);
         setCurso([]);
         setMateria([]);
@@ -91,6 +93,7 @@ export default function AsignacionHoras() {
    const handleConsultar = async () => {
         try {
             if (formData.dni_profesional && formData.id_curso && formData.id_materia) {
+                setTipoConsulta('asignar');
                 console.log('Enviando parámetros:', formData.dni_profesional, formData.id_curso, formData.id_materia);
                 const data = await obtenerHorasProfesor(formData.dni_profesional, formData.id_curso, formData.id_materia);
                 setHoras(data.horas);
@@ -113,6 +116,60 @@ export default function AsignacionHoras() {
             mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
         }
     };
+
+    const handleConsultarProfesional = async () => {
+      try {
+        if (formData.dni_profesional ) {
+            setTipoConsulta('profesor');
+            console.log('Enviando parámetros:', formData.dni_profesional);
+            const data = await obtenerHorariosProfesional(formData.dni_profesional);
+            setHoras(data.horas);
+            console.log('Horas traídas exitosamente:', data.horas);
+
+            const nuevosHorarios = {};
+            data.horas.forEach((hora) => {
+                const rango = hora.horario;
+                if (!nuevosHorarios[hora.dia_semana]) {
+                    nuevosHorarios[hora.dia_semana] = [];
+                }
+                nuevosHorarios[hora.dia_semana].push(rango);
+            });
+            setHorariosAsignados(nuevosHorarios);
+        } else {
+            console.log('Debe seleccionar un profesor y un curso');
+        }
+    } catch (error) {
+        console.error('Error en obtenerHorasProfesor:', error);
+        mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
+    }
+    }
+
+    const handleConsultarCurso = async () => {
+      try {
+        if (formData.id_curso ) {
+            setTipoConsulta('curso');
+            console.log('Enviando parámetros:', formData.id_curso);
+            const data = await obtenerHorariosCurso(formData.id_curso);
+            setHoras(data.horas);
+            console.log('Horas traídas exitosamente:', data.horas);
+
+            const nuevosHorarios = {};
+            data.horas.forEach((hora) => {
+                const rango = hora.horario;
+                if (!nuevosHorarios[hora.dia_semana]) {
+                    nuevosHorarios[hora.dia_semana] = [];
+                }
+                nuevosHorarios[hora.dia_semana].push(rango);
+            });
+            setHorariosAsignados(nuevosHorarios);
+        } else {
+            console.log('Debe seleccionar un profesor y un curso');
+        }
+    } catch (error) {
+        console.error('Error en obtenerHorasCurso:', error);
+        mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
+    }
+    }
 
     const alternarHorario = (dia, rango) => {
         setHorariosAsignados((prev) => {
@@ -158,9 +215,10 @@ export default function AsignacionHoras() {
                     return;
                 }
                 console.log('Datos de la asignación de horas', asignaciones);
-                const respuesta = await asignacionDeHoras(asignaciones); // Ajusta tu backend para recibir un array
+                const respuesta = await asignacionDeHoras(asignaciones); 
                 console.log('Respuesta del servidor:', respuesta);
                 mostrarMensaje('¡Éxito!', 'Se registro el horario exitosamente');
+                limpiarInterfaz()
             } catch (error) {
                 console.error('Error al asignar la hora:', error);
                 mostrarMensaje('¡Error!', 'Error al asignar el horario');
@@ -172,7 +230,8 @@ export default function AsignacionHoras() {
         const cargarDatos = async () => {
             try {
                 const profesoresData = await obtenerProfesores();
-
+                setProfesor(profesoresData);
+                
                 if (formData.dni_profesional) {
                     const data = await obtenerCursosPorProfesor(formData.dni_profesional);
                     setCurso(data);
@@ -187,7 +246,7 @@ export default function AsignacionHoras() {
                 }else{
                     console.log('error')
                 }
-                setProfesor(profesoresData.profesores);
+                
             } catch (error) {
                 console.log('Error al cargar los profesores:', error);
             }
@@ -195,9 +254,7 @@ export default function AsignacionHoras() {
         cargarDatos();
     }, [formData.dni_profesional, formData.id_curso]);
 
-   
 
-    
 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
@@ -220,28 +277,51 @@ return (
             
             </View>
               <View style={styles.botonesFiltrosAbajo}>
-                <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
-                  <Text style={styles.textoBoton}>Consultar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleReiniciar} style={styles.botonSecundario}>
-                  <Text style={styles.textoBoton}>Reiniciar</Text>
-                </TouchableOpacity>
+                <>
+                    <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
+                        <Text style={styles.textoBoton}>Consultar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={limpiarInterfaz} style={styles.botonSecundario}>
+                        <Text style={styles.textoBoton}>Reiniciar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleConsultarProfesional} style={styles.botonInfo}>
+                        <Text style={styles.textoBoton}>Ver Horarios Profesor</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleConsultarCurso} style={styles.botonInfo}>
+                        <Text style={styles.textoBoton}>Ver Horarios Curso</Text>
+                    </TouchableOpacity>
+                </>
               </View>
             <View style={styles.horariosContainer}>
               {diasSemana.map((dia) => (
                 <View key={dia} style={styles.diaContainer}>
                   <Text style={styles.diaTitulo}>{dia}</Text>
-                  {rangosHorarios.map((rango) => (
-                    <TouchableOpacity
-                      key={`${dia}-${rango}`}
-                      style={[styles.horarioCuadro, horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado]}
-                      onPress={() => alternarHorario(dia, rango)}
-                    >
-                      <Text style={[styles.horarioTexto, horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo]}>
-                        {rango}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {rangosHorarios.map((rango) => {
+                    const estaOcupado = horariosOcupados[dia]?.includes(rango);
+                    return (
+                      <TouchableOpacity
+                        key={`${dia}-${rango}`}
+                        style={[
+                          styles.horarioCuadro,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'asignar' && styles.horarioAsignado,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'profesor' && styles.horarioProfesor,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'curso' && styles.horarioCurso,
+                          estaOcupado && styles.horarioOcupado
+                        ]}
+                        onPress={() => alternarHorario(dia, rango)}
+                      >
+                        <Text style={[
+                          styles.horarioTexto,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'asignar' && styles.horarioTextoActivo,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'profesor' && styles.horarioTextoProfesor,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'curso' && styles.horarioTextoCurso,
+                          estaOcupado && styles.horarioTextoOcupado
+                        ]}>
+                          {rango}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               ))}
             </View>
@@ -542,6 +622,70 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '500',
+  },
+
+  botonInfo: {
+    backgroundColor: '#e0f2fe',
+    borderColor: '#0ea5e9',
+    borderWidth: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    flex: 1,
+    maxWidth: 250,
+    height: 40,
+    justifyContent: 'center',
+  },
+
+  horarioTextoOcupado: {
+    color: '#dc2626',
+    fontWeight: '600',
+  },
+
+  tituloVista: {
+    backgroundColor: '#f3f4f6',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+
+  textoTituloVista: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+
+  horarioProfesor: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#2563eb',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  horarioCurso: {
+    backgroundColor: '#8b5cf6',
+    borderColor: '#7c3aed',
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  horarioTextoProfesor: {
+    color: 'white',
+    fontWeight: '600',
+  },
+
+  horarioTextoCurso: {
+    color: 'white',
+    fontWeight: '600',
   },
 });
 

@@ -1,22 +1,26 @@
 import { pool } from '../dataBase/coneccion.mjs'
 
 
-// VER
+
 export const obtenerProfesionalesAsistencia = async (req, res) => {
     try {
-        // Obtener el día actual del sistema
-        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sábado'];
-        const diaActual = diasSemana[new Date().getDay()]; // Obtiene el día de la semana en texto
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const diaActual = diasSemana[new Date().getDay()];
 
-        // Consulta a la base de datos usando el día actual
+        // Consulta corregida
         const respuesta = await pool.query(
-            "SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional " + 
-            "FROM horario as h INNER JOIN profesional p ON p.dni_profesional = h.dni_profesional WHERE h.dia_semana = $1",
+            `SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional
+            FROM horario h
+            INNER JOIN profesional p ON p.dni_profesional = h.dni_profesional
+            LEFT JOIN asistencia_profesional a ON a.dni_profesional = p.dni_profesional AND a.fecha = CURRENT_DATE
+            WHERE h.dia_semana = $1
+            AND (a.hora_entrada IS NULL OR a.hora_salida IS NULL)`,
             [diaActual]
         );
-        // Verificar si hay resultados
+
         if (respuesta.rows.length === 0) {
-            return res.status(404).json({ message: 'No se encontraron profesores para el día de hoy' });
+            console.log('No hay profesores para registrar asistencia hoy');
+            return res.json({ profesor: [], message: 'No hay profesores para registrar asistencia hoy' });
         }
 
         console.log('Profesores traídos exitosamente');
@@ -27,6 +31,7 @@ export const obtenerProfesionalesAsistencia = async (req, res) => {
         res.status(500).json({ error: 'Error al obtener los profesores' });
     }
 };
+
 
 export const registrarEntradaProfesional = async (req, res) => {
     const { dni_profesional, hora_entrada, fecha } = req.body;
@@ -66,5 +71,32 @@ export const registrarSalidaProfesional = async (req, res) => {
     } catch (error) {
         console.error('Error al registrar la salida del profesional:', error);
         res.status(500).json({ error: 'Error al registrar la salida del profesional' });
+    }
+};
+
+export const marcarAusentes = async (req, res) => {
+    try {
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const diaActual = diasSemana[new Date().getDay()];
+        const fechaActual = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Insertar ausentes: los que tenían clases hoy y no tienen asistencia cargada
+        const resultado = await pool.query(`
+            INSERT INTO asistencia_profesional (dni_profesional, fecha, hora_entrada, hora_salida, id_estado_asistencia)
+            SELECT h.dni_profesional, $1, NULL, NULL, 2
+            FROM horario h
+            WHERE h.dia_semana = $2
+            AND NOT EXISTS (
+                SELECT 1 FROM asistencia_profesional a
+                WHERE a.dni_profesional = h.dni_profesional AND a.fecha = $1
+            )
+        `, [fechaActual, diaActual]);
+
+        console.log('Ausentes marcados correctamente');
+        res.json({ message: 'Ausentes marcados correctamente', total: resultado.rowCount });
+
+    } catch (error) {
+        console.error('Error al marcar ausentes:', error);
+        res.status(500).json({ error: 'Error al marcar ausentes' });
     }
 };

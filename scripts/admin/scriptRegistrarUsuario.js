@@ -1,6 +1,6 @@
 const api_urlRegistrarUsuario = 'http://localhost:5000/usuario/registrar';
 const api_urlDeshabilitarUsuario = 'http://localhost:5000/usuario/deshabilitar'
-const api_urlConsultarUsuario = 'http://localhost:5000/registrar/usuario/consultar'
+const api_urlConsultarUsuario = 'http://localhost:5000/usuario/registrar/consultar'
 const api_urlModificarUsuario = 'http://localhost:5000/usuario/modificar'
 
 // 🟢

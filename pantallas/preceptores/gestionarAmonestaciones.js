@@ -5,6 +5,7 @@ import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx'
 import useAmonestacion from '../../hooks/useAmonestacion.js';
+import { ImageBackground } from 'react-native-web';
 
 export default function GestionarAmonestaciones() {
     
@@ -51,7 +52,7 @@ export default function GestionarAmonestaciones() {
             <Text style={styles.label}>Motivo:</Text>
             <TextInput 
                 style={styles.input} 
-                placeholder="Motivo de las observaciones" 
+                placeholder="Motivo de la amonestación" 
                 value={formData.motivo}  
                 onChangeText={(value) => handleChange('motivo', value)}
             />
@@ -82,20 +83,22 @@ export default function GestionarAmonestaciones() {
                     </View>
                 </View>
             </Modal>
-            <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
-            />
+           
         </View>
     );
 
     return (
         <View style={styles.padre}>
             <ScrollContainer />
-            <Image source={bg} style={styles.bg} />
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
             {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
+            </ImageBackground>
         </View>
     );
 }
@@ -108,7 +111,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f7fa',
     },
     bg: {
-        position: 'absolute',
         width: '100%',
         height: '100%',
         zIndex: -1,
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
     },
     contenido: {
         width: '100%',
-        maxWidth: 520,
+        maxWidth: 620,
         backgroundColor: '#fff',
         padding: 32,
         borderRadius: 16,
@@ -131,8 +133,8 @@ const styles = StyleSheet.create({
         elevation: 6,
         alignSelf: 'center',
         alignItems: 'stretch',
-        marginTop: 36,
-        marginBottom: 36,
+        marginTop: 26,
+        marginBottom: 26,
     },
     label: {
         fontSize: 16,

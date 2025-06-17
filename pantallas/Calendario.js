@@ -1,19 +1,103 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, Image, useWindowDimensions, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import bg from '../assets/bg1.jpg'
+import { obtenerEvaluaciones, obtenerEvaluacionesProfesor } from '../scripts/alumno/scriptCalendario';
+import CustomAlert from '../componente/CustomAlerts.js';
 
 //Ver la importacion de google calendar -- Probar como funciona 
-export default function Calendario() {
+export default function Calendario({route}) {
+
   const [selectedDate, setSelectedDate] = useState('');
+  const [evaluaciones, setEvaluaciones] = useState([]);
+  const [markedDates, setMarkedDates] = useState({});
+  const [eventosDia, setEventosDia] = useState([]);
   const { width } = useWindowDimensions();
+
+  // Mensajes 
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  
+  const mostrarMensaje = (titulo, mensaje) => {
+    setAlertTitle(titulo);
+    setAlertMessage(mensaje);
+    setAlertVisible(true);
+  };
+
+  
 
   // Responsive styles
   const isSmallScreen = width < 1300;
+  const { dni_usuario } = route.params;
+  const { id_rol } = route.params;
 
+
+  useEffect(() => {
+  const cargarEvaluaciones = async () => {
+    try {
+      if (id_rol === 4) {
+        const dni_alumno = dni_usuario;
+        console.log('DNI del alumno:', dni_alumno);
+        const data = await obtenerEvaluaciones(dni_alumno);
+        if (data?.evaluaciones) {
+          setEvaluaciones(data.evaluaciones);
+          const fechasMarcadas = {};
+          data.evaluaciones.forEach(e => {
+            const [d, m, a] = e.fecha.split('-');
+            const fecha = `${a}-${m}-${d}`;
+            fechasMarcadas[fecha] = {
+              marked: true,
+              dotColor: '#FF6347',
+              selectedColor: '#FF6347',
+            };
+          });
+          setMarkedDates(fechasMarcadas);
+        }
+      } else if (id_rol === 2) {
+        const dni_profesional = dni_usuario;
+        console.log('DNI del profesional:', dni_profesional);
+        const data = await obtenerEvaluacionesProfesor(dni_profesional);
+        if (data?.evaluaciones) {
+          setEvaluaciones(data.evaluaciones);
+          const fechasMarcadas = {};
+          data.evaluaciones.forEach(e => {
+            const [d, m, a] = e.fecha.split('-');
+            const fecha = `${a}-${m}-${d}`;
+            fechasMarcadas[fecha] = {
+              marked: true,
+              dotColor: '#FF6347',
+              selectedColor: '#FF6347',
+            };
+          });
+          setMarkedDates(fechasMarcadas);
+        }
+      } else {
+        console.log('Rol no reconocido:', id_rol);
+      }
+    } catch (error) {
+      console.error('Error al cargar evaluaciones:', error);
+    }
+  };
+
+  cargarEvaluaciones();
+}, [dni_usuario]);
+
+  
   // Función que se ejecuta cuando se selecciona un día
   const onDayPress = (dia) => {
+    console.log('Día seleccionado:', dia);
     setSelectedDate(dia.dateString);
+    
+    // Filtrar evaluaciones para el día seleccionado
+    const eventosDelDia = evaluaciones.filter(evaluacion => {
+      // Convertir formato de fecha de DD-MM-YYYY a YYYY-MM-DD directamente
+      const [diaEvaluacion, mesEvaluacion, anioEvaluacion] = evaluacion.fecha.split('-');
+      const fechaFormateadaEvaluacion = `${anioEvaluacion}-${mesEvaluacion}-${diaEvaluacion}`;
+      return fechaFormateadaEvaluacion === dia.dateString;
+    });
+    console.log('Eventos del día:', eventosDelDia);
+    setEventosDia(eventosDelDia);
   };
 
   return (
@@ -24,25 +108,11 @@ export default function Calendario() {
         <Calendar
           onDayPress={onDayPress}
           markedDates={{
-            '2024-09-20': {
-              selected: true,
-              marked: true,
-              selectedColor: '#FF6347', 
-              dotColor: '#FF6347', 
-              customStyles: {
-                container: {
-                  backgroundColor: '#FF6347',
-                },
-                text: {
-                  color: 'white', 
-                  fontWeight: 'bold',
-                },
-              },
-            },
+            ...markedDates,
             [selectedDate]: {
               selected: true,
               marked: true,
-              selectedColor: '#DADADA', 
+              selectedColor: '#DADADA',
             },
           }}
           theme={{
@@ -55,7 +125,45 @@ export default function Calendario() {
           style={[styles.calendario, isSmallScreen && styles.calendarioSmall]}
         />
       </View>
-      <Text style={[styles.eventoTexto, isSmallScreen && styles.eventoTextoSmall]}>Viernes 20 de septiembre: Evaluación de Lengua</Text>
+
+      {selectedDate && (
+        <View style={[styles.eventosContainer, isSmallScreen && styles.eventosContainerSmall]}>
+          <Text style={styles.fechaSeleccionada}>
+            {(() => {
+             const [year, month, day] = selectedDate.split('-');
+             return new Intl.DateTimeFormat('es-ES', {
+               weekday: 'long',
+               year: 'numeric',
+               month: 'long',
+               day: 'numeric',
+               timeZone: 'UTC'
+             }).format(new Date(`${year}-${month}-${day}T00:00:00Z`));
+            })()}
+          </Text>
+          
+          {eventosDia.length > 0 ? (
+            <ScrollView style={styles.eventosLista}>
+              {eventosDia.map((evento, index) => (
+              <View key={index} style={styles.eventoItem}>
+                <Text style={styles.eventoMateria}>{evento.detalle}</Text>
+                <Text style={styles.eventoMateria}>{evento.materia_detalle}</Text>
+                <Text style={styles.eventoDetalle}>Tema abarcados: {evento.tema_abarcado}</Text>
+                <Text style={styles.eventoDetalle}>{id_rol === 2 ? evento.curso_detalle : ""}</Text>
+              </View>
+            ))}
+            </ScrollView>
+          ) : (
+            <Text style={styles.sinEventos}>No hay evaluaciones programadas para este día</Text>
+          )}
+        </View>
+      )}
+
+      <CustomAlert
+        isVisible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
+      />
     </View>
   );
 }
@@ -125,23 +233,63 @@ const styles = StyleSheet.create({
     maxWidth: 210,
     borderRadius: 8,
   },
-  fechaSeleccionada: {
-    marginTop: 10,
-    fontSize: 14,
+  eventosContainer: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  eventosContainerSmall: {
+    width: '95%',
+    padding: 12,
+  },
+  eventosLista: {
+    maxHeight: 200,
+  },
+  eventoItem: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 6,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF6347',
+  },
+  eventoMateria: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#2A3D6C',
+    marginBottom: 4,
   },
-  eventoTexto: {
-    marginTop: 8,
+  eventoDetalle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FF6347',
-    textAlign: 'center',
-    marginHorizontal: 10,
+    color: '#4a5568',
+    marginBottom: 4,
   },
-  eventoTextoSmall: {
+  eventoHora: {
     fontSize: 12,
-    marginTop: 5,
-    marginHorizontal: 2,
+    color: '#718096',
+    fontStyle: 'italic',
+  },
+  sinEventos: {
+    textAlign: 'center',
+    color: '#718096',
+    fontStyle: 'italic',
+    marginTop: 10,
+  },
+  fechaSeleccionada: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2A3D6C',
+    marginBottom: 12,
+    textAlign: 'center',
+    textTransform: 'capitalize',
   },
 });

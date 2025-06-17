@@ -25,13 +25,13 @@ const getMenuComponent = (id_rol, dni_usuario) => {
     case 1:
       return HomeAdmin;
     case 2:
-      return HomePreceptor;
+      return (props) => <HomeProfesor {...props} dni_usuario={dni_usuario} id_rol={id_rol} />;
     case 3:
-      return (props) => <HomeProfesor {...props} dni_usuario={dni_usuario} />;
+      return HomeSecretaria
     case 4:
-      return (props) => <HomeAlumno {...props} dni_usuario={dni_usuario} />;
+      return (props) => <HomeAlumno {...props} dni_usuario={dni_usuario} id_rol={id_rol}/>;
     case 5:
-      return HomeSecretaria;
+      return HomePreceptor;
     default:
       return HomeAlumno; 
   }
@@ -110,6 +110,7 @@ export const BottomTab = ({ route }) => {
       <Tab.Screen
         name="CALENDARIO"
         component={Calendario}
+        initialParams={{ dni_usuario, id_rol }} 
         options={{
           title: "CALENDARIO",
           headerTintColor: "white",

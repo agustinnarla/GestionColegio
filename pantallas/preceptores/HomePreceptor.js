@@ -26,7 +26,7 @@ export default function HomePreceptor(){
                         <Text style={styles.textoBoton}>Consultar Libro de Aula</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Justificar Falta')}>
-                        <Text style={styles.textoBoton}>Justificar Falta</Text>
+                        <Text style={styles.textoBoton}>Justificar Falta Alumno</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Gestionar Observación')}>
                         <Text style={styles.textoBoton}>Gestionar Observación</Text>
