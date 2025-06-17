@@ -80,20 +80,27 @@ export default function GestionarMaterias() {
     };
 
     const cargarMateriaProfesor = async () => {
-        if (selectedMateria && selectedProfesores.length > 0) {
-            console.log("profesores" + selectedProfesores)
-            console.log("materia" + selectedMateria)
-            const result = await registrarMateriaProfesor(selectedProfesores, selectedMateria);
-            // Verificar el mensaje de la respuesta
-            if (result && result.mensaje) {
-                alert(result.mensaje);  // Muestra el mensaje de éxito o de error
-            } else {
-                alert('Hubo un error al registrar la relación');
-            }
+    if (selectedMateria && selectedProfesores.length > 0) {
+        console.log("Profesores:", selectedProfesores);
+        console.log("Materia:", selectedMateria);
+
+        const relaciones = selectedProfesores.map(dni => ({
+            dni_profesional: dni,
+            id_materia: selectedMateria
+        }));
+
+        const result = await registrarMateriaProfesor(relaciones);
+
+        if (result && result.mensaje) {
+            alert(result.mensaje);
         } else {
-            alert('Selecciona una materia y al menos un profesor');
+            alert('Hubo un error al registrar la relación');
         }
-    };
+    } else {
+        alert('Selecciona una materia y al menos un profesor');
+    }
+};
+
     const cargarProfesoresPorMateria = async (idMateria) => {
         try {
             const data = await obtenerProfesorPorMateria(idMateria);
