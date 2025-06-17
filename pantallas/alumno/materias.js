@@ -101,7 +101,7 @@ const Materias = ({ route }) => {
     <View style={styles.container}>
       <Image source={bg} style={styles.bg} />
       <View style={styles.overlay}>
-        <Text style={styles.titulo}>{curso}</Text> {/* Muestra el curso dinámicamente */}
+        <Text style={styles.titulo}>{curso}</Text> 
         <ScrollView>
           {materias.length > 0 ? (
             materias.map((materia, index) => (
