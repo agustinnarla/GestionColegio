@@ -42,28 +42,28 @@ export const asignacionDeHoras = async (profeData) => {
 
 export const obtenerHorariosProfesional = async (dni_profesional) => {
     try {
-        const response = await fetch(`${api_urlHorasProfesional}/${dni_profesional}`);
-        if (!response.ok) {
-            throw new Error('Error al obtener los horarios del profesional');
+        const respuesta = await fetch(`${api_urlHorasProfesional}/${dni_profesional}`);
+        if (!respuesta.ok) {
+            throw new Error('Error al obtener las horas del profesor');
         }
-        const data = await response.json();
-        console.log("Horarios traidos exitosamente", data)
-        return data.horarios;
+        const data = await respuesta.json();
+        return data; 
     } catch (error) {
         console.error('Error:', error);
         throw error;
     }
 };
 
+
+
 export const obtenerHorariosCurso = async (id_curso) => {
     try {
-        const response = await fetch(`${api_urlHorasCurso}/${id_curso}`);
-        if (!response.ok) {
-            throw new Error('Error al obtener los horarios del curso');
+        const respuesta = await fetch(`${api_urlHorasCurso}/${id_curso}`);
+        if (!respuesta.ok) {
+            throw new Error('Error al obtener las horas del profesor');
         }
-        const data = await response.json();
-        console.log("Horarios traidos exitosamente", data)
-        return data.horarios;
+        const data = await respuesta.json();
+        return data; 
     } catch (error) {
         console.error('Error:', error);
         throw error;

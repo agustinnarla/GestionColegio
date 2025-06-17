@@ -17,51 +17,53 @@ const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practi
   ];
 
   return (
-    <View style={styles.contenidoMaterias}>
-      <TouchableOpacity onPress={toggleExpandir} style={styles.materiaHeader}>
+    <View style={styles.cardMateria}>
+      <TouchableOpacity onPress={toggleExpandir} style={styles.materiaHeader} activeOpacity={0.8}>
         <Text style={styles.materiaNombre}>{nombre}</Text>
         <Text style={styles.expandirIcon}>{expandido ? '▲' : '▼'}</Text>
       </TouchableOpacity>
 
       {expandido && (
         <View style={styles.contenidoDetalles}>
-          <Text style={styles.texto}>
-            <Text style={styles.negrita}>Profesor:</Text> {profesor}
-          </Text>
-          <Text style={styles.texto}>
-            <Text style={styles.negrita}>Días:</Text> {dia_semana}
-          </Text>
+          <Text style={styles.texto}><Text style={styles.negrita}>Profesor:</Text> {profesor}</Text>
+          <View style={styles.chipsDiasContainer}>
+            <Text style={styles.negrita}>Días:</Text>
+            {Array.isArray(dia_semana) ? dia_semana.map((dia, i) => (
+              <View key={i} style={styles.chipDia}><Text style={styles.chipDiaTexto}>{dia}</Text></View>
+            )) : <Text style={styles.chipDiaTexto}>{dia_semana}</Text>}
+          </View>
+          <View style={styles.separador} />
           <View style={styles.contenidoNotas}>
-            <Text style={styles.texto}>
-              <Text style={styles.negrita}>Notas:</Text>
-            </Text>
+            <Text style={styles.texto}><Text style={styles.negrita}>Notas:</Text></Text>
             {etapas.map((etapa, index) => (
-              <View key={index} style={styles.nota}>
+              <View key={index} style={styles.notaEtapaContainer}>
                 <Text style={styles.etapaTitulo}>{etapa.nombre}:</Text>
-                {etapa.notas.map((nota, i) => (
-                  <Text key={i} style={styles.notaTexto}>
-                    Nota {i + 1}: {nota}
-                  </Text>
-                ))}
+                <View style={styles.notaFila}>
+                  {etapa.notas.map((nota, i) => (
+                    <View key={i} style={styles.notaChip}><Text style={styles.notaChipTexto}>Nota {i + 1}: {nota}</Text></View>
+                  ))}
+                </View>
               </View>
             ))}
+            <View style={styles.separador} />
             <View>
               <Text style={styles.etapaTitulo}>Trabajos Prácticos:</Text>
+              <View style={styles.notaFila}>
                 {trabajo_practico.map((tp, i) => (
-                  <Text key={i} style={styles.notaTexto}>
-                    TP {i + 1}: {tp}
-                  </Text>
+                  <View key={i} style={styles.tpChip}><Text style={styles.tpChipTexto}>TP {i + 1}: {tp}</Text></View>
                 ))}
+              </View>
             </View>
-            <View style={styles.nota}>
+            <View style={styles.separador} />
+            <View style={styles.notaFila}>
               <Text style={styles.etapaTitulo}>Aúlico:</Text>
-              <Text style={styles.notaTexto}>{aulico}</Text>
+              <View style={styles.aulicoChip}><Text style={styles.aulicoChipTexto}>{aulico}</Text></View>
             </View>
-            <View style={styles.notaPromedio}>
+            <View style={styles.promedioDestacado}>
               <Text style={styles.promedioTexto}>Promedio: {promedio}</Text>
             </View>
           </View>
-      </View> 
+        </View>
       )}
     </View>
   );
@@ -141,11 +143,8 @@ const styles = StyleSheet.create({
   },
   bg: {
     position: 'absolute',
-    top: 0,
-    left: 0,
     width: '100%',
     height: '100%',
-    opacity: 0.3,
   },
   overlay: {
     flex: 1,
@@ -158,41 +157,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333', 
   }, 
-  etapaTitulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2d6a4f',
-    marginTop: 10,
-  },
-  notaTexto: {
-    fontSize: 14,
-    color: '#333',
-    marginLeft: 10,
-  },
-  
-  contenidoMaterias: {
+  cardMateria: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    elevation: 3, 
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 18,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   materiaHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
   },
   materiaNombre: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#2d6a4f',
   },
   expandirIcon: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#999',
   },
   contenidoDetalles: {
-    marginTop: 10,
+    marginTop: 12,
   },
   texto: {
     fontSize: 16,
@@ -203,34 +199,97 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2d6a4f',
   },
-  contenidoDias: {
+  chipsDiasContainer: {
     flexDirection: 'row',
-    marginTop: 5,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginVertical: 6,
   },
-  dia: {
-    marginRight: 10,
-    fontSize: 16,
-    backgroundColor: '#f0f4f8',
+  chipDia: {
+    backgroundColor: '#e9f5ef',
+    borderRadius: 12,
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    paddingVertical: 4,
+    marginHorizontal: 4,
+    marginTop: 4,
+  },
+  chipDiaTexto: {
+    color: '#2d6a4f',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  separador: {
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+    marginVertical: 10,
   },
   contenidoNotas: {
     marginTop: 10,
   },
-  nota: {
-    marginBottom: 5,
+  notaEtapaContainer: {
+    marginBottom: 8,
   },
-  notaPromedio: {
+  etapaTitulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#457b9d',
     marginTop: 10,
+    marginBottom: 4,
+  },
+  notaFila: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  notaChip: {
+    backgroundColor: '#f1faee',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginRight: 6,
+    marginBottom: 4,
+  },
+  notaChipTexto: {
+    color: '#1d3557',
+    fontSize: 14,
+  },
+  tpChip: {
+    backgroundColor: '#ffe5d9',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginRight: 6,
+    marginBottom: 4,
+  },
+  tpChipTexto: {
+    color: '#e76f51',
+    fontSize: 14,
+  },
+  aulicoChip: {
+    backgroundColor: '#e0e7ff',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginLeft: 6,
+  },
+  aulicoChipTexto: {
+    color: '#3b5bdb',
+    fontSize: 14,
+  },
+  promedioDestacado: {
+    backgroundColor: '#d1fae5',
+    borderRadius: 12,
     paddingVertical: 10,
-    borderTopWidth: 1,
-    borderColor: '#ddd',
+    marginTop: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#34d399',
   },
   promedioTexto: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1d3557',
+    color: '#059669',
   },
   textoAviso: {
     fontSize: 18,

@@ -161,14 +161,14 @@ export const obtenerHorarioProfesional = async (req, res) => {
     const { dni_profesional } = req.params;
     try {
         const respuesta = await pool.query(
-            `SELECT dia_semana, hora_inicio, hora_final 
-             FROM horario 
-             WHERE dni_profesional = $1`,
+            `SELECT h.dia_semana, CONCAT(TO_CHAR(h.hora_inicio, 'HH24:MI'), ' - ', TO_CHAR(h.hora_final, 'HH24:MI')) AS horario
+             FROM horario AS h
+             WHERE h.dni_profesional = $1`,
             [dni_profesional]
         );
         
         
-        res.status(200).json({ horarios: respuesta.rows });
+        res.status(200).json({ horas: respuesta.rows });
     } catch (error) {
         console.error('Error al obtener horarios del profesor:', error);
         res.status(500).json({ message: 'Error al obtener los horarios del profesor' });
@@ -179,7 +179,7 @@ export const obtenerHorarioCurso = async (req, res) => {
     const { id_curso } = req.params;
     try {
         const respuesta = await pool.query(
-            `SELECT h.dia_semana, h.hora_inicio, h.hora_final 
+            `SELECT h.dia_semana, CONCAT(TO_CHAR(h.hora_inicio, 'HH24:MI'), ' - ', TO_CHAR(h.hora_final, 'HH24:MI')) AS horario
              FROM horario h
              JOIN materia_curso mc ON h.id_materia = mc.id_materia AND h.id_curso = mc.id_curso
              WHERE h.id_curso = $1`,
@@ -189,7 +189,7 @@ export const obtenerHorarioCurso = async (req, res) => {
         
         
 
-        res.status(200).json({ horarios: respuesta.rows });
+        res.status(200).json({ horas: respuesta.rows });
     } catch (error) {
         console.error('Error al obtener horarios del curso:', error);
         res.status(500).json({ message: 'Error al obtener los horarios del curso' });

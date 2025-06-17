@@ -29,8 +29,8 @@ export default function AsignacionHoras() {
     const [horas, setHoras] = useState([]);
     const [asignaciones, setAsignaciones] = useState([]);
     const [horariosAsignados, setHorariosAsignados] = useState({});
-    const [vistaActual, setVistaActual] = useState('asignar'); // 'asignar', 'profesor', 'curso'
     const [horariosOcupados, setHorariosOcupados] = useState({});
+    const [tipoConsulta, setTipoConsulta] = useState('asignar'); // 'asignar', 'profesor', 'curso'
 
     const diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
     const rangosHorarios = [
@@ -93,6 +93,7 @@ export default function AsignacionHoras() {
    const handleConsultar = async () => {
         try {
             if (formData.dni_profesional && formData.id_curso && formData.id_materia) {
+                setTipoConsulta('asignar');
                 console.log('Enviando parámetros:', formData.dni_profesional, formData.id_curso, formData.id_materia);
                 const data = await obtenerHorasProfesor(formData.dni_profesional, formData.id_curso, formData.id_materia);
                 setHoras(data.horas);
@@ -115,6 +116,60 @@ export default function AsignacionHoras() {
             mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
         }
     };
+
+    const handleConsultarProfesional = async () => {
+      try {
+        if (formData.dni_profesional ) {
+            setTipoConsulta('profesor');
+            console.log('Enviando parámetros:', formData.dni_profesional);
+            const data = await obtenerHorariosProfesional(formData.dni_profesional);
+            setHoras(data.horas);
+            console.log('Horas traídas exitosamente:', data.horas);
+
+            const nuevosHorarios = {};
+            data.horas.forEach((hora) => {
+                const rango = hora.horario;
+                if (!nuevosHorarios[hora.dia_semana]) {
+                    nuevosHorarios[hora.dia_semana] = [];
+                }
+                nuevosHorarios[hora.dia_semana].push(rango);
+            });
+            setHorariosAsignados(nuevosHorarios);
+        } else {
+            console.log('Debe seleccionar un profesor y un curso');
+        }
+    } catch (error) {
+        console.error('Error en obtenerHorasProfesor:', error);
+        mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
+    }
+    }
+
+    const handleConsultarCurso = async () => {
+      try {
+        if (formData.id_curso ) {
+            setTipoConsulta('curso');
+            console.log('Enviando parámetros:', formData.id_curso);
+            const data = await obtenerHorariosCurso(formData.id_curso);
+            setHoras(data.horas);
+            console.log('Horas traídas exitosamente:', data.horas);
+
+            const nuevosHorarios = {};
+            data.horas.forEach((hora) => {
+                const rango = hora.horario;
+                if (!nuevosHorarios[hora.dia_semana]) {
+                    nuevosHorarios[hora.dia_semana] = [];
+                }
+                nuevosHorarios[hora.dia_semana].push(rango);
+            });
+            setHorariosAsignados(nuevosHorarios);
+        } else {
+            console.log('Debe seleccionar un profesor y un curso');
+        }
+    } catch (error) {
+        console.error('Error en obtenerHorasCurso:', error);
+        mostrarMensaje('¡Error!', 'No hay horas asignadas al profesional');
+    }
+    }
 
     const alternarHorario = (dia, rango) => {
         setHorariosAsignados((prev) => {
@@ -200,10 +255,6 @@ export default function AsignacionHoras() {
     }, [formData.dni_profesional, formData.id_curso]);
 
 
-    const volverAAsignar = () => {
-        setVistaActual('asignar');
-        setHorariosOcupados({});
-    };
 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
@@ -226,54 +277,44 @@ return (
             
             </View>
               <View style={styles.botonesFiltrosAbajo}>
-                {vistaActual === 'asignar' ? (
-                    <>
-                        <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
-                            <Text style={styles.textoBoton}>Consultar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={limpiarInterfaz} style={styles.botonSecundario}>
-                            <Text style={styles.textoBoton}>Reiniciar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={handleVerHorariosProfesor} style={styles.botonInfo}>
-                            <Text style={styles.textoBoton}>Ver Horarios Profesor</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={handleVerHorariosCurso} style={styles.botonInfo}>
-                            <Text style={styles.textoBoton}>Ver Horarios Curso</Text>
-                        </TouchableOpacity>
-                    </>
-                ) : (
-                    <TouchableOpacity onPress={volverAAsignar} style={styles.botonSecundario}>
-                        <Text style={styles.textoBoton}>Volver a Asignar</Text>
+                <>
+                    <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
+                        <Text style={styles.textoBoton}>Consultar</Text>
                     </TouchableOpacity>
-                )}
+                    <TouchableOpacity onPress={limpiarInterfaz} style={styles.botonSecundario}>
+                        <Text style={styles.textoBoton}>Reiniciar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleConsultarProfesional} style={styles.botonInfo}>
+                        <Text style={styles.textoBoton}>Ver Horarios Profesor</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleConsultarCurso} style={styles.botonInfo}>
+                        <Text style={styles.textoBoton}>Ver Horarios Curso</Text>
+                    </TouchableOpacity>
+                </>
               </View>
-            {vistaActual !== 'asignar' && (
-                <View style={styles.tituloVista}>
-                    <Text style={styles.textoTituloVista}>
-                        {vistaActual === 'profesor' ? 'Horarios Ocupados del Profesor' : 'Horarios Ocupados del Curso'}
-                    </Text>
-                </View>
-            )}
             <View style={styles.horariosContainer}>
               {diasSemana.map((dia) => (
                 <View key={dia} style={styles.diaContainer}>
                   <Text style={styles.diaTitulo}>{dia}</Text>
                   {rangosHorarios.map((rango) => {
-                    const estaOcupado = vistaActual !== 'asignar' && horariosOcupados[dia]?.includes(rango);
-                    console.log(`Día: ${dia}, Rango: ${rango}, Horarios ocupados para este día:`, horariosOcupados[dia]);
+                    const estaOcupado = horariosOcupados[dia]?.includes(rango);
                     return (
                       <TouchableOpacity
                         key={`${dia}-${rango}`}
                         style={[
                           styles.horarioCuadro,
-                          horariosAsignados[dia]?.includes(rango) && styles.horarioAsignado,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'asignar' && styles.horarioAsignado,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'profesor' && styles.horarioProfesor,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'curso' && styles.horarioCurso,
                           estaOcupado && styles.horarioOcupado
                         ]}
-                        onPress={() => vistaActual === 'asignar' && alternarHorario(dia, rango)}
+                        onPress={() => alternarHorario(dia, rango)}
                       >
                         <Text style={[
                           styles.horarioTexto,
-                          horariosAsignados[dia]?.includes(rango) && styles.horarioTextoActivo,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'asignar' && styles.horarioTextoActivo,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'profesor' && styles.horarioTextoProfesor,
+                          horariosAsignados[dia]?.includes(rango) && tipoConsulta === 'curso' && styles.horarioTextoCurso,
                           estaOcupado && styles.horarioTextoOcupado
                         ]}>
                           {rango}
@@ -285,11 +326,9 @@ return (
               ))}
             </View>
           </View>
-          {vistaActual === 'asignar' && (
-            <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
-              <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
+            <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
+          </TouchableOpacity>
         </View>
         <CustomAlert
             isVisible={alertVisible}
@@ -617,6 +656,36 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1f2937',
+  },
+
+  horarioProfesor: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#2563eb',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  horarioCurso: {
+    backgroundColor: '#8b5cf6',
+    borderColor: '#7c3aed',
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  horarioTextoProfesor: {
+    color: 'white',
+    fontWeight: '600',
+  },
+
+  horarioTextoCurso: {
+    color: 'white',
+    fontWeight: '600',
   },
 });
 

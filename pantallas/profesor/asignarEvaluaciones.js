@@ -14,14 +14,14 @@ export default function LibroAula({ route }) {
 
  
 
-     const [formData, setFormData] = useState({
-                id_materia: '',
-                id_curso: '',
-                id_tipo_de_evaluacion: '',
-                fecha: '',
-                tema_abarcado: '',
-                dni_profesional: ''
-            });
+    const [formData, setFormData] = useState({
+            id_materia: '',
+            id_curso: '',
+            id_tipo_de_evaluacion: '',
+            fecha: '',
+            tema_abarcado: '',
+            dni_profesional: ''
+        });
 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');

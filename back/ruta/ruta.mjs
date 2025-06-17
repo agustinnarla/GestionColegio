@@ -40,10 +40,11 @@ import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPo
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor, obtenerHorarioCurso, obtenerHorarioProfesional } from '../metodos/metodosAsignarHoras.mjs'
-import { obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/metodosAsistenciaProfesores.mjs'
+import { marcarAusentes, obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/metodosAsistenciaProfesores.mjs'
 import { registrarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/metodosGestionProfesionales.mjs'
 import { obtenerEstadosFaltaProfesionales, obtenerFaltasProfesionales, registrarJustificacionProfesionales} from '../metodos/metodosJustificarFaltaProfesionales.mjs'
 import { registrarCurso} from '../metodos/metodosCurso.mjs'
+import { obtenerEvaluacionesCargadas, obtenerEvaluacionesPorAlumno } from '../metodos/metodosCalendario.mjs'
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
@@ -209,8 +210,9 @@ ruta.put('/profesor/nota_final/estado_evaluativo', modificarEstadoEvaluativo); /
 // == ASIGNAR HORAS
 ruta.post('/secretaria/profesional/horas/alta', asignacionDeHoras) // 🟢
 ruta.get('/secretaria/profesional/horario/:dni_profesional/:id_curso/:id_materia', obtenerHorasProfesor) // 🟢
-ruta.get('/secretaria/profesional/horario/:dni_profesional', obtenerHorarioProfesional)
-ruta.get('/secretaria/curso/horario/:id_curso', obtenerHorarioCurso)
+ruta.get('/secretaria/profesional/horario/:dni_profesional', obtenerHorarioProfesional) // 🟢
+ruta.get('/secretaria/curso/horario/:id_curso', obtenerHorarioCurso) // 🟢
+ruta.put('/secretaria/profesional/horario/ausente', marcarAusentes) // 🟢
 
 // == ASISTENCIA PROFESIONAL
 ruta.post('/secretaria/profesional/asistencia/entrada', registrarEntradaProfesional) // 🟢
@@ -230,3 +232,8 @@ ruta.post('/justificar/profesional/alta', registrarJustificacionProfesionales); 
 // == CURSO
 ruta.post('/curso/materia/alta', registrarCursoPorMateria)  // 🟢 
 ruta.post('/curso/alta', registrarCurso) // 🟢
+
+
+// == CALENDARIO
+ruta.get('/alumno/evaluaciones/:dni_alumno', obtenerEvaluacionesPorAlumno)
+ruta.get('/profesional/evaluaciones/registradas/:dni_profesional', obtenerEvaluacionesCargadas)

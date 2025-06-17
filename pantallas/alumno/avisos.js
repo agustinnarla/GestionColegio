@@ -49,37 +49,54 @@ export default function Avisos() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
 
-            <View style={styles.filaFiltros}>
-                <ListasDesplegables
-                    formData={formData}
-                    handleChange={handleChange}
-                    curso={cursos}
-                    styles={styles}
-                    showLabel={false}
-                />
-                <TextInput
-                    style={styles.filtroInput}
-                    placeholder="Fecha (DD-MM-AAA)"
-                    value={fechaFiltro}
-                    onChangeText={(text) => setFechaFiltro(text)}
-                />
-            </View>
+            <View style={styles.contenedor}>
+                <Text style={styles.titulo}>Avisos</Text>
+                
+                <View style={styles.filaFiltros}>
+                    <ListasDesplegables
+                        formData={formData}
+                        handleChange={handleChange}
+                        curso={cursos}
+                        styles={styles}
+                        showLabel={false}
+                        label="Curso"
+                    />
+                    <TextInput
+                        style={styles.filtroInput}
+                        placeholder="Buscar por fecha (DD-MM-AAAA)"
+                        value={fechaFiltro}
+                        onChangeText={(text) => setFechaFiltro(text)}
+                    />
+                </View>
 
-            <ScrollView style={styles.scrollAvisos}>
-                {avisosFiltrados.length > 0 ? (
-                    avisosFiltrados.map((aviso, index) => (
-                        <View key={index} style={styles.tarjeta}>
-                            <Text style={styles.textoAviso}>Información: {aviso.informacion || 'No disponible'}</Text>
-                            <Text style={styles.textoMotivo}>Motivo: {aviso.detalle || 'No disponible'}</Text>
-                            <Text style={styles.textoMotivo}>Profesor Afectado: {aviso.nombre || 'General'}</Text>
-                            <Text style={styles.textoMotivo}>Cursos Afectados: {aviso.curso || 'General'}</Text>
-                            <Text style={styles.textoDH}>{aviso.fecha}</Text>
+                <ScrollView style={styles.scrollAvisos}>
+                    {avisosFiltrados.length > 0 ? (
+                        avisosFiltrados.map((aviso, index) => (
+                            <View key={index} style={styles.tarjeta}>
+                                <View style={styles.encabezadoTarjeta}>
+                                    <Text style={styles.fecha}>{aviso.fecha}</Text>
+                                    <Text style={styles.curso}>{aviso.curso || 'General'}</Text>
+                                </View>
+                                <Text style={styles.textoAviso}>{aviso.informacion || 'No disponible'}</Text>
+                                <View style={styles.detallesContainer}>
+                                    <View style={styles.detalleItem}>
+                                        <Text style={styles.detalleLabel}>Motivo:</Text>
+                                        <Text style={styles.detalleTexto}>{aviso.detalle || 'No disponible'}</Text>
+                                    </View>
+                                    <View style={styles.detalleItem}>
+                                        <Text style={styles.detalleLabel}>Profesor:</Text>
+                                        <Text style={styles.detalleTexto}>{aviso.nombre || 'General'}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))
+                    ) : (
+                        <View style={styles.sinAvisos}>
+                            <Text style={styles.textoSinAvisos}>No hay avisos disponibles para los filtros seleccionados.</Text>
                         </View>
-                    ))
-                ) : (
-                    <Text style={styles.textoAviso}>No hay avisos disponibles para los filtros seleccionados.</Text>
-                )}
-            </ScrollView>
+                    )}
+                </ScrollView>
+            </View>
         </View>
     );
 }
@@ -87,7 +104,6 @@ export default function Avisos() {
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
-        justifyContent: 'center',
         backgroundColor: 'white',
     },
     bg: {
@@ -99,89 +115,124 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         zIndex: -1, 
     },
-    filtro: {
+    contenedor: {
+        flex: 1,
+        padding: 20,
+        maxWidth: 1000,
+        width: '100%',
+        alignSelf: 'center',
+    },
+    titulo: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#1a365d',
+        marginBottom: 24,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    filaFiltros: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 20,
+        marginBottom: 24,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: 16,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    filtroInput: {
+        flex: 1,
+        height: 48,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        borderRadius: 8,
+        backgroundColor: 'white',
+        fontSize: 16,
+        paddingHorizontal: 16,
+        color: '#2d3748',
+    },
+    scrollAvisos: {
+        flex: 1,
+    },
+    tarjeta: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    encabezadoTarjeta: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        maxWidth: 900, // más grande
-        width: '100%',
-        alignSelf: 'center',
-        marginVertical: 20,
-        gap: 20,
+        marginBottom: 12,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e2e8f0',
     },
-    input: {
-        height: 48,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        backgroundColor: '#fafafa',
-        fontSize: 16,
+    fecha: {
+        fontSize: 14,
+        color: '#718096',
+        fontWeight: '500',
+    },
+    curso: {
+        fontSize: 14,
+        color: '#4a5568',
+        fontWeight: '600',
+        backgroundColor: '#edf2f7',
         paddingHorizontal: 12,
-        marginBottom: 0,
-        width: '100%',
-    },
-    fechaInput: {
-        height: 48,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        backgroundColor: '#fafafa',
-        fontSize: 16,
-        paddingHorizontal: 12,
-        width: 250,
-        textAlign: 'center',
-    },
-    scrollAvisos: {
-        maxWidth: 900,
-        width: '100%',
-        alignSelf: 'center',
-    },
-    tarjeta: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 15,
-        marginBottom: 15,
-        borderColor: '#ddd',
-        borderWidth: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.5,
-        elevation: 3,
+        paddingVertical: 4,
+        borderRadius: 6,
     },
     textoAviso: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#2d3748',
+        marginBottom: 16,
+        lineHeight: 24,
     },
-    textoMotivo: {
+    detallesContainer: {
+        backgroundColor: '#f7fafc',
+        borderRadius: 8,
+        padding: 12,
+    },
+    detalleItem: {
+        flexDirection: 'row',
+        marginBottom: 8,
+    },
+    detalleLabel: {
         fontSize: 14,
-        marginBottom: 2,
+        fontWeight: '600',
+        color: '#4a5568',
+        width: 80,
     },
-    textoDH: {
-        fontSize: 12,
-        textAlign: 'right',
-        marginTop: 10,
-        color: '#777',
+    detalleTexto: {
+        fontSize: 14,
+        color: '#2d3748',
+        flex: 1,
     },
-    filaFiltros: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    maxWidth: 900,
-    width: '100%',
-    alignSelf: 'center',
-    marginVertical: 20,
-    gap: 20, // o usa marginRight en el primer hijo si tu versión de RN no soporta gap
+    sinAvisos: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 20,
     },
-    filtroInput: {
-    flex: 1,
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: '#fafafa',
-    fontSize: 16,
-    paddingHorizontal: 12,
-},
+    textoSinAvisos: {
+        fontSize: 16,
+        color: '#718096',
+        textAlign: 'center',
+    },
 });

@@ -88,9 +88,25 @@ export default function RegistroAsistencia() {
         if (entrada) {
             const respuesta = await registrarEntradaProfesor(profesorData);
             console.log("Registro de entrada exitoso:", respuesta);
+            // Actualizar el estado del profesor en la lista
+            setProfesores(prevProfesores => 
+                prevProfesores.map(prof => 
+                    prof.dni_profesional === profesorData.dni_profesional 
+                        ? { ...prof, tieneEntrada: true }
+                        : prof
+                )
+            );
         } else {
             const respuesta = await registrarSalidaProfesor(profesorData);
             console.log("Registro de salida exitoso:", respuesta);
+            // Actualizar el estado del profesor en la lista
+            setProfesores(prevProfesores => 
+                prevProfesores.map(prof => 
+                    prof.dni_profesional === profesorData.dni_profesional 
+                        ? { ...prof, tieneSalida: true }
+                        : prof
+                )
+            );
         }
 
         mostrarMensaje('¡Éxito!', 'Se registro la asistencia del profesional exitosamente');
@@ -104,7 +120,7 @@ export default function RegistroAsistencia() {
         setSeleccionado(null);
     } catch (error) {
         console.error("Error al registrar la entrada/salida:", error.message);
-        mostrarMensaje('¡Error!', 'Error al registrar la asistencia del profesiona');
+        mostrarMensaje('¡Error!', 'Error al registrar la asistencia del profesional');
     }
 };
 
@@ -151,9 +167,16 @@ export default function RegistroAsistencia() {
             <TouchableOpacity
               style={[
                 styles.profesor,
-                item.registrado ? styles.profesorRegistrado : styles.profesorNoRegistrado
+                item.tieneEntrada && !item.tieneSalida ? styles.profesorEntradaRegistrada :
+                item.tieneEntrada && item.tieneSalida ? styles.profesorCompleto :
+                styles.profesorNoRegistrado
               ]}
-              onPress={() => handleSeleccionarProfesor(item)}
+              onPress={() => {
+                if (item.tieneEntrada && !item.tieneSalida) {
+                  setEntrada(false); // Cambiar a modo salida si ya tiene entrada registrada
+                }
+                handleSeleccionarProfesor(item);
+              }}
             >
               <Text style={styles.profesorTexto}>{item.nombre_apellido}</Text>
             </TouchableOpacity>
@@ -299,13 +322,17 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  profesorRegistrado: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#4caf50',
-  },
   profesorNoRegistrado: {
     backgroundColor: '#fde8e8',
     borderColor: '#ef4444',
+  },
+  profesorEntradaRegistrada: {
+    backgroundColor: '#e0f2fe',
+    borderColor: '#0ea5e9',
+  },
+  profesorCompleto: {
+    backgroundColor: '#e8f5e9',
+    borderColor: '#4caf50',
   },
   profesorTexto: {
     fontSize: 17,

@@ -23,12 +23,12 @@ export const obtenerMateriaPorDni = async (req, res) => {
     try {
         const respuesta = await pool.query(`
             SELECT 
-            p.nombre AS profesor, 
+            CONCAT(p.nombre, ' ', p.apellido) AS profesor, 
             c.id_curso,
             c.detalle AS curso, 
             m.id_materia,
             m.detalle AS materia, 
-            array_agg(h.dia_semana) AS dias_semana, 
+            array_agg(DISTINCT h.dia_semana ) AS dias_semana, 
             am.nota1,
             am.nota2,
             am.nota3,
@@ -50,7 +50,7 @@ export const obtenerMateriaPorDni = async (req, res) => {
             LEFT JOIN horario h ON mc.id_materia = h.id_materia AND mc.id_curso = h.id_curso
             INNER JOIN alumno_materia am ON am.id_materia = m.id_materia AND a.dni_alumno = am.dni_alumno
             WHERE a.dni_alumno = $1 AND ac.id_curso = am.id_curso
-            GROUP BY p.nombre, c.id_curso, c.detalle, m.id_materia, m.detalle, am.nota1, am.nota2, am.nota3, am.nota4, am.nota5, am.nota6, am.tp1, am.tp2, am.tp3, am.aulico, am.promedio
+            GROUP BY p.nombre, p.apellido, c.id_curso, c.detalle, m.id_materia, m.detalle, am.nota1, am.nota2, am.nota3, am.nota4, am.nota5, am.nota6, am.tp1, am.tp2, am.tp3, am.aulico, am.promedio
         `, [dni_alumno]);
 
         console.log('Materias por curso traídas exitosamente:', respuesta.rows);
