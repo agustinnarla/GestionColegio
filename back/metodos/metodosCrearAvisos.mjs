@@ -2,12 +2,19 @@ import {pool} from '../dataBase/coneccion.mjs'
 
 // CrearAviso
 export const crearAviso = async (req, res) => {
-    const { informacion, id_motivo, fecha, profesores = [], cursos = [] } = req.body;
-    
+    let { informacion, id_motivo, fecha, profesores = [], cursos = [], general, id_estado_general } = req.body;
+
+    // Determinar si el aviso es general
+    if ((!cursos || cursos.length === 0) && (!profesores || profesores.length === 0)) {
+        general = true;
+    } else {
+        general = false;
+    }
+
     // Validar campos obligatorios
-    if (!informacion || !id_motivo || !fecha) {
+    if (!informacion || !id_motivo || !fecha || !id_estado_general) {
         return res.status(400).json({ 
-            error: 'Los campos "informacion", "id_motivo" y "fecha" son requeridos' 
+            error: `Campos obligatorios faltantes: ${!informacion ? 'informacion' : ''} ${!id_motivo ? 'id_motivo' : ''} ${!fecha ? 'fecha' : ''} ${!id_estado_general ? 'id_estado_general' : ''}`
         });
     }
 
@@ -33,10 +40,10 @@ export const crearAviso = async (req, res) => {
             // 1. Insertar el aviso principal
             const avisoResult = await client.query(
                 `INSERT INTO avisos 
-                 (informacion, id_motivo, fecha) 
-                 VALUES ($1, $2, $3) 
+                 (informacion, id_motivo, fecha, general, id_estado_general) 
+                 VALUES ($1, $2, $3, $4, $5) 
                  RETURNING id_aviso`,
-                [informacion, id_motivo, fechaValida]
+                [informacion, id_motivo, fechaValida, general, id_estado_general]
             );
 
             const idAviso = avisoResult.rows[0].id_aviso;
@@ -46,7 +53,7 @@ export const crearAviso = async (req, res) => {
                 const profesoresInt = profesores.map(p => parseInt(p, 10));
                 await client.query(
                     `INSERT INTO aviso_profesionales
-                     (id_aviso_profesionales, dni_profesional) 
+                     (id_aviso, dni_profesional) 
                      SELECT $1, unnest($2::int[])`,
                     [idAviso, profesoresInt]
                 );
@@ -57,7 +64,7 @@ export const crearAviso = async (req, res) => {
                 const cursosInt = cursos.map(c => parseInt(c, 10));
                 await client.query(
                     `INSERT INTO aviso_curso 
-                     (id_aviso_curso, id_cursos) 
+                     (id_aviso, id_curso) 
                      SELECT $1, unnest($2::int[])`,
                     [idAviso, cursosInt]
                 );

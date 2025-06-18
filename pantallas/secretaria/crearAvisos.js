@@ -3,10 +3,10 @@ import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity,
 import DatePicker from 'react-native-date-picker'
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import { obtenerMotivos, obtenerCurso, obtenerProfesores} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerMotivos, obtenerCurso, obtenerProfesores, obtenerEstadoGeneral} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { obtenerAvisos, crearAvisos} from '../../scripts/secretaria/scriptCargarAvisos';
 import bg from '../../assets/bg1.jpg';
-
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 export default function Avisos() {
   const [informacion, setInformacion] = useState('');
   const [motivo, setMotivo] = useState('');
@@ -17,6 +17,12 @@ export default function Avisos() {
   const [fecha, setFecha] = useState('');
   const [fechaValida, setFechaValida] = useState(true);
   const [profesoresData, setProfesoresData] = useState([]); // Para almacenar los datos de profesores
+  const [estado_general, setEstadoGeneral] = useState([]);
+
+  const [formData, setFormData] = useState({
+    id_estado_general: ''
+  })
+
     // En tu componente:
     const [avisos, setAvisos] = useState([]);
     const [cargandoAvisos, setCargandoAvisos] = useState(false);
@@ -39,11 +45,23 @@ export default function Avisos() {
     }
   };
 
+ 
+          const cargarEstadoGeneral = async () => {
+              try {
+                 
+                  const estadoData = await obtenerEstadoGeneral();
+                  setEstadoGeneral(estadoData);
+              } catch (error) {
+                  Alert.alert('Error', error.message);
+              }
+          };
+  
+  
   useEffect(() => {
     cargarProfesores();
     cargarCursos();
-    cargarAvisos();
     cargarMotivos();
+    cargarEstadoGeneral();
   }, []); // Solo se ejecuta al montar el componente
 
   const cargarProfesores = async () => {
@@ -52,12 +70,11 @@ export default function Avisos() {
       console.log("Datos crudos de profesores:", response); 
       
       // Accedemos al array de profesores dentro del objeto
-      const listaProfesores = response.profesor || [];
-      
+const listaProfesores = Array.isArray(response) ? response : (response.profesores || []);      
       if (listaProfesores.length > 0) {
         const profesoresFormateados = listaProfesores.map(prof => ({
-          key: prof.dni_profesor.toString(),
-          value: `${prof.nombre} ${prof.apellido}`
+          key: prof.dni_profesional.toString(),
+          value: `${prof.nombre}`
         }));
         
         console.log("Profesores formateados:", profesoresFormateados);
@@ -76,8 +93,8 @@ export default function Avisos() {
       console.log("Datos crudos de cursos:", response); 
       
       // Accedemos al array de cursos dentro del objeto
-      const listaCursos = response.curso || [];
-      
+const listaCursos = Array.isArray(response) ? response : (response.cursos || []);
+
       if (listaCursos.length > 0) {
         const cursosFormateados = listaCursos.map(curso => ({
           key: curso.id_curso.toString(), // Usamos id_curso como clave
@@ -145,6 +162,7 @@ export default function Avisos() {
                 informacion: informacion,
                 id_motivo: idMotivo, // Número, no string
                 fecha: fechaISO, // Formato YYYY-MM-DD
+                id_estado_general: formData.id_estado_general, // Asegúrate de que este campo esté en formData
                 profesores: profesor, // Array de DNIs
                 cursos: cursosAfectados // Array de IDs de cursos
             };
@@ -234,6 +252,11 @@ export default function Avisos() {
     setCursosAfectados([]);
     setFecha('');
   };
+  
+const handleChange = (name, value) => {
+            setFormData({ ...formData, [name]: value });
+        };
+
 
   return (
     <View style={styles.padre}>
@@ -246,6 +269,13 @@ export default function Avisos() {
           value={informacion}
           onChangeText={setInformacion}
         />
+        <ListasDesplegables
+            formData={formData}
+            handleChange={handleChange}
+            estado_general={estado_general}
+            styles={styles}
+            showLabel={false}
+        />  
         <Picker
           selectedValue={motivo}
           style={styles.input}
@@ -253,7 +283,7 @@ export default function Avisos() {
         >
           <Picker.Item label="Seleccione motivos" value="" enabled={false} />
 
-          {motivosData.length > 0 ? (
+          {motivosData.length > -1 ? (
             motivosData.map((item) => (
               <Picker.Item key={item.key} label={item.value} value={item.value} />
             ))

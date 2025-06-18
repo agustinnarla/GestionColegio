@@ -80,12 +80,22 @@ export const registrarNota = async (req, res) => {
             }
 
             try { 
-                // Calcular promedio de trabajos practicos 
-                // Calcular promedio
+                // Promedio de notas escritas
                 const notas = [nota1, nota2, nota3, nota4, nota5, nota6];
                 const notasValidas = notas.filter(nota => nota > 0);
-                const promedio = notasValidas.length > 0 ? 
-                    (notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length) : 0;
+                const promedioNotas = notasValidas.length > 0
+                    ? notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length
+                    : 0;
+
+                // Promedio de TP y aulico
+                const tpsAulico = [tp1, tp2, tp3, aulico];
+                const tpsValidos = tpsAulico.filter(tp => tp > 0);
+                const promedioTP = tpsValidos.length > 0
+                    ? tpsValidos.reduce((a, b) => a + b, 0) / tpsValidos.length
+                    : 0;
+
+                // Promedio final: promedio de ambos promedios
+                const promedio = (promedioNotas + promedioTP) / 2;
                 const idestadoevaluativo = promedio >= 6 ? 1 : 2;
 
                 // Verificar si existe el registro

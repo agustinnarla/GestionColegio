@@ -29,7 +29,7 @@ export const obtenerLegajoAlumno = async (req, res) => {
         // Mapear los resultados para enviar solo los metadatos
         const legajos = respuesta.rows.map(row => ({
             id: row.id,
-            dnialumno: row.dnialumno,
+            dni_alumno: row.dni_alumno,
             fechaSubida: row.fecha_subida,
             tamañoDni: row.tamaño_dni,  // Tamaño en bytes del archivo de DNI
             tamañoFichaMedica: row.tamaño_ficha_medica,  // Tamaño en bytes del archivo de ficha médica
@@ -47,7 +47,7 @@ export const obtenerLegajoAlumnoFiltrado = async (req, res) => {
     try {
         const { dni_alumno, imagen_Tipo } = req.params; // Capturamos el dnialumno y el tipo de imagen
         const respuesta = await pool.query(
-            'SELECT * FROM adjunto_legajo WHERE dni_alumno = $1',
+            'SELECT * FROM alumno_legajo WHERE dni_alumno = $1',
             [dni_alumno]
         );
 
@@ -156,7 +156,7 @@ export const registrarLegajo = async (req, res) => {
 
         // Realizar la consulta para insertar los datos
         const respuesta = await pool.query(
-            `INSERT INTO adjunto_legajo (dni_alumno, dni_foto, ficha_medica, partida_nacimiento, fecha_subida)
+            `INSERT INTO alumno_legajo (dni_alumno, dni_foto, ficha_medica, partida_nacimiento, fecha_subida)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *`,
             [dni_alumno, dni_foto, ficha_medica, partida_nacimiento, fecha_subida]
@@ -236,7 +236,7 @@ export const modificarAlumno = async (req, res) => {
 
         // Si se proporciona un nuevo idcurso, actualizar la tabla alumnocurso
         if (id_curso) {
-            const respuestaCurso = await pool.query('UPDATE alumnocurso SET id_curso = $1 WHERE dni_alumno = $2', [id_curso, dni_alumno]);
+            const respuestaCurso = await pool.query('UPDATE alumno_curso SET id_curso = $1 WHERE dni_alumno = $2', [id_curso, dni_alumno]);
             if (respuestaCurso.rowCount === 0) {
                 return res.status(404).json({ error: 'Curso no encontrado para el alumno' });
             }
@@ -247,8 +247,8 @@ export const modificarAlumno = async (req, res) => {
         const id_rol = 4; 
 
         await pool.query(
-            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol) VALUES ($1, $2, $3, $4)',
-            [dni_alumno, contrasenaHaseada, email_personal, id_rol]
+            'UPDATE usuario SET contrasena = $1, email = $2, id_rol = $3 WHERE dni_usuario = $4',
+            [contrasenaHaseada, email_personal, id_rol, dni_alumno]
         );
 
 
@@ -275,7 +275,7 @@ export const modificarAdjuntoLegajo = async (req, res) => {
 
         // Realizar la consulta para insertar los datos
         const respuesta = await pool.query(
-            `UPDATE adjunto_legajo
+            `UPDATE alumno_legajo
             SET dni_foto = $1, ficha_medica = $2, partida_nacimiento = $3, fecha_subida = $4
             WHERE dni_alumno = $5
             RETURNING *`,

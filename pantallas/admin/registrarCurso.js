@@ -14,7 +14,7 @@ export default function RegistrarCurso() {
     const [formData, setFormData] = useState({
         detalle: '',
         id_especialidad: '',
-        id_materias: [],
+        id_materia: [],
     });
 
     useEffect(() => {
@@ -40,8 +40,8 @@ export default function RegistrarCurso() {
     
                 const especialidadesTransformadas = Array.isArray(especialidadesData.especialidad)
                     ? especialidadesData.especialidad.map(especialidad => ({
-                        id: especialidad.id_especialidad, // Cambia `id_especialidad` a `id`
-                        name: especialidad.detalle, // Cambia `detalle` a `name`
+                        id: especialidad.id_especialidad, 
+                        name: especialidad.detalle, 
                     }))
                     : [];
     
@@ -73,7 +73,7 @@ export default function RegistrarCurso() {
         const cursoData = {
             detalle: formData.detalle,
             id_especialidad: parseInt(formData.id_especialidad),
-            id_materias: materiasSeleccionadas
+            id_materia: materiasSeleccionadas.map(Number)
         };
         
         try {
@@ -92,7 +92,7 @@ export default function RegistrarCurso() {
             setFormData({
                 detalle: '',
                 id_especialidad: '',
-                id_materias: [],
+                id_materia: [],
             });
             setMateriasSeleccionadas([]);
             console.log('Interfaz limpiada correctamente');
@@ -136,7 +136,7 @@ export default function RegistrarCurso() {
                     uniqueKey="id"
                     onSelectedItemsChange={(selectedItems) => {
                         setMateriasSeleccionadas(selectedItems);
-                        handleChange('id_materias', selectedItems);
+                        handleChange('id_materia', selectedItems);
                     }}
                     selectedItems={materiasSeleccionadas}
                     selectText="Seleccione las materias"

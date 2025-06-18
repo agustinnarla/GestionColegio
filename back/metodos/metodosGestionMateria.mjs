@@ -55,29 +55,82 @@ export const verificarExistencia = async (dni_profesional, id_materia) => {
 };
 
 
-//VER SI ES PROESIONAL O USUARIO
+
 export const registrarMateriaProfesor = async (req, res) => {
-    const { dni_profesional, id_materia, id_estado_general } = req.body;
-    if (!dni_profesional || !id_materia || !id_estado_general) {
-        return res.status(400).json({ error: 'Se requiere dni_profesional, id_materia e id_estado_general' });
+    const relaciones = req.body;
+    console.log("Relaciones recibidas:", relaciones);
+
+    if (!Array.isArray(relaciones) || relaciones.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un arreglo con dni_profesional e id_materia' });
     }
+
+    const id_materia = relaciones[0].id_materia;
+
     try {
-        const dni_usuario = dni_profesional
-        const existe = await verificarExistencia(dni_profesional, id_materia);
-        if (existe) {
-            return res.status(200).json({ mensaje: 'La relación Materia-Profesor ya estaba registrada' });
-        }
-        const resultado = await pool.query(
-            'INSERT INTO materia_profesor (dni_profesional, id_materia, id_estado_general) VALUES ($1, $2, $3) RETURNING *',
-            [dni_usuario, id_materia, id_estado_general]
+        // Paso 1: Obtener todos los profesores activos actuales para la materia
+        const profesoresExistentes = await pool.query(
+            'SELECT dni_profesional FROM materia_profesor WHERE id_materia = $1 AND id_estado_general = 1',
+            [id_materia]
         );
-        return res.status(201).json({ mensaje: 'Relación Materia-Profesor registrada exitosamente', data: resultado.rows[0] });
+        const dniActuales = profesoresExistentes.rows.map(row => row.dni_profesional);
+        const nuevosDni = relaciones.map(r => r.dni_profesional);
+
+        // Paso 2: Desactivar los que ya no vienen
+        const dniParaDesactivar = dniActuales.filter(dni => !nuevosDni.includes(dni));
+        for (const dni_profesional of dniParaDesactivar) {
+            await pool.query(
+                'UPDATE materia_profesor SET id_estado_general = 2 WHERE id_materia = $1 AND dni_profesional = $2',
+                [id_materia, dni_profesional]
+            );
+            console.log(`Profesor ${dni_profesional} desactivado para la materia ${id_materia}`);
+        }
+
+        const relacionesProcesadas = [];
+
+        // Paso 3: Insertar o actualizar los nuevos
+        for (const relacion of relaciones) {
+            const { dni_profesional } = relacion;
+            const id_estado_general = 1; // Activo
+
+            if (!dni_profesional || !id_materia) {
+                console.error('Relación inválida:', relacion);
+                continue;
+            }
+
+            const existe = await pool.query(
+                'SELECT * FROM materia_profesor WHERE dni_profesional = $1 AND id_materia = $2',
+                [dni_profesional, id_materia]
+            );
+
+            if (existe.rows.length > 0) {
+                // Actualizar a activo
+                const actualizada = await pool.query(
+                    'UPDATE materia_profesor SET id_estado_general = 1 WHERE dni_profesional = $1 AND id_materia = $2 RETURNING *',
+                    [dni_profesional, id_materia]
+                );
+                console.log('Relación actualizada (activada):', actualizada.rows[0]);
+                relacionesProcesadas.push(actualizada.rows[0]);
+            } else {
+                // Insertar nueva
+                const insertada = await pool.query(
+                    'INSERT INTO materia_profesor (dni_profesional, id_materia, id_estado_general) VALUES ($1, $2, $3) RETURNING *',
+                    [dni_profesional, id_materia, id_estado_general]
+                );
+                console.log('Relación registrada:', insertada.rows[0]);
+                relacionesProcesadas.push(insertada.rows[0]);
+            }
+        }
+
+        return res.status(201).json({
+            mensaje: 'Relaciones procesadas exitosamente',
+            data: relacionesProcesadas
+        });
+
     } catch (error) {
-        console.error('Error al registrar la relación:', error);
-        return res.status(500).json({ error: 'Error al registrar la relación Materia-Profesor' });
+        console.error('Error al registrar materia-profesor:', error);
+        return res.status(500).json({ error: 'Error interno del servidor', detalles: error.message });
     }
 };
-
 
 export const deshabilitarMateriaProfesor = async (req, res) => {
     const { id_materia } = req.params;
@@ -141,7 +194,4 @@ export const agregarMateria = async (req, res) => {
         res.status(500).json({ error: "Error al registrar la materia" });
     }
 };
-
-
-
 

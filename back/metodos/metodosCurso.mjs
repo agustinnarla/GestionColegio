@@ -35,6 +35,7 @@ export const obtenerCursoFiltrado = async (req, res) => {
 
 export const registrarCursoPorMateria = async (req, res) => {
     const { detalle, id_materia, id_especialidad } = req.body; 
+    console.log('Datos recibidos:', { detalle, id_materia, id_especialidad });
     try {
         // Insertar el curso en la tabla curso
         const cursoRespuesta = await pool.query(

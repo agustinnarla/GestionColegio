@@ -112,6 +112,16 @@ export const registrarNotaFinal = async (req, res) => {
             RETURNING id_nota_final
         `, [id_curso, id_materia, dni_profesional, dni_alumno, nota_final]);
 
+        if (nota_final > 6 ){
+            const respuesta = await pool.query(`UPDATE alumno_materia SET id_estado_evaluativo = 1
+                WHERE dni_alumno = $1 AND id_materia = $2 AND id_curso = $3`, 
+                [dni_alumno, id_materia, id_curso]);
+            if (respuesta.rowCount > 0) {
+                console.log("Estado evaluativo actualizado a 1");
+            }
+        } else {
+           console.log("Estado evaluativo mantenido en 2");
+        }
         res.status(201).json({
             mensaje: 'Nota registrada con éxito',
             id_nota_final: respuesta.rows[0].id_nota_final

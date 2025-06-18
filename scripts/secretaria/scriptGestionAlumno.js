@@ -1,32 +1,36 @@
 const api_urlAlumno = 'http://localhost:5000/alumnos'
 const api_url = 'http://localhost:5000'
-const api_urlLegajo = 'http://localhost:5000/alumnosLegajo'
+const api_urlLegajos = 'http://localhost:5000/alumno/legajo'
 const api_urlAlta = 'http://localhost:5000/alumno/alta'
 const api_urlEliminar = 'http://localhost:5000/alumno/deshabilitar'
 const api_urlModificar = 'http://localhost:5000/alumno/modificar'
 const api_urlModificarLegajo = 'http://localhost:5000/alumnosLegajo/modificar'
 
+
 // 🔵
 export const obtenerAlumnoFiltrado = async (dni_alumno) => {
     try {
-        console.log('URL generada:', `${api_urlAlumno}/${dni_alumno}`);
         const response = await fetch(`${api_urlAlumno}/${dni_alumno}`);
         if (!response.ok) {
             throw new Error(`Error en la solicitud: ${response.statusText}`);
         }
         const data = await response.json();
-        return data.alumno || null; // Asegúrate de que la respuesta contiene la propiedad `alumno`
+        // Si data.alumno es un array, devolvé el primero; si no, devolvé null
+        if (Array.isArray(data.alumno) && data.alumno.length > 0) {
+            return data.alumno[0];
+        }
+        return null;
     } catch (error) {
         console.error('Error al obtener el alumno filtrado:', error);
-        return null; // Devuelve `null` en caso de error
+        return null;
     }
 };
 
 // 🔴
 //Agregue yo (Roma)
-export const obtenerDniPdf = async (dni) => {
+export const obtenerDniPdf = async (dni_alumno) => {
     try {
-        const respuesta = await fetch(`${api_urlLegajo}/${dni}/1`);
+        const respuesta = await fetch(`${api_urlLegajos}/${dni_alumno}/1`);
         const data = await respuesta.blob(); // Si es un archivo PDF
         if (respuesta.ok) {
             return data; // Devuelve el contenido del archivo
@@ -41,9 +45,9 @@ export const obtenerDniPdf = async (dni) => {
 };
 // 🔴
 //Agregue yo (Roma)
-export const obtenerFichaMedicaPdf = async (dni) => {
+export const obtenerFichaMedicaPdf = async (dni_alumno) => {
     try {
-        const respuesta = await fetch(`${api_urlLegajo}/${dni}/2`);
+        const respuesta = await fetch(`${api_urlLegajos}/${dni_alumno}/2`);
         const data = await respuesta.blob();
         if (respuesta.ok) {
             return data;
@@ -58,9 +62,9 @@ export const obtenerFichaMedicaPdf = async (dni) => {
 };
 // 🔴
 //Agregue yo (Roma)
-export const obtenerPartidaNacimientoPdf = async (dni) => {
+export const obtenerPartidaNacimientoPdf = async (dni_alumno) => {
     try {
-        const respuesta = await fetch(`${api_urlLegajo}/${dni}/3`);
+        const respuesta = await fetch(`${api_urlLegajos}/${dni_alumno}/3`);
         const data = await respuesta.blob();
         if (respuesta.ok) {
             return data;
@@ -103,7 +107,7 @@ export const agregarAlumno = async (formData) => {
 export const agregarLegajo = async (legajoData) => {
     console.log(legajoData)
     try {
-        const respuesta = await fetch(api_urlLegajo, {
+        const respuesta = await fetch(api_urlLegajos, {
             method: 'POST',
             body: legajoData,
         });
@@ -120,7 +124,7 @@ export const agregarLegajo = async (legajoData) => {
     }
 }
 // 🟢
-export const deshabilitarAlumno = async(dni) => {
+export const deshabilitarAlumno = async(dni_alumno) => {
     try{
         const respuesta = await fetch(`${api_urlEliminar}/${dni_alumno}`,{
             method: 'PUT',
@@ -168,10 +172,10 @@ export const modificarAlumno = async (dni_alumno, formData) => {
 }
 //🔴
 //Agregue yo Roma
-export const modificarLegajo = async (dni, formData) => {
+export const modificarLegajo = async (dni_alumno, formData) => {
     
     try {
-        const url = `${api_urlModificarLegajo}/${dni}`;
+        const url = `${api_urlModificarLegajo}/${dni_alumno}`;
         console.log('URL a la que se está haciendo la solicitud:', url);
         
         const respuesta = await fetch(url, {

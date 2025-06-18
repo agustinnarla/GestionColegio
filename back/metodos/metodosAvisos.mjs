@@ -4,13 +4,11 @@ import { pool } from "../dataBase/coneccion.mjs";
 export const obtenerAvisosGenerales = async (req, res) => {
   try {
       const respuesta = await pool.query(
-        `SELECT a.informacion, m.detalle, a.fecha, p.nombre, c.nombre_curso as curso
-         FROM avisos a
-         INNER JOIN motivos m ON m.id_motivo = a.id_motivo
-         LEFT JOIN profesional p ON p.dni_profesional = a.dni_profesional
-         LEFT JOIN curso c ON c.id_curso = a.id_curso
-         WHERE a.id_estado_general = 1
-         ORDER BY a.fecha DESC`
+        `SELECT a.informacion, m.detalle, TO_CHAR(a.fecha, 'DD-MM-YYYY') AS fecha
+        FROM avisos a
+        INNER JOIN motivos m ON m.id_motivo = a.id_motivo
+        WHERE a.id_estado_general = 1 AND a.general = true
+        ORDER BY a.fecha DESC`
       );
 
       if (!respuesta.rows || respuesta.rows.length === 0) {
@@ -26,17 +24,23 @@ export const obtenerAvisosGenerales = async (req, res) => {
 
 
 export const obtenerAvisosCurso = async (req, res) => {
-    const { id_curso } = req.params;
+    const { dni_alumno } = req.params;
     try {
         const repuesta = await pool.query(
-            "SELECT av.id_aviso, av.informacion, av.id_motivo, av.fecha, " +
-            "c.detalle AS curso " +
-            "FROM aviso_curso AS ac " +
-            "INNER JOIN curso c ON c.id_curso = ac.id_curso " +
-            "INNER JOIN avisos av ON av.id_aviso = ac.id_aviso " +
-            "WHERE av.id_estado_general = 1 AND ac.id_curso = $1 " +
-            "ORDER BY av.fecha DESC",
-            [id_curso]
+            `
+            SELECT a.informacion, m.detalle, TO_CHAR(a.fecha, 'DD-MM-YYYY') AS fecha, c.detalle AS curso, c.id_curso, CONCAT(p.nombre, ' ', p.apellido) AS profesional
+            FROM avisos a
+            INNER JOIN motivos m ON m.id_motivo = a.id_motivo
+            INNER JOIN aviso_curso ac ON ac.id_aviso = a.id_aviso
+            INNER JOIN curso c ON c.id_curso = ac.id_curso
+            INNER JOIN aviso_profesionales ap ON ap.id_aviso = a.id_aviso
+            INNER JOIN profesional p ON p.dni_profesional = ap.dni_profesional
+            INNER JOIN alumno_curso al ON al.id_curso = ac.id_curso
+            INNER JOIN alumno am ON am.dni_alumno = al.dni_alumno
+            WHERE a.id_estado_general = 1 AND am.dni_alumno = $1 AND ac.id_curso = al.id_curso 
+            ORDER BY a.fecha DESC
+            `,
+            [dni_alumno]
         );
         res.status(200).json({ avisos: repuesta.rows });
     } catch (error) {

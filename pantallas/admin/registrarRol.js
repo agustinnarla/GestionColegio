@@ -234,33 +234,36 @@ export default function RegistrarRol() {
     const toggleSwitchRol = (idRol) => {
         setRolesDeshabilitados((prev) =>
             prev.map((rol) =>
-                rol.id_rol === idRol ? { ...rol, id_estado: rol.id_estado === 1 ? 2 : 1 } : rol
+                rol.id_rol === idRol
+                    ? { ...rol, id_estado_general: rol.id_estado_general === 1 ? 2 : 1 }
+                    : rol
             )
         );
     };
 
     //Habilitar Rol, confirmacion
     const handleConfirmarRoles = async () => {
-        console.log('Roles actualizados:', rolesDeshabilitados);
-        try {
-            const result = await Promise.all(
-                rolesDeshabilitados.map(rol => {
-                    if (rol.id_estado === 1) {
-                        return habilitarRol(rol.id_rol); // Llamar a la función que habilita el rol
-                    }
-                    return null;
-                })
-            );
-            console.log('Roles actualizados en la base de datos:', result);
-            cargarTareas();
-            cargarRoles();
-            cargarRolesDeshabilitados();
-        } catch (error) {
-            console.error('Error al actualizar roles:', error);
-        }
-    
-        setModalModificarVisible(false); // Cierra el modal después de la confirmación
-    };
+    try {
+        // Filtra los roles que tienen id_estado_general === 1
+        const rolesAHabilitar = rolesDeshabilitados.filter(
+            (rol) => rol.id_estado_general === 1
+        );
+        // Llama a habilitarRol para cada rol habilitado
+        await Promise.all(
+            rolesAHabilitar.map((rol) =>
+                habilitarRol(rol.id_rol)
+            )
+        );
+        alert('Roles actualizados exitosamente.');
+    } catch (error) {
+        console.error('Error al habilitar roles:', error);
+        alert('Ocurrió un error al actualizar los roles.');
+    }
+    setModalModificarVisible(false);
+    await cargarRolesDeshabilitados();
+    await cargarRoles();
+    await cargarTareas();
+};
     
     
     useEffect(() => {
@@ -330,7 +333,7 @@ export default function RegistrarRol() {
                 />
             </View>
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrarRol}>
+                    <TouchableOpacity style={styles.botonRegistrar} onPress={cargarTareaRol}>
                         <Text style={styles.textoBoton}>Registrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.botonEliminar} onPress={handleDeshabilitarRol}>
@@ -343,7 +346,8 @@ export default function RegistrarRol() {
                         <Text style={styles.textoBoton}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
-
+                
+                
                 <Modal visible={modalVisible} transparent animationType="slide">
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
@@ -365,6 +369,42 @@ export default function RegistrarRol() {
                         </View>
                     </View>
                 </Modal>
+                 {/* Modal para modificar tareas deshabilitadas */}
+                    <Modal visible={modalModificarVisible} transparent animationType="slide">
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.titulo}>Modificar roles deshabilitados</Text>
+                                {Array.isArray(rolesDeshabilitados) && rolesDeshabilitados.length > 0 ? (
+                                    rolesDeshabilitados.map((rol) => (
+                                        <View key={rol.id_rol} style={styles.itemContainer}>
+                                            <Text style={styles.textoTarea}>{rol.detalle}</Text>
+                                            <Switch
+                                                value={rol.id_estado_general === 1}
+                                                onValueChange={() => toggleSwitchRol(rol.id_rol)}
+                                            />
+                                        </View>
+                                    ))
+                                ) : (
+                                    <Text>No hay roles deshabilitados</Text>
+                                )}
+
+                                <View style={styles.botonesModal}>
+                                    <TouchableOpacity
+                                        style={styles.botonModalCancelar}
+                                        onPress={() => setModalModificarVisible(false)}
+                                    >
+                                        <Text style={styles.textoBotonModal}>Cancelar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.botonModal}
+                                        onPress={handleConfirmarRoles}
+                                    >
+                                        <Text style={styles.textoBotonModal}>Confirmar</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
             </View>
         </View>
     );

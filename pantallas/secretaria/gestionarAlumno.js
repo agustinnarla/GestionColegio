@@ -17,13 +17,13 @@ export default function GestionarAlumno() {
         apellido: '',
         cuil: '',
         id_sexo: '',
-        emailpersonal: '',
-        emailfamiliar: '',
+        email_personal: '',
+        email_familiar: '',
         id_curso: '',
-        fechaNacimiento: '',
-        telefonomadre: '',
-        telefonopadre: '',
-        telefonopersonal: '',
+        fecha_nacimiento: '',
+        telefono_madre: '',
+        telefono_padre: '',
+        telefono_personal: '',
         id_estado_general: '',
         id_localidad: '',
         domicilio: '',
@@ -74,30 +74,31 @@ export default function GestionarAlumno() {
             
             if (alumno) {
                 setFormData({
-                    ...formData,
-                    dni_alumno: alumno.dni_alumno,
-                    nombre: alumno.nombre,
-                    apellido: alumno.apellido,
-                    domicilio: alumno.domicilio,
-                    id_sexo: alumno.id_sexo,
-                    cuil: alumno.cuil,
-                    fechaNacimiento: new Date(alumno.fechanacimiento).toISOString().split('T')[0].replace(/-/g, '/'),
-                    id_localidad: alumno.id_localidad,
-                    id_estado_general: alumno.id_estado_alumno,
-                    telefonopersonal: alumno.telefonopersonal,
-                    telefonomadre: alumno.telefonomadre,
-                    telefonopadre: alumno.telefonopadre,
-                    emailpersonal: alumno.emailpersonal,
-                    emailfamiliar: alumno.emailfamiliar,
-                    id_curso: alumno.id_curso,
-                    departamento: alumno.departamento,
-                    piso: alumno.piso,
-                    edificio: alumno.edificio,
+                    dni_alumno: alumno.dni_alumno || '',
+                    nombre: alumno.nombre || '',
+                    apellido: alumno.apellido || '',
+                    domicilio: alumno.domicilio || '',
+                    id_sexo: alumno.id_sexo || '',
+                    cuil: alumno.cuil || '',
+                    fecha_nacimiento: alumno.fecha_nacimiento && !isNaN(new Date(alumno.fecha_nacimiento).getTime())
+    ? new Date(alumno.fecha_nacimiento).toISOString().split('T')[0].replace(/-/g, '/')
+    : '',
+                     id_localidad: alumno.id_localidad || '',
+    id_estado_general: alumno.id_estado_general || '',
+    telefono_personal: alumno.telefono_personal || '',
+    telefono_madre: alumno.telefono_madre || '',
+    telefono_padre: alumno.telefono_padre || '',
+    email_personal: alumno.email_personal || '',
+    email_familiar: alumno.email_familiar || '',
+    id_curso: alumno.id_curso || '',
+    departamento: alumno.departamento || '',
+    piso: alumno.piso || '',
+    edificio: alumno.edificio ?? false,
                 });
                 setDocumentos({
-                    dni: legajoDNI,
-                    fichaMedica: legajoFichaMedica,
-                    partidaNacimiento: legajoPartidaNacimiento,
+                    dni_foto: legajoDNI,
+                    ficha_medica: legajoFichaMedica,
+                    partida_nacimiento: legajoPartidaNacimiento,
                 });
             } else {
                 Alert.alert('Error', 'Alumno no encontrado');
@@ -111,58 +112,42 @@ export default function GestionarAlumno() {
     //Modificar
     const handleAgregar = async () => {
 
-        const dni = parseInt(formData.dni_alumno, 10);
-        if (isNaN(dni)) {
-            Alert.alert('Error', 'El DNI debe ser un número válido.');
-            console.log('DNI no válido:', formData.dni_alumno);
-            return;
-        }
-
-        const cuil = formData.cuil;  
-        if (validarCUIL(cuil, dni)) {
-            console.log('CUIL y DNI válidos');
-            formData.cuil = cuil; 
-        } else {
-            Alert.alert('Error', 'CUIL NO VALIDO.');
-            console.log('El CUIL o DNI no es válido.');
-            return;
-        }
-
-
-        const telefonoPadre = parseInt(formData.telefonopadre, 10);
-        const telefonoMadre = parseInt(formData.telefonomadre, 10);
+       
+        const telefonoPadre = parseInt(formData.telefono_padre, 10);
+        const telefonoMadre = parseInt(formData.telefono_madre, 10);
         // Validar los teléfonos
+
         if (isNaN(telefonoMadre)) {
             Alert.alert('Error', 'El teléfono de la madre debe ser un número válido.');
-            console.log('Teléfono madre no válido:', formData.telefonomadre);
+            console.log('Teléfono madre no válido:', formData.telefono_madre);
             return;
         }
 
         if (isNaN(telefonoPadre)) {
             Alert.alert('Error', 'El teléfono del padre debe ser un número válido.');
-            console.log('Teléfono padre no válido:', formData.telefonopadre);
+            console.log('Teléfono padre no válido:', formData.telefono_padre);
             return;
         }
 
-        const telefonoPersonal = parseInt(formData.telefonopersonal, 10);
+        const telefonoPersonal = parseInt(formData.telefono_personal, 10);
         if (isNaN(telefonoPersonal)) {
             Alert.alert('Error', 'El teléfono personal debe ser un número válido.');
-            console.log('Teléfono personal no válido:', formData.telefonopersonal);
+            console.log('Teléfono personal no válido:', formData.telefono_personal);
             return;
         }
 
         const id_sexo = parseInt(formData.id_sexo, 10);
         const id_localidad = parseInt(formData.id_localidad, 10);
-        const id_estado_alumno = parseInt(formData.id_estado_alumno, 10);
+        const id_estado_general = parseInt(formData.id_estado_general, 10);
         const id_curso = parseInt(formData.id_curso, 10);
 
-        if (isNaN(id_sexo) || isNaN(id_localidad) || isNaN(id_estado_alumno) || isNaN(id_curso)) {
+        if (isNaN(id_sexo) || isNaN(id_localidad) || isNaN(id_estado_general) || isNaN(id_curso)) {
             Alert.alert('Error', 'Los IDs deben ser números válidos.');
-            console.log('IDs no válidos:', { id_sexo, idl_ocalidad, id_estado_alumno, id_curso });
+            console.log('Ids no válidos:', { id_sexo, id_localidad, id_estado_general, id_curso });
             return;
         }
 
-        const fechanacimiento = new Date(formData.fechaNacimiento);
+        const fechanacimiento = new Date(formData.fecha_nacimiento);
         if (!validarFechaNacimiento(fechanacimiento)) {
             return; // Detener el flujo si la fecha no es válida
         }
@@ -170,20 +155,20 @@ export default function GestionarAlumno() {
         
         // Crear el objeto alumnoData, omitiendo campos no obligatorios
         const alumnoData = {
-            dni_alumno: dni, 
+            dni_alumno: formData.dni_alumno, 
             nombre: formData.nombre,
             apellido: formData.apellido,
             domicilio: formData.domicilio,
             id_sexo: id_sexo, 
             cuil: formData.cuil,
-            fechanacimiento: fechanacimiento.toISOString().split('T')[0], 
+            fecha_nacimiento: fechanacimiento.toISOString().split('T')[0], 
             id_localidad: id_localidad, 
-            id_estado_alumno: id_estado_alumno,
-            telefonopersonal: telefonoPersonal,
-            telefonomadre: telefonoMadre,
-            telefonopadre: telefonoPadre,
-            emailpersonal: formData.emailpersonal,
-            emailfamiliar: formData.emailfamiliar,
+            id_estado_general: id_estado_general,
+            telefono_personal: telefonoPersonal,
+            telefono_madre: telefonoMadre,
+            telefono_padre: telefonoPadre,
+            email_personal: formData.email_personal,
+            email_familiar: formData.email_familiar,
             id_curso: id_curso, // Usar el ID de curso validado
             edificio: formData.edificio
         };
@@ -204,28 +189,28 @@ export default function GestionarAlumno() {
             alumnoData.piso = formData.piso;
         }
         console.log('Datos del alumno a agregar:', alumnoData); // Verifica el contenido
-
+      
         //Agregue yo (roma)
         const formDataLegajo = new FormData();
-        formDataLegajo.append('dnialumno', dni);
+        formDataLegajo.append('dni_alumno', formData.dni_alumno); // <-- corregido
         formDataLegajo.append('fecha_subida', new Date().toISOString());
 
-        if (documentos.dni) {
-            const response = await fetch(documentos.dni);
+        if (documentos.dni_foto) {
+            const response = await fetch(documentos.dni_foto);
             const blob = await response.blob();
-            formDataLegajo.append('dnifoto', blob, 'dni.jpg');
+            formDataLegajo.append('dni_foto', blob, 'dni.jpg');
         }
 
-        if (documentos.fichaMedica) {
-            const response = await fetch(documentos.fichaMedica);
+        if (documentos.ficha_medica) {
+            const response = await fetch(documentos.ficha_medica);
             const blob = await response.blob();
-            formDataLegajo.append('fichamedica', blob, 'ficha_medica.jpg');
+            formDataLegajo.append('ficha_medica', blob, 'ficha_medica.jpg');
         }
 
-        if (documentos.partidaNacimiento) {
-            const response = await fetch(documentos.partidaNacimiento);
+        if (documentos.partida_nacimiento) {
+            const response = await fetch(documentos.partida_nacimiento);
             const blob = await response.blob();
-            formDataLegajo.append('partidanacimiento', blob, 'partida_nacimiento.jpg');
+            formDataLegajo.append('partida_nacimiento', blob, 'partida_nacimiento.jpg');
         }
 
         try {
@@ -243,10 +228,10 @@ export default function GestionarAlumno() {
                 emailpersonal: '',
                 emailfamiliar: '',
                 id_curso: '',
-                fechaNacimiento: '',
-                telefonomadre: '',
-                telefonopadre: '',
-                telefonopersonal: '',
+                fecha_nacimiento: '',
+                telefono_madre: '',
+                telefono_padre: '',
+                telefono_personal: '',
                 id_estado_general: '',
                 id_localidad: '',
                 domicilio: '',
@@ -261,26 +246,18 @@ export default function GestionarAlumno() {
 
     const handleModificar = async () => {
         try {
-            const dni = formData.dnialumno; 
-            console.log('DNI a modificar:', dni); 
-    
-            if (!dni) {
+
+            console.log('DNI a modificar:', formData.dni_alumno);
+
+            if (!formData.dni_alumno) {
                 Alert.alert('Error', 'Por favor, consulta primero al alumno.');
                 return;
             }
             
-            const cuil = formData.cuil;  // CUIL ingresado por el usuario como string
-            if (validarCUIL(cuil, dni)) {
-                console.log('CUIL y DNI válidos');
-                formData.cuil = cuil;  // Asigna el CUIL al formData
-            } else {
-                Alert.alert('Error', 'CUIL NO VALIDO.');
-                console.log('El CUIL o DNI no es válido.');
-                return;
-            }
+            
             
             // Validar la fecha de nacimiento directamente desde formData
-            const fechaNacimiento = formData.fechaNacimiento;
+            const fechaNacimiento = formData.fecha_nacimiento;
             if (!validarFechaNacimiento(new Date(fechaNacimiento))) {
                 // Si la fecha no es válida, detener el flujo y mostrar un mensaje de error
                 Alert.alert('Error', 'La fecha de nacimiento no es válida.');
@@ -292,67 +269,66 @@ export default function GestionarAlumno() {
             console.log('Fecha de Nacimiento a modificar:', fechaNacimientoFormateada);
 
             // Asignar la fecha formateada directamente a formData
-            formData.fechanacimiento = fechaNacimientoFormateada;
+            formData.fecha_nacimiento = fechaNacimientoFormateada;
 
             //agrego roma
             const formDataLegajo = new FormData();
-            formDataLegajo.append('dnialumno', dni);
+            formDataLegajo.append('dni_alumno', formData.dni_alumno);
             formDataLegajo.append('fecha_subida', new Date().toISOString());
 
 
 
                 // Verificar si el DNI es nuevo o tiene un valor tipo "data:"
-                if (documentos.dni && typeof documentos.dni === 'string' && documentos.dni.startsWith("data:")) {
-                    const response = await fetch(documentos.dni);
+                if (documentos.dni_foto && typeof documentos.dni_foto === 'string' && documentos.dni_foto.startsWith("data:")) {
+                    const response = await fetch(documentos.dni_foto);
                     const blob = await response.blob();
-                    formDataLegajo.append('dnifoto', blob, 'dni.jpg');
-                    console.log('Nuevo DNI cargado:', documentos.dni);
+                    formDataLegajo.append('dni_foto', blob, 'dni.jpg');
+                    console.log('Nuevo DNI cargado:', documentos.dni_foto);
                 }
                 else {
-                    formDataLegajo.append('dnifoto', documentos.dni, 'dni.jpg')
+                    formDataLegajo.append('dni_foto', documentos.dni_foto, 'dni.jpg')
                 }
     
                 // Verificar si la Ficha Médica es nueva o tiene un valor tipo "data:"
-                if (documentos.fichaMedica && typeof documentos.fichaMedica === 'string' && documentos.fichaMedica.startsWith("data:")) {
-                    const response = await fetch(documentos.fichaMedica);
+                if (documentos.ficha_medica && typeof documentos.ficha_medica === 'string' && documentos.ficha_medica.startsWith("data:")) {
+                    const response = await fetch(documentos.ficha_medica);
                     const blob = await response.blob();
-                    formDataLegajo.append('fichamedica', blob, 'ficha_medica.jpg');
-                    console.log('Nueva Ficha Médica cargada:', documentos.fichaMedica);
+                    formDataLegajo.append('ficha_medica', blob, 'ficha_medica.jpg');
+                    console.log('Nueva Ficha Médica cargada:', documentos.ficha_medica);
                 }
                 else {
-                    formDataLegajo.append('fichamedica', documentos.fichaMedica, 'ficha_medica.jpg')
+                    formDataLegajo.append('ficha_medica', documentos.ficha_medica, 'ficha_medica.jpg')
                 }
     
                 // Verificar si la Partida de Nacimiento es nueva o tiene un valor tipo "data:"
-                if (documentos.partidaNacimiento && typeof documentos.partidaNacimiento === 'string' && documentos.partidaNacimiento.startsWith("data:")) {
-                    const response = await fetch(documentos.partidaNacimiento);
+                if (documentos.partida_nacimiento && typeof documentos.partida_nacimiento === 'string' && documentos.partida_nacimiento.startsWith("data:")) {
+                    const response = await fetch(documentos.partida_nacimiento);
                     const blob = await response.blob();
-                    formDataLegajo.append('partidanacimiento', blob, 'partida_nacimiento.jpg');
+                    formDataLegajo.append('partida_nacimiento', blob, 'partida_nacimiento.jpg');
                 }
                 else {
-                    formDataLegajo.append('partidanacimiento', documentos.partidaNacimiento, 'partidanacimiento.jpg')
+                    formDataLegajo.append('partida_nacimiento', documentos.partida_nacimiento, 'partida_nacimiento.jpg')
                 }
                 
-            const respuesta = await modificarAlumno(dni, formData);
-            const respuesta2 = await modificarLegajo(dni, formDataLegajo);
+            const respuesta = await modificarAlumno(formData.dni_alumno, formData);
+            const respuesta2 = await modificarLegajo(formData.dni_alumno, formDataLegajo);
             console.log('Alumno modificado:', respuesta);
             await mostrarMensaje('El alumno modificado correctamente')
             setFormData({
-                dnialumno: '',
+                dni_alumno: '',
                 nombre: '',
                 apellido: '',
                 cuil: '',
                 id_sexo: '',
                 emailpersonal: '',
-                emailfamiliar: '',
-                idcurso: '',
-                fechanacimiento: '',
-                fechaNacimiento: '',
-                telefonomadre: '',
-                telefonopadre: '',
-                telefonopersonal:'',
-                idestadoalumno: '',
-                idlocalidad: '',
+                email_familiar: '',
+                id_curso: '',
+                fecha_nacimiento: '',
+                telefono_madre: '',
+                telefono_padre: '',
+                telefono_personal: '',
+                id_estado_general: '',
+                id_localidad: '',
                 domicilio: '',
                 edificio: false,
                 piso: '',
@@ -368,32 +344,32 @@ export default function GestionarAlumno() {
     const handleDeshabilitar = async () => {
         try {
             
-            const dni = formData.dnialumno; 
-            console.log('DNI a deshabilitar:', dni); 
+            const dni_alumno = formData.dni_alumno; 
+            console.log('DNI a deshabilitar:', dni_alumno); 
             
-            if (!dni) {
+            if (!dni_alumno) {
                 Alert.alert('Error', 'Por favor, consulta primero al alumno.');
                 return;
             }
-    
-            const response = await deshabilitarAlumno(dni); 
+            
+            const response = await deshabilitarAlumno(dni_alumno); 
             console.log('Alumno deshabilitado:', response);
             await mostrarMensaje('El alumno se deshabilito correctamente')
             setFormData({
-                dnialumno: '',
+                dni_alumno: '',
                 nombre: '',
                 apellido: '',
                 cuil: '',
                 id_sexo: '',
-                emailpersonal: '',
-                emailfamiliar: '',
-                idcurso: '',
-                fechaNacimiento: '',
-                telefonomadre: '',
-                telefonopadre: '',
-                telefonopersonal:'',
-                idestadoalumno: '',
-                idlocalidad: '',
+                email_personal: '',
+                email_familiar: '',
+                id_curso: '',
+                fecha_nacimiento: '',
+                telefono_madre: '',
+                telefono_padre: '',
+                telefono_personal: '',
+                id_estado_general: '',
+                id_localidad: '',
                 domicilio: '',
                 edificio: false,
                 piso: '',
@@ -416,29 +392,29 @@ export default function GestionarAlumno() {
             piso: '',
             id_sexo: '',
             cuil: '',
-            fechaNacimiento: '',
+            fecha_nacimiento: '',
             id_localidad: '',
             id_estado_general: '',
-            telefonopersonal: '',
-            telefonomadre: '',
-            telefonopadre: '',
-            emailpersonal: '',
-            emailfamiliar: '',
+            telefono_personal: '',
+            telefono_madre: '',
+            telefono_padre: '',
+            email_personal: '',
+            email_familiar: '',
             edificio: false,
             id_curso: '',
         });
         setDocumentos({
-            dni: null,
-            fichaMedica: null,
-            partidaNacimiento: null
+            dni_foto: null,
+            ficha_medica: null,
+            partida_nacimiento: null
         });
     }
     
 
     const [documentos, setDocumentos] = useState({
-        dni: null,
-        fichaMedica: null,
-        partidaNacimiento: null,
+        dni_foto: null,
+        ficha_medica: null,
+        partida_nacimiento: null,
     });
     const [formDataLegajo, setFormDataLegajo] = useState(new FormData());
     
@@ -479,17 +455,17 @@ export default function GestionarAlumno() {
         }
     };
 
-    const abrirPDF = async (dni) => {
+    const abrirPDF = async (dni_alumno) => {
         try {
             let blob;
             // Si el argumento es un Blob directamente
-            if (dni instanceof Blob) {
+            if (dni_alumno instanceof Blob) {
                 console.log("hola dni instanceof blob")
-                blob = dni;
+                blob = dni_alumno;
             } 
             // Si el argumento es una URI, se realiza un fetch para convertirlo en un Blob
-            else if (typeof dni === 'string' && dni.length > 0) {
-                const response = await fetch(dni);  
+            else if (typeof dni_alumno === 'string' && dni_alumno.length > 0) {
+                const response = await fetch(dni_alumno);  
                 blob = await response.blob();  // Convertir la URI en Blob
             } else {
                 throw new Error('El archivo no es válido');
@@ -530,9 +506,9 @@ export default function GestionarAlumno() {
         return true;
     }
 
-    function validarCUIL(cuil, dni) {
+    function validarCUIL(cuil, dni_alumno) {
         // Asegurarse de que dni es una cadena
-        const dniFormateado = String(dni).trim(); // Convertir el DNI a cadena y eliminar espacios extra
+        const dniFormateado = String(dni_alumno).trim(); // Convertir el DNI a cadena y eliminar espacios extra
     
         // Expresión regular para verificar el formato del CUIL: XX-XXXXXXXX-X
         const regex = /^(\d{2})-(\d{8})-(\d{1})$/;
@@ -578,7 +554,7 @@ export default function GestionarAlumno() {
             <View style={styles.formulario}>
                 <View style={styles.dniContainer}>
                     <Text style={styles.label}>DNI:</Text>
-                    <TextInput style={styles.inputDni} placeholder='DNI' onChangeText={(value) => handleChange('dnialumno', value)}/>
+                    <TextInput style={styles.inputDni} placeholder='DNI' value={formData.dni_alumno} onChangeText={(value) => handleChange('dni_alumno', value)}/>
                     <TouchableOpacity style={styles.consultarButton} onPress={handleConsultar}>
                         <Text style={styles.consultarText}>Consultar</Text>
                     </TouchableOpacity>
@@ -598,10 +574,10 @@ export default function GestionarAlumno() {
                         
                         
                         <Text style={styles.label}>Email:</Text>
-                        <TextInput style={styles.input} placeholder='Email Personal' value={formData.emailpersonal} onChangeText={(value) => handleChange('emailpersonal', value)} />
+                        <TextInput style={styles.input} placeholder='Email Personal' value={formData.email_personal} onChangeText={(value) => handleChange('email_personal', value)} />
                         
                         <Text style={styles.label}>Email Familiar:</Text>
-                        <TextInput style={styles.input} placeholder='Email Familiar' value={formData.emailfamiliar} onChangeText={(value) => handleChange('emailfamiliar', value)} />
+                        <TextInput style={styles.input} placeholder='Email Familiar' value={formData.email_familiar} onChangeText={(value) => handleChange('email_familiar', value)} />
                         
                         <ListasDesplegables
                             formData={formData}
@@ -624,16 +600,16 @@ export default function GestionarAlumno() {
                         />
 
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='AAAA/MM/DD' value={formData.fechaNacimiento} onChangeText={(value) => handleChange('fechaNacimiento', value)} />
+                        <TextInput style={styles.input} placeholder='AAAA/MM/DD' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
                         
                         <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefonomadre} onChangeText={(value) => handleChange('telefonomadre', value)} />
+                        <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefono_madre} onChangeText={(value) => handleChange('telefono_madre', value)} />
 
                         <Text style={styles.label}>Teléfono Padre/Tutor:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Padre/Tutor' value={formData.telefonopadre} onChangeText={(value) => handleChange('telefonopadre', value)} />
+                        <TextInput style={styles.input} placeholder='Teléfono Padre/Tutor' value={formData.telefono_padre} onChangeText={(value) => handleChange('telefono_padre', value)} />
                         
                         <Text style={styles.label}>Teléfono Personal:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefonopersonal} onChangeText={(value) => handleChange('telefonopersonal', value)} />
+                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
 
                         
                         
@@ -676,23 +652,23 @@ export default function GestionarAlumno() {
                         )}
                         <Text style={styles.label}>Legajo:</Text>
                             <View>
-                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('dni')}>
+                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('dni_foto')}>
                                         <Text style={styles.textoBoton}>Ingrese Foto DNI</Text>
                                     </TouchableOpacity>
                                     {/* Verifica si documentos.dni está presente y tiene un Blob con tamaño mayor a 0 */}
-                                    {documentos.dni && 
-                                        (documentos.dni instanceof Blob && documentos.dni.size > 0 || 
-                                        (typeof documentos.dni === 'string' && documentos.dni.length > 0)) && (
+                                    {documentos.dni_foto && 
+                                        (documentos.dni_foto instanceof Blob && documentos.dni_foto.size > 0 || 
+                                        (typeof documentos.dni_foto === 'string' && documentos.dni_foto.length > 0)) && (
                                             <TouchableOpacity
                                                 style={styles.botonVer}
                                                 onPress={async () => {
                                                     try {
-                                                        console.log('documentos.dni:', documentos.dni);  // Verifica lo que contiene documentos.dni
-                                                        
-                                                        if (documentos.dni instanceof Blob && documentos.dni.size > 0) {
-                                                            abrirPDF(documentos.dni);  // Si es un Blob válido con contenido
-                                                        } else if (typeof documentos.dni === 'string' && documentos.dni.length > 0) {
-                                                            abrirPDF(documentos.dni);  // Si es una URI válida, la pasamos a abrirPDF
+                                                        console.log('documentos.dni_foto:', documentos.dni_foto);  // Verifica lo que contiene documentos.dni_foto
+
+                                                        if (documentos.dni_foto instanceof Blob && documentos.dni_foto.size > 0) {
+                                                            abrirPDF(documentos.dni_foto);  // Si es un Blob válido con contenido
+                                                        } else if (typeof documentos.dni_foto === 'string' && documentos.dni_foto.length > 0) {
+                                                            abrirPDF(documentos.dni_foto);  // Si es una URI válida, la pasamos a abrirPDF
                                                         } else {
                                                             console.log('El archivo no tiene un formato válido');
                                                         }
@@ -706,22 +682,22 @@ export default function GestionarAlumno() {
                                     )}
                             </View>
                                 <View>
-                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('fichaMedica')}>
+                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('ficha_medica')}>
                                         <Text style={styles.textoBoton}>Ingrese Ficha Medica</Text>
                                     </TouchableOpacity>
-                                    {documentos.fichaMedica && 
-                                        ((documentos.fichaMedica instanceof Blob && documentos.fichaMedica.size > 0) || 
-                                        (typeof documentos.fichaMedica === 'string' && documentos.fichaMedica.length > 0)) && (
+                                    {documentos.ficha_medica && 
+                                        ((documentos.ficha_medica instanceof Blob && documentos.ficha_medica.size > 0) || 
+                                        (typeof documentos.ficha_medica === 'string' && documentos.ficha_medica.length > 0)) && (
                                             <TouchableOpacity
                                                 style={styles.botonVer}
                                                 onPress={async () => {
                                                     try {
-                                                        console.log('documentos.fichaMedica:', documentos.fichaMedica);  // Verifica lo que contiene documentos.fichaMedica
-                                                        
-                                                        if (documentos.fichaMedica instanceof Blob && documentos.fichaMedica.size > 0) {
-                                                            abrirPDF(documentos.fichaMedica);  // Si es un Blob válido con contenido
-                                                        } else if (typeof documentos.fichaMedica === 'string' && documentos.fichaMedica.length > 0) {
-                                                            abrirPDF(documentos.fichaMedica);  // Si es una URI válida, la pasamos a abrirPDF
+                                                        console.log('documentos.ficha_medica:', documentos.ficha_medica);  // Verifica lo que contiene documentos.ficha_medica
+
+                                                        if (documentos.ficha_medica instanceof Blob && documentos.ficha_medica.size > 0) {
+                                                            abrirPDF(documentos.ficha_medica);  // Si es un Blob válido con contenido
+                                                        } else if (typeof documentos.ficha_medica === 'string' && documentos.ficha_medica.length > 0) {
+                                                            abrirPDF(documentos.ficha_medica);  // Si es una URI válida, la pasamos a abrirPDF
                                                         } else {
                                                             console.log('El archivo no tiene un formato válido');
                                                         }
@@ -735,22 +711,22 @@ export default function GestionarAlumno() {
                                     )}
                                 </View>
                                 <View>
-                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('partidaNacimiento')}>
+                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('partida_nacimiento')}>
                                         <Text style={styles.textoBoton}>Ingrese Partida de Nacimiento</Text>
                                     </TouchableOpacity>
-                                    {documentos.partidaNacimiento && 
-                                        ((documentos.partidaNacimiento instanceof Blob && documentos.partidaNacimiento.size > 0) || 
-                                        (typeof documentos.partidaNacimiento === 'string' && documentos.partidaNacimiento.length > 0)) && (
+                                    {documentos.partida_nacimiento && 
+                                        ((documentos.partida_nacimiento instanceof Blob && documentos.partida_nacimiento.size > 0) || 
+                                        (typeof documentos.partida_nacimiento === 'string' && documentos.partida_nacimiento.length > 0)) && (
                                             <TouchableOpacity
                                                 style={styles.botonVer}
                                                 onPress={async () => {
                                                     try {
-                                                        console.log('documentos.partidaNacimiento:', documentos.partidaNacimiento);  // Verifica lo que contiene documentos.fichaMedica
-                                                        
-                                                        if (documentos.partidaNacimiento instanceof Blob && documentos.partidaNacimiento.size > 0) {
-                                                            abrirPDF(documentos.partidaNacimiento);  // Si es un Blob válido con contenido
-                                                        } else if (typeof documentos.partidaNacimiento === 'string' && documentos.partidaNacimiento.length > 0) {
-                                                            abrirPDF(documentos.partidaNacimiento);  // Si es una URI válida, la pasamos a abrirPDF
+                                                        console.log('documentos.partida_nacimiento:', documentos.partida_nacimiento);  // Verifica lo que contiene documentos.fichaMedica
+
+                                                        if (documentos.partida_nacimiento instanceof Blob && documentos.partida_nacimiento.size > 0) {
+                                                            abrirPDF(documentos.partida_nacimiento);  // Si es un Blob válido con contenido
+                                                        } else if (typeof documentos.partida_nacimiento === 'string' && documentos.partida_nacimiento.length > 0) {
+                                                            abrirPDF(documentos.partida_nacimiento);  // Si es una URI válida, la pasamos a abrirPDF
                                                         } else {
                                                             console.log('El archivo no tiene un formato válido');
                                                         }

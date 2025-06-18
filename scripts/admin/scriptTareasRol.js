@@ -1,4 +1,3 @@
-// 🔴
 const api_urlTareaRolAlta = 'http://localhost:5000/tarea/rol/alta';
 const api_urlRolTareaAlta = 'http://localhost:5000/rol/tarea/alta';
 const api_urlTareasRol = 'http://localhost:5000/rol/tarea';

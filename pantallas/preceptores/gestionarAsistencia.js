@@ -2,23 +2,18 @@ import { StyleSheet,View,Image,TouchableOpacity,Text,TextInput,Switch,ScrollView
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-//import { obtenerCurso } from '../../scripts/secretaria/scriptGestionAlumno';
-//import { obtenerAlumnoCurso } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 import { registrarAsistenciaFrontend, obtenerCursoFrontend, validarFechaAsistencia } from '../../scripts/preceptor/scriptGestionAsistencia.js';
 import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
 import { obtenerCurso, obtenerAlumnoCurso} from '../../scripts/listasDesplegables/listaDesplegable.js';
 
 import bg from '../../assets/bg1.jpg'
-
 import { FontAwesome5 } from '@expo/vector-icons';
-//import { registrarAsistencia } from '../../back/metodos/metodosAsistencia.mjs';
-
-
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 
 export default function GestionarAsistencia(){
     const navegacion = useNavigation();
 
-     //Formulario
+    //Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
         fecha: '',
@@ -26,7 +21,7 @@ export default function GestionarAsistencia(){
         id_estado_asistencia: ''
     });
 
-     // Listas desplegables
+    // Listas desplegables
     const [cursos, setCursos] = useState([]);
     const [botonActivado, setBotonActivado] = useState(false);
     const [estudiantes, setEstudiantes] = useState([]);
@@ -35,42 +30,25 @@ export default function GestionarAsistencia(){
     const [mensajeConfirmacion, setMensajeConfirmacion] = useState(''); // Estado para el mensaje de confirmación
     const [botonModificarActivado, setBotonModificarActivado] = useState(false);
 
-
-    
     // Cargar cursos
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const cursosData = await obtenerCurso(); // Obtener los cursos desde listaDesplegable.js
-                console.log("Cursos obtenidos:", cursosData); // Verifica si los datos están llegando bien
-
-                if (!cursosData || cursosData.length === 0) {
-                    console.log("No hay cursos disponibles.");
-                    return;
-                }
-
-                // Fecha actual
-                const fechaActual = obtenerFechaActual(); // Asegúrate de que esta función esté definida
-                console.log("Fecha actual:", fechaActual);
-
-                // Validar la asistencia para cada curso
+                const cursosData = await obtenerCurso();
+                if (!cursosData || cursosData.length === 0) return;
+                const fechaActual = obtenerFechaActual();
                 const cursosConEstado = await Promise.all(
                     cursosData.map(async (curso) => {
                         const tieneAsistencia = await validarFechaAsistencia(curso.id_curso, fechaActual);
-                        console.log(`Curso ${curso.id_curso} tiene asistencia:`, tieneAsistencia);
                         return {
                             ...curso,
-                            tieneAsistencia, // Agregar el estado de asistencia al curso
+                            tieneAsistencia,
                         };
                     })
                 );
-                console.log("Cursos con estado de asistencia:", cursosConEstado);
-
-                // Actualizar estado con los cursos y su estado de asistencia
                 setCursos(cursosConEstado);
             } catch (error) {
                 console.error("Error al cargar los cursos:", error);
-                Alert.alert('Error', 'Hubo un problema al cargar los cursos.');
             }
         };
         cargarDatos();
@@ -79,27 +57,16 @@ export default function GestionarAsistencia(){
     // Marca el curso seleccionado y habilita el botón de modificar si tiene asistencia
     useEffect(() => {
         if (formData.id_curso) {
-            // Asegura que los datos sean numéricos y encuentra el curso seleccionado
             const cursoSeleccionado = cursos.find(curso => Number(curso.id_curso) === Number(formData.id_curso));
-            if (cursoSeleccionado) {
-                console.log('Curso seleccionado:', cursoSeleccionado);
-                // Verifica si el curso tiene asistencia
-                if (cursoSeleccionado.tieneAsistencia) {
-                    console.log("Activando botón Modificar");
-                    setBotonModificarActivado(true); // Habilitar el botón si tiene asistencia
-                } else {
-                    console.log("Desactivando botón Modificar");
-                    setBotonModificarActivado(false); // Desactivar el botón si no tiene asistencia
-                }
+            if (cursoSeleccionado && cursoSeleccionado.tieneAsistencia) {
+                setBotonModificarActivado(true);
             } else {
-                console.log('Curso no encontrado');
-                setBotonModificarActivado(false); // Desactivar el botón si no se encuentra el curso
+                setBotonModificarActivado(false);
             }
         } else {
-            setBotonModificarActivado(false); // Desactivar el botón si no hay `idcurso`
+            setBotonModificarActivado(false);
         }
-    }, [formData.id_curso, cursos]); // Dependencias: formData.idcurso y cursos
-
+    }, [formData.id_curso, cursos]);
 
     // Carga alumnos en base al curso
     useEffect(() => {
@@ -107,41 +74,38 @@ export default function GestionarAsistencia(){
             if (formData.id_curso) {
                 try {
                     const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
-                    // Asegura que todos los estudiantes tengan 'presente: true' y 'formData' propio
                     const alumnosConPresente = alumnosData.map((alumno) => ({
                         ...alumno,
-                        presente: true, // Todos están inicialmente marcados como presentes
+                        presente: true,
                         formData: {
                             dni_alumno: alumno.dni_alumno,
                             fecha: '',
                             id_curso: formData.id_curso,
-                            id_estado_asistencia: 1, // Inicializa como presente
+                            id_estado_asistencia: 1,
                         },
                     }));
                     setEstudiantes(alumnosConPresente);
-                    setBotonActivado(true); // Activa el botón
+                    setBotonActivado(true);
                 } catch (error) {
-                    console.error('Error al cargar alumnos:', error);
-                    setBotonActivado(false); // Si ocurre un error, desactiva el botón
+                    setBotonActivado(false);
                 }
             }
         };
         cargarAlumnos();
-    }, [formData.id_curso]); // Se ejecuta solo cuando cambia el curso
-    
-    //cambia el switch del alumno
+    }, [formData.id_curso]);
+
     const toggleSwitch = (dni) => {
         setEstudiantes((prevEstudiantes) =>
             prevEstudiantes.map((estudiante) => {
                 if (estudiante.dni_alumno === dni) {
                     const nuevoPresente = !estudiante.presente;
-                    const nuevoEstado = nuevoPresente ? 1 : 2; // 1 = presente, 2 = ausente
+                    const nuevoEstado = nuevoPresente ? 1 : 2;
                     return {
                         ...estudiante,
                         presente: nuevoPresente,
                         formData: {
                             ...estudiante.formData,
-                            id_estado_asistencia: nuevoEstado, // Actualiza id_estado_asistencia
+                            id_estado_asistencia: nuevoEstado,
                         },
                     };
                 }
@@ -151,72 +115,42 @@ export default function GestionarAsistencia(){
     };
 
     const limpiarInterfaz = async () => {
-        setModalVisible(false); // Cierra el modal
-        setMensajeConfirmacion(''); // Limpia el mensaje de confirmación
-        setBotonActivado(false); // Desactiva el botón de enviar
-        setBotonModificarActivado(false); // Desactiva el botón de modificar
-    
-        // Recargar los cursos para actualizar el Picker
+        setModalVisible(false);
+        setMensajeConfirmacion('');
+        setBotonActivado(false);
+        setBotonModificarActivado(false);
         try {
-            const cursosData = await obtenerCurso(); // Llama a la función que obtiene los cursos
-            const fechaActual = obtenerFechaActual(); // Obtén la fecha actual
+            const cursosData = await obtenerCurso();
+            const fechaActual = obtenerFechaActual();
             const cursosConEstado = await Promise.all(
                 cursosData.map(async (curso) => {
                     const tieneAsistencia = await validarFechaAsistencia(curso.id_curso, fechaActual);
                     return {
                         ...curso,
-                        tieneAsistencia, // Actualiza el estado de asistencia
+                        tieneAsistencia,
                     };
                 })
             );
-            setCursos(cursosConEstado); // Actualiza el estado de los cursos
+            setCursos(cursosConEstado);
         } catch (error) {
-            console.error("Error al recargar los cursos:", error);
+            // nada
         }
     };
-    
-    const validarCampos = () => {
-        return formData.dni_alumno && 
-            formData.idsolicitante && 
-            formData.fecha.length >= 10 && 
-            formData.motivo.length >= 3 &&
-            formData.id_curso; 
-    };
+
     const handleRegistrar = async () => {
         try {
-            const ausentesTemp = []; // Lista temporal de alumnos ausentes
+            const ausentesTemp = [];
             for (const estudiante of estudiantes) {
-                console.log("FormData del estudiante:", estudiante.formData);
-    
-                // Obtener datos del alumno
                 const alumnosData = await obtenerAlumnoFiltrado(estudiante.formData.dni_alumno);
-                console.log("Datos del alumno obtenidos:", alumnosData);
-    
-                // Manejar ambos casos: si alumnosData es un array o un objeto
                 const alumno = Array.isArray(alumnosData) ? alumnosData[0] : alumnosData;
-                console.log("Datos del alumno procesado:", alumno);
-    
-                if (!alumno || !alumno.nombre || !alumno.apellido) {
-                    console.error(`No se encontraron datos válidos para el DNI ${estudiante.formData.dni_alumno}`);
-                    continue; // Salta al siguiente estudiante
-                }
-    
-                // Construir el objeto de asistencia
+                if (!alumno || !alumno.nombre || !alumno.apellido) continue;
                 const asistenciaData = {
                     dni_alumno: estudiante.formData.dni_alumno ? parseInt(estudiante.formData.dni_alumno, 10) : null,
                     fecha: obtenerFechaActual(),
                     id_curso: estudiante.formData.id_curso ? parseInt(estudiante.formData.id_curso, 10) : null,
                     id_estado_asistencia: estudiante.formData.id_estado_asistencia ? parseInt(estudiante.formData.id_estado_asistencia, 10) : null,
                 };
-    
-                console.log("Datos que se van a enviar al backend:", asistenciaData);
-    
-                if (!asistenciaData.dni_alumno || !asistenciaData.id_curso || !asistenciaData.id_estado_asistencia) {
-                    console.error("Datos incompletos en asistenciaData:", asistenciaData);
-                    continue; // Salta al siguiente estudiante si los datos son incompletos
-                }
-    
-                // Si el estudiante está ausente, agregarlo a la lista de ausentes
+                if (!asistenciaData.dni_alumno || !asistenciaData.id_curso || !asistenciaData.id_estado_asistencia) continue;
                 if (asistenciaData.id_estado_asistencia === 2) {
                     ausentesTemp.push({
                         nombre: alumno.nombre,
@@ -225,23 +159,19 @@ export default function GestionarAsistencia(){
                     });
                 }
             }
-    
-            // Actualizar el estado con los ausentes
             setAusentes(ausentesTemp);
-            // Mostrar el modal si hay ausentes
             if (ausentesTemp.length > 0) {
                 setModalVisible(true);
             } else {
-                console.log("No hay ausentes. Registro completado.");
-                await confirmarRegistro(); // Si no hay ausentes, confirmar el registro directamente
+                await confirmarRegistro();
             }
         } catch (error) {
-            console.error('Error al registrar la asistencia:', error.message);
+            // nada
         }
     };
 
     const confirmarRegistro = async () => {
-        setModalVisible(false); // Cerrar el modal
+        setModalVisible(false);
         try {
             for (const estudiante of estudiantes) {
                 const asistenciaData = {
@@ -250,7 +180,6 @@ export default function GestionarAsistencia(){
                     id_curso: parseInt(estudiante.formData.id_curso, 10),
                     id_estado_asistencia: parseInt(estudiante.formData.id_estado_asistencia, 10),
                 };
-                console.log("Enviando datos al backend:", asistenciaData);
                 const curso = await obtenerCursoFrontend(asistenciaData.id_curso);
                 registrarAsistenciaFrontend(asistenciaData)
                 setMensajeConfirmacion(`La asistencia del curso "${curso.curso.detalle}" se registró correctamente.`);
@@ -258,25 +187,20 @@ export default function GestionarAsistencia(){
                     setMensajeConfirmacion('');
                 }, 3000);
             }
-            console.log("Registro completado.");
             limpiarInterfaz();
         } catch (error) {
-            console.error("Error al confirmar el registro:", error.message);
+            // nada
         }
     };
 
     const obtenerFechaActual = () => {
         const fecha = new Date();
         const anio = fecha.getFullYear();
-        const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Los meses en JavaScript comienzan desde 0, por eso sumamos 1
-        const dia = String(fecha.getDate()).padStart(2, '0'); // Asegura que el día sea de dos dígitos
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const dia = String(fecha.getDate()).padStart(2, '0');
         return `${anio}-${mes}-${dia}`;
     }
-    //Ver reutilización
-    const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
-    //Ver reutilización
+
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
         return (
             <>
@@ -301,77 +225,99 @@ export default function GestionarAsistencia(){
     {cursos.map((curso) => (
         console.log(curso)
     ))}
+
+    const cursoSeleccionado = cursos.find(c => c.id_curso === formData.id_curso);
+const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg}></Image>
-            <View style={styles.container}>
-            <Picker
-                selectedValue={formData.id_curso}
-                onValueChange={(value) => setFormData({ ...formData, id_curso: value })}
-                style={{ height: 50, width: 200 }}
-            >
-                <Picker.Item label="Seleccione el curso" value="" />
-                {cursos.map((curso) => (
-                    <Picker.Item
-                        key={curso.id_curso} // Asegúrate de que `idcurso` es único
-                        label={
-                            curso.tieneAsistencia
-                                ? `${curso.detalle} ✅` // Agregar un emoji si tiene asistencia
-                                : curso.detalle
-                        }
-                        value={curso.id_curso}
-                    />
-                ))}
-            </Picker>
-        </View>
-            <View style={styles.busqueda}>
-                <FontAwesome5 name="search" size={15} color="black" style={styles.icon} />
-                <TextInput placeholder='Ingresar Alumno' style={styles.textBusqueda}/>
-            </View>
-            <View style={styles.contenedorTexto}>
-                <Text style={styles.texto}>Nombre</Text>
-                <Text style={styles.texto}>P</Text>
-            </View>
-            <ScrollView style={styles.listaEstudiantes}>
-                {estudiantes.map((estudiante) => (
-                <View key={estudiante.id} style={styles.filaEstudiantes}>
-                    <Text style={styles.estudiante}>{estudiante.nombrecompleto}</Text>
-                    <Switch
-                    value={estudiante.presente}
-                    onValueChange={() => toggleSwitch(estudiante.dni_alumno)}
-                    thumbColor={estudiante.presente ? "#3b82f6" : "#ccc"}
-                    />
+            <Image source={bg} style={styles.bg} />
+            <View style={styles.wrapper}>
+                <Text style={styles.titulo}>Asistencia</Text>
+                <View style={styles.card}>
+                   <Picker
+                        selectedValue={formData.id_curso}
+                        onValueChange={(value) => setFormData({ ...formData, id_curso: value })}
+                        style={[
+                            { height: 50, width: 220, borderRadius: 8, marginBottom: 10, alignSelf: 'center' },
+                            tieneAsistencia && { backgroundColor: '#d1fae5', borderColor: '#059669', borderWidth: 1 }
+                        ]}
+                    >
+                        <Picker.Item label="Seleccione el curso" value="" color="#888" />
+                        {cursos.map((curso) => (
+                            <Picker.Item
+                                key={curso.id_curso}
+                                label={
+                                    curso.tieneAsistencia
+                                        ? `${curso.detalle} ✅`
+                                        : curso.detalle
+                                }
+                                value={curso.id_curso}
+                                color={curso.tieneAsistencia ? '#059669' : '#222'}
+                            />
+                        ))}
+                    </Picker>
+                    <View style={styles.busqueda}>
+                        <FontAwesome5 name="search" size={15} color="#bbb" style={styles.icon} />
+                        <TextInput placeholder='Buscar alumno...' style={styles.textBusqueda}/>
+                    </View>
                 </View>
-                ))}
-            </ScrollView>
-
-            <View style={styles.contenedorBotones}>
-                <TouchableOpacity style={[styles.modificar, { opacity: botonModificarActivado ? 1 : 0.5 }]}disabled={!botonModificarActivado}onPress={() => navegacion.navigate('Modificar Asistencia', { id_curso: formData.id_curso })}><Text style={styles.botonTexto}>Modificar</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.enviar, { opacity: botonActivado ? 1 : 0.5 }]} disabled={!botonActivado} onPress={handleRegistrar}><Text style={styles.botonTexto}>Enviar</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.exportar, { opacity: botonActivado ? 1 : 0.5 }]} disabled={!botonActivado}><Text style={styles.botonTexto}>Exportar</Text></TouchableOpacity>
-                {/* Modal de Confirmación */}
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Confirmar registro</Text>
-                            <Text>Los siguientes alumnos están ausentes:</Text>
-                            {ausentes.map((alumno) => (
-                                <Text key={alumno.dni_alumno} style={styles.alumnoItem}>
-                                    Nombre: {alumno.nombre} {alumno.apellido} - DNI: {alumno.dni_alumno}
-                                </Text>
-                            ))}
-                            <View style={styles.modalButtons}>
-                                <Button title="Cancelar" onPress={() => setModalVisible(false)} />
-                                <Button title="Confirmar" onPress={confirmarRegistro} />
-                            </View>
+                <View style={styles.headerLista}>
+                    <Text style={styles.headerNombre}>Nombre</Text>
+                    <Text style={styles.headerPresente}>P</Text>
+                </View>
+                <ScrollView style={styles.listaEstudiantes}>
+                    {estudiantes.map((estudiante) => (
+                        <View key={estudiante.id} style={styles.filaEstudiantes}>
+                            <Text style={styles.estudiante}>{estudiante.nombrecompleto}</Text>
+                            <Switch
+                                value={estudiante.presente}
+                                onValueChange={() => toggleSwitch(estudiante.dni_alumno)}
+                                thumbColor={estudiante.presente ? "#4caf50" : "#bbb"}
+                                trackColor={{ false: "#e5e7eb", true: "#bbf7d0" }}
+                                style={styles.switch}
+                            />
+                        </View>
+                    ))}
+                </ScrollView>
+                <View style={styles.contenedorBotones}>
+                    <TouchableOpacity style={[styles.boton, styles.modificar, !botonModificarActivado && styles.botonDeshabilitado]} disabled={!botonModificarActivado} onPress={() => navegacion.navigate('Modificar Asistencia', { id_curso: formData.id_curso })}>
+                        <Text style={styles.botonTexto}>Modificar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.boton, styles.enviar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado} onPress={handleRegistrar}>
+                        <Text style={styles.botonTexto}>Enviar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.boton, styles.exportar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado}>
+                        <Text style={styles.botonTexto}>Exportar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+            {/* Modal de Confirmación */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Confirmar registro</Text>
+                        <Text style={{marginBottom: 8}}>Los siguientes alumnos están ausentes:</Text>
+                        {ausentes.map((alumno) => (
+                            <Text key={alumno.dni_alumno} style={styles.alumnoItem}>
+                                {alumno.nombre} {alumno.apellido} - DNI: {alumno.dni_alumno}
+                            </Text>
+                        ))}
+                        <View style={styles.modalButtons}>
+                            <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+                            <Button title="Confirmar" onPress={confirmarRegistro} />
                         </View>
                     </View>
-                </Modal>
+                </View>
+            </Modal>
             {/* Mensaje de confirmación */}
             {mensajeConfirmacion !== '' && (
                 <View style={styles.mensajeOverlay}>
@@ -380,7 +326,6 @@ export default function GestionarAsistencia(){
                     </View>
                 </View>
             )}
-            </View>
         </View>
     )
 }
@@ -388,34 +333,44 @@ export default function GestionarAsistencia(){
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
-        width: '100%',
-        height: '100%',
+        backgroundColor: '#f6f8fa',
         alignItems: 'center',
-        backgroundColor: 'white',
+        justifyContent: 'flex-start',
     },
     bg: {
+        position: 'absolute',
         width: '100%',
         height: '100%',
-        position: 'absolute',
         zIndex: -1,
     },
-    container: {
-        width: '95%',
+    wrapper: {
+        width: '100%',
         maxWidth: 420,
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 20,
-        marginTop: 36,
-        marginBottom: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 6,
-        alignItems: 'center',
         alignSelf: 'center',
-        borderWidth: 1,
-        borderColor: '#e1e8ed',
+        marginTop: 32,
+        marginBottom: 24,
+        paddingHorizontal: 8,
+    },
+    titulo: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#2a3d6c',
+        marginBottom: 12,
+        textAlign: 'center',
+        letterSpacing: 0.2,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        padding: 18,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
+        elevation: 2,
+        borderWidth: 0.5,
+        borderColor: '#e5e7eb',
     },
     busqueda: {
         flexDirection: 'row',
@@ -423,143 +378,141 @@ const styles = StyleSheet.create({
         backgroundColor: '#f3f4f6',
         borderRadius: 8,
         width: '100%',
-        padding: 12,
-        marginBottom: 18,
-        marginTop: 8,
-        borderWidth: 1,
-        borderColor: '#d1d5db',
+        padding: 8,
+        marginTop: 10,
+        borderWidth: 0,
     },
     textBusqueda: {
         flex: 1,
-        marginLeft: 10,
-        fontSize: 16,
+        marginLeft: 8,
+        fontSize: 15,
         color: '#374151',
+        backgroundColor: 'transparent',
+    },
+    headerLista: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 8,
+        marginBottom: 2,
+        marginTop: 2,
+    },
+    headerNombre: {
+        fontWeight: '500',
+        color: '#1f2937',
+        fontSize: 14,
+    },
+    headerPresente: {
+        fontWeight: '500',
+        color: '#1f2937',
+        fontSize: 14,
     },
     listaEstudiantes: {
         width: '100%',
-        marginTop: 10,
-        maxHeight: 320,
+        maxHeight: 260,
         borderRadius: 10,
-        backgroundColor: '#f9fafb',
-        paddingHorizontal: 4,
+        backgroundColor: '#fff',
+        paddingHorizontal: 2,
+        borderWidth: 0,
+        marginBottom: 10,
     },
     filaEstudiantes: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
+        paddingVertical: 10,
+        borderBottomWidth: 0.5,
         borderBottomColor: '#e5e7eb',
-        backgroundColor: '#fff',
-        borderRadius: 6,
-        marginBottom: 2,
+        backgroundColor: 'transparent',
+        borderRadius: 0,
+        marginBottom: 0,
         paddingHorizontal: 8,
     },
     estudiante: {
-        fontSize: 16,
-        color: '#374151',
+        fontSize: 15,
+        color: '#222',
         flex: 1,
     },
-    contenedorTexto: {
+    switch: {
+        transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }],
+    },
+    contenedorBotones: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
         marginTop: 10,
-        marginBottom: 2,
-        paddingHorizontal: 8,
+        gap: 8,
     },
-    texto: {
-        fontWeight: '600',
-        color: '#1f2937',
-        fontSize: 15,
-        letterSpacing: 0.3,
-    },
-    contenedorBotones: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        width: '100%',
-        marginTop: 24,
-        marginBottom: 36,
-        gap: 10,
+    boton: {
+        flex: 1,
+        marginHorizontal: 4,
+        borderRadius: 8,
+        paddingVertical: 12,
+        alignItems: 'center',
     },
     modificar: {
-        backgroundColor: '#f0f7ff',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        borderColor: '#746BC8',
+        backgroundColor: '#f6fafe',
+        borderColor: '#b6c6e0',
         borderWidth: 1,
-        alignItems: 'center',
-        elevation: 2,
-        minWidth: 90,
     },
     enviar: {
         backgroundColor: '#e8f5e9',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        borderColor: '#4caf50',
+        borderColor: '#b7e4c7',
         borderWidth: 1,
-        alignItems: 'center',
-        elevation: 2,
-        minWidth: 90,
     },
     exportar: {
         backgroundColor: '#fff8e1',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        borderColor: '#ffb300',
+        borderColor: '#ffe066',
         borderWidth: 1,
-        alignItems: 'center',
-        elevation: 2,
-        minWidth: 90,
     },
     botonTexto: {
         color: '#2c3e50',
-        fontSize: 16,
-        fontWeight: '600',
+        fontSize: 15,
+        fontWeight: '500',
         textAlign: 'center',
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
     },
     modalOverlay: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.18)',
     },
     modalContent: {
-        width: '90%',
-        maxWidth: 400,
-        padding: 24,
+        width: '92%',
+        maxWidth: 340,
+        padding: 18,
         backgroundColor: 'white',
-        borderRadius: 14,
+        borderRadius: 10,
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 6,
-        borderWidth: 1,
-        borderColor: '#e1e8ed',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+        borderWidth: 0.5,
+        borderColor: '#e5e7eb',
     },
     modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        marginBottom: 10,
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
         color: '#1f2937',
-        letterSpacing: 0.5,
+        letterSpacing: 0.2,
     },
     alumnoItem: {
-        fontSize: 16,
-        marginVertical: 5,
+        fontSize: 14,
+        marginVertical: 3,
         color: '#374151',
     },
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 20,
+        marginTop: 14,
         width: '100%',
-        gap: 10,
+        gap: 8,
     },
     mensajeOverlay: {
         position: 'absolute',
@@ -569,34 +522,34 @@ const styles = StyleSheet.create({
         bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.12)',
         zIndex: 10,
     },
     mensajeConfirmacion: {
         backgroundColor: '#10b981',
-        padding: 20,
-        borderRadius: 10,
+        padding: 14,
+        borderRadius: 8,
         width: '80%',
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 6,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     mensajeTexto: {
         color: '#FFF',
-        fontSize: 16,
+        fontSize: 14,
         textAlign: 'center',
-        fontWeight: '600',
+        fontWeight: '500',
     },
     picker: {
-        width: '100%',
-        backgroundColor: '#f9fafb',
-        borderRadius: 8,
-        borderColor: '#d1d5db',
-        borderWidth: 1,
-        marginBottom: 16,
-        color: '#374151',
+         height: 50,
+    width: 220,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignSelf: 'center',
+    backgroundColor: '#f9fafb',
+    color: '#222',
     },
 });

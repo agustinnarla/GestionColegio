@@ -1,6 +1,6 @@
 const api_UrlProfesor = 'http://localhost:5000/profesor'
-const api_UrlCurso = 'http://localhost:5000/curso'
-const api_UrlAvisos = 'http://localhost:5000/avisos'
+const api_urlCurso = 'http://localhost:5000/curso'
+const api_urlAvisos = 'http://localhost:5000/secretaria/aviso/alta'
 const api_UrlMotivos = 'http://localhost:5000/motivos'
 
 
@@ -20,13 +20,14 @@ export const crearAvisos = async (formData) => {
             informacion: formData.informacion,
             id_motivo: idMotivo, // Asegurar que es número
             fecha: formData.fecha, // Ya viene formateada desde agregarAviso
+            id_estado_general: formData.id_estado_general, // Asegurar que es número
             profesores: formData.profesores || [], // Cambiado a "profesores" (coherente con backend)
             cursos: formData.cursos || [] // Cambiado a "cursos" (coherente con backend)
         };
 
         console.log('Enviando datos al servidor:', requestBody);
 
-        const respuesta = await fetch(`${api_UrlAvisos}`, {
+        const respuesta = await fetch(`${api_urlAvisos}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

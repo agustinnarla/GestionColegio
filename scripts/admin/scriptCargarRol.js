@@ -1,4 +1,4 @@
-const api_url = 'http://localhost:5000'
+const api_url = 'http://localhost:5000/'
 const api_urlRol = 'http://localhost:5000/rol'
 const api_urlRolesAlta = 'http://localhost:5000/rol/alta'
 const api_urlTareas = 'http://localhost:5000/tareas'
@@ -25,7 +25,7 @@ export const registrarRol = async (nombreRol) => {
         return { mensaje: 'Rol registrado exitosamente', data };
     } catch (error) {
         console.error('Error al registrar el rol:', error);
-        return { mensaje: 'Error al registrar el rol' };
+        return { mensaje: `Error al registrar el rol: ${error.message}` };
     }
 };
 
@@ -65,10 +65,9 @@ export const habilitarRol = async (id_rol) => {
         return { mensaje: 'Rol deshabilitado exitosamente', data }; // Cambié el mensaje para indicar éxito
     } catch (error) {
         console.error('Error al deshabilitar el rol:', error);
-        return { mensaje: `Error al deshabilitar el rol: ${error.message}` }; // Mensaje de error más detallado
+        return { mensaje: `Error al deshabilitar el rol: ${error.message} `}; // Mensaje de error más detallado
     }
 };
-
 
 
 

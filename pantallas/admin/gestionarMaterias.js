@@ -5,7 +5,7 @@ import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
 import { registrarMateriaProfesor, deshabilitarMateria, registrarMateria, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias';
-import { obtenerMateria, obtenerProfesor, obtenerProfesorPorMateria, obtenerMateriasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { obtenerMateria, obtenerProfesores, obtenerProfesorPorMateria, obtenerMateriasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import CustomAlert from '../../componente/CustomAlerts';
 
 export default function GestionarMaterias() {
@@ -60,13 +60,13 @@ export default function GestionarMaterias() {
     const cargarProfesores = async () => {
         try {
             // Obtener los datos de los profesores desde la API
-            const profesoresObtenidos = await obtenerProfesor();
+            const profesoresObtenidos = await obtenerProfesores();
             // Verificar que los datos obtenidos estén en el formato esperado
             if (profesoresObtenidos && Array.isArray(profesoresObtenidos)) {
                 // Mapear los datos para transformarlos en el formato necesario para MultipleSelectList
                 const profesoresFormateados = profesoresObtenidos.map((profesor) => ({
                     key: profesor.dni_profesional.toString(),  // Usa `dni_profesional` como clave única
-                    value: `${profesor.nombre} ${profesor.apellido}`,  // Concatenar el nombre y apellido
+                    value: `${profesor.nombre}`,  // Solo el nombre
                 }));
                 console.log(profesoresFormateados);
                 // Guardar los profesores formateados en el estado
@@ -80,20 +80,27 @@ export default function GestionarMaterias() {
     };
 
     const cargarMateriaProfesor = async () => {
-        if (selectedMateria && selectedProfesores.length > 0) {
-            console.log("profesores" + selectedProfesores)
-            console.log("materia" + selectedMateria)
-            const result = await registrarMateriaProfesor(selectedProfesores, selectedMateria);
-            // Verificar el mensaje de la respuesta
-            if (result && result.mensaje) {
-                alert(result.mensaje);  // Muestra el mensaje de éxito o de error
-            } else {
-                alert('Hubo un error al registrar la relación');
-            }
+    if (selectedMateria && selectedProfesores.length > 0) {
+        console.log("Profesores:", selectedProfesores);
+        console.log("Materia:", selectedMateria);
+
+        const relaciones = selectedProfesores.map(dni => ({
+            dni_profesional: dni,
+            id_materia: selectedMateria
+        }));
+
+        const result = await registrarMateriaProfesor(relaciones);
+
+        if (result && result.mensaje) {
+            alert(result.mensaje);
         } else {
-            alert('Selecciona una materia y al menos un profesor');
+            alert('Hubo un error al registrar la relación');
         }
-    };
+    } else {
+        alert('Selecciona una materia y al menos un profesor');
+    }
+};
+
     const cargarProfesoresPorMateria = async (idMateria) => {
         try {
             const data = await obtenerProfesorPorMateria(idMateria);

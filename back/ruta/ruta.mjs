@@ -6,7 +6,7 @@ import {
     obtenerAlumnoNombreApellido, obtenerLegajoAlumno, modificarAdjuntoLegajo 
 } from '../metodos/metodosGestionAlumno.mjs'
 
-import { crearAviso} from '../metodos/metodosCrearAvisos.mjs'
+import { crearAviso, obtenerMotivos} from '../metodos/metodosCrearAvisos.mjs'
 import { obtenerSexo } from '../metodos/metodosSexo.mjs'
 import { obtenerCurso, obtenerCursoFiltrado, registrarCursoPorMateria } from '../metodos/metodosCurso.mjs'
 import { obtenerEstadoGeneral } from '../metodos/metodosEstadoGeneral.mjs'
@@ -55,6 +55,7 @@ export const ruta = Router()
 
 // Listas Desplegables
 ruta.get('/listaDesplegable/sexo', obtenerSexo) // 🟢 
+ruta.get('/listaDesplegable/motivos', obtenerMotivos)
 ruta.get('/listaDesplegable/curso', obtenerCurso)   // 🟢 
 ruta.get('/listaDesplegable/curso/:id_curso', obtenerCursoFiltrado) // 🔵
 ruta.get('/listaDesplegable/estadoGeneral', obtenerEstadoGeneral)  // 🟢 
@@ -98,7 +99,7 @@ ruta.get('/alumnos/:dni_alumno', obtenerAlumnoFiltrado)
 ruta.get('/alumnos', obtenerAlumnoNombreApellido) // 🟢
 ruta.get('/alumno/legajo/:dni_alumno', obtenerLegajoAlumno) // 🟢
 //SACAR
-ruta.get('/alumno/legajo/:dni_alumno/:imagenTipo', obtenerLegajoAlumnoFiltrado)  // 🔵
+ruta.get('/alumno/legajo/:dni_alumno/:imagen_Tipo', obtenerLegajoAlumnoFiltrado)  // 🔵
 ruta.post('/alumno/alta', registrarAlumno) // 🟢 
 ruta.put('/alumno/deshabilitar/:dni_alumno', deshabilitarAlumno)// 🟢 
 ruta.put('/alumno/modificar/:dni_alumno', modificarAlumno)// 🟢 
@@ -112,9 +113,9 @@ ruta.post('/alumno/legajo', upload.fields([
 
 // Modificación de documentos adjuntos en el legajo del alumno
 ruta.put('/alumnosLegajo/modificar/:dni_alumno', upload.fields([
-    { name: 'dnifoto', maxCount: 1 },
-    { name: 'fichamedica', maxCount: 1 },
-    { name: 'partidanacimiento', maxCount: 1 }
+    { name: 'dni_foto', maxCount: 1 },
+    { name: 'ficha_medica', maxCount: 1 },
+    { name: 'partida_nacimiento', maxCount: 1 }
 ]), modificarAdjuntoLegajo)
 
 ruta.put('/alumnos/actualizarEstadoAlumno', actualizarEstadoAlumno)
@@ -194,7 +195,7 @@ ruta.put('/tarea/habilitar/:id_tarea', habilitarTarea) // 🟢
 // == AVISOS
 ruta.post('/secretaria/aviso/alta', crearAviso) // 🟢
 ruta.get('/alumno/avisos/general', obtenerAvisosGenerales) // 🟢
-ruta.get('/alumno/avisos/curso/:id_curso', obtenerAvisosCurso) // 🟢
+ruta.get('/alumno/avisos/curso/:dni_alumno', obtenerAvisosCurso) // 🟢
 
 // == LIBRO AULA
 ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 

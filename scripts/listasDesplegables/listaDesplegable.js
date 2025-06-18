@@ -33,6 +33,7 @@ const api_urlEstadosFaltaProfesionales = 'http://localhost:5000/listaDesplegable
 const api_urlAlumnoCurso = 'http://localhost:5000/listaDesplegable/alumnos/curso'
 const api_urlAsistencia = 'http://localhost:5000/alumno/justificarFalta/estado_falta'
 const api_urlProfesionales = 'http://localhost:5000/listaDesplegable/profesionales'
+const api_urlMotivos = 'http://localhost:5000/listaDesplegable/motivos';
 
 export const obtenerSexo = async () => {
     try {
@@ -41,6 +42,16 @@ export const obtenerSexo = async () => {
         return data.sexo || [];
     } catch (error) {
         console.error('Error al obtener sexo:', error);
+        return [];
+    }
+};
+export const obtenerMotivos = async () => {
+    try {
+        const response = await fetch(`${api_urlMotivos}`);
+        const data = await response.json();
+        return data.motivos || [];
+    } catch (error) {
+        console.error('Error al obtener motivos:', error);
         return [];
     }
 };

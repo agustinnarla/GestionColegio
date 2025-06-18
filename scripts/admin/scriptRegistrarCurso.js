@@ -1,4 +1,4 @@
-const api_curso = 'http://localhost:5000/curso/alta'
+const api_curso = 'http://localhost:5000/curso/materia/alta'
 
 
 // 🟢

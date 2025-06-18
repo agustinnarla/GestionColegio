@@ -143,9 +143,9 @@ export function SolicitanteSelector({ formData, handleChange, solicitantes, styl
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
-export function EstadoSelector({ formData, handleChange, estado_general, styles }) {
+export function EstadoSelector({ formData, handleChange, estado_general, styles, showLabel }) {
     const selectorConfig = {
-        label: 'Seleccione un estado general:',
+        ...(showLabel && { label: 'Seleccione un Estado General:' }),
         selectedValue: formData.id_estado_general,
         onValueChange: (value) => handleChange('id_estado_general', value),
         items: [
@@ -417,6 +417,7 @@ function ListasDesplegables({
                     handleChange={handleChange}
                     estado_general={estado_general}
                     styles={styles}
+                    showLabel={showLabel}
                 />
             )}
             {localidad && (

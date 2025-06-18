@@ -25,9 +25,9 @@ export const obtenerAvisosGenerales = async () => {
 };
 
 // 🟢
-export const obtenerAvisosCurso = async (id_curso) => {
+export const obtenerAvisosCurso = async (dni_alumno) => {
     try{
-        const respuesta = await fetch(`${api_urlAvisosCurso}/${id_curso}`)
+        const respuesta = await fetch(`${api_urlAvisosCurso}/${dni_alumno}`)
 
         if (!respuesta.ok) {
             throw new Error(`HTTP error! status: ${respuesta.status}`);
@@ -41,7 +41,7 @@ export const obtenerAvisosCurso = async (id_curso) => {
             throw new Error('No se recibieron datos del servidor');
         }
         
-        return data;
+        return data.avisos || [];
 
     }catch{
         console.error('Error al obtener avisos del curso:', error.message);

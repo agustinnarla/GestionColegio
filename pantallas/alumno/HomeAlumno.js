@@ -25,7 +25,7 @@ export default function HomeAlumno({ dni_usuario }) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.cajaBoton}
-              onPress={() => navegacion.navigate('Avisos')}
+              onPress={() => navegacion.navigate('Avisos', { dni_usuario })}
             >
               <Text style={styles.textoBoton}>Avisos</Text>
             </TouchableOpacity>

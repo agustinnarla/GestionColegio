@@ -5,7 +5,7 @@ import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../../scripts/alumno/scriptAvisos';
 
-export default function Avisos() {
+export default function Avisos({ route }) {
     const [formData, setFormData] = useState({
         id_curso: ''
     });
@@ -14,12 +14,25 @@ export default function Avisos() {
     const [cursos, setCursos] = useState([]);
     const [fechaFiltro, setFechaFiltro] = useState(''); // Estado para la fecha de filtro
 
+    const { dni_usuario } = route.params || {}; 
+    const { id_rol } = route.params || {};
+
     useEffect(() => {
         const cargarDatos = async () => {
             try {
+                const dni_alumno = dni_usuario
                 const cursoData = await obtenerCurso();
                 const avisoDatos = await obtenerAvisosGenerales();
-                // Combina los avisos generales y los específicos del curso
+                const avisoCursoData = await obtenerAvisosCurso(dni_alumno);
+                // Combina los avisos generales y los avisos por curso
+                if (!Array.isArray(avisoDatos) || !Array.isArray(avisoCursoData)) {
+                    throw new Error('Error al obtener los datos de avisos');
+                }
+                // Combina los avisos generales y los avisos por curso
+                if (avisoCursoData.length > 0) {
+                    avisoDatos.push(...avisoCursoData);
+                }
+                
                 const todosLosAvisos = [
                     ...(Array.isArray(avisoDatos) ? avisoDatos : []),
                 ];
@@ -40,9 +53,15 @@ export default function Avisos() {
 
     // Filtra los avisos por curso y fecha
     const avisosFiltrados = datos.filter((aviso) => {
-        const coincideCurso = !formData.id_curso || aviso.curso === formData.id_curso; // Filtra por curso
-        const coincideFecha = !fechaFiltro || aviso.fecha.includes(fechaFiltro); // Filtra por fecha
-        return coincideCurso && coincideFecha; // Devuelve los avisos que coincidan con ambos filtros
+    // Si el aviso es general, no tiene id_curso (o es null/undefined)
+        const coincideCurso =
+            !formData.id_curso ||
+            (aviso.id_curso && aviso.id_curso.toString() === formData.id_curso.toString());
+
+        const coincideFecha =
+            !fechaFiltro || (aviso.fecha && aviso.fecha.includes(fechaFiltro));
+
+        return coincideCurso && coincideFecha;
     });
 
     return (
@@ -85,7 +104,7 @@ export default function Avisos() {
                                     </View>
                                     <View style={styles.detalleItem}>
                                         <Text style={styles.detalleLabel}>Profesor:</Text>
-                                        <Text style={styles.detalleTexto}>{aviso.nombre || 'General'}</Text>
+                                        <Text style={styles.detalleTexto}>{aviso.profesional || 'General'}</Text>
                                     </View>
                                 </View>
                             </View>
