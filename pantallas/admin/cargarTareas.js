@@ -255,105 +255,115 @@ export default function CargarTareas() {
     }, []);
 
     return (
+         
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
-            <View style={styles.contenido}>
-                <Text style={styles.titulo}>Tarea</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={selectedTarea}
-                        onValueChange={handleTareaChange}
-                        style={styles.inputPicker} // Nuevo estilo para el Picker
-                    >
-                        <Picker.Item label="Seleccionar Tarea" value="" />
-                        {tareasDisponibles.map((tarea) => (
-                            <Picker.Item key={tarea.key} label={tarea.value} value={tarea.key} />
-                        ))}
-                    </Picker>
-                    {/* Botón para abrir el modal de agregar tarea */}
-                    <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
-                        <Text style={styles.textoBotonAgregar}>+</Text>
-                    </TouchableOpacity>
+            <View style={styles.formulario}>
+                <Text style={styles.titulo}>Gestión de Tareas</Text>
+                <View style={styles.fila}>
+                    {/* Columna izquierda: Picker de tareas y agregar */}
+                    <View style={styles.columna}>
+                        <Text style={styles.label}>Tarea:</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={selectedTarea}
+                                onValueChange={handleTareaChange}
+                                style={styles.inputPicker}
+                            >
+                                <Picker.Item label="Seleccionar Tarea" value="" />
+                                {tareasDisponibles.map((tarea) => (
+                                    <Picker.Item key={tarea.key} label={tarea.value} value={tarea.key} />
+                                ))}
+                            </Picker>
+                            <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
+                                <Text style={styles.textoBotonAgregar}>+</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.label}>Roles asignables:</Text>
+                        <View style={styles.seleccionadasContainer}>
+                            <MultiSelect
+                                    items={rolesDisponibles}
+                                    uniqueKey="id"
+                                    onSelectedItemsChange={setSelectedRoles}
+                                    selectedItems={selectedRoles}
+                                    selectText="Seleccionar roles"
+                                    searchInputPlaceholderText="Buscar roles..."
+                                    displayKey="name"
+                                    submitButtonColor="#6c7ae0"
+                                    submitButtonText="Seleccionar"
+                                    styleDropdownMenu={styles.dropdown}
+                                />
+                        </View>
+                    </View>
+                    {/* Columna derecha: Acciones */}
+                    <View style={styles.columna}>
+                        <TouchableOpacity style={styles.botonAlta} onPress={cargarRolTarea}>
+                            <Text style={styles.textoBoton}>Registrar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonBaja} onPress={eliminarTarea}>
+                            <Text style={styles.textoBoton}>Eliminar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                            <Text style={styles.textoBoton}>Modificar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonLimpiar} onPress={() => {
+                            setSelectedTarea('');
+                            setSelectedRoles([]);
+                        }}>
+                            <Text style={styles.textoBoton}>Limpiar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
+                {/* Modal para agregar tarea */}
                 <Modal visible={modalVisible} transparent animationType="slide">
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <Text style={styles.titulo}>Nueva Tarea</Text>
                             <TextInput
-                                style={styles.inputModal}
+                                style={styles.input}
                                 placeholder="Ingrese nombre de la tarea"
                                 value={nuevaTarea}
                                 onChangeText={setNuevaTarea}
                             />
                             <View style={styles.botonesModal}>
-                                <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarTarea}>
-                                    <Text style={styles.textoBotonModal}>Registrar</Text>
+                                <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarTarea}>
+                                    <Text style={styles.textoBoton}>Registrar</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.botonModalCancelar}
-                                    onPress={() => setModalVisible(false)}
-                                >
-                                    <Text style={styles.textoBotonModal}>Cancelar</Text>
+                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
+                                    <Text style={styles.textoBoton}>Cancelar</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 </Modal>
-                <Text style={styles.subtitulo}>Roles asignables a las Tareas</Text>
-                <View style={styles.seleccionadasContainer}>
-                    <MultiSelect
-                        items={rolesDisponibles} // Lista de roles disponibles
-                        uniqueKey="id" // Clave única para cada rol
-                        onSelectedItemsChange={setSelectedRoles} // Actualiza los roles seleccionados
-                        selectedItems={selectedRoles} // Roles seleccionados
-                        selectText="Seleccionar roles"
-                        searchInputPlaceholderText="Buscar roles..."
-                        displayKey="name" // Clave para mostrar el nombre del rol
-                        submitButtonColor="#48d22b"
-                        submitButtonText="Seleccionar"
-                        styleDropdownMenu={styles.dropdown}
-                    />
-                </View>
-                <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={cargarRolTarea}>
-                        <Text style={styles.textoBoton}>Registrar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonEliminar} onPress={eliminarTarea}>
-                        <Text style={styles.textoBoton}>Eliminar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
-                        <Text style={styles.textoBoton}>Modificar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar} onPress={() => Alert.alert('Acción cancelada')}>
-                        <Text style={styles.textoBoton}>Cancelar</Text>
-                    </TouchableOpacity>
-                </View>
-                    <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
-                        <View style={styles.modalContainer}>
-                            <View style={styles.modalContent}>
-                                {Array.isArray(tareasDeshabilitadas) &&
-                                    tareasDeshabilitadas.map((tarea) => (
-                                        <View key={tarea.id_tarea} style={styles.itemContainer}>
-                                            <Text style={styles.textoTarea}>{tarea.detalle}</Text>
-                                            <Switch
-                                                value={tarea.id_estado_general === 1}
-                                                onValueChange={() => toggleSwitch(tarea.id_tarea)}
-                                            />
-                                        </View>
-                                    ))}
-                                <View style={styles.botonesModal}>
-                                    <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalModificarVisible(false)}>
-                                        <Text style={styles.textoBotonModal}>Cancelar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.botonModalConfirmar} onPress={handleConfirmarModificacion}>
-                                        <Text style={styles.textoBotonModal}>Confirmar</Text>
-                                    </TouchableOpacity>
-                                </View>
+                {/* Modal para modificar tareas deshabilitadas */}
+                <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.titulo}>Tareas Deshabilitadas</Text>
+                            {Array.isArray(tareasDeshabilitadas) &&
+                                tareasDeshabilitadas.map((tarea) => (
+                                    <View key={tarea.id_tarea} style={styles.itemContainer}>
+                                        <Text style={styles.textoTarea}>{tarea.detalle}</Text>
+                                        <Switch
+                                            value={tarea.id_estado_general === 1}
+                                            onValueChange={() => toggleSwitch(tarea.id_tarea)}
+                                        />
+                                    </View>
+                                ))}
+                            <View style={styles.botonesModal}>
+                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalModificarVisible(false)}>
+                                    <Text style={styles.textoBoton}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonAlta} onPress={handleConfirmarModificacion}>
+                                    <Text style={styles.textoBoton}>Confirmar</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
-                    </Modal>
-                </View>
+                    </View>
+                </Modal>
             </View>
+        </View>
     );
 }
 
@@ -362,210 +372,171 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#f6f8fa',
     },
     bg: {
         position: 'absolute',
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
-        zIndex: -1,
     },
-    contenido: {
-        width: '90%',
+    formulario: {
+        width: '100%',
+        maxWidth: 900,
+        alignSelf: 'center',
+        marginTop: 32,
+        marginBottom: 24,
+        padding: 30,
         backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 20,
+        borderRadius: 14,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
     },
     titulo: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 20,
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#2a3d6c',
+        marginBottom: 18,
         textAlign: 'center',
+        letterSpacing: 0.2,
     },
-    subtitulo: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 20,
+    fila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        gap: 24,
+    },
+    columna: {
+        width: '48%',
+        minWidth: 260,
+    },
+    label: {
+        fontSize: 15,
+        marginBottom: 6,
+        fontWeight: '500',
+        color: '#2a3d6c',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 20,
-        backgroundColor: '#fafafa',
-        width: '100%',
-        fontSize: 16,
+        borderColor: '#e5e7eb',
+        padding: 10,
+        borderRadius: 7,
+        marginBottom: 13,
+        backgroundColor: '#f3f4f6',
+        height: 38,
+        fontSize: 15,
     },
-    dropdown: {
-        width: '85%', 
-        borderColor: '#ccc',
-        backgroundColor: '#fafafa',
+    pickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 15,
-        paddingVertical: 8, 
+        gap: 8,
+    },
+    inputPicker: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        borderRadius: 7,
+        backgroundColor: '#f3f4f6',
+        fontSize: 15,
+        height: 38,
         paddingHorizontal: 10,
     },
-    dropdownText: {
-        fontSize: 16,
-        color: '#333',
+    botonAgregar: {
+        backgroundColor: '#6c7ae0',
+        padding: 10,
+        borderRadius: 7,
+        width: 38,
+        height: 38,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    seleccionadas: {
-        fontSize: 16,
-        color: '#333', 
-        textAlign: 'center', 
-        marginBottom: 10, 
+    textoBotonAgregar: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: 'bold',
     },
     seleccionadasContainer: {
-    flexDirection: 'column', // Asegura que los elementos estén en una columna
-    justifyContent: 'center', // Centra el contenido verticalmente
-    alignItems: 'center', // Centra el contenido horizontalmente
-    marginTop: 20, // Separación del contenido superior
-    width: '100%', // Asegura que el contenedor ocupe el ancho completo
-},
-    contenidoBoton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 20,
+        marginTop: 10,
+        marginBottom: 10,
         width: '100%',
     },
-    botonRegistrar: {
+    botonAlta: {
         backgroundColor: '#e8f5e9',
         borderColor: '#4caf50',
         borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
+        paddingVertical: 10,
+        borderRadius: 7,
         alignItems: 'center',
-        width: '22%',
+        marginBottom: 10,
+    },
+    botonBaja: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
     },
     botonModificar: {
         backgroundColor: '#e3f2fd',
         borderColor: '#746BC8',
         borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
+        paddingVertical: 10,
+        borderRadius: 7,
         alignItems: 'center',
-        width: '22%',
+        marginBottom: 10,
     },
-    botonEliminar: {
-        backgroundColor: '#ffebee',
-        borderColor: '#f44336',
-        borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-        width: '22%',
-    },
-    botonCancelar: {
+    botonLimpiar: {
         backgroundColor: '#f5f5f5',
         borderColor: '#9e9e9e',
         borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
+        paddingVertical: 10,
+        borderRadius: 7,
         alignItems: 'center',
-        width: '22%',
+        marginBottom: 10,
     },
     textoBoton: {
-        color: '#000',
+        color: '#2c3e50',
+        fontSize: 15,
         fontWeight: '600',
-        fontSize: 14,
-    },
-    pickerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%', 
-        marginBottom: 20, 
-    },
-    inputPicker: {
-        flex: 1, 
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-        backgroundColor: '#fafafa',
-        fontSize: 16,
-        marginRight: 10, 
-    },
-    botonAgregar: {
-        backgroundColor: '#007BFF',
-        padding: 10,
-        borderRadius: 5,
-        width: 40, 
-        height: 40, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-    },
-    textoBotonAgregar: {
-        color: '#FFF',
-        fontSize: 18,
+        textAlign: 'center',
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.12)',
+        zIndex: 10,
     },
     modalContent: {
         backgroundColor: '#fff',
-        padding: 20,
+        padding: 24,
         borderRadius: 10,
-        width: '80%',
+        width: '90%',
+        maxWidth: 400,
         alignItems: 'center',
-    },
-    inputModal: {
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-        width: '100%',
-        padding: 10,
-        marginBottom: 20,
-        fontSize: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
     },
     botonesModal: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 20,
         width: '100%',
-    },
-    botonModal: {
-        backgroundColor: '#4CAF50',
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        alignItems: 'center',
-        marginHorizontal: 5,
-    },
-    botonModalCancelar: {
-        backgroundColor: '#ff4d4d',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-        width: '45%',
-    },
-    botonModalConfirmar: {
-        backgroundColor: '#4caf50',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-        width: '45%',
-    },
-    textoBotonModal: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
+        marginTop: 18,
+        gap: 12,
     },
     textoTarea: {
-        fontSize: 16,
+        fontSize: 15,
         flex: 1,
+        color: '#222',
     },
     itemContainer: {
         flexDirection: 'row',

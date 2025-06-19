@@ -20,6 +20,25 @@ export function CursoSelector({ formData, handleChange, curso, styles, showLabel
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function EspecialidadSelector({ formData, handleChange, especialidad, styles, showLabel = true }) {
+    const selectorConfig = {
+        // Solo incluye el label si showLabel es true
+        ...(showLabel && { label: 'Seleccione una Especialidad:' }),
+        selectedValue: formData.id_especialidad,
+        onValueChange: (value) => handleChange('id_especialidad', value),
+        items: [
+            { label: 'Seleccione especialidad', value: '' },
+            ...(especialidad || []).map(item => ({
+                label: item.detalle,
+                value: item.id_especialidad,
+                key: item.id_especialidad
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 export function SexoSelector({ formData, handleChange, sexo, styles }) {
     const selectorConfig = {
         label: 'Seleccione un Sexo:',
@@ -315,7 +334,8 @@ function ListasDesplegables({
     estado_falta_alumnos,
     profesionales,
     showLabel,
-    estado_falta_profesional
+    estado_falta_profesional,
+    especialidad
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -457,6 +477,15 @@ function ListasDesplegables({
                     handleChange={handleChange}
                     estado_falta_profesional={estado_falta_profesional}
                     styles={styles}
+                />
+            )}
+            {especialidad && (
+                <EspecialidadSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    especialidad={especialidad}
+                    styles={styles}
+                    showLabel={showLabel}
                 />
             )}
         </View>

@@ -294,312 +294,267 @@ export default function GestionarMaterias() {
         console.log("hola" + materiasDeshabilitadas)
     }, [materiasDeshabilitadas]);    
 
-    return (
-        <View style={styles.padre}>
-            <Image source={bg} style={styles.bg} />
-            <View style={styles.contenido}>
-                <Text style={styles.titulo}>Materias</Text>
-                <View style={styles.pickerContainer}>
-                <Picker
-                    selectedValue={selectedMateria}
-                    onValueChange={handleMateriaChange}
-                    style={styles.input}
-                >
-                    <Picker.Item label="Seleccionar Materia" value="" />
-                    {materias.map((materia) => (
-                        <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
-                    ))}
-                </Picker>
-                    <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
-                        <Text style={styles.textoBotonAgregar}>+</Text>
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.subtitulo}>Profesores asignables a la Materia</Text>
-                <MultiSelect
-                    items={profesores} // Lista de profesores disponibles
-                    uniqueKey="key" // Clave única para cada profesor
-                    onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)} // Actualiza los profesores seleccionados
-                    selectedItems={selectedProfesores} // Profesores seleccionados
-                    selectText="Seleccionar Profesores"
-                    searchInputPlaceholderText="Buscar..."
-                    displayKey="value" // Clave para mostrar el nombre del profesor
-                    submitButtonColor="#48d22b"
-                    submitButtonText="Seleccionar"
-                    styleDropdownMenu={styles.dropdown}
-                />
-                <Text style={styles.seleccionadas}>Profesores seleccionados: {selectedProfesores.join(', ')}</Text>
-                <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={cargarMateriaProfesor}>  {/* Llamar a registrar cuando se hace clic */}
-                        <Text style={styles.textoBoton}>Registrar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonEliminar} onPress={handleDeshabilitarMateria}>
-                        <Text style={styles.textoBoton}>Eliminar</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
-                        <Text style={styles.textoBoton}>Modificar</Text>
-                    </TouchableOpacity>
-
-                    <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
-                        <View style={styles.modalContainer}>
-                            <View style={styles.modalContent}>
-                                {Array.isArray(materiasDeshabilitadas) && materiasDeshabilitadas.length > 0 ? (
-                                    materiasDeshabilitadas.map((materia) => (
-                                        <View key={materia.id_materia} style={styles.itemContainer}>
-                                            <Text style={styles.textoTarea}>{materia.detalle}</Text>
-                                            <Switch
-                                                value={materia.id_estado_general === 1}
-                                                onValueChange={() => toggleSwitch(materia.id_materia)}
-                                            />
-                                        </View>
-                                    ))
-                                ) : (
-                                    <Text>No hay materias deshabilitadas.</Text>
-                                )}
-                                <View style={styles.botonesModal}>
-                                    <TouchableOpacity
-                                        style={styles.botonModalCancelar}
-                                        onPress={() => setModalModificarVisible(false)}
-                                    >
-                                        <Text>Cancelar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.botonModal}
-                                        onPress={handleConfirmarModificacion}
-                                    >
-                                        <Text>Confirmar</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                    </Modal>
-                    <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
-                        <Text style={styles.textoBoton}>Cancelar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <Modal visible={modalVisible} transparent animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.titulo}>Nueva Materia</Text>
-                        <TextInput
-                            style={styles.inputModal}
-                            placeholder="Ingrese nombre de la materia"
-                            value={nuevaMateria}
-                            onChangeText={setNuevaMateria}
-                        />
-                        <View style={styles.botonesModal}>
-                            <TouchableOpacity style={styles.botonModal} onPress={handleRegistrarMateria}>
-                                <Text style={styles.textoBotonModal}>Registrar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.botonModalCancelar} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.textoBotonModal}>Cancelar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-            <CustomAlert
-                isVisible={alertVisible}
-                onClose={() => setAlertVisible(false)}
-                title={alertTitle}
-                message={alertMessage}
-            />
-        </View>
-    );
-}
-
-const styles = StyleSheet.create({
-    padre: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-    },
-    bg: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
-        zIndex: -1,
-    },
-    contenido: {
-        width: '90%',
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
-        alignItems: 'center',
-    },
-    titulo: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#333',
-    },
-    subtitulo: {
-        fontSize: 18,
-        marginBottom: 10,
-        color: '#333',
-        fontWeight: '600',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-        backgroundColor: '#fafafa',
-        width: '100%',
-        fontSize: 16,
-    },
-    seleccionadas: {
-        marginTop: 10,
-        fontSize: 16,
-        color: '#333',
-        fontStyle: 'italic',
-    },
-    pickerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        marginBottom: 20,
-    },
-    botonAgregar: {
-        marginLeft: 10,
-        backgroundColor: '#007BFF',
-        padding: 10,
-        borderRadius: 5,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    textoBotonAgregar: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    contenidoBoton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        width: '85%',
-    },
-    botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    botonEliminar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginLeft: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    botonModificar: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    botonCancelar: {
-        backgroundColor: '#DADADA',
-        borderColor: '#000000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    textoBoton: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    inputModal: {
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-        width: '100%',
-        padding: 10,
-        marginBottom: 20,
-        fontSize: 16,
-    },
-    botonesModal: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    botonModal: {
-        backgroundColor: '#4CAF50',
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        alignItems: 'center',
-        marginHorizontal: 5,
-    },
-    botonModalCancelar: {
-        backgroundColor: '#F44336',
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        alignItems: 'center',
-        marginHorizontal: 5,
-    },
-    textoBotonModal: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    itemContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginVertical: 10,
-        width: '100%',
-    },
-    textoTarea: {
-        flex: 1,
-        fontSize: 16,
-        color: '#333',
-    },
-});
+  return (
+         <View style={styles.padre}>
+             <Image source={bg} style={styles.bg} />
+             <View style={styles.formulario}>
+                 <Text style={styles.titulo}>Gestión de Materias</Text>
+                 <View style={styles.fila}>
+                     {/* Columna izquierda: Picker de tareas y agregar */}
+                     <View style={styles.columna}>
+                         <Text style={styles.label}>Materia:</Text>
+                         <View style={styles.pickerContainer}>
+                             <Picker
+                                 selectedValue={selectedMateria}
+                                 onValueChange={handleMateriaChange}
+                                 style={styles.inputPicker}
+                             >
+                                 <Picker.Item label="Seleccionar una Materia" value="" />
+                                 {materias.map((materia) => (
+                                     <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
+                                 ))}
+                             </Picker>
+                             <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
+                                 <Text style={styles.textoBotonAgregar}>+</Text>
+                             </TouchableOpacity>
+                         </View>
+                         <Text style={styles.label}>Profesores asignables:</Text>
+                         <View style={styles.seleccionadasContainer}>
+                             <MultiSelect
+                                items={profesores} // Lista de profesores disponibles
+                                uniqueKey="key" // Clave única para cada profesor
+                                onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)} // Actualiza los profesores seleccionados
+                                selectedItems={selectedProfesores} // Profesores seleccionados
+                                selectText="Seleccionar Profesores"
+                                searchInputPlaceholderText="Buscar..."
+                                displayKey="value" // Clave para mostrar el nombre del profesor
+                                submitButtonColor="#48d22b"
+                                submitButtonText="Seleccionar"
+                                styleDropdownMenu={styles.dropdown}
+                            />
+                         </View>
+                     </View>
+                     {/* Columna derecha: Acciones */}
+                     <View style={styles.columna}>
+                         <TouchableOpacity style={styles.botonAlta} onPress={cargarMateriaProfesor}>
+                             <Text style={styles.textoBoton}>Registrar</Text>
+                         </TouchableOpacity>
+                         <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarMateria}>
+                             <Text style={styles.textoBoton}>Eliminar</Text>
+                         </TouchableOpacity>
+                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                             <Text style={styles.textoBoton}>Modificar</Text>
+                         </TouchableOpacity>
+                         <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}>
+                             <Text style={styles.textoBoton}>Limpiar</Text>
+                         </TouchableOpacity>
+                     </View>
+                 </View>
+                 {/* Modal para agregar materia */}
+                 <Modal visible={modalVisible} transparent animationType="slide">
+                     <View style={styles.modalContainer}>
+                         <View style={styles.modalContent}>
+                             <Text style={styles.titulo}>Nueva Materia</Text>
+                             <TextInput
+                                 style={styles.input}
+                                 placeholder="Ingrese nombre de la materia"
+                                 value={nuevaMateria}
+                                 onChangeText={setNuevaMateria}
+                             />
+                             <View style={styles.botonesModal}>
+                                 <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarMateria}>
+                                     <Text style={styles.textoBoton}>Registrar</Text>
+                                 </TouchableOpacity>
+                                 <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
+                                     <Text style={styles.textoBoton}>Cancelar</Text>
+                                 </TouchableOpacity>
+                             </View>
+                         </View>
+                   
+                     </View>
+                 </Modal>
+             </View>
+         </View>
+     );
+ }
+ 
+ 
+ const styles = StyleSheet.create({
+     padre: {
+         flex: 1,
+         justifyContent: 'center',
+         alignItems: 'center',
+         backgroundColor: '#f6f8fa',
+     },
+     bg: {
+         position: 'absolute',
+         width: '100%',
+         height: '100%',
+         resizeMode: 'cover',
+     },
+     formulario: {
+         width: '100%',
+         maxWidth: 900,
+         alignSelf: 'center',
+         marginTop: 32,
+         marginBottom: 24,
+         padding: 30,
+         backgroundColor: '#fff',
+         borderRadius: 14,
+         elevation: 2,
+         shadowColor: '#000',
+         shadowOffset: { width: 0, height: 2 },
+         shadowOpacity: 0.06,
+         shadowRadius: 6,
+     },
+     titulo: {
+         fontSize: 22,
+         fontWeight: '600',
+         color: '#2a3d6c',
+         marginBottom: 18,
+         textAlign: 'center',
+         letterSpacing: 0.2,
+     },
+     fila: {
+         flexDirection: 'row',
+         justifyContent: 'space-between',
+         width: '100%',
+         gap: 24,
+     },
+     columna: {
+         width: '48%',
+         minWidth: 260,
+     },
+     label: {
+         fontSize: 15,
+         marginBottom: 6,
+         fontWeight: '500',
+         color: '#2a3d6c',
+     },
+     input: {
+         borderWidth: 1,
+         borderColor: '#e5e7eb',
+         padding: 10,
+         borderRadius: 7,
+         marginBottom: 13,
+         backgroundColor: '#f3f4f6',
+         height: 38,
+         fontSize: 15,
+     },
+     pickerContainer: {
+         flexDirection: 'row',
+         alignItems: 'center',
+         marginBottom: 15,
+         gap: 8,
+     },
+     inputPicker: {
+         flex: 1,
+         borderWidth: 1,
+         borderColor: '#e5e7eb',
+         borderRadius: 7,
+         backgroundColor: '#f3f4f6',
+         fontSize: 15,
+         height: 38,
+         paddingHorizontal: 10,
+     },
+     botonAgregar: {
+         backgroundColor: '#6c7ae0',
+         padding: 10,
+         borderRadius: 7,
+         width: 38,
+         height: 38,
+         justifyContent: 'center',
+         alignItems: 'center',
+     },
+     textoBotonAgregar: {
+         color: '#fff',
+         fontSize: 20,
+         fontWeight: 'bold',
+     },
+     seleccionadasContainer: {
+         marginTop: 10,
+         marginBottom: 10,
+         width: '100%',
+     },
+     botonAlta: {
+         backgroundColor: '#e8f5e9',
+         borderColor: '#4caf50',
+         borderWidth: 1,
+         paddingVertical: 10,
+         borderRadius: 7,
+         alignItems: 'center',
+         marginBottom: 10,
+     },
+     botonBaja: {
+         backgroundColor: '#ffebee',
+         borderColor: '#f44336',
+         borderWidth: 1,
+         paddingVertical: 10,
+         borderRadius: 7,
+         alignItems: 'center',
+         marginBottom: 10,
+     },
+     botonModificar: {
+         backgroundColor: '#e3f2fd',
+         borderColor: '#746BC8',
+         borderWidth: 1,
+         paddingVertical: 10,
+         borderRadius: 7,
+         alignItems: 'center',
+         marginBottom: 10,
+     },
+     botonLimpiar: {
+         backgroundColor: '#f5f5f5',
+         borderColor: '#9e9e9e',
+         borderWidth: 1,
+         paddingVertical: 10,
+         borderRadius: 7,
+         alignItems: 'center',
+         marginBottom: 10,
+     },
+     textoBoton: {
+         color: '#2c3e50',
+         fontSize: 15,
+         fontWeight: '600',
+         textAlign: 'center',
+     },
+     modalContainer: {
+         flex: 1,
+         justifyContent: 'center',
+         alignItems: 'center',
+         backgroundColor: 'rgba(0, 0, 0, 0.12)',
+         zIndex: 10,
+     },
+     modalContent: {
+         backgroundColor: '#fff',
+         padding: 24,
+         borderRadius: 10,
+         width: '90%',
+         maxWidth: 400,
+         alignItems: 'center',
+         shadowColor: '#000',
+         shadowOffset: { width: 0, height: 2 },
+         shadowOpacity: 0.08,
+         shadowRadius: 8,
+         elevation: 2,
+     },
+     botonesModal: {
+         flexDirection: 'row',
+         justifyContent: 'space-between',
+         width: '100%',
+         marginTop: 18,
+         gap: 12,
+     },
+     textoTarea: {
+         fontSize: 15,
+         flex: 1,
+         color: '#222',
+     },
+     itemContainer: {
+         flexDirection: 'row',
+         justifyContent: 'space-between',
+         alignItems: 'center',
+         width: '100%',
+         marginBottom: 10,
+     },
+ });

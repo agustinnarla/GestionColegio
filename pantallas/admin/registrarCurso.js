@@ -5,6 +5,7 @@ import MultiSelect from 'react-native-multiple-select';
 import bg from '../../assets/bg1.jpg';
 import { obtenerMateria, obtenerEspecialidad } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarCurso } from '../../scripts/admin/scriptRegistrarCurso';
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 
 export default function RegistrarCurso() {
     const [materias, setMaterias] = useState([]);
@@ -38,15 +39,9 @@ export default function RegistrarCurso() {
                 const especialidadesData = await obtenerEspecialidad();
                 console.log("Datos obtenidos de la API (Especialidades):", especialidadesData);
     
-                const especialidadesTransformadas = Array.isArray(especialidadesData.especialidad)
-                    ? especialidadesData.especialidad.map(especialidad => ({
-                        id: especialidad.id_especialidad, 
-                        name: especialidad.detalle, 
-                    }))
-                    : [];
     
-                console.log("Especialidades transformadas:", especialidadesTransformadas);
-                setEspecialidades(especialidadesTransformadas);
+                console.log("Especialidades transformadas:", especialidadesData);
+                setEspecialidades(especialidadesData);
             } catch (error) {
                 console.error("Error al cargar los datos:", error.message);
                 Alert.alert('Error', 'No se pudieron cargar los datos.');
@@ -106,31 +101,24 @@ export default function RegistrarCurso() {
             <Image source={bg} style={styles.bg} />
             <View style={styles.contenido}>
                 <Text style={styles.titulo}>Registrar Curso</Text>
+                <Text style={styles.label}>Nombre del curso</Text>
                 <TextInput
-                    placeholder="Nombre del curso"
+                    placeholder="0° Año - Division"
                     placeholderTextColor="#888"
                     style={styles.input}
                     value={formData.detalle}
                     onChangeText={(text) => handleChange('detalle', text)}
                 />
-                <Text style={styles.label}>Especialidad</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={formData.id_especialidad}
-                        onValueChange={(itemValue) => handleChange('id_especialidad', itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Seleccione una especialidad" value="" />
-                        {especialidades.map(especialidad => (
-                            <Picker.Item
-                                key={especialidad.id}
-                                label={especialidad.name}
-                                value={especialidad.id}
-                            />
-                        ))}
-                    </Picker>
-                </View>
-                <Text style={styles.label}>Materias asignables</Text>
+                
+               
+                     <ListasDesplegables 
+                        formData={formData} 
+                        handleChange={handleChange} 
+                        especialidad={especialidades}
+                        styles={styles}
+                    />
+                
+                <Text style={styles.label}>Materias asignables:</Text>
                 <MultiSelect
                     items={materias}
                     uniqueKey="id"
@@ -141,12 +129,7 @@ export default function RegistrarCurso() {
                     selectedItems={materiasSeleccionadas}
                     selectText="Seleccione las materias"
                     searchInputPlaceholderText="Buscar materias..."
-                    tagRemoveIconColor="#CCC"
-                    tagBorderColor="#CCC"
-                    tagTextColor="#000"
-                    selectedItemTextColor="#000"
-                    selectedItemIconColor="#000"
-                    itemTextColor="#000"
+
                     displayKey="name"
                     searchInputStyle={{ color: '#000' }}
                     submitButtonColor="#48d22b"
@@ -166,85 +149,132 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#f4f6fb',
     },
     bg: {
         position: 'absolute',
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
         zIndex: -1,
     },
     contenido: {
-        width: '90%',
+        width: '100%',
+        maxWidth: 720,
         backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
-        alignItems: 'center',
+        borderRadius: 18,
+        padding: 36,
+        marginTop: 36,
+        marginBottom: 24,
+        shadowColor: '#6c7ae0',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.10,
+        shadowRadius: 16,
+        elevation: 4,
+        alignSelf: 'center',
+        borderWidth: 1,
+        borderColor: '#e3e8f0',
     },
     titulo: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
-    },
-    input: {
-        width: '100%',
-        height: 50,
-        borderWidth: 1,
-        borderColor: '#CCC',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        marginBottom: 20,
-        backgroundColor: '#F9F9F9',
-        fontSize: 16,
-        color: '#333',
+        fontSize: 26,
+        fontWeight: '700',
+        color: '#2a3d6c',
+        marginBottom: 28,
+        textAlign: 'center',
+        letterSpacing: 0.5,
     },
     label: {
         fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        alignSelf: 'flex-start',
-        color: '#333',
+        marginBottom: 7,
+        fontWeight: '600',
+        color: '#3b4371',
+        marginTop: 18,
+        letterSpacing: 0.1,
+    },
+    input: {
+        width: '100%',
+        height: 46,
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 10,
+        paddingHorizontal: 14,
+        marginBottom: 20,
+        backgroundColor: '#f7f8fa',
+        fontSize: 16,
+        color: '#222',
+        fontWeight: '500',
+        shadowColor: '#e3e8f0',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
     },
     pickerContainer: {
         width: '100%',
-        height: 50,
         borderWidth: 1,
-        borderColor: '#CCC',
-        borderRadius: 8,
-        marginBottom: 20,
+        borderColor: '#d1d5db',
+        borderRadius: 10,
+        marginBottom: 30,
+        backgroundColor: '#f7f8fa',
         justifyContent: 'center',
-        backgroundColor: '#F9F9F9',
+        overflow: 'hidden',
     },
     picker: {
         width: '100%',
-        height: '100%',
-        color: '#333',
+        color: '#2a3d6c',
+        fontSize: 16,
+        backgroundColor: 'transparent',
+        fontWeight: '500',
     },
     multiSelect: {
         width: '100%',
-        marginBottom: 20,
+        marginBottom: 22,
+        marginTop: 30, 
+        backgroundColor: '#f7f8fa',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        paddingVertical: 2,
     },
     botonRegistrar: {
-        width: '100%',
+        width: '50%',
         height: 50,
-        backgroundColor: '#48d22b',
-        borderRadius: 8,
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
+        borderWidth: 1,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 18,
+        marginBottom: 10,
+        elevation: 2,
+        shadowColor: '#6c7ae0',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 6,
+        alignSelf: 'center',
     },
     textoBoton: {
+      
+        fontWeight: 'bold',
+        fontSize: 15,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    botonLimpiar: {
+        width: '100%',
+        height: 44,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        marginBottom: 4,
+    },
+    textoBotonSecundario: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#FFF',
+        color: '#6c7ae0',
+        letterSpacing: 0.2,
     },
 });

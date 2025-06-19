@@ -45,6 +45,7 @@ export const obtenerSexo = async () => {
         return [];
     }
 };
+
 export const obtenerMotivos = async () => {
     try {
         const response = await fetch(`${api_urlMotivos}`);
@@ -236,10 +237,10 @@ export const obtenerEspecialidad = async () => {
     try {
         const response = await fetch(`${api_urlEspecialidad}`);
         const data = await response.json();
-        return data;
+        return data.especialidad || [];
     } catch (error) {
         console.error('Error al obtener especialidad:', error);
-        return { especialidad: [] };
+        return [];
     }
 };
 
