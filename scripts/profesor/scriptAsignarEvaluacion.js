@@ -1,5 +1,6 @@
+import { API_BASE_URL } from "../config"
 
-const url_apiAsignarEvaluacion = "http://localhost:5000/profesor/asignar_evaluacion/alta"
+const url_apiAsignarEvaluacion = `${API_BASE_URL}/profesor/asignar_evaluacion/alta`
 
 // 🟢
 export const registrarEvaluacion = async (asignarEvaluacionData) => {

@@ -1,5 +1,6 @@
-const api_urlAvisosGenerales = "http://localhost:5000/alumno/avisos/general";
-const api_urlAvisosCurso = "http://localhost:5000/alumno/avisos/curso"
+import { API_BASE_URL } from "../config";
+const api_urlAvisosGenerales = `${ API_BASE_URL }/alumno/avisos/general`;
+const api_urlAvisosCurso = `${ API_BASE_URL }/alumno/avisos/curso`
 
 // 🟢
 export const obtenerAvisosGenerales = async () => {

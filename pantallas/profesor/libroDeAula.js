@@ -1,13 +1,11 @@
-import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity, Dimensions, Platform,FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity, Dimensions, Platform,FlatList, ActivityIndicator, ImageBackground } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula';
 import CustomAlert from '../../componente/CustomAlerts.js';
-import ScrollContainer from '../../componente/ScrollContainer.jsx'
 import ListasDesplegables from '../../componente/ListasDesplegables';
-import { ImageBackground } from 'react-native-web';
 
 
 
@@ -163,68 +161,69 @@ export default function LibroAula({ route }) {
 
     return (
         <View style={styles.padre}>
-            <ScrollContainer />
-            <ImageBackground source={bg} style={styles.bg} resizeMode="cover"> 
-            <View style={styles.contenidoScroll}>
-                <View style={styles.contenidoLista}>
-                    <ListasDesplegables 
-                        formData={formData} 
-                        handleChange={handleChange} 
-                        materias={materias}
-                        showLabel={true}
-                        styles={styles}
-                    />
-                    <ListasDesplegables 
-                        formData={formData} 
-                        handleChange={handleChange} 
-                        curso={cursoPorMateria}
-                        caracteristica_unidad={caracteristica_unidad}
-                        styles={styles}
-                    />
-                </View>
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    <View style={styles.card}>
+                        <View style={styles.contenidoLista}>
+                            <ListasDesplegables 
+                                formData={formData} 
+                                handleChange={handleChange} 
+                                materias={materias}
+                                showLabel={true}
+                                styles={styles}
+                            />
+                            <ListasDesplegables 
+                                formData={formData} 
+                                handleChange={handleChange} 
+                                curso={cursoPorMateria}
+                                caracteristica_unidad={caracteristica_unidad}
+                                styles={styles}
+                            />
+                        </View>
 
-                <Text style={styles.label}>Fecha:</Text>
-                <TextInput style={styles.input} 
-                    placeholder='DD-MM-AAAA' 
-                    keyboardType="numeric" 
-                    value={formData.fecha}
-                    onChangeText={(value) => handleChange('fecha', value)}
-                />
+                        <Text style={styles.label}>Fecha:</Text>
+                        <TextInput style={styles.input} 
+                            placeholder='DD-MM-AAAA' 
+                            keyboardType="numeric" 
+                            value={formData.fecha}
+                            onChangeText={(value) => handleChange('fecha', value)}
+                        />
 
-                <Text style={styles.label}>Clase N°:</Text>
-                <TextInput style={styles.input} 
-                    placeholder='0' 
-                    keyboardType="numeric"
-                    value={formData.numero_clase}
-                    onChangeText={(value) => handleChange('numero_clase', value)} 
-                />
+                        <Text style={styles.label}>Clase N°:</Text>
+                        <TextInput style={styles.input} 
+                            placeholder='0' 
+                            keyboardType="numeric"
+                            value={formData.numero_clase}
+                            onChangeText={(value) => handleChange('numero_clase', value)} 
+                        />
 
-                <Text style={styles.label} >Unidad:</Text>
-                <TextInput style={styles.input} 
-                    placeholder='1' 
-                    keyboardType="numeric"
-                    value={formData.unidad} 
-                    onChangeText={(value) => handleChange('unidad', value)}
-                />
+                        <Text style={styles.label} >Unidad:</Text>
+                        <TextInput style={styles.input} 
+                            placeholder='1' 
+                            keyboardType="numeric"
+                            value={formData.unidad} 
+                            onChangeText={(value) => handleChange('unidad', value)}
+                        />
 
-                <Text style={styles.label}>Tema abarcado:</Text>
-                <TextInput
-                    style={[styles.input, styles.textArea]}
-                    placeholder='Ingresar Tema abarcado en la clase'
-                    onChangeText={(value) => handleChange('tema_abarcado', value)}
-                    value={formData.tema_abarcado}
-                    multiline={true}
-                    numberOfLines={4}
-                />
-                <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
-                        <Text style={styles.textoBoton} >Registrar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
-                        <Text style={styles.textoBoton} >Cancelar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                        <Text style={styles.label}>Tema abarcado:</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder='Ingresar Tema abarcado en la clase'
+                            onChangeText={(value) => handleChange('tema_abarcado', value)}
+                            value={formData.tema_abarcado}
+                            multiline={true}
+                            numberOfLines={4}
+                        />
+                        <View style={styles.contenidoBoton}>
+                            <TouchableOpacity style={styles.botonRegistrar} onPress={handleRegistrar}>
+                                <Text style={styles.textoBoton} >Registrar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
+                                <Text style={styles.textoBoton} >Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
             </ImageBackground>
             <CustomAlert
             isVisible={alertVisible}
@@ -239,21 +238,19 @@ export default function LibroAula({ route }) {
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
-        justifyContent: 'center',
-        //alignItems: 'center',
-        backgroundColor: 'white',
     },
     bg: {
-        position: 'absolute', 
-        width: '100%',
-        height: '100%',
-        zIndex: -1, 
+        flex: 1,
     },
-    contenidoScroll: {
-        marginTop: 10,
-        width:'100%',
-        maxWidth: 800, 
-        alignSelf: 'center', 
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 20,
+    },
+    card: {
+        width: '90%',
+        maxWidth: 500,
         backgroundColor: '#fff',
         padding: 20,
         borderRadius: 10,
@@ -313,4 +310,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    contenidoLista: {
+        // Si necesitas estilos específicos para el contenedor de ListasDesplegables
+    }
 });

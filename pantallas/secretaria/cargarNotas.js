@@ -6,7 +6,7 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 import { obtenerMateriaPorCurso, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { registrarNotas, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
-import * as XLSX from 'xlsx';
+//import * as XLSX from 'xlsx';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width >= 768;
@@ -200,51 +200,7 @@ export default function CargarNotas() {
         setFormData({ ...formData, [name]: value });
     };
 
-    const exportarAExcel = () => {
-        if (!alumnos || alumnos.length === 0) {
-            mostrarMensaje('Error', 'No hay datos para exportar');
-            return;
-        }
-
-        try {
-            // Preparar los datos para Excel
-            const datosExcel = alumnos.map(alumno => ({
-                'Alumno': alumno.nombre_completo,
-                'Nota 1': alumno.nota1 || '',
-                'Nota 2': alumno.nota2 || '',
-                'Nota 3': alumno.nota3 || '',
-                'Nota 4': alumno.nota4 || '',
-                'Nota 5': alumno.nota5 || '',
-                'Nota 6': alumno.nota6 || '',
-                'TP 1': alumno.tp1 || '',
-                'TP 2': alumno.tp2 || '',
-                'TP 3': alumno.tp3 || '',
-                'Aulico': alumno.aulico || ''
-            }));
-
-            // Crear el libro de Excel
-            const ws = XLSX.utils.json_to_sheet(datosExcel);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Notas");
-
-            // Generar el archivo
-            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
-
-            // Convertir a Blob y descargar
-            const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Notas_${formData.id_curso}_${formData.id_materia}.xlsx`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-
-            mostrarMensaje('Éxito', 'Archivo Excel generado correctamente');
-        } catch (error) {
-            console.error('Error al exportar a Excel:', error);
-            mostrarMensaje('Error', 'No se pudo generar el archivo Excel');
-        }
-    };
+    
 
     // Función auxiliar para convertir string a ArrayBuffer
     const s2ab = (s) => {
@@ -280,7 +236,7 @@ export default function CargarNotas() {
                         <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
                             <Text style={styles.textoBoton}>Reiniciar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonConsultar} onPress={exportarAExcel}>
+                        <TouchableOpacity style={styles.botonConsultar} onPress={limpiarInterfaz}>
                             <Text style={styles.textoBoton}>📄</Text>
                         </TouchableOpacity>
                     </View>

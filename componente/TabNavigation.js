@@ -57,18 +57,10 @@ export const BottomTab = ({ route }) => {
 
           return (
             <View style={styles.tabBarIconContainer}>
-              <View style={[
-                styles.circle, 
-                { 
-                  backgroundColor: focused ? '#F0F7FF' : 'transparent',
-                  top: focused ? -25 : -10,
-                  borderWidth: focused ? 1 : 0,
-                  borderColor: '#2A3D6C'
-                }
-              ]}>
+              <View style={[styles.circle, focused && styles.circleFocused]}>
                 <FontAwesome
                   name={iconName}
-                  size={focused ? 18 : 16}
+                  size={focused ? 22 : 18}
                   color={iconColor}
                 />
               </View>
@@ -78,7 +70,7 @@ export const BottomTab = ({ route }) => {
         tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
         headerStyle: {
-          height: 50,
+          height: 100,
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 0,
@@ -151,14 +143,14 @@ export const BottomTab = ({ route }) => {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: '#FFFFFF',
-    height: 50,
+    height: 65,
     position: 'absolute',
-    bottom: 20,
-    left: 15,
-    right: 15,
-    borderRadius: 15,
+    bottom: 25,
+    left: 20,
+    right: 20,
+    borderRadius: 32.5,
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: '#2A3D6C',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -166,31 +158,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     borderTopWidth: 0,
-    paddingBottom: 3,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    flexDirection: 'row',
   },
   tabBarIconContainer: {
-    width: '100%',
+    position: 'absolute',
+    top: -25,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 35,
-    marginTop: 3,
   },
   circle: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'absolute',
-    top: -15,
-    backgroundColor: '#F0F7FF',
-    shadowColor: '#000',
+    backgroundColor: 'transparent',
+  },
+  circleFocused: {
+    backgroundColor: '#FFFFFF',
+    elevation: 10,
+    shadowColor: '#2A3D6C',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 5,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   }
 });

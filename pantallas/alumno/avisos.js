@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, TextInput, Text, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, Image, TextInput, Text, ScrollView, Alert, useWindowDimensions } from 'react-native';
 import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
@@ -13,6 +13,8 @@ export default function Avisos({ route }) {
     const [datos, setDatos] = useState([]);
     const [cursos, setCursos] = useState([]);
     const [fechaFiltro, setFechaFiltro] = useState(''); // Estado para la fecha de filtro
+    const { width } = useWindowDimensions();
+    const isMobile = width < 768;
 
     const { dni_usuario } = route.params || {}; 
     const { id_rol } = route.params || {};
@@ -71,17 +73,19 @@ export default function Avisos({ route }) {
             <View style={styles.contenedor}>
                 <Text style={styles.titulo}>Avisos</Text>
                 
-                <View style={styles.filaFiltros}>
-                    <ListasDesplegables
-                        formData={formData}
-                        handleChange={handleChange}
-                        curso={cursos}
-                        styles={styles}
-                        showLabel={false}
-                        label="Curso"
-                    />
+                <View style={[styles.filaFiltros, isMobile && styles.filaFiltrosMobile]}>
+                    <View style={isMobile ? styles.filtroItemMobile : styles.filtroItem}>
+                        <ListasDesplegables
+                            formData={formData}
+                            handleChange={handleChange}
+                            curso={cursos}
+                            styles={styles}
+                            showLabel={false}
+                            label="Curso"
+                        />
+                    </View>
                     <TextInput
-                        style={styles.filtroInput}
+                        style={[styles.filtroInput, isMobile && styles.filtroInputMobile]}
                         placeholder="Buscar por fecha (DD-MM-AAAA)"
                         value={fechaFiltro}
                         onChangeText={(text) => setFechaFiltro(text)}
@@ -165,6 +169,17 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
+    filaFiltrosMobile: {
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        gap: 12,
+    },
+    filtroItem: {
+        flex: 1,
+    },
+    filtroItemMobile: {
+        width: '100%',
+    },
     filtroInput: {
         flex: 1,
         height: 48,
@@ -175,6 +190,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         paddingHorizontal: 16,
         color: '#2d3748',
+    },
+    filtroInputMobile: {
+        flex: undefined,
+        width: '100%',
     },
     scrollAvisos: {
         flex: 1,

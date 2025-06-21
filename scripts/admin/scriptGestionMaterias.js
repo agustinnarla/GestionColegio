@@ -1,9 +1,9 @@
-const api_urlMateriaAlta = 'http://localhost:5000/materia/alta'
-const api_urlMateriaDeshabilitar = 'http://localhost:5000/materia/deshabilitar'
-const api_urlMateriaHabilitar = 'http://localhost:5000/materia/habilitar'
-const api_urlMateriaProfesor = 'http://localhost:5000/profesor/materia/alta'
+import { API_BASE_URL } from "../config.js";
 
-
+const api_urlMateriaAlta = `${API_BASE_URL}/materia/alta`;
+const api_urlMateriaDeshabilitar = `${API_BASE_URL}/materia/deshabilitar`;
+const api_urlMateriaHabilitar = `${API_BASE_URL}/materia/habilitar`;
+const api_urlMateriaProfesor = `${API_BASE_URL}/profesor/materia/alta`;
 
 // 🟢
 export const registrarMateriaProfesor = async (relaciones) => {
@@ -27,7 +27,6 @@ export const registrarMateriaProfesor = async (relaciones) => {
         return { mensaje: 'Error al registrar la relación' };
     }
 };
-
 
 // 🟢
 export const deshabilitarMateria = async (id_materia) => {

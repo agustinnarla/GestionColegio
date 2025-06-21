@@ -1,5 +1,6 @@
-const api_urlPerfil = 'http://localhost:5000/usuario/perfil'
-const api_urlRestablecerContrasena = 'http://localhost:5000/usuario/perfil/restablecerContrasena'
+import { API_BASE_URL } from '../config.js';
+const api_urlPerfil = `${API_BASE_URL}/usuario/perfil`
+const api_urlRestablecerContrasena = `${API_BASE_URL}/usuario/perfil/restablecerContrasena`
 
 // 🟢
 export const obtenerUsuario = async (dni_usuario) => {

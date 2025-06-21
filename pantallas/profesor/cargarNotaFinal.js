@@ -1,10 +1,11 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput, ScrollView, Modal, Alert} from 'react-native';
+import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList,ImageBackground, TextInput, ScrollView, Modal, Alert} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { agregarNota, modificarEstadoEvaluativo } from '../../scripts/profesor/scriptCargarNotaFinal';
 import { obtenerCursoPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosNoRegulares } from '../../scripts/listasDesplegables/listaDesplegable';
+
 
 export default function CargarNotasFinal({route}) {
     const [datos, setDatos] = useState([]);
@@ -255,7 +256,7 @@ export default function CargarNotasFinal({route}) {
 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg} />
+            <ImageBackground source={bg} style={styles.bg}>
             
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.filtrosContainer}>
@@ -354,6 +355,7 @@ export default function CargarNotasFinal({route}) {
                     </View>
                 </View>
             </Modal>
+            </ImageBackground>
         </View>
     );
 }
@@ -364,8 +366,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f7fa',
     },
     bg: {
-        ...StyleSheet.absoluteFillObject,
-        opacity: 0.13,
+        flex: 1,
     },
     scrollContainer: {
         padding: 0,

@@ -1,6 +1,8 @@
-const api_urlTareaAlta = 'http://localhost:5000/tarea/alta'
-const api_urlTareaDeshabilitar = 'http://localhost:5000/tarea/deshabilitar'
-const api_urlTareaHabilitar = 'http://localhost:5000/tarea/habilitar'
+import { API_BASE_URL } from '../config.js';
+
+const api_urlTareaAlta = `${API_BASE_URL}/tarea/alta`;
+const api_urlTareaDeshabilitar = `${API_BASE_URL}/tarea/deshabilitar`;
+const api_urlTareaHabilitar = `${API_BASE_URL}/tarea/habilitar`;
 
 
 // 🟢

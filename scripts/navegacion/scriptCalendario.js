@@ -1,5 +1,6 @@
-const api_urlCalendarioAlumno = 'http://localhost:5000/alumno/evaluaciones'
-const api_urlCalendarioProfesional = 'http://localhost:5000/profesional/evaluaciones/registradas'
+import { API_BASE_URL } from '../config.js';
+const api_urlCalendarioAlumno = `${ API_BASE_URL }/alumno/evaluaciones`
+const api_urlCalendarioProfesional = `${ API_BASE_URL }/profesional/evaluaciones/registradas`
 
 export const obtenerEvaluaciones = async (dni_alumno) => {
     try {

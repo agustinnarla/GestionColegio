@@ -1,5 +1,6 @@
 import React from 'react';
-
+import { useFonts } from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -506,7 +507,7 @@ function MyStack() {
           name="Registrar Rol"
           component={RegistrarRol}
           options={{
-            title: "Registrar Usuario",
+            title: "Registrar Rol",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -525,6 +526,15 @@ function MyStack() {
 }
 
 export default function App() {
+
+  const [fontsLoaded] = useFonts({
+    ...Ionicons.font,
+  });
+
+  if (!fontsLoaded) {
+    return null; // O un componente de carga
+  }
+
   return (
     <NavigationContainer>
       <MyStack />

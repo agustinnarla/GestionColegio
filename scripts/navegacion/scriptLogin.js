@@ -1,11 +1,18 @@
 import axios from 'axios';
+import { Alert } from 'react-native';
+import { API_BASE_URL } from '../config.js';
 
-const api_urlLogin = 'http://localhost:5000/usuario/ingresar';
-const api_urlOlvideMiContraseña = 'http://localhost:5000/usuario/recuperarContrasena'
+const api_urlLogin = `${API_BASE_URL}/usuario/ingresar`;
+const api_urlOlvideMiContraseña = `${API_BASE_URL}/usuario/recuperarContrasena`;
 
 
 // 🟢
 export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostrarMensaje) => {
+    if (!dniUsuario || !contrasena) {
+        mostrarMensaje('Error', 'Por favor, ingrese su DNI y contraseña');
+        return { success: false };
+    }
+
     try {
         const response = await axios.post(api_urlLogin, {
             dni_usuario: dniUsuario,
@@ -27,7 +34,7 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
     } catch (error) {
         console.error('Error al iniciar sesión:', error.message);
         mostrarMensaje('Error', 'Usuario o contraseña incorrectos');
-        return { success: true };  
+        return { success: false };  
     }
 };
 

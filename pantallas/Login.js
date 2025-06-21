@@ -1,11 +1,10 @@
 import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { ingresarUsuario, olvideMiContrasena } from '../scripts/login/scriptLogin.js';
+import { ingresarUsuario, olvideMiContrasena } from '../scripts/navegacion/scriptLogin.js';
 import bg from '../assets/bg1.jpg';
 import logo from '../assets/logo_huerto.png';
 import CustomAlert from '../componente/CustomAlerts.js';
-import ScrollContainer from '../componente/ScrollContainer.jsx';
 
 export default function Login(props) {
     const [dniUsuario, setDniUsuario] = useState('');
@@ -81,7 +80,6 @@ export default function Login(props) {
 
     return (
         <View style={styles.padre}>
-            <ScrollContainer/>
             <ImageBackground source={bg} style={styles.bg} resizeMode='cover'>
                 <View>
                     <Image source={logo} style={styles.logo} />

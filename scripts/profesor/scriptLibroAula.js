@@ -1,5 +1,7 @@
-const api_urlLibroAulaAlta = 'http://localhost:5000/profesor/libroAula/alta'
-const api_urlLibroAula = 'http://localhost:5000/profesor/libroAula'
+import { API_BASE_URL } from '../config.js'
+const api_urlLibroAulaAlta = `${API_BASE_URL}/profesor/libroAula/alta`
+const api_urlLibroAula = `${API_BASE_URL}/profesor/libroAula`
+
 // 🟢
 export const registrarLibroAula = async (formData) => {
     try{

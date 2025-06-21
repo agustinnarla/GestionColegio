@@ -1,6 +1,6 @@
-
-const api_urlAgregarNota = 'http://localhost:5000/profesor/nota_final/alta';
-const api_urlModificarEstado = 'http://localhost:5000/profesor/nota_final/estado_evaluativo';
+import { API_BASE_URL } from "../config";
+const api_urlAgregarNota = `${API_BASE_URL}/profesor/nota_final/alta`;
+const api_urlModificarEstado = `${API_BASE_URL}/profesor/nota_final/estado_evaluativo`;
 
 
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, useWindowDimensions, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import bg from '../assets/bg1.jpg'
-import { obtenerEvaluaciones, obtenerEvaluacionesProfesor } from '../scripts/alumno/scriptCalendario';
+import { obtenerEvaluaciones, obtenerEvaluacionesProfesor } from '../scripts/navegacion/scriptCalendario.js';
 import CustomAlert from '../componente/CustomAlerts.js';
 
 //Ver la importacion de google calendar -- Probar como funciona 

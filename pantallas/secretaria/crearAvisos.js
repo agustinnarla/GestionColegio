@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import DatePicker from 'react-native-date-picker'
+import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity, Alert, Button } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import { obtenerMotivos, obtenerCurso, obtenerProfesores, obtenerEstadoGeneral} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { obtenerAvisos, crearAvisos} from '../../scripts/secretaria/scriptCargarAvisos';
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
+
 export default function Avisos() {
   const [informacion, setInformacion] = useState('');
   const [motivo, setMotivo] = useState('');
@@ -14,8 +15,9 @@ export default function Avisos() {
   const [profesor, setProfesor] = useState([]); // Cambiado a array para múltiple selección
   const [cursosData, setCursosData] = useState([]); // Nuevo estado para cursos
   const [cursosAfectados, setCursosAfectados] = useState([]);
-  const [fecha, setFecha] = useState('');
-  const [fechaValida, setFechaValida] = useState(true);
+  const [fecha, setFecha] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [fechaTexto, setFechaTexto] = useState('');
   const [profesoresData, setProfesoresData] = useState([]); // Para almacenar los datos de profesores
   const [estado_general, setEstadoGeneral] = useState([]);
 
@@ -27,6 +29,21 @@ export default function Avisos() {
     const [avisos, setAvisos] = useState([]);
     const [cargandoAvisos, setCargandoAvisos] = useState(false);
     const [errorAvisos, setErrorAvisos] = useState(null);
+
+  const onChangeDate = (event, selectedDate) => {
+    const currentDate = selectedDate || fecha;
+    setShowDatePicker(false);
+    setFecha(currentDate);
+    
+    const day = currentDate.getDate().toString().padStart(2, '0');
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = currentDate.getFullYear();
+    setFechaTexto(`${day}/${month}/${year}`);
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
 
   const validarFecha = (text) => {
     // Expresión regular para validar DD/MM/YYYY
@@ -144,11 +161,10 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
   };
 
   const agregarAviso = async () => {
-    if (informacion && motivo && fecha) {
+    if (informacion && motivo && fechaTexto) {
         try {
-            // Convertir fecha de DD/MM/YYYY a formato ISO (YYYY-MM-DD)
-            const [day, month, year] = fecha.split('/');
-            const fechaISO = `${year}-${month}-${day}`;
+            // Formatear la fecha del estado a YYYY-MM-DD para el backend
+            const fechaISO = fecha.toISOString().split('T')[0];
             
             // Obtener el ID del motivo como número
             const motivoSeleccionado = motivosData.find(m => m.value === motivo);
@@ -250,7 +266,8 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
     setMotivo('');
     setProfesor([]);
     setCursosAfectados([]);
-    setFecha('');
+    setFecha(new Date());
+    setFechaTexto('');
   };
   
 const handleChange = (name, value) => {
@@ -259,87 +276,99 @@ const handleChange = (name, value) => {
 
 
   return (
-    <View style={styles.padre}>
-      <Image source={bg} style={styles.bg} />
-      {/* Formulario para agregar aviso */}
-      <View style={styles.formulario}>
-        <TextInput
-          style={styles.input}
-          placeholder="Información"
-          value={informacion}
-          onChangeText={setInformacion}
-        />
-        <ListasDesplegables
-            formData={formData}
-            handleChange={handleChange}
-            estado_general={estado_general}
-            styles={styles}
-            showLabel={false}
-        />  
-        <Picker
-          selectedValue={motivo}
-          style={styles.input}
-          onValueChange={(itemValue) => setMotivo(itemValue)}
-        >
-          <Picker.Item label="Seleccione motivos" value="" enabled={false} />
+    <View style={styles.container}>
+      <Image source={bg} style={styles.bgImage} />
+      <ScrollView style={styles.scrollView}>
+        {/* Formulario para agregar aviso */}
+        <View style={styles.formulario}>
+          <Text style={styles.label}>Información</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Ingrese la información del aviso"
+            value={informacion}
+            onChangeText={setInformacion}
+            multiline
+          />
 
-          {motivosData.length > -1 ? (
-            motivosData.map((item) => (
-              <Picker.Item key={item.key} label={item.value} value={item.value} />
-            ))
-          ) : (
-            <Picker.Item label="Cargando motivos..." value="" />
+          <Text style={styles.label}>Fecha</Text>
+          <TouchableOpacity onPress={showDatepicker}>
+            <TextInput
+              style={styles.input}
+              placeholder="Seleccione una fecha"
+              value={fechaTexto}
+              editable={false}
+            />
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={fecha}
+              mode="date"
+              display="default"
+              onChange={onChangeDate}
+            />
           )}
-        </Picker>
-        <View>
-        <TextInput
-          style={[styles.input, !fechaValida && styles.inputError]}
-          placeholder="DD/MM/YYYY"
-          value={fecha}
-          onChangeText={validarFecha}
-          keyboardType="numeric"
-          maxLength={10}
-        />
-        {!fechaValida && fecha.length > 0 && (
-          <Text style={styles.errorText}>Formato inválido. Use DD/MM/YYYY</Text>
-        )}
-      </View>
-        <MultipleSelectList
-          setSelected={(val) => setProfesor(val)}
-          data={profesoresData}
+
+          <Text style={styles.label}>Motivo</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={motivo}
+              onValueChange={(itemValue) => setMotivo(itemValue)}
+              style={styles.picker}
+            >
+              {motivosData.map((mot) => (
+                <Picker.Item key={mot.key} label={mot.value} value={mot.value} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Estado General</Text>
+           <ListasDesplegables
+               formData={formData}
+               handleChange={handleChange}
+               estado_general={estado_general}
+               styles={styles}
+               showLabel={false}
+           />  
+
+          <Text style={styles.label}>Profesores Afectados</Text>
+          <MultipleSelectList
+            setSelected={(val) => setProfesor(val)}
+            data={profesoresData}
+            save="key"
+            label="Profesores"
+            placeholder="Seleccionar profesor(es) (opcional)"
+            boxStyles={styles.dropdown}
+            dropdownTextStyles={styles.dropdownText}
+            notFoundText="No hay profesores disponibles"
+          />
+          <MultipleSelectList
+          setSelected={(val) => setCursosAfectados(val)}
+          data={cursosData} // Usamos los cursos cargados dinámicamente
           save="key"
-          label="Profesores"
-          placeholder="Seleccionar profesor(es) (opcional)"
+          label="Cursos"
+          placeholder="Seleccionar curso(s) (opcional)"
           boxStyles={styles.dropdown}
           dropdownTextStyles={styles.dropdownText}
-          notFoundText="No hay profesores disponibles"
+          notFoundText="No hay cursos disponibles"
         />
-        <MultipleSelectList
-        setSelected={(val) => setCursosAfectados(val)}
-        data={cursosData} // Usamos los cursos cargados dinámicamente
-        save="key"
-        label="Cursos"
-        placeholder="Seleccionar curso(s) (opcional)"
-        boxStyles={styles.dropdown}
-        dropdownTextStyles={styles.dropdownText}
-        notFoundText="No hay cursos disponibles"
-      />
-        <TouchableOpacity style={styles.boton} onPress={agregarAviso}>
-          <Text style={styles.botonTexto}>Agregar Aviso</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.boton} onPress={agregarAviso}>
+            <Text style={styles.botonTexto}>Agregar Aviso</Text>
+          </TouchableOpacity>
+        </View>
 
-       {/* Lista de avisos existentes */}
-       <ScrollView style={styles.scrollAvisos}>
-        {avisos.map((aviso) => (
-          <View key={aviso.id} style={styles.tarjeta}>
-            <Text style={styles.textoAviso}>{aviso.informacion}</Text>
-            <Text style={styles.textoMotivo}>{aviso.motivo}</Text>
-            {aviso.profesor && <Text style={styles.textoMotivo}>{aviso.profesor}</Text>}
-            {aviso.cursos && <Text style={styles.textoMotivo}>{aviso.cursos}</Text>}
-            <Text style={styles.textoDH}>{aviso.fecha}</Text>
-          </View>
-        ))}
+         {/* Lista de avisos existentes */}
+         <ScrollView style={styles.scrollAvisos}>
+          {avisos.map((aviso) => (
+            <View key={aviso.id} style={styles.tarjeta}>
+              <Text style={styles.textoAviso}>{aviso.informacion}</Text>
+              <Text style={styles.textoMotivo}>{aviso.motivo}</Text>
+              {aviso.profesor && <Text style={styles.textoMotivo}>{aviso.profesor}</Text>}
+              {aviso.cursos && <Text style={styles.textoMotivo}>{aviso.cursos}</Text>}
+              <Text style={styles.textoDH}>{aviso.fecha}</Text>
+            </View>
+          ))}
+        </ScrollView>
       </ScrollView>
     </View>
   );
@@ -464,5 +493,29 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 10,
     color: '#777',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#2a3d6c',
+  },
+  textArea: {
+    height: 100,
+  },
+  pickerContainer: {
+    backgroundColor: '#f9f9f9',
+    borderColor: '#b6c6e0',
+    borderWidth: 1.5,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  picker: {
+    backgroundColor: '#f9f9f9',
+    borderColor: '#b6c6e0',
+    borderWidth: 1.5,
+    borderRadius: 8,
+    padding: 10,
   },
 });

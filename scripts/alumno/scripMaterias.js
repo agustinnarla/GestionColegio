@@ -1,4 +1,5 @@
-const api_urlMateriasAlumno = 'http://localhost:5000/alumno/materia'
+import { API_BASE_URL } from '../config.js'
+const api_urlMateriasAlumno = `${ API_BASE_URL }/alumno/materia`
 
 // 🔵
 export const obtenerMateriasPorDni = async (dni_alumno) => {
