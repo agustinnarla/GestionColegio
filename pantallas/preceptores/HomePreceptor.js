@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
         borderColor:'#000AFF',
         borderWidth:0.5,
         paddingVertical:15,
+        marginTop: 20,
         width:200,
-        marginTop:40,
         shadowColor:'#6D8FE5',
         shadowOffset:{
             width:5,
@@ -75,4 +75,6 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     }
+
+    
 })

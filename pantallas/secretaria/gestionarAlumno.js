@@ -3,7 +3,7 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, Che
 import bg from '../../assets/bg1.jpg';
 import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno';
-import { mostrarMensaje } from '../../scripts/preceptor/scriptGestionarObservacion';
+import CustomAlert from '../../componente/CustomAlerts.js';
 import * as DocumentPicker from 'expo-document-picker';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
@@ -31,6 +31,19 @@ export default function GestionarAlumno() {
         piso: '',
         departamento: ''
     });
+
+
+       // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
 
     //Listas desplegables
     const[cursos,setCursos] = useState([])
@@ -216,29 +229,10 @@ export default function GestionarAlumno() {
         try {
             const response = await agregarAlumno(alumnoData);
             const responseLegajo = await agregarLegajo(formDataLegajo);
-            await mostrarMensaje('El alumno se registro correctamente')
+            mostrarMensaje('Exito', 'El alumno registrado correctamente')
             console.log('Alumno agregado:', response);
 
-            setFormData({
-                dni_alumno: '',
-                nombre: '',
-                apellido: '',
-                cuil: '',
-                id_sexo: '',
-                emailpersonal: '',
-                emailfamiliar: '',
-                id_curso: '',
-                fecha_nacimiento: '',
-                telefono_madre: '',
-                telefono_padre: '',
-                telefono_personal: '',
-                id_estado_general: '',
-                id_localidad: '',
-                domicilio: '',
-                edificio: false,
-                piso: '',
-                departamento: ''
-            });
+            handleLimpiar()
         } catch (error) {
             console.error('Error al agregar alumno:', error.message);
         }
@@ -313,27 +307,8 @@ export default function GestionarAlumno() {
             const respuesta = await modificarAlumno(formData.dni_alumno, formData);
             const respuesta2 = await modificarLegajo(formData.dni_alumno, formDataLegajo);
             console.log('Alumno modificado:', respuesta);
-            await mostrarMensaje('El alumno modificado correctamente')
-            setFormData({
-                dni_alumno: '',
-                nombre: '',
-                apellido: '',
-                cuil: '',
-                id_sexo: '',
-                emailpersonal: '',
-                email_familiar: '',
-                id_curso: '',
-                fecha_nacimiento: '',
-                telefono_madre: '',
-                telefono_padre: '',
-                telefono_personal: '',
-                id_estado_general: '',
-                id_localidad: '',
-                domicilio: '',
-                edificio: false,
-                piso: '',
-                departamento: ''
-            });
+            mostrarMensaje('Exito', 'Alumno modificado correctamente')
+            handleLimpiar()
             console.log(formData)
         } catch (error) {
             console.log('Error al modificar un alumno:', error.message);
@@ -354,27 +329,8 @@ export default function GestionarAlumno() {
             
             const response = await deshabilitarAlumno(dni_alumno); 
             console.log('Alumno deshabilitado:', response);
-            await mostrarMensaje('El alumno se deshabilito correctamente')
-            setFormData({
-                dni_alumno: '',
-                nombre: '',
-                apellido: '',
-                cuil: '',
-                id_sexo: '',
-                email_personal: '',
-                email_familiar: '',
-                id_curso: '',
-                fecha_nacimiento: '',
-                telefono_madre: '',
-                telefono_padre: '',
-                telefono_personal: '',
-                id_estado_general: '',
-                id_localidad: '',
-                domicilio: '',
-                edificio: false,
-                piso: '',
-                departamento: ''
-            });
+            mostrarMensaje('Exito', 'Alumno  deshabilito correctamente')
+            handleLimpiar()
         } catch (error) {
             console.log('Error al deshabilitar un alumno:', error.message);
             Alert.alert('Error', error.message);
@@ -752,6 +708,12 @@ export default function GestionarAlumno() {
                 <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonLimpiar} onPress={handleLimpiar}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
             </ImageBackground>
         </View>
     );

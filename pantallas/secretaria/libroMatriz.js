@@ -149,8 +149,8 @@ export default function LibroMatriz() {
                         <Text style={styles.textoBoton}>Consultar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonImprimir}>
-                        <Text style={styles.imprimir} onPress={handleImprimir}>Imprimir</Text>
+                    <TouchableOpacity style={styles.botonImprimir} onPress={handleImprimir}>
+                        <Text style={styles.imprimir} >Imprimir</Text>
                     </TouchableOpacity>
                 </View>
             </View>

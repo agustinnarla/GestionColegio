@@ -277,98 +277,98 @@ const handleChange = (name, value) => {
 
   return (
     <View style={styles.container}>
-      <Image source={bg} style={styles.bgImage} />
-      <ScrollView style={styles.scrollView}>
-        {/* Formulario para agregar aviso */}
-        <View style={styles.formulario}>
-          <Text style={styles.label}>Información</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Ingrese la información del aviso"
-            value={informacion}
-            onChangeText={setInformacion}
-            multiline
-          />
+      <Image source={bg} style={styles.bg} />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.flexRow}>
+          {/* Formulario */}
+          <View style={styles.formulario}>
+            <Text style={styles.label}>Información</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Ingrese la información del aviso"
+              value={informacion}
+              onChangeText={setInformacion}
+              multiline
+            />
 
-          <Text style={styles.label}>Fecha</Text>
-          <TouchableOpacity onPress={showDatepicker}>
+            <Text style={styles.label}>Fecha</Text>
             <TextInput
               style={styles.input}
-              placeholder="Seleccione una fecha"
+              placeholder="DD/MM/AAAA"
               value={fechaTexto}
-              editable={false}
+              onChangeText={setFechaTexto}
+              keyboardType="numeric"
+              maxLength={10}
             />
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={fecha}
-              mode="date"
-              display="default"
-              onChange={onChangeDate}
+
+            <Text style={styles.label}>Motivo</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={motivo}
+                onValueChange={(itemValue) => setMotivo(itemValue)}
+                style={styles.picker}
+              >
+                {motivosData.map((mot) => (
+                  <Picker.Item key={mot.key} label={mot.value} value={mot.value} />
+                ))}
+              </Picker>
+            </View>
+
+            
+             <ListasDesplegables
+                 formData={formData}
+                 handleChange={handleChange}
+                 estado_general={estado_general}
+                 styles={styles}
+                 showLabel={true}
+             />  
+
+            <Text style={styles.label}>Profesores Afectados</Text>
+            <MultipleSelectList
+              setSelected={(val) => setProfesor(val)}
+              data={profesoresData}
+              save="key"
+              label="Profesores"
+              placeholder="Seleccionar profesor(es) (opcional)"
+              boxStyles={styles.dropdown}
+              dropdownTextStyles={styles.dropdownText}
+              notFoundText="No hay profesores disponibles"
             />
-          )}
-
-          <Text style={styles.label}>Motivo</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={motivo}
-              onValueChange={(itemValue) => setMotivo(itemValue)}
-              style={styles.picker}
-            >
-              {motivosData.map((mot) => (
-                <Picker.Item key={mot.key} label={mot.value} value={mot.value} />
-              ))}
-            </Picker>
-          </View>
-
-          <Text style={styles.label}>Estado General</Text>
-           <ListasDesplegables
-               formData={formData}
-               handleChange={handleChange}
-               estado_general={estado_general}
-               styles={styles}
-               showLabel={false}
-           />  
-
-          <Text style={styles.label}>Profesores Afectados</Text>
-          <MultipleSelectList
-            setSelected={(val) => setProfesor(val)}
-            data={profesoresData}
+            <Text style={styles.label}>Cursos afectados</Text>
+            <MultipleSelectList
+            setSelected={(val) => setCursosAfectados(val)}
+            data={cursosData} // Usamos los cursos cargados dinámicamente
             save="key"
-            label="Profesores"
-            placeholder="Seleccionar profesor(es) (opcional)"
+            label="Cursos"
+            placeholder="Seleccionar curso(s) (opcional)"
             boxStyles={styles.dropdown}
             dropdownTextStyles={styles.dropdownText}
-            notFoundText="No hay profesores disponibles"
+            notFoundText="No hay cursos disponibles"
           />
-          <MultipleSelectList
-          setSelected={(val) => setCursosAfectados(val)}
-          data={cursosData} // Usamos los cursos cargados dinámicamente
-          save="key"
-          label="Cursos"
-          placeholder="Seleccionar curso(s) (opcional)"
-          boxStyles={styles.dropdown}
-          dropdownTextStyles={styles.dropdownText}
-          notFoundText="No hay cursos disponibles"
-        />
-          <TouchableOpacity style={styles.boton} onPress={agregarAviso}>
-            <Text style={styles.botonTexto}>Agregar Aviso</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.boton} onPress={agregarAviso}>
+              <Text style={styles.botonTexto}>Agregar Aviso</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Lista de avisos */}
+          <View style={styles.listaAvisosContainer}>
+            <Text style={styles.tituloAvisos}>Lista de Avisos</Text>
+            <ScrollView style={styles.scrollAvisos}>
+            {avisos.length === 0 ? (
+              <Text style={styles.textoSinAvisos}>No hay avisos disponibles</Text>
+            ) : (
+              avisos.map((aviso) => (
+                <View key={aviso.id} style={styles.tarjeta}>
+                  <Text style={styles.textoAviso}>{aviso.informacion}</Text>
+                  <Text style={styles.textoMotivo}>{aviso.motivo}</Text>
+                  {aviso.profesor && <Text style={styles.textoMotivo}>{aviso.profesor}</Text>}
+                  {aviso.cursos && <Text style={styles.textoMotivo}>{aviso.cursos}</Text>}
+                  <Text style={styles.textoDH}>{aviso.fecha}</Text>
+                </View>
+              ))
+            )}
+          </ScrollView>
+          </View>
         </View>
-
-         {/* Lista de avisos existentes */}
-         <ScrollView style={styles.scrollAvisos}>
-          {avisos.map((aviso) => (
-            <View key={aviso.id} style={styles.tarjeta}>
-              <Text style={styles.textoAviso}>{aviso.informacion}</Text>
-              <Text style={styles.textoMotivo}>{aviso.motivo}</Text>
-              {aviso.profesor && <Text style={styles.textoMotivo}>{aviso.profesor}</Text>}
-              {aviso.cursos && <Text style={styles.textoMotivo}>{aviso.cursos}</Text>}
-              <Text style={styles.textoDH}>{aviso.fecha}</Text>
-            </View>
-          ))}
-        </ScrollView>
       </ScrollView>
     </View>
   );
@@ -381,6 +381,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f5f7fa',
     position: 'relative',
+  },
+  container: { // AGREGA ESTE ESTILO
+    flex: 1,
+    backgroundColor: '#f5f7fa',
   },
   bg: {
     position: 'absolute',
@@ -396,7 +400,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 28,
-    marginTop: 36,
+    marginTop: 10, // <--- REDUCE ESTE VALOR
     marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -464,6 +468,27 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     alignSelf: 'center',
   },
+  listaAvisosContainer: {
+    width: '95%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  tituloAvisos: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2a3d6c',
+    marginBottom: 10,
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  textoSinAvisos: {
+    fontSize: 15,
+    color: '#888',
+    textAlign: 'center',
+    marginVertical: 20,
+  },
   tarjeta: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -517,5 +542,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 8,
     padding: 10,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  flexRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
   },
 });

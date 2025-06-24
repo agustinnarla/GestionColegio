@@ -260,6 +260,7 @@ export default function GestionarProfesional() {
                             estado_general={estado_general}
                             localidad={localidad}
                             styles={styles}
+                            showLabel={true}
                         />
                         <Text style={styles.label}>Teléfono Personal:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />

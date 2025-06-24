@@ -264,7 +264,7 @@ export default function JustificarFalta() {
                             <View style={styles.filaInputs}>
                                 <Text style={styles.label}>Fecha desde:</Text>
                                 <TextInput
-                                    placeholder="DD-MM-AAAA"
+                                    placeholder="DD/MM/AAAA"
                                     style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
                                     value={fechaDesde}
                                     onChangeText={setFechaDesde}
@@ -273,7 +273,7 @@ export default function JustificarFalta() {
                             <View style={styles.filaInputs}>
                                 <Text style={styles.label}>Fecha hasta:</Text>
                                 <TextInput
-                                    placeholder="----/--/--"
+                                    placeholder="DD/MM/AAAA"
                                     style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
                                     value={fechaHasta}
                                     onChangeText={setFechaHasta}
@@ -347,6 +347,55 @@ export default function JustificarFalta() {
 
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f7fa',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 24,
+    paddingHorizontal: 16,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 24,
+    marginTop: 20,
+    width: '100%',
+    maxWidth: 500,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2a3d6c',
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 7,
+    backgroundColor: '#f3f4f6',
+    fontSize: 15,
+    height: 38,
+    paddingHorizontal: 10,
+    marginBottom: 13,
+  },
+  boton: {
+    backgroundColor: '#6c7ae0',
+    padding: 12,
+    borderRadius: 7,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  botonTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
     padre: {
         flex: 1,
         width: '100%',

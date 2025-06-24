@@ -7,7 +7,7 @@ export const obtenerAlumnosAusentes = async (req, res) => {
             "SELECT a.dni_alumno, CONCAT(a.nombre, ' ', a.apellido) AS nombreapellido, asi.fecha " +
             "FROM alumno AS a " +
             "INNER JOIN asistencia_alumno AS asi ON asi.dni_alumno = a.dni_alumno " +
-            "WHERE asi.fecha BETWEEN $1 AND $2",
+            "WHERE asi.fecha BETWEEN $1 AND $2 AND id_estado_asistencia = 2",
             [fechadesde, fechahasta]
         );
         console.log('Consulta ejecutada con éxito');
