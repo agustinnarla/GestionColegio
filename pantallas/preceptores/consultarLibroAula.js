@@ -1,5 +1,5 @@
 import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, ScrollView, Platform, Alert } from 'react-native';
-import { obtenerMateriaPorProfesor, obtenerProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerMateriaPorProfesor, obtenerProfesores, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { obtenerLibroAula } from '../../scripts/profesor/scriptLibroAula.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import React, { useEffect, useState } from "react";
@@ -25,7 +25,7 @@ export default function ConsultarLibro() {
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const profesoresData = await obtenerProfesor();
+                const profesoresData = await obtenerProfesores();
                 setProfesores(profesoresData);
 
                 if (formData.dni_profesional) {

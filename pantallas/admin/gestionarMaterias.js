@@ -373,6 +373,36 @@ export default function GestionarMaterias() {
                    
                      </View>
                  </Modal>
+                 
+                 <Modal visible={modalModificarVisible} transparent animationType="slide">
+    <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+            <Text style={styles.titulo}>Materias Deshabilitadas</Text>
+            {materiasDeshabilitadas.length === 0 ? (
+                <Text>No hay materias deshabilitadas.</Text>
+            ) : (
+                materiasDeshabilitadas.map((materia) => (
+                    <View key={materia.id_materia} style={styles.itemContainer}>
+                        <Text style={styles.textoTarea}>{materia.detalle}</Text>
+                        <TouchableOpacity
+                            style={styles.botonAlta}
+                            onPress={async () => {
+                                await handleHabilitarMateria(materia.id_materia);
+                            }}
+                        >
+                            <Text style={styles.textoBoton}>Habilitar</Text>
+                        </TouchableOpacity>
+                    </View>
+                ))
+            )}
+            <View style={styles.botonesModal}>
+                <TouchableOpacity style={styles.botonLimpiar} onPress={() => setModalModificarVisible(false)}>
+                    <Text style={styles.textoBoton}>Cerrar</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    </View>
+</Modal>
              </View>
          </View>
      );
