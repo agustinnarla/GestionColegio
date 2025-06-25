@@ -1,5 +1,18 @@
 import {pool} from '../dataBase/coneccion.mjs'
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
+/* 
+        OBTENCIÓN DE MAIL
+*/
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 /* 
     OBTENEMOS NOTAS DE LOS ALUMNOS DE UN CURSO Y MATERIA ESPECÍFICA
@@ -120,7 +133,9 @@ export const registrarNota = async (req, res) => {
                         [dni_alumno, id_materia, id_curso, 
                         nota1, nota2, nota3, nota4, nota5, nota6,
                         tp1, tp2, tp3, aulico, idestadoevaluativo, promedio]
+                        
                     );
+                    
                     resultados.push({
                         dni_alumno,
                         status: "actualizado"
@@ -137,11 +152,23 @@ export const registrarNota = async (req, res) => {
                         nota1, nota2, nota3, nota4, nota5, nota6,
                         tp1, tp2, tp3, aulico, idestadoevaluativo, promedio]
                 );
+                
                     resultados.push({
                         dni_alumno,
                         status: "insertado"
                     });
                 }
+
+                // Enviar email a este alumno
+                const materiaQuery = await pool.query(
+                    'SELECT detalle FROM materia WHERE id_materia = $1',
+                    [id_materia]
+                );
+                
+                const detalle = materiaQuery.rows[0]?.detalle || 'Materia';
+                await enviarEmailNota(dni_alumno, detalle);
+
+                
 
             } catch (error) {
                 console.error("Error específico:", error);
@@ -163,3 +190,37 @@ export const registrarNota = async (req, res) => {
         res.status(500).json({ error: "Error al procesar las notas" });
     }
 };
+
+
+
+const enviarEmailNota = async (dni_alumno, detalle) => {
+    try {
+        const emailsQuery = await pool.query(
+            'SELECT email_personal FROM alumno WHERE dni_alumno = $1',
+            [dni_alumno]
+        );
+
+        if (emailsQuery.rows.length > 0) {
+            const { email_personal } = emailsQuery.rows[0];
+            
+            // Configurar el email
+            const mailOptions = {
+                from: 'arlaagustin1@gmail.com',
+                to: [email_personal].filter(Boolean).join(', '),
+                subject: 'Nuevas Notas Registradas',
+                html: `
+                    <h2>Nuevas Notas Registradas</h2>
+                    <p><strong>Alumno:</strong> ${dni_alumno}</p>
+                    <p><strong>Materia:</strong> ${detalle}</p>
+                    <p>Por favor, revise las notas en el sistema.</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+        }
+    } catch (error) {
+        console.error("Error al enviar el email de notificación", error);
+    }
+};
+
+

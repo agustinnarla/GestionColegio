@@ -296,6 +296,23 @@ export function EstadoFaltaAlumnosSelector({ formData, handleChange, estadoFalta
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function MotivoSelector({ formData, handleChange, motivos, styles, showLabel }) {
+    const selectorConfig = {
+        ...(showLabel && { label: 'Seleccione un Motivo:' }),
+        selectedValue: formData.id_motivo,
+        onValueChange: (value) => handleChange('id_motivo', value),
+        items: [
+            { label: 'Seleccione el motivo', value: '' },
+            ...(motivos || []).map(item => ({
+                label: item.detalle, // Muestra el detalle del motivo
+                value: item.id_motivo, // Usa el ID como valor
+                key: item.id_motivo // Clave única para el selector
+            }))
+        ]
+    };
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 export function EstadoFaltaProfesionalSelector({ formData, handleChange, estado_falta_profesional, styles }) {
     const selectorConfig = {
         selectedValue: formData.id_estado_falta_profesional,
@@ -335,7 +352,8 @@ function ListasDesplegables({
     profesionales,
     showLabel,
     estado_falta_profesional,
-    especialidad
+    especialidad,
+    motivos
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -484,6 +502,15 @@ function ListasDesplegables({
                     formData={formData}
                     handleChange={handleChange}
                     especialidad={especialidad}
+                    styles={styles}
+                    showLabel={showLabel}
+                />
+            )}
+            {motivos && (
+                <MotivoSelector
+                    formData={formData}
+                    handleChange={handleChange}
+                    motivos={motivos}
                     styles={styles}
                     showLabel={showLabel}
                 />

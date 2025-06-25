@@ -12,7 +12,7 @@ export default function Avisos({ route }) {
 
     const [datos, setDatos] = useState([]);
     const [cursos, setCursos] = useState([]);
-    const [fechaFiltro, setFechaFiltro] = useState(''); // Estado para la fecha de filtro
+    const [fechaFiltro, setFechaFiltro] = useState('');
     const { width } = useWindowDimensions();
     const isMobile = width < 768;
 
@@ -66,6 +66,16 @@ export default function Avisos({ route }) {
         return coincideCurso && coincideFecha;
     });
 
+    const esHoy = (fechaStr) => {
+        const [dia, mes, anio] = fechaStr.split('-');
+        const hoy = new Date();
+        return (
+            hoy.getDate() === parseInt(dia, 10) &&
+            hoy.getMonth() + 1 === parseInt(mes, 10) &&
+            hoy.getFullYear() === parseInt(anio, 10)
+        );
+    };
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
@@ -99,6 +109,11 @@ export default function Avisos({ route }) {
                                 <View style={styles.encabezadoTarjeta}>
                                     <Text style={styles.fecha}>{aviso.fecha}</Text>
                                     <Text style={styles.curso}>{aviso.curso || 'General'}</Text>
+                                    {esHoy(aviso.fecha) && (
+                                        <View style={styles.badgeNuevo}>
+                                            <Text style={styles.badgeTexto}>Hoy</Text>
+                                        </View>
+                                    )}
                                 </View>
                                 <Text style={styles.textoAviso}>{aviso.informacion || 'No disponible'}</Text>
                                 <View style={styles.detallesContainer}>
@@ -272,5 +287,18 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#718096',
         textAlign: 'center',
+    },
+    badgeNuevo: {
+        backgroundColor: '#38a169',
+        borderRadius: 12,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        marginLeft: 8,
+    },
+    badgeTexto: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
     },
 });

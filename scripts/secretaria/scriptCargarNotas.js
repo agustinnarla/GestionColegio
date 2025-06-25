@@ -1,6 +1,6 @@
-
-const api_urlCargarNotas = 'http://localhost:5000/alumno/notas'
-const api_urlRegistrarNotas = 'http://localhost:5000/alumno/notas/alta'
+import { API_BASE_URL } from "../config"
+const api_urlCargarNotas = `${API_BASE_URL}/alumno/notas`
+const api_urlRegistrarNotas = `${API_BASE_URL}/alumno/notas/alta`
 
 /*
     CONSULTA A LA API PARA OBTENER NOTAS 

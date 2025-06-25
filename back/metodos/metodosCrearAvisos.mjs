@@ -1,8 +1,24 @@
 import {pool} from '../dataBase/coneccion.mjs'
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
+
+/* 
+        OBTENCIÓN DE MAIL
+*/
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
 
 // CrearAviso
 export const crearAviso = async (req, res) => {
     let { informacion, id_motivo, fecha, profesores = [], cursos = [], general, id_estado_general } = req.body;
+   
 
     // Determinar si el aviso es general
     if ((!cursos || cursos.length === 0) && (!profesores || profesores.length === 0)) {
@@ -20,17 +36,13 @@ export const crearAviso = async (req, res) => {
 
     try {
         // Validar y formatear la fecha
-        let fechaValida;
-        try {
-            fechaValida = new Date(fecha);
-            if (isNaN(fechaValida.getTime())) {
-                throw new Error('Fecha inválida');
-            }
-        } catch (error) {
+        // Validar formato YYYY-MM-DD con regex simple
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
             return res.status(400).json({ 
-                error: 'El formato de fecha es inválido. Use un formato ISO válido (YYYY-MM-DDTHH:MM:SS)' 
+                error: 'El formato de fecha es inválido. Use YYYY-MM-DD' 
             });
         }
+        const fechaValida = fecha; // Usar la fecha tal cual la recibís
 
         // Iniciar transacción
         const client = await pool.connect();
@@ -70,6 +82,30 @@ export const crearAviso = async (req, res) => {
                 );
             }
 
+            // Si hay cursos afectados, solo a esos cursos
+            let alumnos;
+            if (cursos && cursos.length > 0) {
+                const cursosInt = cursos.map(c => parseInt(c, 10));
+                alumnos = await pool.query(
+                    `SELECT a.dni_alumno, a.email_personal
+                    FROM alumno AS a
+                    INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno
+                    INNER JOIN curso AS c ON ac.id_curso = c.id_curso
+                    WHERE c.id_curso = ANY($1::int[])`,
+                    [cursosInt]
+                );
+            } else {
+                // Si es aviso general, a todos los alumnos
+                alumnos = await pool.query(
+                    `SELECT dni_alumno, email_personal FROM alumno`
+                );
+            }
+
+            // Enviar email a cada alumno
+            for (const alumno of alumnos.rows) {
+                await enviarEmailAviso(alumno.dni_alumno, alumno.email_personal, informacion);
+            }
+
             await client.query('COMMIT');
 
             res.status(201).json({
@@ -81,6 +117,7 @@ export const crearAviso = async (req, res) => {
                 }
             });
         } catch (error) {
+            console.error('Error al crear el aviso:', error);
             await client.query('ROLLBACK');
             throw error;
         } finally {
@@ -119,3 +156,26 @@ export const obtenerMotivos = async (req, res) => {
         });
     }
 };
+
+
+const enviarEmailAviso = async (dni_alumno, email_personal, informacion) => {
+    try {
+        // Configurar el email
+        const mailOptions = {
+            from: 'arlaagustin1@gmail.com',
+            to: [email_personal].filter(Boolean).join(', '),
+            subject: 'Nuevo Aviso Registrados',
+            html: `
+                <h2>Nuevo Aviso Registrado</h2>
+                <p><strong>Alumno:</strong> ${dni_alumno}</p>
+                <p><strong>Información:</strong> ${informacion}</p>
+                <p>Por favor, revise los avisos en el sistema.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error("Error al enviar el email de notificación", error);
+    }
+};
+

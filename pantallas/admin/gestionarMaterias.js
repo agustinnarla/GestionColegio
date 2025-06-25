@@ -296,85 +296,85 @@ export default function GestionarMaterias() {
 
   return (
          <View style={styles.padre}>
-             <Image source={bg} style={styles.bg} />
-             <View style={styles.formulario}>
-                 <Text style={styles.titulo}>Gestión de Materias</Text>
-                 <View style={styles.fila}>
-                     {/* Columna izquierda: Picker de tareas y agregar */}
-                     <View style={styles.columna}>
-                         <Text style={styles.label}>Materia:</Text>
-                         <View style={styles.pickerContainer}>
-                             <Picker
-                                 selectedValue={selectedMateria}
-                                 onValueChange={handleMateriaChange}
-                                 style={styles.inputPicker}
-                             >
-                                 <Picker.Item label="Seleccionar una Materia" value="" />
-                                 {materias.map((materia) => (
-                                     <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
-                                 ))}
-                             </Picker>
-                             <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
-                                 <Text style={styles.textoBotonAgregar}>+</Text>
-                             </TouchableOpacity>
-                         </View>
-                         <Text style={styles.label}>Profesores asignables:</Text>
-                         <View style={styles.seleccionadasContainer}>
-                             <MultiSelect
-                                items={profesores} // Lista de profesores disponibles
-                                uniqueKey="key" // Clave única para cada profesor
-                                onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)} // Actualiza los profesores seleccionados
-                                selectedItems={selectedProfesores} // Profesores seleccionados
-                                selectText="Seleccionar Profesores"
-                                searchInputPlaceholderText="Buscar..."
-                                displayKey="value" // Clave para mostrar el nombre del profesor
-                                submitButtonColor="#48d22b"
-                                submitButtonText="Seleccionar"
-                                styleDropdownMenu={styles.dropdown}
+            <Image source={bg} style={styles.bg} />
+            <View style={styles.formulario}>
+                <Text style={styles.titulo}>Gestión de Materias</Text>
+                <View style={styles.fila}>
+                    {/* Columna izquierda: Picker de tareas y agregar */}
+                    <View style={styles.columna}>
+                        <Text style={styles.label}>Materia:</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={selectedMateria}
+                                onValueChange={handleMateriaChange}
+                                style={styles.inputPicker}
+                            >
+                                <Picker.Item label="Seleccionar una Materia" value="" />
+                                {materias.map((materia) => (
+                                    <Picker.Item key={materia.key} label={materia.value} value={materia.key} />
+                                ))}
+                            </Picker>
+                            <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
+                                <Text style={styles.textoBotonAgregar}>+</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.label}>Profesores asignables:</Text>
+                        <View style={styles.seleccionadasContainer}>
+                            <MultiSelect
+                            items={profesores} // Lista de profesores disponibles
+                            uniqueKey="key" // Clave única para cada profesor
+                            onSelectedItemsChange={(selectedItems) => setSelectedProfesores(selectedItems)} // Actualiza los profesores seleccionados
+                            selectedItems={selectedProfesores} // Profesores seleccionados
+                            selectText="Seleccionar Profesores"
+                            searchInputPlaceholderText="Buscar..."
+                            displayKey="value" // Clave para mostrar el nombre del profesor
+                            submitButtonColor="#48d22b"
+                            submitButtonText="Seleccionar"
+                            styleDropdownMenu={styles.dropdown}
+                        />
+                        </View>
+                    </View>
+                    {/* Columna derecha: Acciones */}
+                    <View style={styles.columna}>
+                        <TouchableOpacity style={styles.botonAlta} onPress={cargarMateriaProfesor}>
+                            <Text style={styles.textoBoton}>Registrar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarMateria}>
+                            <Text style={styles.textoBoton}>Eliminar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                            <Text style={styles.textoBoton}>Modificar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}>
+                            <Text style={styles.textoBoton}>Limpiar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                {/* Modal para agregar materia */}
+                <Modal visible={modalVisible} transparent animationType="slide">
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.titulo}>Nueva Materia</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Ingrese nombre de la materia"
+                                value={nuevaMateria}
+                                onChangeText={setNuevaMateria}
                             />
-                         </View>
-                     </View>
-                     {/* Columna derecha: Acciones */}
-                     <View style={styles.columna}>
-                         <TouchableOpacity style={styles.botonAlta} onPress={cargarMateriaProfesor}>
-                             <Text style={styles.textoBoton}>Registrar</Text>
-                         </TouchableOpacity>
-                         <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarMateria}>
-                             <Text style={styles.textoBoton}>Eliminar</Text>
-                         </TouchableOpacity>
-                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
-                             <Text style={styles.textoBoton}>Modificar</Text>
-                         </TouchableOpacity>
-                         <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}>
-                             <Text style={styles.textoBoton}>Limpiar</Text>
-                         </TouchableOpacity>
-                     </View>
-                 </View>
-                 {/* Modal para agregar materia */}
-                 <Modal visible={modalVisible} transparent animationType="slide">
-                     <View style={styles.modalContainer}>
-                         <View style={styles.modalContent}>
-                             <Text style={styles.titulo}>Nueva Materia</Text>
-                             <TextInput
-                                 style={styles.input}
-                                 placeholder="Ingrese nombre de la materia"
-                                 value={nuevaMateria}
-                                 onChangeText={setNuevaMateria}
-                             />
-                             <View style={styles.botonesModal}>
-                                 <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarMateria}>
-                                     <Text style={styles.textoBoton}>Registrar</Text>
-                                 </TouchableOpacity>
-                                 <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
-                                     <Text style={styles.textoBoton}>Cancelar</Text>
-                                 </TouchableOpacity>
-                             </View>
-                         </View>
-                   
-                     </View>
-                 </Modal>
-                 {/* Modal para modificar materias */}
-                 <Modal visible={modalModificarVisible} transparent animationType="slide">
+                            <View style={styles.botonesModal}>
+                                <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarMateria}>
+                                    <Text style={styles.textoBoton}>Registrar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
+                                    <Text style={styles.textoBoton}>Cancelar</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                
+                    </View>
+                </Modal>
+                {/* Modal para modificar materias */}
+                <Modal visible={modalModificarVisible} transparent animationType="slide">
     <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
             <Text style={styles.titulo}>Modificar Materias</Text>

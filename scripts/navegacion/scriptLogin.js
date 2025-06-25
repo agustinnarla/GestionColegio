@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { Alert } from 'react-native';
+
 import { API_BASE_URL } from '../config.js';
+
 
 const api_urlLogin = `${API_BASE_URL}/usuario/ingresar`;
 const api_urlOlvideMiContraseña = `${API_BASE_URL}/usuario/recuperarContrasena`;
-
 
 // 🟢
 export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostrarMensaje) => {
@@ -22,7 +22,7 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
         if (response.status === 200) {
             const { usuario } = response.data;
             const { id_rol } = usuario;
-
+            
             mostrarMensaje('Éxito', 'Login exitoso');
             navigation.navigate('BottomTab', { 
                 id_rol: id_rol,

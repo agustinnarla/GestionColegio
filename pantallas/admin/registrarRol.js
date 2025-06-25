@@ -6,6 +6,7 @@ import { Picker } from '@react-native-picker/picker';
 import { obtenerRolesDeshabilitados, obtenerTareasDeRoles, obtenerTareas, obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { registrarRol, deshabilitarRol, habilitarRol} from '../../scripts/admin/scriptCargarRol';
 import { registrarTareaRol ,registrarRolTarea } from '../../scripts/admin/scriptTareasRol';
+import CustomAlert from '../../componente/CustomAlerts';
 
 export default function RegistrarRol() {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -13,11 +14,31 @@ export default function RegistrarRol() {
     const [roles, setRoles] = useState([]);
     const [selectedRol, setSelectedRol] = useState('');
     const [rolesDeshabilitados, setRolesDeshabilitados] = useState([]);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [modalAgregar, setModalAgregar] = useState(false);
     const [nuevoRol, setNuevoRol] = useState("");
-    const [modalModificarVisible, setModalModificarVisible] = useState(false);
+    const [modalModificar, setModalModificar] = useState(false);
     const [tareasOriginales, setTareasOriginales] = useState([]);
 
+
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [onConfirm, setOnConfirm] = useState(null);
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+    const mostrarConfirmacion = (titulo, mensaje, accionConfirmar) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setOnConfirm(() => accionConfirmar);
+        setAlertVisible(true);
+    };
+    
     const cargarTareas = async () => {
         try {
             const tareasObtenidas = await obtenerTareas();
@@ -68,7 +89,6 @@ export default function RegistrarRol() {
     };
 
     const handleRegistrarRol = async () => {
-        
         try {
             const response = await registrarRol(nuevoRol);
             if (response && response.data) {
@@ -80,19 +100,21 @@ export default function RegistrarRol() {
                     value: response.data.id_rol?.toString(),
                 };
                 setRoles([...roles, nuevoRolFormateado]);
-    
+                mostrarMensaje('Exito', 'Rol registrado exitosamente');
                 // Limpiar el campo y cerrar el modal
                 setNuevoRol('');
-                setModalVisible(false);
-    
+                setModalAgregar(false);
+
                 // Recargar roles y tareas desde la base de datos
                 await cargarRoles();
                 await cargarTareas();
+                limpiarInterfaz()
             } else {
                 console.error('Error al registrar el rol');
             }
         } catch (error) {
             console.error('Error al registrar el rol:', error);
+            mostrarMensaje('Error', 'Error al registrar el rol');
         }
     };
 
@@ -148,18 +170,20 @@ export default function RegistrarRol() {
     
                 // Llamar a registrarRolTarea con el arreglo de relaciones
                 const result = await registrarTareaRol(relaciones);
-    
+                limpiarInterfaz()
                 // Verificar el mensaje de la respuesta
                 if (result && result.mensaje) {
                     console.log(result.mensaje); // Muestra el mensaje de éxito en la consola
-                    alert('Todas las relaciones se registraron correctamente'); // Mensaje de éxito general
-                } else {
+                    mostrarMensaje('Exito', 'Las relaciones se registraron correctamente');
+    
+                } 
+                    else {
                     console.error('Hubo un error al registrar las relaciones');
-                    alert('Hubo un error al registrar algunas relaciones');
+                    mostrarMensaje('Error', 'Error al registrar las relaciones');
                 }
             } catch (error) {
                 console.error('Error al registrar las relaciones:', error);
-                alert('Hubo un error al registrar algunas relaciones');
+                mostrarMensaje('Error', 'Error al registrar las relaciones');
             }
     
             // Recargar datos después de registrar
@@ -172,62 +196,32 @@ export default function RegistrarRol() {
     };
 
     //DESHABILITAR ROL
-    const handleDeshabilitarRol = async () => {
+    const handleDeshabilitarRol = () => {
         if (!selectedRol) {
-            console.warn("No hay rol seleccionado para deshabilitar.");
+            mostrarMensaje('Advertencia', 'No hay un rol seleccionado');
             return;
         }
-    
-        // Verifica si está en un navegador o en una app móvil
-        if (typeof window !== 'undefined' && window.confirm) {
-            const confirmar = window.confirm("¿Seguro que quiere deshabilitar el rol?");
-            if (confirmar) {
+        mostrarConfirmacion(
+            'Confirmación',
+            '¿Seguro que quiere deshabilitar el rol?',
+            async () => {
                 try {
                     const respuesta = await deshabilitarRol(selectedRol);
-                    if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') { // Aquí se usa 'mensaje' en lugar de 'ok'
+                    if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') {
                         setSelectedRol(null);
-                        console.log("Rol deshabilitado correctamente");
+                        mostrarMensaje('Éxito', 'Rol deshabilitado exitosamente');
                     } else {
-                        throw new Error(respuesta.mensaje || "Error al deshabilitar el rol");
+                        mostrarMensaje('Error', respuesta.mensaje || 'Error al deshabilitar el rol');
                     }
                 } catch (error) {
-                    console.error("Error al deshabilitar el rol:", error);
+                    mostrarMensaje('Error', 'Error al deshabilitar el rol');
                 }
-            } else {
-                console.log("Operación cancelada");
+                cargarTareas();
+                cargarRoles();
+                cargarRolesDeshabilitados();
+                limpiarInterfaz()
             }
-        } else {
-            Alert.alert(
-                "Confirmación",
-                "¿Seguro que quiere deshabilitar el rol?",
-                [
-                    {
-                        text: "Cancelar",
-                        onPress: () => console.log("Cancelado"),
-                        style: "cancel"
-                    },
-                    {
-                        text: "Confirmar",
-                        onPress: async () => {
-                            try {
-                                const respuesta = await deshabilitarRol(selectedRol);
-                                if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') { // Verifica el mensaje aquí también
-                                    setSelectedRol(null);
-                                    console.log("Rol deshabilitado correctamente");
-                                } else {
-                                    throw new Error(respuesta.mensaje || "Error al deshabilitar el rol");
-                                }
-                            } catch (error) {
-                                console.error("Error al deshabilitar el rol:", error);
-                            }
-                        }
-                    }
-                ]
-            );
-        }
-        cargarTareas();
-        cargarRoles();
-        cargarRolesDeshabilitados();
+        );
     };
     
     //SWITCH DEL MODAL
@@ -254,18 +248,22 @@ export default function RegistrarRol() {
                 habilitarRol(rol.id_rol)
             )
         );
-        alert('Roles actualizados exitosamente.');
+        mostrarMensaje('Exito', 'Roles habilitados exitosamente')
     } catch (error) {
         console.error('Error al habilitar roles:', error);
-        alert('Ocurrió un error al actualizar los roles.');
+        mostrarMensaje('Error', 'Error al habilitar el rol')
     }
-    setModalModificarVisible(false);
+    setModalModificar(false);
     await cargarRolesDeshabilitados();
     await cargarRoles();
     await cargarTareas();
 };
     
-    
+    const limpiarInterfaz = () => {
+    setSelectedItems([])
+    setSelectedRol('');
+    }; 
+
     useEffect(() => {
         cargarTareas();
         cargarRoles();
@@ -293,7 +291,7 @@ export default function RegistrarRol() {
                                     <Picker.Item key={rol.value} label={rol.label} value={rol.value} />
                                 ))}
                             </Picker>
-                            <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
+                            <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalAgregar(true)}>
                                 <Text style={styles.textoBotonAgregar}>+</Text>
                             </TouchableOpacity>
                         </View>
@@ -321,19 +319,16 @@ export default function RegistrarRol() {
                         <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarRol}>
                             <Text style={styles.textoBoton}>Eliminar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
+                        <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificar(true)}>
                             <Text style={styles.textoBoton}>Modificar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonLimpiar} onPress={() => {
-                            setSelectedRol('');
-                            setSelectedItems([]);
-                        }}>
+                        <TouchableOpacity style={styles.botonLimpiar} onPress={(limpiarInterfaz)}>
                             <Text style={styles.textoBoton}>Limpiar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
                 {/* Modal para agregar tarea */}
-                <Modal visible={modalVisible} transparent animationType="slide">
+                <Modal visible={modalAgregar} transparent animationType="slide">
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <Text style={styles.titulo}>Nuevo Rol</Text>
@@ -347,15 +342,16 @@ export default function RegistrarRol() {
                                 <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarRol}>
                                     <Text style={styles.textoBoton}>Registrar</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
+                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalAgregar(false)}>
                                     <Text style={styles.textoBoton}>Cancelar</Text>
                                 </TouchableOpacity>
                             </View>
+                            
                         </View>
                     </View>
                 </Modal>
                 {/* Modal para modificar tareas deshabilitadas */}
-                <Modal visible={modalModificarVisible} transparent={true} animationType="slide">
+                <Modal visible={modalModificar} transparent={true} animationType="slide">
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <Text style={styles.titulo}>Modificar roles deshabilitadas</Text>
@@ -370,7 +366,7 @@ export default function RegistrarRol() {
                                     </View>
                                 ))}
                             <View style={styles.botonesModal}>
-                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalModificarVisible(false)}>
+                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalModificar(false)}>
                                     <Text style={styles.textoBoton}>Cancelar</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.botonAlta} onPress={handleConfirmarRoles}>
@@ -381,6 +377,19 @@ export default function RegistrarRol() {
                     </View>
                 </Modal>
             </View>
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => {
+                    setAlertVisible(false);
+                    setOnConfirm(null); // Limpia el callback al cerrar
+                }}
+                title={alertTitle}
+                message={alertMessage}
+                showConfirm={!!onConfirm}
+                onConfirm={onConfirm}
+                confirmText="Confirmar"
+                cancelText="Cancelar"
+            />
         </View>
     );
 }

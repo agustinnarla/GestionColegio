@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity, Alert, Button } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import { obtenerMotivos, obtenerCurso, obtenerProfesores, obtenerEstadoGeneral} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerAvisosCurso, obtenerAvisosGenerales } from '../../scripts/alumno/scriptAvisos.js';
 import { obtenerAvisos, crearAvisos} from '../../scripts/secretaria/scriptCargarAvisos';
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
@@ -22,7 +22,8 @@ export default function Avisos() {
   const [estado_general, setEstadoGeneral] = useState([]);
 
   const [formData, setFormData] = useState({
-    id_estado_general: ''
+    id_estado_general: '',
+    id_motivo: '',
   })
 
     // En tu componente:
@@ -63,15 +64,15 @@ export default function Avisos() {
   };
 
  
-          const cargarEstadoGeneral = async () => {
-              try {
-                 
-                  const estadoData = await obtenerEstadoGeneral();
-                  setEstadoGeneral(estadoData);
-              } catch (error) {
-                  Alert.alert('Error', error.message);
-              }
-          };
+    const cargarEstadoGeneral = async () => {
+        try {
+            
+            const estadoData = await obtenerEstadoGeneral();
+            setEstadoGeneral(estadoData);
+        } catch (error) {
+            Alert.alert('Error', error.message);
+        }
+    };
   
   
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function Avisos() {
     cargarCursos();
     cargarMotivos();
     cargarEstadoGeneral();
+    cargarAvisos();
   }, []); // Solo se ejecuta al montar el componente
 
   const cargarProfesores = async () => {
@@ -133,27 +135,7 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
     try {
       const response = await obtenerMotivos();
       console.log("Respuesta de motivos:", response);
-  
-      // Verifica si response es un array o si está dentro de una propiedad
-      let motivosArray = Array.isArray(response) ? response : response?.motivos || [];
-  
-      if (motivosArray.length > 0) {
-        const motivosFormateados = motivosArray.map((mot, index) => ({
-          key: mot.id_motivo ? mot.id_motivo.toString() : index.toString(),
-          value: mot.detalle || mot.nombre || "Motivo sin nombre" // Ajusta según el campo real
-        }));
-  
-        console.log("Motivos formateados:", motivosFormateados);
-        setMotivosData(motivosFormateados);
-  
-        // Solo establece el primer motivo si hay motivos disponibles
-        if (motivosFormateados.length > 0 && !motivo) {
-          setMotivo(motivosFormateados[0].value);
-        }
-      } else {
-        console.log("No se recibieron motivos o el array está vacío");
-        setMotivosData([{key: '0', value: 'No hay motivos disponibles'}]);
-      }
+      setMotivosData(response);
     } catch (error) {
       console.error("Error al cargar motivos:", error);
       setMotivosData([{key: '0', value: 'Error al cargar motivos'}]);
@@ -161,97 +143,72 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
   };
 
   const agregarAviso = async () => {
-    if (informacion && motivo && fechaTexto) {
-        try {
-            // Formatear la fecha del estado a YYYY-MM-DD para el backend
-            const fechaISO = fecha.toISOString().split('T')[0];
-            
-            // Obtener el ID del motivo como número
-            const motivoSeleccionado = motivosData.find(m => m.value === motivo);
-            if (!motivoSeleccionado) {
-                throw new Error('No se encontró el motivo seleccionado');
-            }
-            const idMotivo = parseInt(motivoSeleccionado.key, 10);
-            
-            // Preparar los datos para el backend
-            const datosParaBackend = {
-                informacion: informacion,
-                id_motivo: idMotivo, // Número, no string
-                fecha: fechaISO, // Formato YYYY-MM-DD
-                id_estado_general: formData.id_estado_general, // Asegúrate de que este campo esté en formData
-                profesores: profesor, // Array de DNIs
-                cursos: cursosAfectados // Array de IDs de cursos
-            };
-
-            console.log('Datos a enviar al backend:', datosParaBackend);
-
-            // Enviar al backend
-            const respuesta = await crearAvisos(datosParaBackend);
-            
-            // Crear aviso para el estado local
-            const nuevoAviso = {
-                id: respuesta.id_avisos || Date.now(),
-                informacion: `Información: ${informacion}`,
-                motivo: `Motivo: ${motivo}`,
-                profesor: profesor.length > 0 
-                    ? `Profesor(es): ${profesor.map(id => {
-                        const prof = profesoresData.find(p => p.key === id);
-                        return prof ? prof.value : id;
-                    }).join(', ')}` 
-                    : 'Profesor(es): Sin asignar',
-                cursos: cursosAfectados.length > 0 
-                    ? `Cursos: ${cursosAfectados.map(id => {
-                        const curso = cursosData.find(c => c.key === id);
-                        return curso ? curso.value : id;
-                    }).join(', ')}` 
-                    : 'Cursos: Sin asignar',
-                fecha: `${fecha} ${new Date().toLocaleTimeString('es-ES', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}`
-            };
-
-            setAvisos(prev => [...prev, nuevoAviso]);
-            Alert.alert('Éxito', 'Aviso creado correctamente');
-            limpiarFormulario();
-
-        } catch (error) {
-            console.error('Error al crear aviso:', error);
-            Alert.alert('Error', error.message || 'Error al crear el aviso');
+    if (informacion && fechaTexto) {
+      try {
+        // Convierte la fecha del input a YYYY-MM-DD
+        let fechaISO = fechaTexto;
+        if (fechaTexto.includes('/')) {
+          // Si el usuario escribe DD/MM/YYYY, conviértelo
+          const partes = fechaTexto.split('/');
+          if (partes.length === 3) {
+            fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`;
+          }
         }
+
+        const datosParaBackend = {
+          informacion,
+          id_motivo: formData.id_motivo,
+          fecha: fechaISO,
+          id_estado_general: formData.id_estado_general,
+          profesores: profesor,
+          cursos: cursosAfectados
+        };
+
+        console.log('Datos a enviar al backend:', datosParaBackend);
+
+        const respuesta = await crearAvisos(datosParaBackend);
+        console.log('Respuesta del backend:', respuesta);
+        cargarAvisos();
+        Alert.alert('Éxito', 'Aviso creado correctamente');
+        limpiarInterfaz();
+
+      } catch (error) {
+        console.error('Error al crear aviso:', error);
+        Alert.alert('Error', error.message || 'Error al crear el aviso');
+      }
     } else {
-        Alert.alert('Error', 'Complete todos los campos obligatorios');
+      console.error('Completar');
+      Alert.alert('Error', 'Complete todos los campos obligatorios');
     }
 };
 
-  const cargarAvisos = async () => {
+const cargarAvisos = async () => {
     try {
         setCargandoAvisos(true);
         setErrorAvisos(null);
-        
-        const avisosObtenidos = await obtenerAvisos();
-        console.log("Datos recibidos del backend:", avisosObtenidos);
 
-        // Formatear los datos para la pantalla principal
-        const avisosFormateados = avisosObtenidos.map(aviso => ({
-            id: aviso.id_avisos || Date.now(), // Si no viene id, usamos timestamp como temporal
-            informacion: `Información: ${aviso.informacion}`,
-            motivo: `Motivo: ${aviso.motivo}`,
-            
-            // Manejo de profesores con mensaje específico
-            profesor: aviso.profesores !== 'Sin profesores asignados' 
-                ? `Profesor(es): ${aviso.profesores}`
-                : 'Profesores: Sin profesores asignados',
-            
-            // Manejo de cursos con mensaje específico
-            cursos: aviso.cursos !== 'Sin cursos asignados'
-                ? `Curso(s): ${aviso.cursos}`
-                : 'Cursos: Sin cursos asignados',
-            
-            fecha: aviso.fecha
-        }));
+        const avisosObtenidosGenerales = await obtenerAvisosGenerales();
+        console.log("Datos recibidos del backend:", avisosObtenidosGenerales);
 
-        setAvisos(avisosFormateados);
+        // Accede al array de avisos correctamente
+        const listaAvisos = Array.isArray(avisosObtenidosGenerales)
+            ? avisosObtenidosGenerales
+            : avisosObtenidosGenerales.avisos || [];
+
+        // Filtrar por fecha mayor o igual a hoy
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); // Ignora la hora
+
+        const avisosFiltrados = listaAvisos.filter(aviso => {
+            if (!aviso.fecha) return false;
+            // Convertir "DD-MM-YYYY" a Date
+            const [dia, mes, anio] = aviso.fecha.split('-');
+            const fechaAviso = new Date(`${anio}-${mes}-${dia}T00:00:00`);
+            return fechaAviso >= hoy;
+        });
+
+
+        setAvisos(avisosFiltrados);
     } catch (error) {
         console.error('Error al cargar avisos:', error);
         setErrorAvisos('No se pudieron cargar los avisos. Intente nuevamente.');
@@ -261,7 +218,7 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
     }
 };
 
-  const limpiarFormulario = () => {
+  const limpiarInterfaz = () => {
     setInformacion('');
     setMotivo('');
     setProfesor([]);
@@ -294,34 +251,28 @@ const handleChange = (name, value) => {
             <Text style={styles.label}>Fecha</Text>
             <TextInput
               style={styles.input}
-              placeholder="DD/MM/AAAA"
+              placeholder="AAAA-MM-DD"
               value={fechaTexto}
               onChangeText={setFechaTexto}
               keyboardType="numeric"
               maxLength={10}
             />
-
-            <Text style={styles.label}>Motivo</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={motivo}
-                onValueChange={(itemValue) => setMotivo(itemValue)}
-                style={styles.picker}
-              >
-                {motivosData.map((mot) => (
-                  <Picker.Item key={mot.key} label={mot.value} value={mot.value} />
-                ))}
-              </Picker>
-            </View>
-
             
-             <ListasDesplegables
-                 formData={formData}
-                 handleChange={handleChange}
-                 estado_general={estado_general}
-                 styles={styles}
-                 showLabel={true}
-             />  
+            <ListasDesplegables
+                formData={formData}
+                handleChange={handleChange}
+                motivos={motivosData}
+                styles={styles}
+                showLabel={true}
+            />  
+
+            <ListasDesplegables
+                formData={formData}
+                handleChange={handleChange}
+                estado_general={estado_general}
+                styles={styles}
+                showLabel={true}
+            />  
 
             <Text style={styles.label}>Profesores Afectados</Text>
             <MultipleSelectList
@@ -356,13 +307,13 @@ const handleChange = (name, value) => {
             {avisos.length === 0 ? (
               <Text style={styles.textoSinAvisos}>No hay avisos disponibles</Text>
             ) : (
-              avisos.map((aviso) => (
-                <View key={aviso.id} style={styles.tarjeta}>
-                  <Text style={styles.textoAviso}>{aviso.informacion}</Text>
-                  <Text style={styles.textoMotivo}>{aviso.motivo}</Text>
-                  {aviso.profesor && <Text style={styles.textoMotivo}>{aviso.profesor}</Text>}
-                  {aviso.cursos && <Text style={styles.textoMotivo}>{aviso.cursos}</Text>}
-                  <Text style={styles.textoDH}>{aviso.fecha}</Text>
+              avisos.map((avisos) => (
+                <View key={avisos.id} style={styles.tarjeta}>
+                  <Text style={styles.textoAviso}>{avisos.informacion}</Text>
+                  <Text style={styles.textoMotivo}>Motivo: {avisos.detalle}</Text>
+                  {avisos.profesor && <Text style={styles.textoMotivo}>{avisos.profesor}</Text>}
+                  {avisos.cursos && <Text style={styles.textoMotivo}>{avisos.cursos}</Text>}
+                  <Text style={styles.textoDH}>{avisos.fecha}</Text>
                 </View>
               ))
             )}

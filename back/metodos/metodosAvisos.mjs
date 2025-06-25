@@ -7,8 +7,8 @@ export const obtenerAvisosGenerales = async (req, res) => {
         `SELECT a.informacion, m.detalle, TO_CHAR(a.fecha, 'DD-MM-YYYY') AS fecha
         FROM avisos a
         INNER JOIN motivos m ON m.id_motivo = a.id_motivo
-        WHERE a.id_estado_general = 1 AND a.general = true
-        ORDER BY a.fecha DESC`
+        WHERE a.id_estado_general = 1 AND a.general = true AND a.fecha >= CURRENT_DATE
+        ORDER BY a.fecha ASC`
       );
 
       if (!respuesta.rows || respuesta.rows.length === 0) {
@@ -37,8 +37,8 @@ export const obtenerAvisosCurso = async (req, res) => {
             INNER JOIN profesional p ON p.dni_profesional = ap.dni_profesional
             INNER JOIN alumno_curso al ON al.id_curso = ac.id_curso
             INNER JOIN alumno am ON am.dni_alumno = al.dni_alumno
-            WHERE a.id_estado_general = 1 AND am.dni_alumno = $1 AND ac.id_curso = al.id_curso 
-            ORDER BY a.fecha DESC
+            WHERE a.id_estado_general = 1 AND am.dni_alumno = $1 AND ac.id_curso = al.id_curso AND a.fecha >= CURRENT_DATE
+            ORDER BY a.fecha ASC
             `,
             [dni_alumno]
         );

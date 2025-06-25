@@ -1,5 +1,6 @@
-import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
+import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground, Platform } from 'react-native';
 import React, { useState } from 'react';
+
 import { FontAwesome5 } from '@expo/vector-icons';
 import { ingresarUsuario, olvideMiContrasena } from '../scripts/navegacion/scriptLogin.js';
 import bg from '../assets/bg1.jpg';
@@ -30,8 +31,8 @@ export default function Login(props) {
                 mostrarMensaje('Error', 'Cuenta bloqueada por múltiples intentos fallidos. Espere 5 segundos.');
                 setTimeout(() => {
                     setBloqueado(false);
-                    setIntentosFallidos(0); // Reiniciar intentos después del bloqueo
-                }, 5000); // 5 segundos
+                    setIntentosFallidos(0); 
+                }, 5000); 
             }
             return nuevosIntentos;
         });
@@ -45,7 +46,8 @@ export default function Login(props) {
         try {
             const response = await ingresarUsuario(dniUsuario, contrasena, props.navigation, mostrarMensaje);
             if (response?.success) {  
-                setIntentosFallidos(0);  
+                setIntentosFallidos(0);
+
             } else {
                 capturarIntentos();
                 mostrarMensaje('Error', response?.message || 'Usuario o Contraseña incorrectos.');

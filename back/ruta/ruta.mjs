@@ -167,6 +167,7 @@ ruta.put('/profesor/materia/deshabilitar/:id_materia', deshabilitarMateriaProfes
 ruta.get('/usuario/perfil/:dni_usuario', obtenerUsuario) // 🟢
 ruta.post('/usuario/perfil/restablecerContrasena/:dni_usuario', restablecerContrasena) // 🟢
 
+
 // == REGISTRAR USUARIO 
 ruta.get('/usuario/registrar/consultar/:dni_usuario', consultarUsuario) // 🟢
 ruta.post('/usuario/registrar', registrarUsuario) // 🟢

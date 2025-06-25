@@ -1,7 +1,6 @@
-const api_UrlProfesor = 'http://localhost:5000/profesor'
-const api_urlCurso = 'http://localhost:5000/curso'
-const api_urlAvisos = 'http://localhost:5000/secretaria/aviso/alta'
-const api_UrlMotivos = 'http://localhost:5000/motivos'
+
+const api_urlAvisosAlta = 'http://localhost:5000/secretaria/aviso/alta'
+
 
 
 
@@ -27,7 +26,7 @@ export const crearAvisos = async (formData) => {
 
         console.log('Enviando datos al servidor:', requestBody);
 
-        const respuesta = await fetch(`${api_urlAvisos}`, {
+        const respuesta = await fetch(`${api_urlAvisosAlta}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -47,25 +46,6 @@ export const crearAvisos = async (formData) => {
     } catch (error) {
         console.error("Error al crear el aviso:", error);
         throw error; // Reenviar el error original
-    }
-};
-
-export const obtenerAvisos = async () => {
-    try {
-        const respuesta = await fetch(`${api_UrlAvisos}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (!respuesta.ok) {
-            throw new Error('Error al obtener los avisos');
-        }
-        const data = await respuesta.json();
-        return data;
-    } catch (error) {
-        console.error('Error en obtenerAvisos:', error);
-        throw error; // Re-lanzamos el error para manejo superior
     }
 };
 
