@@ -158,7 +158,7 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
         const datosParaBackend = {
           informacion,
           id_motivo: formData.id_motivo,
-          fecha: fechaISO,
+          fecha_aviso: fechaISO,
           id_estado_general: formData.id_estado_general,
           profesores: profesor,
           cursos: cursosAfectados

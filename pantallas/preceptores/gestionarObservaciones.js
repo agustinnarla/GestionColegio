@@ -10,6 +10,7 @@ import ScrollContainer from '../../componente/ScrollContainer.jsx';
 import { ImageBackground } from 'react-native-web';
 
 export default function GestionarObservaciones() {
+    
     // Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
@@ -86,7 +87,7 @@ export default function GestionarObservaciones() {
             console.log('Datos de la observación', alumnoData);
     
             const respuesta = await registrarObservacion(alumnoData);
-            mostrarMensaje('Observación registrada correctamente');
+            mostrarMensaje('Exito','Observación registrada correctamente');
             console.log('Observación Registrada:', respuesta);
     
             setModalVisible(true); // Abrir el modal después de registrar la observación
@@ -103,7 +104,7 @@ export default function GestionarObservaciones() {
             const profesionalSeleccionado = profesional.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
 
             const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
-            mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
+            mostrarMensaje('Éxito', `PDF generado correctamente`);
             
             if (Platform.OS === 'web') {
                 window.open(rutaPDF);
@@ -118,13 +119,13 @@ export default function GestionarObservaciones() {
 
     const validarFecha = (fecha) => {
         // Verificar formato DD-MM-AAAA
-        const regex = /^\d{2}-\d{2}-\d{4}$/;
+        const regex = /^\d{2}\/\d{2}\/\d{4}$/;
         if (!regex.test(fecha)) {
             return false;
         }
     
         // Dividir la fecha en día, mes y año
-        const [dia, mes, año] = fecha.split('-').map(Number);
+        const [dia, mes, año] = fecha.split('/').map(Number);
     
         // Crear un objeto de fecha y verificar si es válida
         const fechaValida = new Date(año, mes - 1, dia);
@@ -151,33 +152,21 @@ export default function GestionarObservaciones() {
         return true;
     };
 
-      // Formatear fecha en formato AAAA-MM-DD
+      // Formatear fecha en formato AAAA/MM/DD
     const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('-');
-        return `${año}-${mes}-${dia}`;
+        const [dia, mes, año] = fecha.split('/');
+        return `${año}/${mes}/${dia}`;
     };
 
     const validarFormulario = useMemo(() => validarCampos(), [formData]);
 
     // Cargar cursos y solicitantes
     useEffect(() => {
-        const cargarDatos = async () => {
+        const cargarListaDesplegable = async () => {
             try {
                 const cursosData = await obtenerCurso();
                 const profesionalData = await obtenerProfesionales();
-                setCursos(cursosData);
-                setProfesional(profesionalData);
-            } catch (error) {
-                Alert.alert('Error', error.message);
-            }
-        };
-        cargarDatos();
-    }, []);
-
-    // Cargar alumnos cuando se selecciona un curso
-    useEffect(() => {
-        const cargarAlumnos = async () => {
-            if (formData.id_curso) {
+                if (formData.id_curso) {
                 try {
                     const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
                     setAlumnos(alumnosData);
@@ -185,9 +174,16 @@ export default function GestionarObservaciones() {
                     console.error('Error al cargar alumnos:', error);
                 }
             }
+                setCursos(cursosData);
+                setProfesional(profesionalData);
+            } catch (error) {
+                Alert.alert('Error', error.message);
+            }
         };
-        cargarAlumnos();
+        cargarListaDesplegable();
     }, [formData.id_curso]);
+
+    
 
     // Manejar cambios en el formulario
     const handleChange = (name, value) => {
@@ -210,7 +206,7 @@ export default function GestionarObservaciones() {
             <Text style={styles.label}>Fecha:</Text>
             <TextInput 
                 style={styles.input} 
-                placeholder="DD-MM-AAAA" 
+                placeholder="DD/MM/AAAA" 
                 keyboardType="number-pad" 
                 value={formData.fecha}  
                 onChangeText={(value) => handleChange('fecha', value)}

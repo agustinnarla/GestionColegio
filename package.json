@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.1",
+    "@expo/vector-icons": "^14.0.3",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "~8.0.1",
     "@react-native-picker/picker": "~2.7.5",
     "@react-navigation/bottom-tabs": "^6.5.20",
@@ -18,7 +20,11 @@
     "axios": "^1.7.2",
     "expo": "~51.0.21",
     "expo-document-picker": "~12.0.2",
+    "expo-file-system": "~17.0.1",
+    "expo-font": "~12.0.10",
     "expo-linear-gradient": "~13.0.2",
+    "expo-notifications": "~0.28.19",
+    "expo-sharing": "~12.0.1",
     "expo-status-bar": "~1.12.1",
     "firebase": "^10.12.2",
     "react": "18.2.0",
@@ -36,10 +42,7 @@
     "react-native-vector-icons": "^10.1.0",
     "react-native-web": "~0.19.10",
     "react-native-webview": "13.8.6",
-    "@expo/vector-icons": "^14.0.3",
-    "expo-font": "~12.0.10",
-    "@react-native-async-storage/async-storage": "1.23.1",
-    "expo-notifications": "~0.28.19"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

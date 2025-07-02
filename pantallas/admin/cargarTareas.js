@@ -7,6 +7,7 @@ import { obtenerRoles, obtenerTareas, obtenerRolesDeTarea, obtenerTareasDeshabil
 import { agregarTarea, deshabilitarTarea, habilitarTarea} from '../../scripts/admin/scriptCargarTareas';
 import { registrarRolTarea, registrarTareaRol} from '../../scripts/admin/scriptTareasRol';
 import { Picker } from '@react-native-picker/picker';
+import CustomAlert from '../../componente/CustomAlerts';
 
 export default function CargarTareas() {
     const [rolesDisponibles, setRolesDisponibles] = useState([]); // Lista de roles disponibles
@@ -17,6 +18,26 @@ export default function CargarTareas() {
     const [nuevaTarea, setNuevaTarea] = useState(''); // Estado para almacenar el nombre de la nueva tarea
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
     const [tareasDeshabilitadas, setTareasDeshabilitadas] = useState([]);
+
+
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [onConfirm, setOnConfirm] = useState(null);
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+    const mostrarConfirmacion = (titulo, mensaje, accionConfirmar) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setOnConfirm(() => accionConfirmar);
+        setAlertVisible(true);
+    };
 
     //CARGA LAS TAREAS DENTRO DEL COMBOBOX
     const cargarTareas = async () => {
@@ -78,6 +99,7 @@ export default function CargarTareas() {
             if (data && Array.isArray(data.roles)) {
                 const rolesSeleccionados = data.roles.map((rol) => rol.id_rol.toString()); // Convertir IDs a strings
                 setSelectedRoles(rolesSeleccionados); // Actualizar los roles seleccionados
+                
             } else {
                 console.error('El formato de roles obtenidos no es válido:', data);
                 setSelectedRoles([]); // Limpiar los roles seleccionados en caso de error
@@ -112,14 +134,14 @@ export default function CargarTareas() {
                 // Verificar el mensaje de la respuesta
                 if (result && result.mensaje) {
                     console.log(result.mensaje); // Muestra el mensaje de éxito en la consola
-                    alert('Todos los roles se asignaron correctamente a la tarea');
+                    mostrarMensaje('Exito', 'Todos los roles se asignaron exitosamente')
                 } else {
                     console.error('Hubo un error al registrar las relaciones');
-                    alert('Hubo un error al asignar algunos roles');
+                    mostrarMensaje('Error','Hubo un error al asignar algunos roles');
                 }
             } catch (error) {
                 console.error('Error al registrar las relaciones:', error);
-                alert('Hubo un error al asignar los roles a la tarea');
+                mostrarMensaje('Error','Hubo un error al asignar los roles a la tarea');
             }
     
             // Recargar datos después de registrar
@@ -127,6 +149,7 @@ export default function CargarTareas() {
             await cargarRoles();
             await cargarTareasDeshabilitadas();
             await cargarRolesTareas(selectedTarea); // Recargar los roles específicos de esta tarea
+            limpiarInterfaz()
         } else {
             alert('Selecciona una tarea y al menos un rol');
         }
@@ -160,10 +183,10 @@ export default function CargarTareas() {
                 )
             );
             console.log('Resultados de habilitar tareas:', resultados);
-            alert('Tareas habilitadas exitosamente.');
+            mostrarMensaje('Exito','Tareas habilitadas exitosamente.');
         } catch (error) {
             console.error('Error al habilitar tareas:', error);
-            alert('Ocurrió un error al habilitar las tareas.');
+            mostrarMensaje('Error','Ocurrió un error al habilitar las tareas.');
         }
         // Cierra el modal
         setModalModificarVisible(false);
@@ -183,26 +206,27 @@ export default function CargarTareas() {
     //DESHABILITA TAREA
     const eliminarTarea = async () => {
         if (!selectedTarea) {
-            alert('Por favor, selecciona una tarea para deshabilitar.');
+            mostrarMensaje('Advertencia','Por favor, selecciona una tarea para deshabilitar.');
             return;
         }
         try {
             const respuesta = await deshabilitarTarea(selectedTarea); // selectedTarea es el id_tarea
             if (respuesta) {
-                alert('Tarea deshabilitada exitosamente.');
+                mostrarMensaje('Exito','Tarea deshabilitada exitosamente.');
                 setTareasDisponibles((prev) => 
                     prev.filter((tarea) => tarea.key !== selectedTarea)
                 );
                 setSelectedTarea(''); // Limpiar la selección del Picker
             } else {
-                alert('Error al deshabilitar la tarea.');
+                mostrarMensaje('Error','Error al deshabilitar la tarea.');
             }
             cargarRoles();
             cargarTareas();
             cargarTareasDeshabilitadas();
+            limpiarInterfaz()
         } catch (error) {
             console.error('Error en handleDeshabilitarTarea:', error);
-            alert('Ocurrió un error al deshabilitar la tarea.');
+            mostrarMensaje('Error','Ocurrió un error al deshabilitar la tarea.');
         }
     };
 
@@ -221,9 +245,12 @@ export default function CargarTareas() {
                     cargarRoles();
                     cargarTareas();
                     cargarTareasDeshabilitadas();
+                    limpiarInterfaz()
+                    mostrarMensaje('Exito','Se registro la tarea exitosamente')
                 }
             } catch (error) {
                 console.error('Error al registrar la tarea:', error);
+                mostrarMensaje('Error', 'Error al registrar la tarea')
             }
         }
     };
@@ -233,13 +260,15 @@ export default function CargarTareas() {
         try {
             const respuesta = await habilitarTarea(idTarea); // Llama a la función que habilita la tarea en la BD
             if (respuesta) {
-                console.log('Tarea habilitada exitosamente:', idTarea);
+                mostrarMensaje('Exito','Se habilito la tarea exitosamente', idTarea);
                 cargarRoles();
                 cargarTareas();
                 cargarTareasDeshabilitadas();
+                limpiarInterfaz()
                 return true;
             } else {
                 console.error('Error al habilitar la tarea:', idTarea);
+                mostrarMensaje('Error','Error al habilitar la tarea:', idTarea);
                 return false;
             }
         } catch (error) {
@@ -248,6 +277,12 @@ export default function CargarTareas() {
         }
     };
     
+    const limpiarInterfaz = () => {
+        setSelectedTarea('');
+        setSelectedRoles([]);
+        
+    };
+
     useEffect(() => {
         cargarRoles();
         cargarTareas();
@@ -306,10 +341,7 @@ export default function CargarTareas() {
                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
                             <Text style={styles.textoBoton}>Modificar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonLimpiar} onPress={() => {
-                            setSelectedTarea('');
-                            setSelectedRoles([]);
-                        }}>
+                        <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}>
                             <Text style={styles.textoBoton}>Limpiar</Text>
                         </TouchableOpacity>
                     </View>
@@ -363,6 +395,19 @@ export default function CargarTareas() {
                     </View>
                 </Modal>
             </View>
+             <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => {
+                setAlertVisible(false);
+                setOnConfirm(null); // Limpia el callback al cerrar
+            }}
+            title={alertTitle}
+            message={alertMessage}
+            showConfirm={!!onConfirm}
+            onConfirm={onConfirm}
+            confirmText="Confirmar"
+            cancelText="Cancelar"
+        />
         </View>
     );
 }

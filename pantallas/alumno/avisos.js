@@ -61,20 +61,22 @@ export default function Avisos({ route }) {
             (aviso.id_curso && aviso.id_curso.toString() === formData.id_curso.toString());
 
         const coincideFecha =
-            !fechaFiltro || (aviso.fecha && aviso.fecha.includes(fechaFiltro));
+            !fechaFiltro || (aviso.fecha_registro && aviso.fecha_registro.includes(fechaFiltro));
 
         return coincideCurso && coincideFecha;
     });
 
-    const esHoy = (fechaStr) => {
-        const [dia, mes, anio] = fechaStr.split('-');
-        const hoy = new Date();
-        return (
-            hoy.getDate() === parseInt(dia, 10) &&
-            hoy.getMonth() + 1 === parseInt(mes, 10) &&
-            hoy.getFullYear() === parseInt(anio, 10)
-        );
-    };
+   const esHoy = (fechaStr) => {
+    if (!fechaStr) return false;
+    const fecha = new Date(fechaStr);
+    if (isNaN(fecha.getTime())) return false;
+    const hoy = new Date();
+    return (
+        fecha.getDate() === hoy.getDate() &&
+        fecha.getMonth() === hoy.getMonth() &&
+        fecha.getFullYear() === hoy.getFullYear()
+    );
+};
 
     return (
         <View style={styles.padre}>

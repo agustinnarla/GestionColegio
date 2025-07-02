@@ -32,7 +32,7 @@ export default function GestionarAmonestaciones() {
             <Text style={styles.label}>Fecha:</Text>
             <TextInput 
                 style={styles.input} 
-                placeholder="DD-MM-AAAA" 
+                placeholder="DD/MM/AAAA" 
                 keyboardType="number-pad" 
                 value={formData.fecha}  
                 onChangeText={(value) => handleChange('fecha', value)}
@@ -83,7 +83,6 @@ export default function GestionarAmonestaciones() {
                     </View>
                 </View>
             </Modal>
-           
         </View>
     );
 

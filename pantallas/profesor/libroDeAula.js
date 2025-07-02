@@ -14,16 +14,16 @@ export default function LibroAula({ route }) {
 
     
 
-     const [formData, setFormData] = useState({
-            id_materia: '',
-            id_caracteristica_unidad: '',
-            id_curso: '',
-            fecha: '',
-            numero_clase: '',
-            unidad: '',
-            tema_abarcado: '',
-            dni_profesional: ''
-        });
+    const [formData, setFormData] = useState({
+        id_materia: '',
+        id_caracteristica_unidad: '',
+        id_curso: '',
+        fecha: '',
+        numero_clase: '',
+        unidad: '',
+        tema_abarcado: '',
+        dni_profesional: ''
+    });
 
     // Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
@@ -94,8 +94,8 @@ export default function LibroAula({ route }) {
     }, []);
 
     const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('-');
-        return `${año}-${mes}-${dia}`;
+        const [dia, mes, año] = fecha.split('/');
+        return `${año}/${mes}/${dia}`;
     };
 
     // Registrar 

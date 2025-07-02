@@ -73,34 +73,28 @@ export default function useAmonestacion() {
 
     // Cargar cursos y solicitantes
     useEffect(() => {
-        const cargarDatos = async () => {
+        const cargarListaDesplegables = async () => {
             try {
                 const cursosData = await obtenerCurso();
                 const profesionalData = await obtenerProfesionales();
-                setCursos(cursosData);
-                setProfesionales(profesionalData)
-            } catch (error) {
-                Alert.alert('Error', error.message);
-            }
-        };
-        cargarDatos();
-    }, []);
-
-    // Cargar alumnos cuando se selecciona un curso
-    useEffect(() => {
-        const cargarAlumnos = async () => {
-            if (formData.id_curso) {
+                if (formData.id_curso) {
                 try {
                     const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
                     setAlumnos(alumnosData);
                 } catch (error) {
                     console.error('Error al cargar alumnos:', error);
                 }
+                }    
+                setCursos(cursosData);
+                setProfesionales(profesionalData)
+            } catch (error) {
+                Alert.alert('Error', error.message);
             }
         };
-        cargarAlumnos();
+        cargarListaDesplegables();
     }, [formData.id_curso]);
 
+    
     // Cargar cantidad de amonestaciones de acuerdo al DNI
     useEffect(() => {
         const cargarAmonestacion = async () => {
@@ -133,11 +127,13 @@ export default function useAmonestacion() {
                 return;
             }
 
+            // Hacer lo del spiner 
+
             const respuesta = await registrarAmonestacion(alumnoData);
             mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
             setModalVisible(true);
         } catch (error) {
-            console.error('Error al registrar la amonestación:', error.message);
+            //console.error('Error al registrar la amonestación:', error.message);
             mostrarMensaje('Error', 'No se pudo registrar la amonestación');
         }
     };
@@ -155,12 +151,13 @@ export default function useAmonestacion() {
         setModalVisible(false);
     };
 
+
     const handleImprimir = async () => {
         try {
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
             const profesionalSeleccionado = profesionales.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
             const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
-            mostrarMensaje('Éxito', `PDF generado correctamente\nUbicación: ${rutaPDF}`);
+            mostrarMensaje('Éxito', `PDF generado correctamente`);
             if (Platform.OS === 'web') window.open(rutaPDF);
             limpiarInterfaz();
             setModalVisible(false);
@@ -170,6 +167,7 @@ export default function useAmonestacion() {
         }
     };
 
+    // Cambio de valor en una lista desplegable 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };

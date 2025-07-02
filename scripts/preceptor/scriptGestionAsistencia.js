@@ -1,7 +1,8 @@
+import { API_BASE_URL } from "../config";
 //Rutas que utilizamos
 const api_url = 'http://localhost:5000'
-const api_urlAsistencia = 'http://localhost:5000/alumno/asistencia'
-const api_urlCurso = 'http://localhost:5000/listaDesplegable/curso'
+const api_urlAsistencia = `${ API_BASE_URL }/alumno/asistencia`
+const api_urlCurso = `${ API_BASE_URL }/listaDesplegable/curso`
 
 // Esta es la función del frontend que hace la solicitud HTTP al backend.
 export const registrarAsistenciaFrontend = async (formData) => {

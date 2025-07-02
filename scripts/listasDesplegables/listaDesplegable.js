@@ -117,7 +117,7 @@ export const obtenerMateriasDeshabilitadas = async () => {
     try {
         const response = await fetch(`${api_urlMateriasDeshabilitadas}`);
         const data = await response.json();
-        return data;
+        return data.materias || [];
     } catch (error) {
         console.error('Error al obtener materias deshabilitadas:', error);
         return { materias: [] };
@@ -413,8 +413,7 @@ export const obtenerAlumnoCurso = async (id_curso) => {
 
 export const obtenerEstadoFalta = async () => {
     try {
-        const url = `${api_urlAsistencia}`
-
+        const url = `${api_urlAsistencia}`;
         const respuesta = await fetch(url, {
             method: 'GET',
             headers: {
@@ -423,10 +422,10 @@ export const obtenerEstadoFalta = async () => {
         });
         const data = await respuesta.json();
         console.log('Respuesta de la API:', data); // Verifica la respuesta de la API
-        return data;  // Devuelve la respuesta completa
+        return data.estado_falta || []; // Devuelve solo el array
     } catch (error) {
         console.error("Error al obtener el estado de falta:", error.message);
-        throw new Error("Error al obtener el estado de falta");
+        return [];
     }
 };
 

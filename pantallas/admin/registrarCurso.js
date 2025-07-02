@@ -6,6 +6,7 @@ import bg from '../../assets/bg1.jpg';
 import { obtenerMateria, obtenerEspecialidad } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarCurso } from '../../scripts/admin/scriptRegistrarCurso';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
+import CustomAlert from '../../componente/CustomAlerts';
 
 export default function RegistrarCurso() {
     const [materias, setMaterias] = useState([]);
@@ -17,6 +18,18 @@ export default function RegistrarCurso() {
         id_especialidad: '',
         id_materia: [],
     });
+
+     // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [onConfirm, setOnConfirm] = useState(null);
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -44,7 +57,7 @@ export default function RegistrarCurso() {
                 setEspecialidades(especialidadesData);
             } catch (error) {
                 console.error("Error al cargar los datos:", error.message);
-                Alert.alert('Error', 'No se pudieron cargar los datos.');
+                mostrarMensaje('Error', 'No se pudieron cargar los datos.');
             }
         };
         cargarDatos();
@@ -57,11 +70,11 @@ export default function RegistrarCurso() {
 
     const handleRegistrar = async () => {
         if (!formData.detalle) {
-            Alert.alert('Error', 'Por favor ingrese el nombre del curso');
+            mostrarMensaje('Error', 'Por favor ingrese el nombre del curso');
             return;
         }
         if (materiasSeleccionadas.length === 0) {
-            Alert.alert('Error', 'Por favor seleccione al menos una materia');
+            mostrarMensaje('Error', 'Por favor seleccione al menos una materia');
             return;
         }
 
@@ -75,10 +88,10 @@ export default function RegistrarCurso() {
             const respuesta = await registrarCurso(cursoData);
             console.log('Curso Registrado:', respuesta);
             limpiarInterfaz();
-            Alert.alert('Éxito', 'Curso registrado exitosamente');
+           mostrarMensaje('Éxito', 'Curso registrado exitosamente');
         } catch (error) {
             console.error('Error al registrar el curso:', error);
-            Alert.alert('Error', 'No se pudo registrar el curso');
+            mostrarMensaje('Error', 'No se pudo registrar el curso');
         }
     };
 
@@ -140,6 +153,19 @@ export default function RegistrarCurso() {
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
             </View>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => {
+                setAlertVisible(false);
+                setOnConfirm(null); // Limpia el callback al cerrar
+            }}
+            title={alertTitle}
+            message={alertMessage}
+            showConfirm={!!onConfirm}
+            onConfirm={onConfirm}
+            confirmText="Confirmar"
+            cancelText="Cancelar"
+        />
         </View>
     );
 }

@@ -1,14 +1,16 @@
-import { StyleSheet,View,Image,TouchableOpacity,Text,TextInput,Switch,ScrollView, Modal, Button} from 'react-native';
+import { StyleSheet,View,Image,TouchableOpacity,Text,TextInput,Switch,ScrollView, Platform,Modal, Button} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { registrarAsistenciaFrontend, obtenerCursoFrontend, validarFechaAsistencia } from '../../scripts/preceptor/scriptGestionAsistencia.js';
 import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
 import { obtenerCurso, obtenerAlumnoCurso} from '../../scripts/listasDesplegables/listaDesplegable.js';
-
 import bg from '../../assets/bg1.jpg'
 import { FontAwesome5 } from '@expo/vector-icons';
-import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
+import CustomAlert from '../../componente/CustomAlerts.js';
+import * as XLSX from 'xlsx';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 export default function GestionarAsistencia(){
     const navegacion = useNavigation();
@@ -21,6 +23,18 @@ export default function GestionarAsistencia(){
         id_estado_asistencia: ''
     });
 
+     // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+    
     // Listas desplegables
     const [cursos, setCursos] = useState([]);
     const [botonActivado, setBotonActivado] = useState(false);
@@ -32,7 +46,7 @@ export default function GestionarAsistencia(){
 
     // Cargar cursos
     useEffect(() => {
-        const cargarDatos = async () => {
+        const cargarListaDesplegables = async () => {
             try {
                 const cursosData = await obtenerCurso();
                 if (!cursosData || cursosData.length === 0) return;
@@ -51,7 +65,7 @@ export default function GestionarAsistencia(){
                 console.error("Error al cargar los cursos:", error);
             }
         };
-        cargarDatos();
+        cargarListaDesplegables();
     }, []);
 
     // Marca el curso seleccionado y habilita el botón de modificar si tiene asistencia
@@ -94,6 +108,7 @@ export default function GestionarAsistencia(){
         cargarAlumnos();
     }, [formData.id_curso]);
 
+    // Cambiar Estado de Asistencia 
     const toggleSwitch = (dni) => {
         setEstudiantes((prevEstudiantes) =>
             prevEstudiantes.map((estudiante) => {
@@ -150,6 +165,7 @@ export default function GestionarAsistencia(){
                     id_curso: estudiante.formData.id_curso ? parseInt(estudiante.formData.id_curso, 10) : null,
                     id_estado_asistencia: estudiante.formData.id_estado_asistencia ? parseInt(estudiante.formData.id_estado_asistencia, 10) : null,
                 };
+              
                 if (!asistenciaData.dni_alumno || !asistenciaData.id_curso || !asistenciaData.id_estado_asistencia) continue;
                 if (asistenciaData.id_estado_asistencia === 2) {
                     ausentesTemp.push({
@@ -159,11 +175,14 @@ export default function GestionarAsistencia(){
                     });
                 }
             }
+            
             setAusentes(ausentesTemp);
             if (ausentesTemp.length > 0) {
                 setModalVisible(true);
             } else {
-                await confirmarRegistro();
+                console.log("No hay ausentes. Registro completado.");
+                setModalVisible(true);
+                
             }
         } catch (error) {
             // nada
@@ -180,18 +199,18 @@ export default function GestionarAsistencia(){
                     id_curso: parseInt(estudiante.formData.id_curso, 10),
                     id_estado_asistencia: parseInt(estudiante.formData.id_estado_asistencia, 10),
                 };
+                // Cambiar nombre
                 const curso = await obtenerCursoFrontend(asistenciaData.id_curso);
+                // Cambiar nombre
                 registrarAsistenciaFrontend(asistenciaData)
-                setMensajeConfirmacion(`La asistencia del curso "${curso.curso.detalle}" se registró correctamente.`);
-                setTimeout(() => {
-                    setMensajeConfirmacion('');
-                }, 3000);
+                mostrarMensaje('Exito',`Se registro la asistencia correctamente`)
             }
             limpiarInterfaz();
         } catch (error) {
             // nada
         }
     };
+
 
     const obtenerFechaActual = () => {
         const fecha = new Date();
@@ -230,6 +249,54 @@ export default function GestionarAsistencia(){
 const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
+    };
+
+
+    const exportarAsistenciaExcel = async (alumnos) => {
+      if (!Array.isArray(alumnos) || alumnos.length === 0) {
+        alert("No hay alumnos para exportar.");
+        return;
+      }
+    
+      try {
+        const data = alumnos.map(a => ({
+          DNI: a.dni_alumno,
+          Alumno: a.nombrecompleto || `${a.nombre || ''} ${a.apellido || ''}`,
+          Estado: a.presente ? 'Presente' : 'Ausente'
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
+
+        if (Platform.OS === 'web') {
+          const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+          const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "asistencia.xlsx";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          const excelBinary = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+          const fileUri = FileSystem.documentDirectory + "asistencia.xlsx";
+          await FileSystem.writeAsStringAsync(fileUri, excelBinary, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          if (!(await Sharing.isAvailableAsync())) {
+            alert("La función para compartir no está disponible en este dispositivo");
+            return;
+          }
+          await Sharing.shareAsync(fileUri);
+        }
+      } catch (error) {
+        console.error("Error al exportar Excel:", error);
+        alert("Error al exportar la asistencia.");
+      }
     };
 
     return (
@@ -290,7 +357,11 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                     <TouchableOpacity style={[styles.boton, styles.enviar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado} onPress={handleRegistrar}>
                         <Text style={styles.botonTexto}>Enviar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.boton, styles.exportar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado}>
+                    <TouchableOpacity
+                        style={[styles.boton, styles.exportar, !botonActivado && styles.botonDeshabilitado]}
+                        disabled={!botonActivado}
+                        onPress={() => exportarAsistenciaExcel(estudiantes)}
+                    >
                         <Text style={styles.botonTexto}>Exportar</Text>
                     </TouchableOpacity>
                 </View>
@@ -305,7 +376,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Confirmar registro</Text>
-                        <Text style={{marginBottom: 8}}>Los siguientes alumnos están ausentes:</Text>
+                        <Text style={{marginBottom: 8}}> {ausentes.length === 0 ? 'No hay alumnos ausentes' : 'Alumnos ausentes'}</Text>
                         {ausentes.map((alumno) => (
                             <Text key={alumno.dni_alumno} style={styles.alumnoItem}>
                                 {alumno.nombre} {alumno.apellido} - DNI: {alumno.dni_alumno}
@@ -326,6 +397,12 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                     </View>
                 </View>
             )}
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
+            />
         </View>
     )
 }

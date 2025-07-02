@@ -35,7 +35,7 @@ import { registrarUsuario, consultarUsuario, modificarUsuario, deshabilitarUsuar
 import { enviarNuevaContrasena, ingresarUsuario} from '../metodos/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/metodosEspecialidad.mjs'
 import { obtenerUsuario, restablecerContrasena } from '../metodos/metodosPerfil.mjs'
-import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../metodos/metodosAvisos.mjs'
+import { obtenerAvisosGenerales, obtenerAvisosCurso, actualizarUltimaVisitaAvisos, obtenerUltimaVisitaAvisos } from '../metodos/metodosAvisos.mjs'
 import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula } from '../metodos/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/metodosCargarNotasFinal.mjs'
@@ -197,6 +197,8 @@ ruta.put('/tarea/habilitar/:id_tarea', habilitarTarea) // 🟢
 ruta.post('/secretaria/aviso/alta', crearAviso) // 🟢
 ruta.get('/alumno/avisos/general', obtenerAvisosGenerales) // 🟢
 ruta.get('/alumno/avisos/curso/:dni_alumno', obtenerAvisosCurso) // 🟢
+ruta.post('/alumno/avisos/ultima_visita/actualizar', actualizarUltimaVisitaAvisos) 
+ruta.get('/alumno/avisos/ultima_visita/:dni_usuario', obtenerUltimaVisitaAvisos)
 
 // == LIBRO AULA
 ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 

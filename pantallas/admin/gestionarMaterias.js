@@ -18,13 +18,24 @@ export default function GestionarMaterias() {
     const [nuevaMateria, setNuevaMateria] = useState('');
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
     const [materiasDeshabilitadas, setMateriasDeshabilitadas] = useState([]);
+
+
+    // Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [onConfirm, setOnConfirm] = useState(null);
 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+    const mostrarConfirmacion = (titulo, mensaje, accionConfirmar) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setOnConfirm(() => accionConfirmar);
         setAlertVisible(true);
     };
 
@@ -51,7 +62,7 @@ export default function GestionarMaterias() {
         try {
             const respuesta = await obtenerMateriasDeshabilitadas();
             console.log("Materias deshabilitadas obtenidas:", respuesta);  // Verifica el formato
-            setMateriasDeshabilitadas(respuesta.materias || []); // Extrae el array correctamente
+            setMateriasDeshabilitadas(respuesta); // Extrae el array correctamente
         } catch (error) {
             console.error('Error al obtener las tareas deshabilitadas:', error);
         }
@@ -92,12 +103,13 @@ export default function GestionarMaterias() {
         const result = await registrarMateriaProfesor(relaciones);
 
         if (result && result.mensaje) {
-            alert(result.mensaje);
+            mostrarMensaje('Exito', 'Relación registrada exitosamente');
+            limpiarInterfaz()
         } else {
-            alert('Hubo un error al registrar la relación');
+            mostrarMensaje('Error', 'Error al registrar la relación');
         }
     } else {
-        alert('Selecciona una materia y al menos un profesor');
+        mostrarMensaje('Advertencia', 'Seleccione una materia y un profesor');
     }
 };
 
@@ -129,74 +141,37 @@ export default function GestionarMaterias() {
         }
     };
 
-    const handleDeshabilitarMateria = async () => {
-        if (!selectedMateria) {
-            mostrarMensaje('Advertencia', 'No hay materia seleccionada para deshabilitar.');
-            return;
-        }
-    
-        // Verifica si está en un navegador o en una app móvil
-        if (typeof window !== 'undefined' && window.confirm) {
-            const confirmar = window.confirm("¿Seguro que quiere deshabilitar la materia?");
-            if (confirmar) {
-                try {
-                    const respuesta = await deshabilitarMateria(selectedMateria);
-                    if (respuesta && respuesta.mensaje) {  // Verifica el campo "mensaje"
-                        setSelectedMateria(null);
-                        setSelectedProfesores([]);
-                        console.log("Materia deshabilitada correctamente");
-                        cargarMaterias();
-                        cargarProfesores();
-                        cargarMateriasDeshabilitadas();
-                        alert(respuesta.mensaje);  // Muestra el mensaje de éxito del backend
-                    } else {
-                        throw new Error("Error al deshabilitar la materia");
-                    }
-                } catch (error) {
-                    console.error("Error al deshabilitar la materia:", error);
-                    alert("Error al deshabilitar la materia");  // Mensaje de error
-                }
-            } else {
-                console.log("Operación cancelada");
+    const handleDeshabilitarMateria = () => {
+            if (!selectedMateria) {
+                mostrarMensaje('Advertencia', 'No hay una materia seleccionada');
+                return;
             }
-        } else {
-            Alert.alert(
-                "Confirmación",
-                "¿Seguro que quiere deshabilitar la materia?",
-                [
-                    {
-                        text: "Cancelar",
-                        onPress: () => console.log("Cancelado"),
-                        style: "cancel"
-                    },
-                    {
-                        text: "Confirmar",
-                        onPress: async () => {
-                            try {
-                                const respuesta = await deshabilitarMateria(selectedMateria);
-                                if (respuesta && respuesta.mensaje) {  // Verifica el campo "mensaje"
-                                    setSelectedMateria(null);
-                                    setSelectedProfesores([]);
-                                    console.log("Materia deshabilitada correctamente");
-                                    mostrarMensaje('Exito', 'Materia deshabilitada correctamente.');
-                                } else {
-                                    throw new Error("Error al deshabilitar la materia");
-                                }
-                            } catch (error) {
-                                console.error("Error al deshabilitar la materia:", error);
-                                mostrarMensaje('Error', 'Error al deshabilitada la materia.');
-                            }
+            mostrarConfirmacion(
+                'Confirmación',
+                '¿Seguro que quiere deshabilitar la materia?',
+                async () => {
+                    try {
+                        const respuesta = await deshabilitarMateria(selectedMateria);
+                        if (respuesta && respuesta.mensaje === 'Materia deshabilitado exitosamente') {
+                            setSelectedMateria(null);
+                            mostrarMensaje('Éxito', 'Materia deshabilitado exitosamente');
+                        } else {
+                            mostrarMensaje('Error', respuesta.mensaje || 'Error al deshabilitar la materia');
                         }
+                    } catch (error) {
+                        mostrarMensaje('Error', 'Error al deshabilitar la materia');
                     }
-                ]
+                    cargarProfesores()
+                    cargarMateriasDeshabilitadas
+                    cargarMaterias()
+                    limpiarInterfaz()
+                }
             );
-        }
-    };
+        };
 
     const handleRegistrarMateria = async () => {
         if (!nuevaMateria.trim()) {
             mostrarMensaje('Advertencia', 'El nombre de la materia es obligatorio.');
-
             return;
         }
         try {
@@ -208,6 +183,7 @@ export default function GestionarMaterias() {
                 cargarMaterias();
                 cargarProfesores();
                 cargarMateriasDeshabilitadas();
+                limpiarInterfaz()
                 mostrarMensaje('Exito', 'Materia registrada exitosamente.');
             } else {
                 console.error('Error al registrar la materia');
@@ -222,13 +198,14 @@ export default function GestionarMaterias() {
         try {
             const respuesta = await habilitarMateria(idMateria); // Llama a la función que habilita la materia en la BD
             if (respuesta) {
-                console.log('Materia habilitada exitosamente:', idMateria);
+                mostrarMensaje('Exito', 'Materia habilitada exitosamente')
                 cargarMaterias();
                 cargarProfesores();
                 cargarMateriasDeshabilitadas();
+                limpiarInterfaz()
                 return true;
             } else {
-                console.error('Error al habilitar la materia:', idMateria);
+                mostrarMensaje('Error', 'Error al habilitar la materia');
                 return false;
             }
         } catch (error) {
@@ -254,10 +231,10 @@ export default function GestionarMaterias() {
             cargarProfesores();
             cargarMateriasDeshabilitadas();
             console.log('Resultados de habilitar materias:', resultados);
-            alert('Materias habilitadas exitosamente.');
+            mostrarMensaje('Exito', 'Materia habilitada exitosamente')
         } catch (error) {
             console.error('Error al habilitar materias:', error);
-            alert('Ocurrió un error al habilitar las materias.');
+            mostrarMensaje('Error', 'Error al habilitar la materia')
         }
     
         // Cierra el modal
@@ -268,12 +245,12 @@ export default function GestionarMaterias() {
     const toggleSwitch = (id_materia) => {
         setMateriasDeshabilitadas((prevMaterias) =>
             prevMaterias.map((materia) =>
-                materia.id_materia === id_materia
-                    ? {
-                          ...materia,
-                          id_estado_general: 1, // Cambia el estado a 1
-                      }
-                    : materia
+            materia.id_materia === id_materia
+                ? {
+                        ...materia,
+                        id_estado_general: 1, // Cambia el estado a 1
+                    }
+                : materia
             )
         );
     };
@@ -290,6 +267,7 @@ export default function GestionarMaterias() {
         cargarMateriasDeshabilitadas();
         
     }, []);
+
     useEffect(() => {
         console.log("hola" + materiasDeshabilitadas)
     }, [materiasDeshabilitadas]);    
@@ -402,9 +380,22 @@ export default function GestionarMaterias() {
         </View>
     </View>
 </Modal>
-             </View>
-         </View>
-     );
+            </View>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => {
+                setAlertVisible(false);
+                setOnConfirm(null); // Limpia el callback al cerrar
+            }}
+            title={alertTitle}
+            message={alertMessage}
+            showConfirm={!!onConfirm}
+            onConfirm={onConfirm}
+            confirmText="Confirmar"
+            cancelText="Cancelar"
+        />
+        </View>
+    );
  }
  
  

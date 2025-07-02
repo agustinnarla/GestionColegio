@@ -23,7 +23,7 @@ export default function ConsultarLibro() {
     });
 
     useEffect(() => {
-        const cargarDatos = async () => {
+        const cargarListaDesplegable = async () => {
             try {
                 const profesoresData = await obtenerProfesores();
                 setProfesores(profesoresData);
@@ -45,8 +45,9 @@ export default function ConsultarLibro() {
                 Alert.alert('Error', error.message);
             }
         };
-        cargarDatos();
+        cargarListaDesplegable();
     }, [formData.dni_profesional, formData.id_materia]);
+    
 
     const handleConsultar = async () => {
         try {
@@ -76,7 +77,7 @@ export default function ConsultarLibro() {
         setFormData({ ...formData, [name]: value });
     };
 
-    const renderItem = ({ item }) => (
+    const cargarGrilla = ({ item }) => (
         <View style={styles.fila}>
             <Text style={styles.celda}>{item.fecha}</Text>
             <Text style={styles.celda}>{item.numero_clase}</Text>
@@ -129,7 +130,7 @@ export default function ConsultarLibro() {
                     </View>
                     <FlatList
                         data={datos}
-                        renderItem={renderItem}
+                        renderItem={cargarGrilla}
                         keyExtractor={(_, idx) => idx.toString()}
                     />
                 </View>

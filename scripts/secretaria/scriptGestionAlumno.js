@@ -1,10 +1,11 @@
-const api_urlAlumno = 'http://localhost:5000/alumnos'
-const api_url = 'http://localhost:5000'
-const api_urlLegajos = 'http://localhost:5000/alumno/legajo'
-const api_urlAlta = 'http://localhost:5000/alumno/alta'
-const api_urlEliminar = 'http://localhost:5000/alumno/deshabilitar'
-const api_urlModificar = 'http://localhost:5000/alumno/modificar'
-const api_urlModificarLegajo = 'http://localhost:5000/alumnosLegajo/modificar'
+import { API_BASE_URL } from "../config"
+const api_urlAlumno = `${API_BASE_URL}/alumnos`
+const api_url = `${API_BASE_URL}`
+const api_urlLegajos = `${API_BASE_URL}/alumno/legajo`
+const api_urlAlta = `${API_BASE_URL}/alumno/alta`
+const api_urlEliminar = `${API_BASE_URL}/alumno/deshabilitar`
+const api_urlModificar = `${API_BASE_URL}alumno/modificar`
+const api_urlModificarLegajo = `${API_BASE_URL}/alumnosLegajo/modificar`
 
 
 // 🔵

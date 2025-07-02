@@ -6,7 +6,11 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 import { obtenerMateriaPorCurso, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { registrarNotas, obtenerNotas } from '../../scripts/secretaria/scriptCargarNotas';
-//import * as XLSX from 'xlsx';
+
+import * as XLSX from 'xlsx';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+
 
 const { width } = Dimensions.get('window');
 const isDesktop = width >= 768;
@@ -51,10 +55,8 @@ export default function CargarNotas() {
     
     useEffect(() => {
         const cargarDatos = async () => {
-        
             try {
                 const cursosData = await obtenerCurso();
-            
                 setCursos(cursosData);
                 if (formData.id_curso) {
                         const materiasData = await obtenerMateriaPorCurso(formData.id_curso);;
@@ -89,9 +91,10 @@ export default function CargarNotas() {
         if (formData.id_curso && formData.id_materia) {  
             try {
                 const alumnosData = await obtenerNotas(formData.id_curso, formData.id_materia);
-                if (alumnosData) {
+                if (Array.isArray(alumnosData)) {
                     setAlumnos(alumnosData);
-                    console.log('Alumnos cargados:', alumnosData);
+                } else {
+                    setAlumnos([]);
                 }
             } catch (error) {
                 console.error('Error al cargar alumnos:', error);
@@ -124,6 +127,7 @@ export default function CargarNotas() {
     /*
         REGISTRAMOS NUEVAS NOTAS 
     */
+
     const handleRegistrar = async () => {
         try {
             
@@ -200,17 +204,68 @@ export default function CargarNotas() {
         setFormData({ ...formData, [name]: value });
     };
 
-    
+const exportarNotasAExcel = async (alumnos) => {
+  if (!Array.isArray(alumnos) || alumnos.length === 0) {
+    alert("No hay alumnos para exportar.");
+    return;
+  }
 
-    // Función auxiliar para convertir string a ArrayBuffer
-    const s2ab = (s) => {
-        const buf = new ArrayBuffer(s.length);
-        const view = new Uint8Array(buf);
-        for (let i = 0; i < s.length; i++) {
-            view[i] = s.charCodeAt(i) & 0xFF;
-        }
-        return buf;
-    };
+  try {
+    const data = alumnos.map(a => ({
+      DNI: a.dni_alumno,
+      Alumno: a.nombre_completo,
+      Nota1: a.nota1 || '',
+      Nota2: a.nota2 || '',
+      Nota3: a.nota3 || '',
+      Nota4: a.nota4 || '',
+      Nota5: a.nota5 || '',
+      Nota6: a.nota6 || '',
+      TP1: a.tp1 || '',
+      TP2: a.tp2 || '',
+      TP3: a.tp3 || '',
+      Aulico: a.aulico || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Notas");
+
+    if (Platform.OS === 'web') {
+      // WEB: Descargar usando Blob y enlace
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = "notas.xlsx";
+      document.body.appendChild(a);
+      
+      a.click();
+
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } else {
+      // MOBILE: Usar expo-file-system y expo-sharing
+      const excelBinary = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+      const fileUri = FileSystem.documentDirectory + "notas.xlsx";
+      await FileSystem.writeAsStringAsync(fileUri, excelBinary, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      if (!(await Sharing.isAvailableAsync())) {
+        alert("La función para compartir no está disponible en este dispositivo");
+        return;
+      }
+      await Sharing.shareAsync(fileUri);
+    }
+  } catch (error) {
+    console.error("Error al exportar Excel:", error);
+    alert("Error al exportar las notas.");
+  }
+};
+
+  
 
     return (
         <View style={styles.padre}>
@@ -236,7 +291,7 @@ export default function CargarNotas() {
                         <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
                             <Text style={styles.textoBoton}>Reiniciar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonConsultar} onPress={limpiarInterfaz}>
+                        <TouchableOpacity style={styles.botonConsultar} onPress={() => exportarNotasAExcel(alumnos)}>
                             <Text style={styles.textoBoton}>📄</Text>
                         </TouchableOpacity>
                     </View>

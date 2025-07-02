@@ -14,6 +14,7 @@ export default function RegistrarUsuario() {
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [habilitarBotones, setHabilitarBotones] = useState(false);
+    
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
