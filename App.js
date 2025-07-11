@@ -4,43 +4,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Login from './pantallas/Login';
-import { BottomTab } from './componente/TabNavigation';
+import Login from './frontend/pantallas/Login.js';
+import { BottomTab } from './frontend/componente/TabNavigation';
 
 //Preceptores
-import GestionarAsistencia from './pantallas/preceptores/gestionarAsistencia';
-import GestionarAmonestaciones from './pantallas/preceptores/gestionarAmonestaciones';
-import JustificarFalta from './pantallas/preceptores/justificarFalta'
-import GestionarObservaciones from './pantallas/preceptores/gestionarObservaciones'
-import ConsultarLibro from './pantallas/preceptores/consultarLibroAula'
-import ModificarAsistencia from './pantallas/preceptores/modificarAsistencia';
+import GestionarAsistencia from './frontend/pantallas/preceptores/gestionarAsistencia';
+import GestionarAmonestaciones from './frontend/pantallas/preceptores/gestionarAmonestaciones';
+import JustificarFalta from './frontend/pantallas/preceptores/justificarFalta'
+import GestionarObservaciones from './frontend/pantallas/preceptores/gestionarObservaciones'
+import ConsultarLibro from './frontend/pantallas/preceptores/consultarLibroAula'
+import ModificarAsistencia from './frontend/pantallas/preceptores/modificarAsistencia';
 
 //Profesores
-import LibroAula from './pantallas/profesor/libroDeAula';
-import AsignarEvaluaciones from './pantallas/profesor/asignarEvaluaciones';
-import CargarNotasFinal from './pantallas/profesor/cargarNotaFinal';
+import LibroAula from './frontend/pantallas/profesor/libroDeAula';
+import AsignarEvaluaciones from './frontend/pantallas/profesor/asignarEvaluaciones';
+import CargarNotasFinal from './frontend/pantallas/profesor/cargarNotaFinal';
 
 //Alumnos
-import Materias from './pantallas/alumno/materias';
-import Avisos from './pantallas/alumno/avisos';
+import Materias from './frontend/pantallas/alumno/materias';
+import Avisos from './frontend/pantallas/alumno/avisos';
 
 //Secretario
-import AsignacionHoras from './pantallas/secretaria/asignacionDeHoras';
-import PasajeDeCurso from './pantallas/secretaria/pasarDeCurso';
-import AsistenciaP_P from './pantallas/secretaria/asistenciaP-P';
-import CargarNotas from './pantallas/secretaria/cargarNotas';
-import GestionarAlumno from './pantallas/secretaria/gestionarAlumno';
-import GestionarP_P from './pantallas/secretaria/gestionarP-P';
-import JustificarFaltaP_P from './pantallas/secretaria/justificarFaltaP_P';
-import LibroMatriz from './pantallas/secretaria/libroMatriz'
-import CrearAvisos from './pantallas/secretaria/crearAvisos';
+import AsignacionHoras from './frontend/pantallas/secretaria/asignacionDeHoras';
+import PasajeDeCurso from './frontend/pantallas/secretaria/pasarDeCurso';
+import AsistenciaP_P from './frontend/pantallas/secretaria/asistenciaP-P';
+import CargarNotas from './frontend/pantallas/secretaria/cargarNotas';
+import GestionarAlumno from './frontend/pantallas/secretaria/gestionarAlumno';
+import GestionarP_P from './frontend/pantallas/secretaria/gestionarP-P';
+import JustificarFaltaP_P from './frontend/pantallas/secretaria/justificarFaltaP_P';
+import LibroMatriz from './frontend/pantallas/secretaria/libroMatriz'
+import CrearAvisos from './frontend/pantallas/secretaria/crearAvisos';
 
 //Admin
-import CargarTareas from './pantallas/admin/cargarTareas';
-import GestionarMaterias from './pantallas/admin/gestionarMaterias';
-import RegistrarCurso from './pantallas/admin/registrarCurso';
-import RegistrarUsuario from './pantallas/admin/registrarUsuario';
-import RegistrarRol from './pantallas/admin/registrarRol';
+import CargarTareas from './frontend/pantallas/admin/cargarTareas';
+import GestionarMaterias from './frontend/pantallas/admin/gestionarMaterias';
+import RegistrarCurso from './frontend/pantallas/admin/registrarCurso';
+import RegistrarUsuario from './frontend/pantallas/admin/registrarUsuario';
+import RegistrarRol from './frontend/pantallas/admin/registrarRol';
 
 const Stack = createStackNavigator();
 

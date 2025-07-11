@@ -1,0 +1,332 @@
+import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity, Dimensions, Platform,FlatList, ActivityIndicator, ImageBackground } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import React, { useState, useEffect } from "react";
+import bg from '../../assets/bg1.jpg';
+import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula.js';
+import CustomAlert from '../../componente/CustomAlerts.js';
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
+
+
+
+export default function LibroAula({ route }) {
+
+
+    
+
+    const [formData, setFormData] = useState({
+        id_materia: '',
+        id_caracteristica_unidad: '',
+        id_curso: '',
+        fecha: '',
+        numero_clase: '',
+        unidad: '',
+        tema_abarcado: '',
+        dni_profesional: ''
+    });
+
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+    const [materias, setMaterias] = useState([]);
+    const [caracteristica_unidad, setCaracteristica] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [cursoPorMateria, setCursoPorMateria] = useState([]);
+
+    const { dni_usuario } = route.params;
+    const dni_profesional = dni_usuario
+
+    if (!dni_usuario) {
+        console.error('DNI Usuario no definido');
+        return <Text>Error: DNI Usuario no definido</Text>;
+    }
+
+    console.log('DNI Usuario:', dni_usuario);
+    console.log('El dni usuario se paso a ->', dni_profesional)
+
+    useEffect(() => {
+            const cagarCursoPorMateria = async () => {
+                if (formData.id_materia) {
+                    try {
+                        const cursoData = await obtenerCursoPorMateria(formData.id_materia);
+                        setCursoPorMateria(cursoData);
+                    } catch (error) {
+                        console.error('Error al cargar alumnos:', error);
+                    }
+                }
+            };
+            cagarCursoPorMateria();
+        }, [formData.id_materia]);
+
+    useEffect(() => {
+        const cargarMaterias = async () => {
+            try {
+                const data = await obtenerMateriaPorProfesor(dni_profesional);
+                setMaterias(data);
+            } catch (error) {
+                console.error('Error al cargar las materias:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        cargarMaterias();
+    }, [dni_usuario]);
+
+    useEffect(() => {
+        const cargarCaracteristicas = async () => {
+            try{
+                const data = await obtenerCaracteristicasUnidad();
+                setCaracteristica(data);
+            }catch(error){  
+                console.log("Error al cargar las características de la unidad", error)
+            }
+        };
+        cargarCaracteristicas();
+    }, []);
+
+     const validarDatos = () => {
+        return  formData.id_materia &&
+        formData.id_caracteristica_unidad &&
+        formData.id_curso &&
+        formData.fecha &&
+        formData.numero_clase &&
+        formData.unidad &&
+        formData.tema_abarcado 
+    };
+
+    
+    const formatearFecha = (fecha) => {
+        const [dia, mes, año] = fecha.split('/');
+        return `${año}/${mes}/${dia}`;
+    };
+
+    // Registrar 
+        const handleRegistrar = async () => {
+            try {
+                const libroAulaData = {
+                    id_curso: formData.id_curso,
+                    id_materia: formData.id_materia,
+                    id_caracteristica_unidad: formData.id_caracteristica_unidad,
+                    fecha: formatearFecha(formData.fecha),
+                    numero_clase: formData.numero_clase,
+                    unidad: formData.unidad,
+                    tema_abarcado: formData.tema_abarcado,
+                    dni_profesional: dni_usuario,
+                };
+    
+                if (!validarDatos()) {
+                    mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
+                    return;
+                }
+    
+                console.log('Datos del libro de aula', libroAulaData); 
+                
+                const respuesta = await registrarLibroAula(libroAulaData);
+                mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                //console.log('Libro de Aula Registrada:', respuesta);
+                console.log('Respuesta del servidor:', respuesta);
+                // if (respuesta) {
+                //     mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+                // } else {
+                //     mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+                // }
+                limpiarInterfaz();
+            } catch (error) {
+                console.error('Error al registrar el libro de aula:', error.message);
+                mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+            }
+        };
+    
+        // Limpiar formulario
+        const limpiarInterfaz = () => {
+            setFormData({
+                id_materia: '',
+                id_caracteristica_unidad: '',
+                id_curso: '',
+                fecha: '',
+                numero_clase: '',
+                unidad: '',
+                tema_abarcado: '',
+                dni_profesional: ''
+            });
+        };
+
+    
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" />;
+    }
+
+     // Manejar cambios en el formulario
+     const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
+    return (
+        <View style={styles.padre}>
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    <View style={styles.card}>
+                        <View style={styles.contenidoLista}>
+                            <ListasDesplegables 
+                                formData={formData} 
+                                handleChange={handleChange} 
+                                materias={materias}
+                                showLabel={true}
+                                styles={styles}
+                            />
+                            <ListasDesplegables 
+                                formData={formData} 
+                                handleChange={handleChange} 
+                                curso={cursoPorMateria}
+                                caracteristica_unidad={caracteristica_unidad}
+                                styles={styles}
+                            />
+                        </View>
+
+                        <Text style={styles.label}>Fecha:</Text>
+                        <TextInput style={styles.input} 
+                            placeholder='DD/MM/AAAA' 
+                            keyboardType="numeric" 
+                            value={formData.fecha}
+                            onChangeText={(value) => handleChange('fecha', value)}
+                        />
+
+                        <Text style={styles.label}>Clase N°:</Text>
+                        <TextInput style={styles.input} 
+                            placeholder='0' 
+                            keyboardType="numeric"
+                            value={formData.numero_clase}
+                            onChangeText={(value) => handleChange('numero_clase', value)} 
+                        />
+
+                        <Text style={styles.label} >Unidad:</Text>
+                        <TextInput style={styles.input} 
+                            placeholder='0' 
+                            keyboardType="numeric"
+                            value={formData.unidad} 
+                            onChangeText={(value) => handleChange('unidad', value)}
+                        />
+
+                        <Text style={styles.label}>Tema abarcado:</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder='Ingresar Tema abarcado en la clase'
+                            onChangeText={(value) => handleChange('tema_abarcado', value)}
+                            value={formData.tema_abarcado}
+                            multiline={true}
+                            numberOfLines={4}
+                        />
+                        <View style={styles.contenidoBoton}>
+                            <TouchableOpacity style={[styles.botonRegistrar, !validarDatos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarDatos()}>
+                                <Text style={styles.textoBoton} >Registrar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
+                                <Text style={styles.textoBoton} >Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
+            </ImageBackground>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            />
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    padre: {
+        flex: 1,
+    },
+    bg: {
+        flex: 1,
+    },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 20,
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
+    },
+    card: {
+        width: '90%',
+        maxWidth: 500,
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    label: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#333',
+    },
+    input: {
+        width: '100%',
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        marginBottom: 15,
+        backgroundColor: '#fafafa',
+        fontSize: 16,
+    },
+    textArea: {
+        height: 100,
+        textAlignVertical: 'top', 
+    },
+    contenidoBoton: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    botonRegistrar: {
+        backgroundColor: '#CFEFCE',
+        borderColor:'#33FF00',
+        borderWidth:1,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        flex: 1,
+        marginRight: 10,
+    },
+    botonCancelar: {
+        backgroundColor: '#F3B9B9',
+        borderColor:'#FF0000',
+        borderWidth:1,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        flex: 1,
+    },
+    textoBoton: {
+        color: 'black',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    contenidoLista: {
+        // Si necesitas estilos específicos para el contenedor de ListasDesplegables
+    }
+});
