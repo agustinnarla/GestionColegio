@@ -46,7 +46,8 @@ export default function CargarNotas() {
         aulico: ''
     });
     
-    const validarDatos = () => {
+    
+    const validarCampos = () => {
       return(
         formData.id_curso &&
         formData.id_materia
@@ -291,13 +292,13 @@ const exportarNotasAExcel = async (alumnos) => {
                         />
                     </View>
                     <View style={styles.botonesContainer}>
-                        <TouchableOpacity style={[styles.botonConsultar, !validarDatos() && styles.botonDeshabilitado]} onPress={cargarAlumnos} disabled={!validarDatos()}>
+                        <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={cargarAlumnos} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>Consultar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
                             <Text style={styles.textoBoton}>Reiniciar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonConsultar} onPress={() => exportarNotasAExcel(alumnos)}>
+                        <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={() => exportarNotasAExcel(alumnos)} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>📄</Text>
                         </TouchableOpacity>
                     </View>
@@ -324,7 +325,10 @@ const exportarNotasAExcel = async (alumnos) => {
                             {[1,2,3,4,5,6].map((num) => (
                               <TextInput
                                 key={num}
-                                style={styles.inputNota}
+                                style={[
+                                  styles.inputNota,
+                                  parseInt(item[`nota${num}`]) < 6 ? styles.notaMenor : styles.notaMayor
+                                ]}
                                 value={item[`nota${num}`]?.toString() || ''}
                                 inputMode="numeric"
                                 maxLength={2}
@@ -334,7 +338,10 @@ const exportarNotasAExcel = async (alumnos) => {
                             {[1,2,3].map((num) => (
                               <TextInput
                                 key={`tp${num}`}
-                                style={styles.inputNota}
+                                style={[
+                                  styles.inputNota,
+                                  parseInt(item[`tp${num}`]) < 6 ? styles.notaMenor : styles.notaMayor
+                                ]}
                                 value={item[`tp${num}`]?.toString() || ''}
                                 inputMode="numeric"
                                 maxLength={2}
@@ -342,7 +349,10 @@ const exportarNotasAExcel = async (alumnos) => {
                               />
                             ))}
                             <TextInput
-                              style={styles.inputNota}
+                              style={[
+                                styles.inputNota,
+                                parseInt(item.aulico) < 6 ? styles.notaMenor : styles.notaMayor
+                              ]}
                               value={item.aulico?.toString() || ''}
                               inputMode="numeric"
                               maxLength={2}
@@ -354,8 +364,9 @@ const exportarNotasAExcel = async (alumnos) => {
                         </ScrollView>
               
                 <TouchableOpacity 
-                    style={[styles.botonConsultar, {alignSelf: 'center', marginTop: 10, width: 180}]}
+                    style={[styles.botonConsultar, (!validarCampos() || alumnos.length === 0) && styles.botonDeshabilitado, {alignSelf: 'center', marginTop: 10, width: 180}]}
                     onPress={handleRegistrar}
+                    disabled={!validarCampos() || alumnos.length === 0}
                 >
                     <Text style={styles.textoBoton}>Confirmar Notas</Text>
                 </TouchableOpacity>
@@ -383,6 +394,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     zIndex: -1,
+  },
+  notaMenor:{
+    borderColor: '#ff0000',
+    borderWidth: 1,
+  },
+  notaMayor:{
+    borderColor: '#00ff00',
+    borderWidth: 1,
   },
 botonDeshabilitado: {
         opacity: 0.5,

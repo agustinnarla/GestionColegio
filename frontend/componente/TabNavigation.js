@@ -23,17 +23,17 @@ const Tab = createBottomTabNavigator();
 const getMenuComponent = (id_rol, dni_usuario) => {
   switch (id_rol) {
     case 1:
-      return HomeAdmin;
+      return (props) => <HomeAdmin {...props} dni_usuario={dni_usuario} id_rol={id_rol} />;
     case 2:
       return (props) => <HomeProfesor {...props} dni_usuario={dni_usuario} id_rol={id_rol} />;
     case 3:
-      return HomeSecretaria
+      return (props) => <HomeSecretaria {...props} dni_usuario={dni_usuario} id_rol={id_rol} />;
     case 4:
       return (props) => <HomeAlumno {...props} dni_usuario={dni_usuario} id_rol={id_rol}/>;
     case 5:
-      return HomePreceptor;
+      return (props) => <HomePreceptor {...props} dni_usuario={dni_usuario} id_rol={id_rol} />;
     default:
-      return HomeAlumno; 
+      return (props) => <HomeAlumno {...props} dni_usuario={dni_usuario} id_rol={id_rol} />;
   }
 };
 
@@ -85,6 +85,7 @@ export const BottomTab = ({ route }) => {
       <Tab.Screen
         name="MENU"
         component={getMenuComponent(id_rol, dni_usuario)}
+        initialParams={{ id_rol, dni_usuario }} 
         options={{
           title: "MENÚ",
           headerTintColor: "white",

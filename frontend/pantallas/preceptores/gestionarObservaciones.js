@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
@@ -20,6 +20,7 @@ export default function GestionarObservaciones() {
         id_curso: ''
     });
 
+    
     // Modal
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -27,6 +28,7 @@ export default function GestionarObservaciones() {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [enviando, setEnviando] = useState(false);
 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
@@ -69,13 +71,15 @@ export default function GestionarObservaciones() {
         try {
             if (!validarCampos()) {
                 if (!validarFecha(formData.fecha)) {
-                    mostrarMensaje('Error', 'La fecha ingresada no es válida. Use el formato DD-MM-AAAA.');
+                    mostrarMensaje('Error', 'La fecha ingresada no es válida. Use el formato DD/MM/AAAA.');
                 } else {
                     mostrarMensaje('Error', 'Por favor complete todos los campos correctamente.');
                 }
                 return;
             }
-    
+            
+            setEnviando(true);
+
             const alumnoData = {
                 dni_alumno: parseInt(formData.dni_alumno),
                 dni_profesional: parseInt(formData.dni_profesional),
@@ -83,15 +87,15 @@ export default function GestionarObservaciones() {
                 motivo: formData.motivo
             };
     
-            console.log('Datos de la observación', alumnoData);
-    
+            //console.log('Datos de la observación', alumnoData);
             const respuesta = await registrarObservacion(alumnoData);
             mostrarMensaje('Exito','Observación registrada correctamente');
-            console.log('Observación Registrada:', respuesta);
+            setEnviando(false);
+            //console.log('Observación Registrada:', respuesta);
     
             setModalVisible(true); // Abrir el modal después de registrar la observación
         } catch (error) {
-            console.error('Error al registrar la observación:', error.message);
+            //console.error('Error al registrar la observación:', error.message);
             mostrarMensaje('Error', 'No se pudo registrar la observación');
         }
     };
@@ -226,6 +230,12 @@ export default function GestionarObservaciones() {
                     <Text style={styles.textoBoton}>Cancelar</Text>
                 </TouchableOpacity>
             </View>
+            {enviando && (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007bff" />
+                    <Text style={styles.loadingText}>Enviando observación al email...</Text>
+                </View>
+            )}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -277,6 +287,16 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         zIndex: -1,
+    },
+    loadingContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#333',
     },
     scroll:{
         flexGrow: 1,  

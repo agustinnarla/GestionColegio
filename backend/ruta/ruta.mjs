@@ -8,7 +8,8 @@ import {
 
 import { crearAviso, obtenerMotivos} from '../metodos/secretaria/metodosCrearAvisos.mjs'
 import { obtenerSexo } from '../metodos/listasDesplegables/metodosSexo.mjs'
-import { obtenerCurso, obtenerCursoFiltrado, registrarCursoPorMateria } from '../metodos/listasDesplegables/metodosCurso.mjs'
+import { obtenerCurso, obtenerCursoFiltrado} from '../metodos/listasDesplegables/metodosCurso.mjs'
+import { registrarCursoPorMateria, consultarCurso, registrarCurso, deshabilitarCurso,modificarCurso } from '../metodos/administrador/metodosRegistrarCurso.mjs'
 import { obtenerEstadoGeneral } from '../metodos/listasDesplegables/metodosEstadoGeneral.mjs'
 import { obtenerLocalidad } from '../metodos/listasDesplegables/metodosLocalidad.mjs'
 import { registrarObservacion } from '../metodos/preceptor/metodosObservacion.mjs'
@@ -27,12 +28,12 @@ import {
 import { obtenerEstadoCertificado } from '../metodos/listasDesplegables/metodosCertificados.mjs'
 import { obtenerEstadoAsistencia } from '../metodos/listasDesplegables/metodosEstadoAsistencia.mjs'
 import { obtenerLibroMatriz } from '../metodos/secretaria/metodosLibroMatriz.mjs'
-import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorPorMateria, deshabilitarMateriaProfesor, deshabilitarMateria, agregarMateria, obtenerMateriasDeshabilitadas, habilitarMateria} from '../metodos/administrador/metodosGestionMateria.mjs'
-import {registrarRol, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol} from '../metodos/listasDesplegables/metodosRoles.mjs'
-import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea} from '../metodos/administrador/metodosCargarTarea.mjs'
-import { obtenerTareas,obtenerRoles, obtenerTareasDeRoles, registrarTareaRol, registrarRolTarea, deshabilitarRolTarea, deshabilitarTareaRol, obtenerRolesDeTarea} from '../metodos/administrador/metodosTareasRoles.mjs'
+import { obtenerMaterias, obtenerProfesor, registrarMateriaProfesor, obtenerProfesorPorMateria, deshabilitarMateriaProfesor, deshabilitarMateria, agregarMateria, obtenerMateriasDeshabilitadas, habilitarMateria, consultarMateria, modificarMateria} from '../metodos/administrador/metodosGestionMateria.mjs'
+import {registrarRol, obtenerRolesDeshabilitados, deshabilitarRol, habilitarRol, consultarRol, modificarRol} from '../metodos/listasDesplegables/metodosRoles.mjs'
+import { agregarTarea, deshabilitarTarea, obtenerTareasDeshabilitadas, habilitarTarea, consultarTarea} from '../metodos/administrador/metodosCargarTarea.mjs'
+import { obtenerTareas,obtenerRoles, obtenerTareasDeRoles, registrarTareaRol, registrarRolTarea, deshabilitarRolTarea, deshabilitarTareaRol, obtenerRolesDeTarea, modificarTarea} from '../metodos/administrador/metodosTareasRoles.mjs'
 import { registrarUsuario, consultarUsuario, modificarUsuario, deshabilitarUsuario} from '../metodos/administrador/metodosRegistrarUsuario.mjs'
-import { enviarNuevaContrasena, ingresarUsuario} from '../metodos/navegacion/metodosLogin.mjs'
+import { enviarNuevaContrasena, ingresarUsuario, obtenerTareasPorRol} from '../metodos/navegacion/metodosLogin.mjs'
 import { obtenerEspecialidad } from '../metodos/listasDesplegables/metodosEspecialidad.mjs'
 import { obtenerUsuario, restablecerContrasena } from '../metodos/navegacion/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso, actualizarUltimaVisitaAvisos, obtenerUltimaVisitaAvisos } from '../metodos/alumno/metodosAvisos.mjs'
@@ -43,7 +44,6 @@ import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerM
 import { marcarAusentes, obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/secretaria/metodosAsistenciaProfesores.mjs'
 import { registrarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/secretaria/metodosGestionProfesionales.mjs'
 import { obtenerEstadosFaltaProfesionales, obtenerFaltasProfesionales, registrarJustificacionProfesionales} from '../metodos/secretaria/metodosJustificarFaltaProfesionales.mjs'
-import { registrarCurso} from '../metodos/listasDesplegables/metodosCurso.mjs'
 import { obtenerEvaluacionesCargadas, obtenerEvaluacionesPorAlumno } from '../metodos/navegacion/metodosCalendario.mjs'
 
 
@@ -147,6 +147,8 @@ ruta.post('/alumno/notas/alta', registrarNota) // 🟢
 ruta.put('/materia/deshabilitar/:id_materia', deshabilitarMateria) // 🟢
 ruta.put('/materia/habilitar/:id_materia', habilitarMateria) // 🟢
 ruta.post('/materia/alta', agregarMateria) // 🟢
+ruta.get('/materia/consultar/:detalle', consultarMateria) // 🟢
+ruta.put('/materia/modificar/:id_materia', modificarMateria) // 🟢
 
 // == PASAR AÑO
 ruta.get('/alumno/pasarAno/:id_curso', obtenerAlumnoFinal)  // 🟢
@@ -179,6 +181,7 @@ ruta.put('/usuario/modificar/:dni_usuario', modificarUsuario)  // 🟢
 // == INGRESAR USUARIO
 ruta.post('/usuario/ingresar', ingresarUsuario)  // 🟢
 ruta.post('/usuario/recuperarContrasena', enviarNuevaContrasena) // 🟢
+ruta.get('/usuario/tareas/:id_rol', obtenerTareasPorRol) // 🟢
 
 // == ROLES 
 ruta.post('/rol/alta', registrarRol) // 🟢
@@ -186,6 +189,9 @@ ruta.put('/rol/deshabilitar/:id_rol', deshabilitarRol) // 🟢
 ruta.put('/rol/habilitar/:id_rol', habilitarRol) // 🟢
 ruta.post('/rol/tarea/deshabilitar', deshabilitarRolTarea) // 🟢
 ruta.post('/rol/tarea/alta', registrarRolTarea) // 🟢
+ruta.get('/rol/tarea/:detalle', consultarTarea) // 🟢
+ruta.get('/rol/consultar/:detalle', consultarRol) // 🟢
+ruta.put('/rol/modificar/:id_rol', modificarRol) // 🟢
 
 // == TAREAS
 ruta.post('/tarea/rol/alta', registrarTareaRol) // 🟢
@@ -193,6 +199,8 @@ ruta.post('/tarea/rol/deshabilitar', deshabilitarTareaRol) // 🟢
 ruta.post('/tarea/alta', agregarTarea) 
 ruta.put('/tarea/deshabilitar/:id_tarea', deshabilitarTarea) // 🟢 
 ruta.put('/tarea/habilitar/:id_tarea', habilitarTarea) // 🟢 
+ruta.get('/tarea/consultar/:detalle', consultarTarea) // 🟢
+ruta.put('/tarea/modificar/:detalle', modificarTarea) // 🟢
 
 
 // == AVISOS
@@ -238,6 +246,9 @@ ruta.post('/justificar/profesional/alta', registrarJustificacionProfesionales); 
 // == CURSO
 ruta.post('/curso/materia/alta', registrarCursoPorMateria)  // 🟢 
 ruta.post('/curso/alta', registrarCurso) // 🟢
+ruta.get('/curso/:detalle', consultarCurso) // 🟢
+ruta.put('/curso/deshabilitar/:detalle', deshabilitarCurso) // 🟢
+ruta.put('/curso/modificar/:id_curso', modificarCurso) // 🟢
 
 
 // == CALENDARIO

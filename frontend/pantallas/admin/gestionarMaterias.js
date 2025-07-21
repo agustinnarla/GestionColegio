@@ -39,7 +39,7 @@ export default function GestionarMaterias() {
         setAlertVisible(true);
     };
 
-    const cargarMaterias = async () => {
+    const cargarListaDesplegable = async () => {
         try {
             const materiasObtenidas = await obtenerMateria();
             console.log('Materias obtenidas:', materiasObtenidas);
@@ -91,26 +91,26 @@ export default function GestionarMaterias() {
     };
 
     const cargarMateriaProfesor = async () => {
-    if (selectedMateria && selectedProfesores.length > 0) {
-        console.log("Profesores:", selectedProfesores);
-        console.log("Materia:", selectedMateria);
+        if (selectedMateria && selectedProfesores.length > 0) {
+            console.log("Profesores:", selectedProfesores);
+            console.log("Materia:", selectedMateria);
 
-        const relaciones = selectedProfesores.map(dni => ({
-            dni_profesional: dni,
-            id_materia: selectedMateria
-        }));
+            const relaciones = selectedProfesores.map(dni => ({
+                dni_profesional: dni,
+                id_materia: selectedMateria
+            }));
 
-        const result = await registrarMateriaProfesor(relaciones);
+            const result = await registrarMateriaProfesor(relaciones);
 
-        if (result && result.mensaje) {
-            mostrarMensaje('Exito', 'Relación registrada exitosamente');
-            limpiarInterfaz()
+            if (result && result.mensaje) {
+                mostrarMensaje('Éxito', 'Relación entre profesores y materia registrada exitosamente');
+                limpiarInterfaz()
+            } else {
+                mostrarMensaje('Error', 'Error al registrar la relación');
+            }
         } else {
-            mostrarMensaje('Error', 'Error al registrar la relación');
+            mostrarMensaje('Advertencia', 'Seleccione una materia y un profesor');
         }
-    } else {
-        mostrarMensaje('Advertencia', 'Seleccione una materia y un profesor');
-    }
 };
 
     const cargarProfesoresPorMateria = async (idMateria) => {
@@ -163,7 +163,7 @@ export default function GestionarMaterias() {
                     }
                     cargarProfesores()
                     cargarMateriasDeshabilitadas
-                    cargarMaterias()
+                    cargarListaDesplegable()
                     limpiarInterfaz()
                 }
             );
@@ -180,7 +180,7 @@ export default function GestionarMaterias() {
                 console.log('Materia registrada con éxito:', response);
                 setModalVisible(false);
                 setNuevaMateria('');
-                cargarMaterias();
+                cargarListaDesplegable();
                 cargarProfesores();
                 cargarMateriasDeshabilitadas();
                 limpiarInterfaz()
@@ -199,7 +199,7 @@ export default function GestionarMaterias() {
             const respuesta = await habilitarMateria(idMateria); // Llama a la función que habilita la materia en la BD
             if (respuesta) {
                 mostrarMensaje('Exito', 'Materia habilitada exitosamente')
-                cargarMaterias();
+                cargarListaDesplegable();
                 cargarProfesores();
                 cargarMateriasDeshabilitadas();
                 limpiarInterfaz()
@@ -214,7 +214,7 @@ export default function GestionarMaterias() {
         }
     };
 
-    const handleConfirmarModificacion = async () => {
+    const handleConfirmarHabilitacion = async () => {
         try {
             // Filtra las materias que tienen id_estado_general === 1
             const materiasAHabilitar = materiasDeshabilitadas.filter(
@@ -227,7 +227,7 @@ export default function GestionarMaterias() {
                     handleHabilitarMateria(materia.id_materia)
                 )
             );
-            cargarMaterias();
+            cargarListaDesplegable();
             cargarProfesores();
             cargarMateriasDeshabilitadas();
             console.log('Resultados de habilitar materias:', resultados);
@@ -238,11 +238,11 @@ export default function GestionarMaterias() {
         }
     
         // Cierra el modal
-        setModalModificarVisible(false);
+        setModalHabilitarVisible(false);
     };
 
     // Función para cambiar el estado de una materia
-    const toggleSwitch = (id_materia) => {
+    const tocarSwitch = (id_materia) => {
         setMateriasDeshabilitadas((prevMaterias) =>
             prevMaterias.map((materia) =>
             materia.id_materia === id_materia
@@ -262,7 +262,7 @@ export default function GestionarMaterias() {
     };
 
     useEffect(() => { 
-        cargarMaterias();
+        cargarListaDesplegable();
         cargarProfesores();
         cargarMateriasDeshabilitadas();
         
@@ -355,7 +355,7 @@ export default function GestionarMaterias() {
                 <Modal visible={modalModificarVisible} transparent animationType="slide">
     <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-            <Text style={styles.titulo}>Modificar Materias</Text>
+            <Text style={styles.titulo}>Habilitar Materias</Text>
             {materiasDeshabilitadas.length === 0 ? (
                 <Text>No hay materias deshabilitadas.</Text>
             ) : (
@@ -364,13 +364,13 @@ export default function GestionarMaterias() {
                         <Text style={styles.textoTarea}>{materia.detalle}</Text>
                         <Switch
                             value={materia.id_estado_general === 1}
-                            onValueChange={() => toggleSwitch(materia.id_materia)}
+                            onValueChange={() => tocarSwitch(materia.id_materia)}
                         />
                     </View>
                 ))
             )}
             <View style={styles.botonesModal}>
-                <TouchableOpacity style={styles.botonAlta} onPress={handleConfirmarModificacion}>
+                <TouchableOpacity style={styles.botonAlta} onPress={handleConfirmarHabilitacion}>
                     <Text style={styles.textoBoton}>Confirmar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonBaja} onPress={() => setModalModificarVisible(false)}>

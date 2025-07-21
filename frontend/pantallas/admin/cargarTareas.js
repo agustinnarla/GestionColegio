@@ -4,7 +4,7 @@ import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { obtenerRoles, obtenerTareas, obtenerRolesDeTarea, obtenerTareasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
-import { agregarTarea, deshabilitarTarea, habilitarTarea} from '../../scripts/admin/scriptCargarTareas.js';
+import { agregarTarea, deshabilitarTarea, habilitarTarea, consultarTarea, modificarTarea} from '../../scripts/admin/scriptCargarTareas.js';
 import { registrarRolTarea, registrarTareaRol} from '../../scripts/admin/scriptTareasRol.js';
 import { Picker } from '@react-native-picker/picker';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -18,7 +18,7 @@ export default function CargarTareas() {
     const [nuevaTarea, setNuevaTarea] = useState(''); // Estado para almacenar el nombre de la nueva tarea
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
     const [tareasDeshabilitadas, setTareasDeshabilitadas] = useState([]);
-
+    const [nuevaRuta, setNuevaRuta] = useState(''); // Estado para almacenar la ruta de la nueva tarea
 
     // Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
@@ -39,7 +39,7 @@ export default function CargarTareas() {
         setAlertVisible(true);
     };
 
-    //CARGA LAS TAREAS DENTRO DEL COMBOBOX
+    //CARGA Lista desplegables
     const cargarTareas = async () => {
         try {
             const tareasObtenidas = await obtenerTareas();
@@ -179,7 +179,7 @@ export default function CargarTareas() {
             // Llama a handleHabilitarTarea para cada tarea habilitada
             const resultados = await Promise.all(
                 tareasAHabilitar.map((tarea) =>
-                    handleHabilitarTarea(tarea.id_tarea)
+                    handleHabilitar(tarea.id_tarea)
                 )
             );
             console.log('Resultados de habilitar tareas:', resultados);
@@ -203,8 +203,8 @@ export default function CargarTareas() {
         }
     };
 
-    //DESHABILITA TAREA
-    const eliminarTarea = async () => {
+    //🟢 Deshabilitar tarea
+    const handleDeshabilitar = async () => {
         if (!selectedTarea) {
             mostrarMensaje('Advertencia','Por favor, selecciona una tarea para deshabilitar.');
             return;
@@ -230,8 +230,8 @@ export default function CargarTareas() {
         }
     };
 
-    //REGISTRA UNA NUEVA TAREA
-    const handleRegistrarTarea = async () => {
+    //🟢 Registrar Tarea 
+    const handleRegistrar= async () => {
         if (nuevaTarea.trim()) {
             try {
                 const response = await agregarTarea(nuevaTarea); // Pasar directamente el detalle
@@ -255,8 +255,8 @@ export default function CargarTareas() {
         }
     };
 
-    //HABILITA TAREA
-    const handleHabilitarTarea = async (idTarea) => {
+    //🟢 Habilitar tarea 
+    const handleHabilitar = async (idTarea) => {
         try {
             const respuesta = await habilitarTarea(idTarea); // Llama a la función que habilita la tarea en la BD
             if (respuesta) {
@@ -272,15 +272,61 @@ export default function CargarTareas() {
                 return false;
             }
         } catch (error) {
-            console.error('Error en handleHabilitarTarea:', error);
+            console.error('Error en handleHabilitar:', error);
             return false;
         }
     };
     
+    //🟢 Consultar tarea 
+    const handleConsultar = async (detalle) => {
+        if (!detalle || !detalle.trim()) {
+            mostrarMensaje("Error", "Por favor ingrese el nombre de la tarea a consultar");
+            return;
+        }
+        try {
+            const data = await consultarTarea(detalle);
+            console.log("La tarea consultada es ", data)
+            if (data.tareas) {
+                mostrarMensaje("Éxito", `Tarea encontrada`);
+                setNuevaRuta(data.tareas[0].ruta || ''); // Asigna la ruta de la tarea consultada
+                setNuevaTarea(data.tareas[0].detalle || ''); // Asigna el detalle de la tarea consultada
+            } else {
+                mostrarMensaje("Error", "Tarea no encontrada");
+            }
+        } catch (error) {
+            console.log("Error al consultar la tarea", error)
+            mostrarMensaje("Error", "No se pudo consultar la tarea");
+        }
+    }
+
+    //🟢 Modificar tarea 
+    const handleModificar = async () => {
+        try {
+            const tareaData = {
+            detalle: nuevaTarea,
+            ruta: nuevaRuta, 
+            };
+            console.log(tareaData);
+            const respuesta = await modificarTarea(nuevaTarea, tareaData);
+            if (respuesta) {
+            mostrarMensaje("Exito", "El tarea se modifico correctamente");
+            console.log("El tarea fue modificado correctamente");
+            limpiarInterfaz();
+            }
+        } catch (error) {
+            mostrarMensaje("Error", "Error al modificar el tarea");
+            console.log(error.message);
+        }
+    }
+
+
+
+    //🟢 Limpiar interfaz
     const limpiarInterfaz = () => {
         setSelectedTarea('');
         setSelectedRoles([]);
-        
+        setNuevaRuta('');
+        setNuevaTarea('');
     };
 
     useEffect(() => {
@@ -290,7 +336,6 @@ export default function CargarTareas() {
     }, []);
 
     return (
-         
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.formulario}>
@@ -335,8 +380,8 @@ export default function CargarTareas() {
                         <TouchableOpacity style={styles.botonAlta} onPress={cargarRolTarea}>
                             <Text style={styles.textoBoton}>Registrar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonBaja} onPress={eliminarTarea}>
-                            <Text style={styles.textoBoton}>Eliminar</Text>
+                        <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}>
+                            <Text style={styles.textoBoton}>Deshabilitar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
                             <Text style={styles.textoBoton}>Habilitar</Text>
@@ -350,19 +395,48 @@ export default function CargarTareas() {
                 <Modal visible={modalVisible} transparent animationType="slide">
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            <Text style={styles.titulo}>Nueva Tarea</Text>
+                            <Text style={styles.titulo}>Gestión de Tarea</Text>
+                            <View style={styles.divider} />
+                            {/* ComboBox: Picker + TextInput */}
+                            <Text style={styles.label}>Selecciona una tarea existente o escribe una nueva:</Text>
+                            <View style={styles.comboContainer}>
+                                <Picker
+                                    selectedValue={nuevaTarea}
+                                    style={styles.inputPicker}
+                                    onValueChange={setNuevaTarea}
+                                >
+                                    <Picker.Item label="Seleccionar tarea..." value="" />
+                                    {tareasDisponibles.map((tarea) => (
+                                        <Picker.Item key={tarea.key} label={tarea.value} value={tarea.value} />
+                                    ))}
+                                </Picker>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="O escriba una tarea nueva"
+                                    value={nuevaTarea}
+                                    onChangeText={setNuevaTarea}
+                                />
+                            </View>
+                            <TouchableOpacity style={styles.botonConsultar} onPress={() => handleConsultar(nuevaTarea)}>
+                                <Text style={styles.textoBoton}>Consultar</Text>
+                            </TouchableOpacity>
+                            <View style={styles.divider} />
+                            <Text style={styles.label}>Ruta de la tarea:</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Ingrese nombre de la tarea"
-                                value={nuevaTarea}
-                                onChangeText={setNuevaTarea}
+                                placeholder="Ingrese la ruta de la tarea"
+                                value={nuevaRuta}
+                                onChangeText={setNuevaRuta}
                             />
                             <View style={styles.botonesModal}>
-                                <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarTarea}>
-                                    <Text style={styles.textoBoton}>Registrar</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
+                                <TouchableOpacity style={styles.botonCancelar} onPress={() => { setModalVisible(false); limpiarInterfaz(); }}>
                                     <Text style={styles.textoBoton}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}>
+                                    <Text style={styles.textoBoton}>Modificar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrar}>
+                                    <Text style={styles.textoBoton}>Registrar</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -465,13 +539,13 @@ const styles = StyleSheet.create({
         color: '#2a3d6c',
     },
     input: {
+        flex: 1,
         borderWidth: 1,
         borderColor: '#e5e7eb',
         padding: 10,
         borderRadius: 7,
-        marginBottom: 13,
         backgroundColor: '#f3f4f6',
-        height: 38,
+        height: 44, // más alto
         fontSize: 15,
     },
     pickerContainer: {
@@ -487,8 +561,9 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         backgroundColor: '#f3f4f6',
         fontSize: 15,
-        height: 38,
+        height: 44, // más alto
         paddingHorizontal: 10,
+        marginRight: 8,
     },
     botonAgregar: {
         backgroundColor: '#6c7ae0',
@@ -562,8 +637,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         padding: 24,
         borderRadius: 10,
-        width: '90%',
-        maxWidth: 400,
+        width: '100%',
+        maxWidth: 600,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -588,6 +663,38 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
+        marginBottom: 10,
+    },
+    divider: {
+        height: 1,
+        width: '100%',
+        backgroundColor: '#e0e0e0',
+        marginVertical: 16,
+    },
+    comboContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+        gap: 16, // más espacio entre picker e input
+    },
+    botonConsultar: {
+        backgroundColor: '#e3f2fd',
+        borderColor: '#2196F3',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+        width: '50%',
+    },
+    botonCancelar: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
         marginBottom: 10,
     },
 });

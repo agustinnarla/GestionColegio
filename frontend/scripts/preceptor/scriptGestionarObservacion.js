@@ -60,6 +60,9 @@ export const imprimirArchivo = async (formData, alumno, profesional) => {
                     <div class="footer">
                         <div class="firma-line"></div>
                         <p>Firma del Preceptor</p>
+                        <br>
+                        <p><strong>Colegio Nuestra Señora del Huerto</strong></p>
+                        <p><strong>Telefono:</strong> 1234-5678</p>
                     </div>
                 </body>
             </html>

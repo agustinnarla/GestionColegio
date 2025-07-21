@@ -25,6 +25,7 @@ export default function useAmonestacion() {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [enviando, setEnviando] = useState(false);
 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
@@ -36,9 +37,9 @@ export default function useAmonestacion() {
     const validarNumeroPositivo = (numero) => !isNaN(numero) && parseInt(numero) > 0;
 
     const validarFecha = (fecha) => {
-        const regex = /^\d{2}-\d{2}-\d{4}$/;
+        const regex = /^\d{2}\/\d{2}\/\d{4}$/;
         if (!regex.test(fecha)) return false;
-        const [dia, mes, año] = fecha.split('-').map(Number);
+        const [dia, mes, año] = fecha.split('/').map(Number);
         const fechaValida = new Date(año, mes - 1, dia);
         if (
             fechaValida.getFullYear() !== año ||
@@ -53,8 +54,8 @@ export default function useAmonestacion() {
     };
 
     const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('-');
-        return `${año}-${mes}-${dia}`;
+        const [dia, mes, año] = fecha.split('/');
+        return `${año}/${mes}/${dia}`;
     };
 
     const validarCampos = () => {
@@ -120,20 +121,15 @@ export default function useAmonestacion() {
                 cantidad: parseInt(formData.cantidad),
                 fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
-            };
-
-            if (!validarCampos()) {
-                mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
-                return;
-            }
-
+            }; 
+            setEnviando(true);
             // Hacer lo del spiner 
 
             const respuesta = await registrarAmonestacion(alumnoData);
             mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
+            setEnviando(false);
             setModalVisible(true);
         } catch (error) {
-            //console.error('Error al registrar la amonestación:', error.message);
             mostrarMensaje('Error', 'No se pudo registrar la amonestación');
         }
     };
@@ -191,5 +187,7 @@ export default function useAmonestacion() {
         limpiarInterfaz,
         handleImprimir,
         handleChange,
+        enviando,
+        setEnviando
     };
 }

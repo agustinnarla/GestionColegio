@@ -61,9 +61,9 @@ export default function GestionarAlumno() {
             formData.id_estado_general &&
             formData.id_localidad &&
             formData.domicilio &&
-            formData.edificio &&
-            formData.piso &&
-            formData.departamento 
+            formData.edificio != null &&
+            formData.piso != null &&
+            formData.departamento != null
         )
     }
 
@@ -585,7 +585,7 @@ export default function GestionarAlumno() {
                         />
 
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='AAAA/MM/DD' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
+                        <TextInput style={styles.input} placeholder='DD/MM/AAAA' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
                         
                         <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefono_madre} onChangeText={(value) => handleChange('telefono_madre', value)} />
@@ -858,7 +858,9 @@ const styles = StyleSheet.create({
 
   // Botones de legajo - Colores ajustados a la imagen
   boton: {
-    backgroundColor: '#6c7ae0', // Color azul-violeta como en la imagen
+    backgroundColor: '#ffebee',
+    borderColor: '#a72828ff',
+    borderWidth: 2,
     padding: 12,
     borderRadius: 5,
     alignItems: 'center',
@@ -866,12 +868,14 @@ const styles = StyleSheet.create({
     height: 45,
   },
   botonVer: {
-    backgroundColor: '#28a745', // Verde como en la imagen
+    backgroundColor: '#e8f5e9',
+    borderColor: '#28a745',
+    borderWidth: 2,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 5,
     marginTop: 5,
-    height: 35,
+    height: 45,
   },
   
   // Botones inferiores - Ajustados al tamaño de la imagen

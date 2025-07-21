@@ -85,3 +85,59 @@ export const habilitarRol = async (req, res) => {
     }
 };
 
+export const consultarRol = async (req, res) => {
+    const { detalle } = req.params; // Recibe el detalle del rol desde el frontend
+    if (!detalle) {
+        return res.status(400).json({ error: 'El detalle del rol es obligatorio' });
+    }
+    try {
+        const respuesta = await pool.query(
+            'SELECT * FROM roles WHERE detalle = $1',
+            [detalle]
+        );
+        if (respuesta.rows.length > 0) {
+            res.status(200).json({ roles: respuesta.rows });
+        } else {
+            res.status(404).json({ message: 'Rol no encontrado' });
+        }
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: 'Error al consultar el rol' });
+    }
+}
+
+export const modificarRol = async (req, res) => {   
+    const { id_rol } = req.params;
+    const campos = [
+        "detalle", "id_estado_general"
+    ];
+    const valores = [];
+    const sets = [];
+
+    campos.forEach((campo, idx) => {
+        if (req.body[campo] !== undefined) {
+            sets.push(`${campo} = $${sets.length + 1}`);
+            valores.push(req.body[campo]);
+        }
+    });
+
+    if (sets.length === 0) {
+        return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
+    }
+
+    valores.push(id_rol); // Para el WHERE
+
+    const query = `UPDATE roles SET ${sets.join(', ')} WHERE id_rol = $${valores.length} RETURNING *`;
+
+    try {
+        const respuesta = await pool.query(query, valores);
+        if (respuesta.rowCount === 0) {
+            return res.status(404).json({ message: 'No se encontró el rol' });
+        }
+
+        res.status(200).json({ message: 'Rol modificado correctamente', data: respuesta.rows[0] });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error al modificar el rol' });
+    }
+};

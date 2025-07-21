@@ -15,15 +15,15 @@ export const obtenerTareasDeshabilitadas = async (req,res) => {
 
 //RegistrarTarea
 export const agregarTarea = async (req, res) => {
-    const { detalle } = req.body; // Obtener el nombre de la tarea desde el cuerpo de la solicitud
+    const { detalle, ruta } = req.body; // Obtener el nombre de la tarea desde el cuerpo de la solicitud
     if (!detalle) {
         return res.status(400).json({ error: 'El campo "detalle" es requerido' });
     }
     try {
         // Insertar la nueva tarea en la base de datos
         const result = await pool.query(
-            'INSERT INTO tarea (detalle, id_estado_general) VALUES ($1, $2) RETURNING id_tarea',
-            [detalle, 1]
+            'INSERT INTO tarea (detalle, id_estado_general, ruta) VALUES ($1, $2, $3) RETURNING id_tarea',
+            [detalle, 1, ruta]
         );
         // Devolver el ID de la nueva tarea y un mensaje de éxito
         res.status(201).json({
@@ -68,7 +68,18 @@ export const habilitarTarea = async (req, res) => {
     }
 };
 
-
+export const consultarTarea = async (req, res) => {
+    const { detalle } = req.params;
+    try {
+        const respuesta = await pool.query('SELECT * FROM tarea WHERE detalle = $1', [detalle]);
+        res.status(200).json({tareas: respuesta.rows});
+        console.log('Tareas obtenidas exitosamente');
+    }
+    catch(error){
+        console.log(error.message);
+        res.status(500).json({ message: 'Error al obtener las tareas' });
+    }   
+}
 
 
 

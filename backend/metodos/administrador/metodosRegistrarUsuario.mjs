@@ -1,5 +1,4 @@
 import { pool } from '../../dataBase/coneccion.mjs';
-
 import { encriptarContrasena } from '../navegacion/metodosLogin.mjs';
 
 export const registrarUsuario = async (req, res) => {
@@ -24,8 +23,6 @@ export const registrarUsuario = async (req, res) => {
     }
 };
 
-
-
 export const consultarUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
     try {
@@ -43,46 +40,34 @@ export const consultarUsuario = async (req, res) => {
 
 export const modificarUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
-    const { email, id_rol, id_estado_general, contrasena } = req.body;
+    const campos = [
+        "dni_usuario", "id_rol", "id_estado_general", "email", "contrasena"
+    ];
+    const valores = [];
+    const sets = [];
+
+    campos.forEach((campo, idx) => {
+        if (req.body[campo] !== undefined) {
+            sets.push(`${campo} = $${sets.length + 1}`);
+            valores.push(req.body[campo]);
+        }
+    });
+
+    if (sets.length === 0) {
+        return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
+    }
+
+    valores.push(dni_usuario);
+
+    const query = `UPDATE usuario SET ${sets.join(', ')} WHERE dni_usuario = $${valores.length} RETURNING *`;
+
     try {
-     
-        let query = 'UPDATE usuario SET';
-        const values = [];
-        let index = 1;
-
-        if (email) {
-            query += ` email = $${index},`;
-            values.push(email);
-            index++;
-        }
-        if (id_rol) {
-            query += ` id_rol = $${index},`;
-            values.push(id_rol);
-            index++;
-        }
-        if (id_estado_general) {
-            query += ` id_estado_general = $${index},`;
-            values.push(id_estado_general);
-            index++;
-        }
-        if (contrasena) {
-            const contrasenaHaseada = await encriptarContrasena(contrasena);
-            query += ` contrasena = $${index},`;
-            values.push(contrasenaHaseada);
-            index++;
+        const respuesta = await pool.query(query, valores);
+        if (respuesta.rowCount === 0) {
+            return res.status(404).json({ message: 'No se encontró el usuario' });
         }
 
-        // Eliminar la última coma y agregar la cláusula WHERE
-        query = query.slice(0, -1);
-        query += ` WHERE dni_usuario = $${index}`;
-        values.push(dni_usuario);
-
-        const resultado = await pool.query(query, values);
-        if (resultado.rowCount > 0) {
-            res.status(200).json({ message: 'Usuario modificado exitosamente' });
-        } else {
-            res.status(404).json({ message: 'Usuario no encontrado' });
-        }
+        res.status(200).json({ message: 'Usuario modificado correctamente', data: respuesta.rows[0] });
     } catch (error) {
         console.error('Error al modificar el usuario:', error);
         res.status(500).json({ message: 'Error al modificar el usuario' });

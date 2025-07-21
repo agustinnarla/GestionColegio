@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../config.js';
 
 const api_urlLogin = `${API_BASE_URL}/usuario/ingresar`;
 const api_urlOlvideMiContraseña = `${API_BASE_URL}/usuario/recuperarContrasena`;
+const api_urlTareaPorRol = `${API_BASE_URL}/usuario/tareas`;
 
 // 🟢
 export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostrarMensaje) => {
@@ -63,3 +64,23 @@ export const olvideMiContrasena = async (dni_usuario) => {
     }
 };
 
+export const obtenerTareasPorRol = async (id_rol) => {
+    try {
+        const response = await fetch(`${api_urlTareaPorRol}/${id_rol}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener las tareas');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error al obtener tareas por rol:', error);
+        return [];
+    }
+}

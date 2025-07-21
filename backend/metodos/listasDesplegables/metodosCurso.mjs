@@ -91,3 +91,18 @@ export const registrarCurso = async (req, res) => {
         res.status(500).json({ error: 'Error al registrar el curso' });
     }
 };
+
+export const consultarCurso = async (req,res) => {
+    const { detalle } = req.params; // Cambiar de req.body a req.params
+    try{
+        const respuesta = await pool.query(
+            `SELECT c.id_curso, c.detalle, e.detalle FROM curso c INNER JOIN especialidad 
+            e ON c.id_especialidad = e.id_especialidad WHERE c.detalle = $1`,
+            [detalle]
+        );
+        res.status(200).json({ cursos: respuesta.rows });
+    }catch(error){
+        console.log("Error al consultar el curso:", error.message);
+        res.status(500).json({ error: 'Error al consultar el curso' });
+    }
+}

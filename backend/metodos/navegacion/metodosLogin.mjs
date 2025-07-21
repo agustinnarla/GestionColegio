@@ -130,3 +130,23 @@ export const actualizarContrasena = async (contrasenaEncriptada, dni_usuario) =>
     }
 };
 
+export const obtenerTareasPorRol = async (req, res) => {
+    const { id_rol } = req.params
+    try{
+        const respuesta = await pool.query(
+            `SELECT t.id_tarea, t.detalle, t.ruta 
+             FROM tarea t 
+             JOIN tarea_rol rt ON t.id_tarea = rt.id_tarea 
+             WHERE rt.id_rol = $1 AND rt.id_estado_general = 1`, [id_rol]
+        );
+
+        if (respuesta.rows.length > 0) {
+            res.json({ tareas: respuesta.rows });
+        } else {
+            res.status(404).json({ message: 'No se encontraron tareas para este rol' });
+        }
+    }catch (error) {
+        console.error('Error al obtener las tareas por rol:', error.message);
+        res.status(500).json({ message: 'Error al obtener las tareas por rol' });
+    }
+}

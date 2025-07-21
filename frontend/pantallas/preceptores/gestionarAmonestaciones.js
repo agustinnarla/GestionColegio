@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
@@ -14,7 +14,7 @@ export default function GestionarAmonestaciones() {
         modalVisible, setModalVisible,
         alertVisible, setAlertVisible, alertTitle, alertMessage,
         mostrarMensaje, validarFomulario,
-        handleRegistrar, limpiarInterfaz, handleImprimir, handleChange
+        handleRegistrar, limpiarInterfaz, handleImprimir, handleChange, enviando, setEnviando
     } = useAmonestacion();
     
     const Content = (
@@ -65,6 +65,12 @@ export default function GestionarAmonestaciones() {
                     <Text style={styles.textoBoton}>Cancelar</Text>
                 </TouchableOpacity>
             </View>
+            {enviando && (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color="#007bff" />
+                            <Text style={styles.loadingText}>Enviando observación al email...</Text>
+                        </View>
+                    )}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -260,5 +266,15 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    }
+    },
+    loadingContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#333',
+    },
 });

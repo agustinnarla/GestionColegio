@@ -1,38 +1,45 @@
 import { Text, StyleSheet, View, ScrollView, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-
+import BotonTarea from '../../componente/BotonTarea.jsx';
+import { obtenerTareasPorRol} from '../../scripts/navegacion/scriptLogin.js';
 import bg from '../../assets/bg1.jpg';
 
 // Obtén el ancho de la ventana
 const { width } = Dimensions.get('window');
 const isDesktop = width >= 768; // valor  como pantalla de escritorio
 
-export default function HomeAdmin() {
+export default function HomeAdmin({ route }) {
     const navegacion = useNavigation();
+    const [tareas, setTareas] = useState([]);
+    const id_rol = route?.params?.id_rol;
+
+    useEffect(() => {
+        const cargarTareas = async () => {
+            const data = await obtenerTareasPorRol(id_rol);
+            setTareas(data.tareas || []);
+
+        }
+        if (id_rol) {
+            cargarTareas();
+        }
+    }, [id_rol]);
+
     return (
         <View style={styles.padre}>
             <ImageBackground source={bg} style={styles.bg}>
                 <ScrollView
                     contentContainerStyle={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}
-                    horizontal={isDesktop} // Establece horizontal en true si es una pantalla de escritorio
+                    horizontal={isDesktop} 
                 >
                     <View style={isDesktop ? styles.padreBotonDesktop : styles.padreBoton}>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Gestionar Materias')}>
-                            <Text style={styles.textoBoton}>Gestionar Materias</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Registrar Usuario')}>
-                            <Text style={styles.textoBoton}>Registrar Usuario</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Registrar Curso')}>
-                            <Text style={styles.textoBoton}>Registrar Curso</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Registrar Rol')}>
-                            <Text style={styles.textoBoton}>Registrar Rol</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.cajaBoton} onPress={() => navegacion.navigate('Cargar Tareas')}>
-                            <Text style={styles.textoBoton}>Cargar Tareas</Text>
-                        </TouchableOpacity>
+                        {tareas.map((tarea) => (
+                            <BotonTarea
+                                key={tarea.id_tarea}
+                                tarea={tarea}
+                                onPress={(t) => navegacion.navigate(t.ruta)}
+                            />
+                        ))}
                     </View>
                 </ScrollView>
             </ImageBackground>

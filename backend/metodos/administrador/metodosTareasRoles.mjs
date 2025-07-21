@@ -179,9 +179,6 @@ export const registrarRolTarea = async (req, res) => {
 };
 
 
-
-
-
 export const verificarExistencia = async (id_tarea, id_rol) => {
     try {
         console.log(`Verificando existencia: id_tarea=${id_tarea}, id_rol=${id_rol}`);
@@ -302,5 +299,55 @@ export const deshabilitarRolTarea = async (req, res) => {
     } catch (error) {
         console.error('Error al deshabilitar relaciones:', error);
         res.status(500).json({ error: 'Error al deshabilitar relaciones' });
+    }
+};
+
+
+export const consultarTarea = async (req, res) => {
+    const { detalle } = req.params;
+    try {
+        const respuesta = await pool.query('SELECT * FROM tarea WHERE detalle = $1', [detalle]);
+        res.status(200).json({tareas: respuesta.rows});
+        console.log('Tareas obtenidas exitosamente');
+    } catch (error) {
+        console.error('Error al obtener tareas:', error);
+        res.status(500).json({ error: 'Error al obtener tareas' });
+    }
+};
+
+
+export const modificarTarea = async (req, res) => {   
+    const { detalle } = req.params;
+    const campos = [
+        "detalle", "ruta"
+    ];
+    const valores = [];
+    const sets = [];
+
+    campos.forEach((campo, idx) => {
+        if (req.body[campo] !== undefined) {
+            sets.push(`${campo} = $${sets.length + 1}`);
+            valores.push(req.body[campo]);
+        }
+    });
+
+    if (sets.length === 0) {
+        return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
+    }
+
+    valores.push(detalle); // Para el WHERE
+
+    const query = `UPDATE tarea SET ${sets.join(', ')} WHERE detalle = $${valores.length} RETURNING *`;
+
+    try {
+        const respuesta = await pool.query(query, valores);
+        if (respuesta.rowCount === 0) {
+            return res.status(404).json({ message: 'No se encontró la tarea' });
+        }
+
+        res.status(200).json({ message: 'Tarea modificada correctamente', data: respuesta.rows[0] });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error al modificar la tarea' });
     }
 };

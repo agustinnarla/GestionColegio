@@ -4,11 +4,17 @@ import { encriptarContrasena } from '../navegacion/metodosLogin.mjs'
 //Registrar 
 export const registrarProfesional = async (req, res) => {
     const { dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento,
-        piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, numero, edificio} = req.body
+        piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio} = req.body
     try{
-        const respuesta = await pool.query("INSERT INTO profesional (dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, numero, edificio)" + 
-            " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *",
-            [dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, numero, edificio]
+        const existente = await pool.query("SELECT 1 FROM profesional WHERE dni_profesional = $1", [dni_profesional]);
+        if (existente.rowCount > 0) {
+            return res.status(409).json({ message: 'El profesional ya está registrado' });
+        }
+
+        
+        const respuesta = await pool.query("INSERT INTO profesional (dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio)" + 
+            " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *",
+            [dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio]
         )
 
         const contrasenaHaseada = await encriptarContrasena(dni_profesional.toString());
@@ -29,6 +35,9 @@ export const registrarProfesional = async (req, res) => {
 export const deshabilitarProfesional = async (req, res) => {
     const {dni_profesional} = req.params
     try{
+        if (!dni_profesional || isNaN(dni_profesional)) {
+            return res.status(400).json({ message: 'DNI no valido, verifique' });
+        }
         const respuesta = await pool.query("UPDATE profesional SET id_estado_general = 2 WHERE dni_profesional = $1 RETURNING *", [dni_profesional])
         if(respuesta.rowCount === 0){
             return res.status(404).json({message: 'No se encontró el profesional'})
@@ -46,15 +55,16 @@ export const deshabilitarProfesional = async (req, res) => {
 export const obtenerProfesional = async (req, res) => {
     const { dni_profesional } = req.params
     try{
+        if (!dni_profesional || isNaN(dni_profesional)) {
+            return res.status(400).json({ message: 'DNI no valido, verifique' });
+        }
         const respuesta = await pool.query("SELECT * FROM profesional WHERE dni_profesional = $1", [dni_profesional])
         if(respuesta.rowCount === 0){
             return res.status(404).json({message: 'No se encontró el profesor preceptor'})
         }
         res.status(200).json({message: 'Profesor preceptor encontrado correctamente', data: respuesta.rows[0]})
-        console.log("Todo ok")
     }catch(error)
     {
-        console.log(error)
         res.status(500).json({message: 'Error al obtener el profesor preceptor'})
     }
 }
@@ -63,7 +73,7 @@ export const modificarProfesional = async (req, res) => {
     const { dni_profesional } = req.params;
     const campos = [
         "nombre", "apellido", "email", "fecha_nacimiento", "cuit", "id_rol", "id_sexo",
-        "domicilio", "departamento", "piso", "id_localidad", "telefono_personal", "telefono_alternativo", "id_estado_general", "numero", "edificio"
+        "domicilio", "departamento", "piso", "id_localidad", "telefono_personal", "telefono_alternativo", "id_estado_general", "edificio"
     ];
     const valores = [];
     const sets = [];

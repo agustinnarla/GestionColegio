@@ -3,12 +3,13 @@ import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, Che
 import bg from '../../assets/bg1.jpg';
 import { obtenerSexo, obtenerEstadoGeneral, obtenerLocalidad,obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
-import { obtenerProfesional, habilitarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
+import { obtenerProfesional, registrarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 
 export default function GestionarProfesional() {
+
     const [viveEnDepto, setViveEnDepto] = useState(false); // Estado para la checkbox
     const [piso, setPiso] = useState('');
     const [depto, setDepto] = useState('');
@@ -66,8 +67,8 @@ export default function GestionarProfesional() {
             formData.id_localidad &&
             formData.domicilio &&
             formData.edificio != null  &&
-            formData.piso &&
-            formData.departamento 
+            formData.piso != null &&
+            formData.departamento  != null
         )
     }
     const validarDni = () => {
@@ -76,6 +77,7 @@ export default function GestionarProfesional() {
         )
     }
 
+    
         useEffect(() => {
             const cargarListaDesplegable = async () => {
                 try {
@@ -103,7 +105,7 @@ export default function GestionarProfesional() {
             setFormData({ ...formData, [name]: value });
         };
 
-        const registrarProfesional = async () => {
+        const handleRegistrar = async () => {
             try{
                 const profesionalData = {
                 dni_profesional: parseInt(formData.dni_profesional),
@@ -124,18 +126,17 @@ export default function GestionarProfesional() {
                 departamento: formData.edificio ? formData.departamento : null
             };
                 console.log(profesionalData)
-                const respuesta = await habilitarProfesional(profesionalData)
+                // Cambiar nombre a registrar profesional
+                const respuesta = await registrarProfesional(profesionalData)
                 if(respuesta){
                     mostrarMensaje('Exito', 'Profesional registrado correctamente')
-                    console.log("El profesional fue habilitado correctamente")
                     limpiarInterfaz()
                 }
             }catch(error){
                 mostrarMensaje('Error', 'Error al registrar el profesional')
-                console.log(error.message)
             }
         }
-        const consultarProfesional = async () => {
+        const handleConsultar = async () => {
             // Lógica para consultar el profesional
             try{
                 const profesional = await obtenerProfesional(formData.dni_profesional)
@@ -158,13 +159,11 @@ export default function GestionarProfesional() {
                         telefono_alternativo: profesional.telefono_alternativo,
                         edificio: profesional.edificio,
                     })
-                    console.log(profesional)
                 }else{
                     mostrarMensaje('Error', 'El profesional no existe, verifique el DNI')
-                    console.log("El profesional no existe, verifique el DNI")
                 }
             }catch(error){
-                console.log(error)
+                mostrarMensaje('Error', 'Error al consultar el profesional, contacté con el administrador')
             }
         }
 
@@ -189,7 +188,7 @@ export default function GestionarProfesional() {
                 departamento: ''
             });
         }
-        const handleDeshabilitarProfesional = async () => {
+        const handleDeshabilitar = async () => {
             try{
                 const respuesta = await deshabilitarProfesional(formData.dni_profesional)
                 if(respuesta){
@@ -202,7 +201,7 @@ export default function GestionarProfesional() {
                 console.log(error)
             }
         }
-        const handleModificarProfesional = async () => {
+        const handleModificar = async () => {
             try {
                 const profesionalData = {
                     dni_profesional: parseInt(formData.dni_profesional),
@@ -248,7 +247,7 @@ export default function GestionarProfesional() {
                         value={formData.dni_profesional}
                         onChangeText={(value) => handleChange('dni_profesional', value)}
                     />
-                    <TouchableOpacity style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]} onPress={consultarProfesional} disabled={!validarDni()}>
+                    <TouchableOpacity style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarDni()}>
                         <Text style={styles.consultarText}>Consultar</Text>
                     </TouchableOpacity>
                 </View>
@@ -286,7 +285,7 @@ export default function GestionarProfesional() {
                             showLabel={true}
                         />
                         <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='--/--/----' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
+                        <TextInput style={styles.input} placeholder='DD/MM/AAAA' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
                         <Text style={styles.label}>Teléfono Personal:</Text>
                         <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
                         <Text style={styles.label}>Teléfono Alternativo:</Text>
@@ -345,9 +344,9 @@ export default function GestionarProfesional() {
             </View>
 
             <View style={styles.contenidoBotones}>
-                <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={registrarProfesional} disabled={!validarCampos()}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitarProfesional} disabled={!validarCampos()}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificarProfesional} disabled={!validarCampos()}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
             </View>
             </ImageBackground>
