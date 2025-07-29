@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import bg from '../assets/bg1.jpg';
-import { obtenerUsuario, restablecerContrasena } from '../scripts/navegacion/scriptPerfil.js';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // React Native
+import { obtenerUsuario, obtenerUsuarioAlumno, restablecerContrasena } from '../scripts/navegacion/scriptPerfil.js';
 import CustomAlert from '../componente/CustomAlerts.js';
 
 export default function Perfil({ route, navigation }) {
   const [datos, setDatos] = useState(null);
+  const [datosAlumno, setDatosAlumno] = useState(null)
   const [modalVisible, setModalVisible] = useState(false);
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [confirmarContrasena, setConfirmarContrasena] = useState('');
@@ -19,13 +21,21 @@ export default function Perfil({ route, navigation }) {
     setAlertVisible(true);
   };
 
-  const { dni_usuario } = route.params;
+  const { dni_usuario, id_rol } = route.params;
+  
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const usuarioDatos = await obtenerUsuario(dni_usuario);
-        setDatos(usuarioDatos);
+        if( id_rol === 4){
+          const alumnoDatos = await obtenerUsuarioAlumno(dni_usuario);
+          console.log(alumnoDatos)
+          setDatosAlumno(alumnoDatos)
+        }else{
+          const usuarioDatos = await obtenerUsuario(dni_usuario);
+          console.log(usuarioDatos)
+          setDatos(usuarioDatos);
+        }
       } catch (error) {
         console.error('Error al cargar datos:', error);
         Alert.alert('Error', 'No se pudieron cargar los datos del usuario');
@@ -33,7 +43,7 @@ export default function Perfil({ route, navigation }) {
     };
     
     cargarDatos();
-  }, [dni_usuario]);
+  }, [dni_usuario, id_rol]);
 
   const handleRestablecerContrasena = async () => {
     if (nuevaContrasena !== confirmarContrasena) {
@@ -51,10 +61,11 @@ export default function Perfil({ route, navigation }) {
       mostrarMensaje("¡Error!", 'Error al restablecer contraseña');
     }
   };
+  
 
   const cerrarSesion = async () => {
     try {
-      //await AsyncStorage.removeItem('token'); // Elimina el token de autenticación
+      await AsyncStorage.removeItem('token'); 
       navigation.navigate('Login'); 
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
@@ -62,16 +73,7 @@ export default function Perfil({ route, navigation }) {
     }
   };
 
-  if (!datos) {
-    return (
-      <View style={styles.padre}>
-        <Image source={bg} style={styles.bg} />
-        <View style={styles.contenido}>
-          <Text style={styles.titulo}>Cargando datos...</Text>
-        </View>
-      </View>
-    );
-  }
+
 
   return (
     <View style={styles.padre}>
@@ -79,10 +81,31 @@ export default function Perfil({ route, navigation }) {
       <View style={styles.contenido}>
         <Text style={styles.titulo}>Datos Personales</Text>
         <View style={styles.infoContainer}>
-          <Text style={styles.label}>DNI:</Text>
-          <Text style={styles.info}>{datos.dni_usuario || 'No disponible'}</Text>
-          <Text style={styles.label}>Email:</Text>
-          <Text style={styles.info}>{datos.email || 'No disponible'}</Text>
+          { id_rol !== 4 && datos && (
+            <>
+              <Text style={styles.label}>DNI:</Text>
+              <Text style={styles.info}>{datos.dni_usuario || 'No disponible'}</Text>
+
+              <Text style={styles.label}>Email:</Text>
+              <Text style={styles.info}>{datos.email || 'No disponible'}</Text>
+            </>
+          )}
+
+          { id_rol === 4 && datosAlumno && (
+            <>
+              <Text style={styles.label}>DNI:</Text>
+              <Text style={styles.info}>{datosAlumno.dni_usuario || 'No disponible'}</Text>
+
+              <Text style={styles.label}>Email:</Text>
+              <Text style={styles.info}>{datosAlumno.email || 'No disponible'}</Text>
+
+              <Text style={styles.label}>Total Amonestaciones:</Text>
+              <Text style={styles.info}>{datosAlumno.total_amonestaciones || 'No disponible' } </Text>
+
+              <Text style={styles.label}>Total Inasistencias:</Text>
+              <Text style={styles.info}>{datosAlumno.total_inasistencias}</Text>
+            </>
+          )}
           <TouchableOpacity style={styles.botonModificar} onPress={() => setModalVisible(true)}>
             <Text style={styles.textoContraseña}>Modificar Contraseña</Text>
           </TouchableOpacity>

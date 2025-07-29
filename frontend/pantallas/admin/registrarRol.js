@@ -4,7 +4,7 @@ import bg from '../../assets/bg1.jpg';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
 import { obtenerRolesDeshabilitados, obtenerTareasDeRoles, obtenerTareas, obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
-import { registrarRol, deshabilitarRol, habilitarRol} from '../../scripts/admin/scriptCargarRol.js';
+import { registrarRol, deshabilitarRol, habilitarRol, modificarRol} from '../../scripts/admin/scriptCargarRol.js';
 import { registrarTareaRol ,registrarRolTarea } from '../../scripts/admin/scriptTareasRol.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
@@ -18,7 +18,7 @@ export default function RegistrarRol() {
     const [nuevoRol, setNuevoRol] = useState("");
     const [modalModificar, setModalModificar] = useState(false);
     const [tareasOriginales, setTareasOriginales] = useState([]);
-
+    const [rolOriginal, setRolOriginal] = useState("");
 
     // Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
@@ -58,7 +58,7 @@ export default function RegistrarRol() {
         }
     };
     
-    const cargarRoles = async () => {
+    const cargarListaDesplegable = async () => {
         try {
             const rolesObtenidos = await obtenerRoles();
             console.log('Roles obtenidos:', rolesObtenidos);
@@ -88,7 +88,7 @@ export default function RegistrarRol() {
         }
     };
 
-    const handleRegistrarRol = async () => {
+    const handleRegistrar = async () => {
         try {
             const response = await registrarRol(nuevoRol);
             if (response && response.data) {
@@ -106,7 +106,7 @@ export default function RegistrarRol() {
                 setModalAgregar(false);
 
                 // Recargar roles y tareas desde la base de datos
-                await cargarRoles();
+                await cargarListaDesplegable();
                 await cargarTareas();
                 limpiarInterfaz()
             } else {
@@ -188,7 +188,7 @@ export default function RegistrarRol() {
     
             // Recargar datos después de registrar
             await cargarTareas();
-            await cargarRoles();
+            await cargarListaDesplegable();
             await cargarRolesDeshabilitados();
         } else {
             alert('Selecciona un rol y al menos una tarea');
@@ -196,7 +196,7 @@ export default function RegistrarRol() {
     };
 
     //DESHABILITAR ROL
-    const handleDeshabilitarRol = () => {
+    const handleDeshabilitar = () => {
         if (!selectedRol) {
             mostrarMensaje('Advertencia', 'No hay un rol seleccionado');
             return;
@@ -217,7 +217,7 @@ export default function RegistrarRol() {
                     mostrarMensaje('Error', 'Error al deshabilitar el rol');
                 }
                 cargarTareas();
-                cargarRoles();
+                cargarListaDesplegable();
                 cargarRolesDeshabilitados();
                 limpiarInterfaz()
             }
@@ -225,7 +225,7 @@ export default function RegistrarRol() {
     };
     
     //SWITCH DEL MODAL
-    const toggleSwitchRol = (idRol) => {
+    const tocarSwitch = (idRol) => {
         setRolesDeshabilitados((prev) =>
             prev.map((rol) =>
                 rol.id_rol === idRol
@@ -236,7 +236,7 @@ export default function RegistrarRol() {
     };
 
     //Habilitar Rol, confirmacion
-    const handleConfirmarRoles = async () => {
+    const handleConfirmar = async () => {
     try {
         // Filtra los roles que tienen id_estado_general === 1
         const rolesAHabilitar = rolesDeshabilitados.filter(
@@ -253,20 +253,50 @@ export default function RegistrarRol() {
         console.error('Error al habilitar roles:', error);
         mostrarMensaje('Error', 'Error al habilitar el rol')
     }
+
     setModalModificar(false);
     await cargarRolesDeshabilitados();
-    await cargarRoles();
+    await cargarListaDesplegable();
     await cargarTareas();
 };
     
+ const handleModificar = async () => {
+    try {
+      if (!rolOriginal) {
+        mostrarMensaje("Error", "Seleccione un rol para modificar");
+        return;
+      }
+      if (!nuevoRol.trim()) {
+        mostrarMensaje(
+          "Error",
+          "El nuevo nombre del rol no puede estar vacío"
+        );
+        return;
+      }
+      const rolData = { detalle: nuevoRol };
+      const respuesta = await modificarRol(rolOriginal, rolData);
+      if (respuesta) {
+        mostrarMensaje("Éxito", "El rol se modificó correctamente");
+        limpiarInterfaz();
+        setModalAgregar(false);
+        cargarListaDesplegable();
+      }
+    } catch (error) {
+      mostrarMensaje("Error", "Error al modificar el rol");
+      console.log(error);
+    }
+  };
+
     const limpiarInterfaz = () => {
     setSelectedItems([])
     setSelectedRol('');
+    setRolOriginal('');
+    setNuevoRol('');
     }; 
 
     useEffect(() => {
         cargarTareas();
-        cargarRoles();
+        cargarListaDesplegable();
         cargarRolesDeshabilitados();
     }, []);
     
@@ -316,7 +346,7 @@ export default function RegistrarRol() {
                         <TouchableOpacity style={styles.botonAlta} onPress={cargarTareaRol}>
                             <Text style={styles.textoBoton}>Registrar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitarRol}>
+                        <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}>
                             <Text style={styles.textoBoton}>Eliminar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificar(true)}>
@@ -329,27 +359,65 @@ export default function RegistrarRol() {
                 </View>
                 {/* Modal para agregar tarea */}
                 <Modal visible={modalAgregar} transparent animationType="slide">
-                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            <Text style={styles.titulo}>Nuevo Rol</Text>
+                            <Text style={styles.titulo}>Registrar Rol Nuevo</Text>
+                            <View style={styles.divider} />
+                            {/* ComboBox: Picker + TextInput */}
+                            <Text style={styles.label}>
+                            Selecciona un rol existente o escribe uno nuevo:
+                            </Text>
+                            <View style={styles.comboContainer}>
+                            <Picker
+                                selectedValue={rolOriginal}
+                                onValueChange={(value) => {
+                                setRolOriginal(value);
+                                setNuevoRol(value); // Para mostrar en el input
+                                }}
+                                style={styles.inputPicker}
+                            >
+                                <Picker.Item label="Seleccionar un Rol" value="" />
+                                {roles.map((rol) => (
+                                <Picker.Item
+                                    key={rol.key}
+                                    label={rol.label}
+                                    value={rol.label}
+                                />
+                                ))}
+                            </Picker>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Ingrese nombre del rol"
+                                placeholder="O escriba un rol nuevo"
                                 value={nuevoRol}
                                 onChangeText={setNuevoRol}
                             />
-                            <View style={styles.botonesModal}>
-                                <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarRol}>
-                                    <Text style={styles.textoBoton}>Registrar</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalAgregar(false)}>
-                                    <Text style={styles.textoBoton}>Cancelar</Text>
-                                </TouchableOpacity>
                             </View>
-                            
+                            <View style={styles.botonesModal}>
+                            <TouchableOpacity
+                                style={styles.botonCancelar}
+                                onPress={() => {
+                                setModalAgregar(false);
+                                limpiarInterfaz();
+                                }}
+                            >
+                                <Text style={styles.textoBoton}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.botonModificar}
+                                onPress={handleModificar}
+                            >
+                                <Text style={styles.textoBoton}>Modificar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.botonAlta}
+                                onPress={handleRegistrar}
+                            >
+                                <Text style={styles.textoBoton}>Registrar</Text>
+                            </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                </Modal>
+                        </View>
+                    </Modal>
                 {/* Modal para modificar tareas deshabilitadas */}
                 <Modal visible={modalModificar} transparent={true} animationType="slide">
                     <View style={styles.modalContainer}>
@@ -361,7 +429,7 @@ export default function RegistrarRol() {
                                         <Text style={styles.textoTarea}>{rol.detalle}</Text>
                                         <Switch
                                             value={rol.id_estado_general === 1}
-                                            onValueChange={() => toggleSwitchRol(rol.id_rol)}
+                                            onValueChange={() => tocarSwitch(rol.id_rol)}
                                         />
                                     </View>
                                 ))}
@@ -369,7 +437,7 @@ export default function RegistrarRol() {
                                 <TouchableOpacity style={styles.botonBaja} onPress={() => setModalModificar(false)}>
                                     <Text style={styles.textoBoton}>Cancelar</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonAlta} onPress={handleConfirmarRoles}>
+                                <TouchableOpacity style={styles.botonAlta} onPress={handleConfirmar}>
                                     <Text style={styles.textoBoton}>Confirmar</Text>
                                 </TouchableOpacity>
                             </View>
@@ -396,181 +464,214 @@ export default function RegistrarRol() {
 
 
 const styles = StyleSheet.create({
-    padre: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f6f8fa',
-    },
-    bg: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
-    },
-    formulario: {
-        width: '100%',
-        maxWidth: 900,
-        alignSelf: 'center',
-        marginTop: 32,
-        marginBottom: 24,
-        padding: 30,
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 6,
-    },
-    titulo: {
-        fontSize: 22,
-        fontWeight: '600',
-        color: '#2a3d6c',
-        marginBottom: 18,
-        textAlign: 'center',
-        letterSpacing: 0.2,
-    },
-    fila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        gap: 24,
-    },
-    columna: {
-        width: '48%',
-        minWidth: 260,
-    },
-    label: {
-        fontSize: 15,
-        marginBottom: 6,
-        fontWeight: '500',
-        color: '#2a3d6c',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        padding: 10,
-        borderRadius: 7,
-        marginBottom: 13,
-        backgroundColor: '#f3f4f6',
-        height: 38,
-        fontSize: 15,
-    },
-    pickerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
-        gap: 8,
-    },
-    inputPicker: {
-        flex: 1,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        borderRadius: 7,
-        backgroundColor: '#f3f4f6',
-        fontSize: 15,
-        height: 38,
-        paddingHorizontal: 10,
-    },
-    botonAgregar: {
-        backgroundColor: '#6c7ae0',
-        padding: 10,
-        borderRadius: 7,
-        width: 38,
-        height: 38,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    textoBotonAgregar: {
-        color: '#fff',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    seleccionadasContainer: {
-        marginTop: 10,
-        marginBottom: 10,
-        width: '100%',
-    },
-    botonAlta: {
-        backgroundColor: '#e8f5e9',
-        borderColor: '#4caf50',
-        borderWidth: 1,
-        paddingVertical: 10,
-        borderRadius: 7,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    botonBaja: {
-        backgroundColor: '#ffebee',
-        borderColor: '#f44336',
-        borderWidth: 1,
-        paddingVertical: 10,
-        borderRadius: 7,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    botonModificar: {
-        backgroundColor: '#e3f2fd',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 10,
-        borderRadius: 7,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    botonLimpiar: {
-        backgroundColor: '#f5f5f5',
-        borderColor: '#9e9e9e',
-        borderWidth: 1,
-        paddingVertical: 10,
-        borderRadius: 7,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    textoBoton: {
-        color: '#2c3e50',
-        fontSize: 15,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.12)',
-        zIndex: 10,
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        padding: 24,
-        borderRadius: 10,
-        width: '90%',
-        maxWidth: 400,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    botonesModal: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        marginTop: 18,
-        gap: 12,
-    },
-    textoTarea: {
-        fontSize: 15,
-        flex: 1,
-        color: '#222',
-    },
-    itemContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-        marginBottom: 10,
-    },
+  padre: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f6f8fa",
+  },
+  bg: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  formulario: {
+    width: "100%",
+    maxWidth: 900,
+    alignSelf: "center",
+    marginTop: 32,
+    marginBottom: 24,
+    padding: 30,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+  },
+  titulo: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#2a3d6c",
+    marginBottom: 18,
+    textAlign: "center",
+    letterSpacing: 0.2,
+  },
+  fila: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 24,
+  },
+  columna: {
+    width: "48%",
+    minWidth: 260,
+  },
+  label: {
+    fontSize: 15,
+    marginBottom: 6,
+    fontWeight: "500",
+    color: "#2a3d6c",
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    padding: 10,
+    borderRadius: 7,
+    backgroundColor: "#f3f4f6",
+    height: 44, // más alto
+    fontSize: 15,
+  },
+  pickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    gap: 8,
+  },
+  inputPicker: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 7,
+    backgroundColor: "#f3f4f6",
+    fontSize: 15,
+    height: 44, // más alto
+    paddingHorizontal: 10,
+    marginRight: 8,
+  },
+  botonAgregar: {
+    backgroundColor: "#6c7ae0",
+    padding: 10,
+    borderRadius: 7,
+    width: 38,
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  textoBotonAgregar: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  seleccionadasContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    width: "100%",
+  },
+  botonAlta: {
+    backgroundColor: "#e8f5e9",
+    borderColor: "#4caf50",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonBaja: {
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonModificar: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#746BC8",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonLimpiar: {
+    backgroundColor: "#f5f5f5",
+    borderColor: "#9e9e9e",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  textoBoton: {
+    color: "#2c3e50",
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.12)",
+    zIndex: 10,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 10,
+    width: "100%",
+    maxWidth: 600,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  botonesModal: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 18,
+    gap: 12,
+  },
+  textoTarea: {
+    fontSize: 15,
+    flex: 1,
+    color: "#222",
+  },
+  itemContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 10,
+  },
+  divider: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#e0e0e0",
+    marginVertical: 16,
+  },
+  comboContainer: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 16, // más espacio entre picker e input
+  },
+  botonConsultar: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#2196F3",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+    width: "50%",
+  },
+  botonCancelar: {
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
 });

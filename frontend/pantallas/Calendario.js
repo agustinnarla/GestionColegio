@@ -7,14 +7,14 @@ import CustomAlert from '../componente/CustomAlerts.js';
 
 //Ver la importacion de google calendar -- Probar como funciona 
 export default function Calendario({route}) {
-
+  //🟢 Estados y Formulario
   const [selectedDate, setSelectedDate] = useState('');
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [markedDates, setMarkedDates] = useState({});
   const [eventosDia, setEventosDia] = useState([]);
   const { width } = useWindowDimensions();
 
-  // Mensajes 
+  //🟢 Mensajes
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
@@ -29,10 +29,13 @@ export default function Calendario({route}) {
 
   // Responsive styles
   const isSmallScreen = width < 1300;
+
+  //🟢 Captura de Parametros 
   const { dni_usuario } = route.params;
   const { id_rol } = route.params;
 
 
+  //🟢 Obtener Evaluaciones 
   useEffect(() => {
   const cargarEvaluaciones = async () => {
     try {
@@ -46,11 +49,32 @@ export default function Calendario({route}) {
           data.evaluaciones.forEach(e => {
             const [d, m, a] = e.fecha.split('-');
             const fecha = `${a}-${m}-${d}`;
-            fechasMarcadas[fecha] = {
+            if(e.id_tipo_de_evaluacion == 1){
+              fechasMarcadas[fecha] = {
               marked: true,
               dotColor: '#FF6347',
               selectedColor: '#FF6347',
-            };
+              };  
+            }else if(e.id_tipo_de_evaluacion == 2){
+              fechasMarcadas[fecha] = {
+                marked: true,
+                dotColor: '#5947ffff',
+                selectedColor: '#4753ffff',
+              }; 
+            }else if(e.id_tipo_de_evaluacion == 3){
+              fechasMarcadas[fecha] = {
+                marked: true,
+                dotColor: '#ff47d1ff',
+                selectedColor: '#f947ffff',
+              }; 
+            }else if(e.id_tipo_de_evaluacion == 4){
+              fechasMarcadas[fecha] = {
+                marked: true,
+                dotColor: '#63cfddff',
+                selectedColor: '#47d4ffff',
+              }; 
+            }
+            
           });
           setMarkedDates(fechasMarcadas);
         }
@@ -64,11 +88,31 @@ export default function Calendario({route}) {
           data.evaluaciones.forEach(e => {
             const [d, m, a] = e.fecha.split('-');
             const fecha = `${a}-${m}-${d}`;
-            fechasMarcadas[fecha] = {
+            if(e.id_tipo_de_evaluacion == 1){
+              fechasMarcadas[fecha] = {
               marked: true,
               dotColor: '#FF6347',
               selectedColor: '#FF6347',
-            };
+              };  
+            }else if(e.id_tipo_de_evaluacion == 2){
+              fechasMarcadas[fecha] = {
+                marked: true,
+                dotColor: '#5947ffff',
+                selectedColor: '#4753ffff',
+              }; 
+            }else if(e.id_tipo_de_evaluacion == 3){
+              fechasMarcadas[fecha] = {
+                marked: true,
+                dotColor: '#ff47d1ff',
+                selectedColor: '#f947ffff',
+              }; 
+            }else if(e.id_tipo_de_evaluacion == 4){
+              fechasMarcadas[fecha] = {
+                marked: true,
+                dotColor: '#63cfddff',
+                selectedColor: '#47d4ffff',
+              }; 
+            }
           });
           setMarkedDates(fechasMarcadas);
         }
@@ -84,8 +128,8 @@ export default function Calendario({route}) {
 }, [dni_usuario]);
 
   
-  // Función que se ejecuta cuando se selecciona un día
-  const onDayPress = (dia) => {
+  //🟢 Cuando se selecciona un día
+  const diaPresionado = (dia) => {
     console.log('Día seleccionado:', dia);
     setSelectedDate(dia.dateString);
     
@@ -100,13 +144,13 @@ export default function Calendario({route}) {
     setEventosDia(eventosDelDia);
   };
 
+  //🟢 Vistas 
   return (
     <View style={[styles.padre, isSmallScreen && styles.padreSmall]}>
       <Image source={bg} style={styles.bg} />
-      <Text style={[styles.titulo, isSmallScreen && styles.tituloSmall]}>Calendario Académico</Text>
       <View style={[styles.calendarioContainer, isSmallScreen && styles.calendarioContainerSmall]}>
         <Calendar
-          onDayPress={onDayPress}
+          onDayPress={diaPresionado}
           markedDates={{
             ...markedDates,
             [selectedDate]: {
@@ -130,14 +174,14 @@ export default function Calendario({route}) {
         <View style={[styles.eventosContainer, isSmallScreen && styles.eventosContainerSmall]}>
           <Text style={styles.fechaSeleccionada}>
             {(() => {
-             const [year, month, day] = selectedDate.split('-');
-             return new Intl.DateTimeFormat('es-ES', {
-               weekday: 'long',
-               year: 'numeric',
-               month: 'long',
-               day: 'numeric',
-               timeZone: 'UTC'
-             }).format(new Date(`${year}-${month}-${day}T00:00:00Z`));
+            const [year, month, day] = selectedDate.split('-');
+            return new Intl.DateTimeFormat('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              timeZone: 'UTC'
+            }).format(new Date(`${year}-${month}-${day}T00:00:00Z`));
             })()}
           </Text>
           
@@ -203,6 +247,7 @@ const styles = StyleSheet.create({
   },
   calendarioContainer: {
     backgroundColor: 'rgba(255,255,255,0.85)',
+    marginTop: -4,
     borderRadius: 16,
     padding: 10,
     shadowColor: '#000',
@@ -210,7 +255,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 8,
     elevation: 4,
-    marginBottom: 10,
+    marginBottom: 15,
     minWidth: 260,
     maxWidth: 340,
     alignSelf: 'center',

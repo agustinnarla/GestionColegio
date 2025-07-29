@@ -6,17 +6,16 @@ export const obtenerCursosPorProfesor = async (req, res) => {
     try {
         const respuesta = await pool.query(`
             SELECT 
-                pc.id_curso, 
-                pc.dni_profesional,
+                c.id_curso, 
                 c.detalle 
             FROM profesor_curso pc
-            LEFT JOIN curso c ON pc.id_curso = c.id_curso
+            INNER JOIN curso c ON pc.id_curso = c.id_curso
             WHERE pc.dni_profesional = $1
-            ORDER BY pc.id_curso
+            ORDER BY c.id_curso
         `, [dni_profesional]);
 
-        res.status(200).json({ cursos: respuesta.rows });
         console.log("Cursos obtenidos:", respuesta.rows);
+        res.status(200).json({ cursos: respuesta.rows });
     } catch (error) {
         console.error("Error al obtener los cursos del profesor:", error.message);
         res.status(500).json({ error: 'Error al obtener los cursos del profesor' });

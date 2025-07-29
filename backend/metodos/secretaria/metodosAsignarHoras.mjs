@@ -86,7 +86,7 @@ export const obtenerProfesores = async (req, res) => {
 export const obtenerCursoPorProfesor = async (req, res) => {
     const { dni_profesional } = req.params;
     try {
-        // Cambiar dni_profesor por dni_profesional
+        
         const respuesta = await pool.query(
             `SELECT pc.id_curso, c.detalle 
             FROM profesor_curso AS pc 

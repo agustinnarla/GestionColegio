@@ -6,7 +6,8 @@ import { obtenerCertificado, obtenerEstadoFalta } from '../../scripts/listasDesp
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 
-const formatFecha = (fechaISO) => {
+//🟢 Formateo de fecha 
+const formatearFecha = (fechaISO) => {
     if (!fechaISO) return '--/--/----';
     const fecha = new Date(fechaISO);
     const dia = fecha.getDate().toString().padStart(2, '0');
@@ -15,7 +16,7 @@ const formatFecha = (fechaISO) => {
     return `${dia}/${mes}/${año}`;
 };
 
-export default function JustificarFalta() {
+export default function JustificarFaltaAlumnos() {
     const [fechaDesde, setFechaDesde] = useState('');
     const [fechaHasta, setFechaHasta] = useState('');
     const [estadoFalta, setEstadoFalta] = useState([]);
@@ -23,36 +24,52 @@ export default function JustificarFalta() {
     const [estadoFaltaPorAlumno, setEstadoFaltaPorAlumno] = useState({});
     const [certificadoPorAlumno, setCertificadoPorAlumno] = useState({});
     const [alumnos, setAlumnos] = useState([]);
+    const [mensajeError, setMensajeError] = useState('');
 
     // Cargar estados y certificados
     useEffect(() => {
-        const cargarListaDesplegables = async () => {
-            try {
-                const datos = await obtenerEstadoFalta();
-                setEstadoFalta(datos);
-                const certs = await obtenerCertificado();
-                setCertificado(Array.isArray(certs) ? certs : []);
-            } catch (error) {
-                Alert.alert('Error', error.message);
-            }
-        };
-        cargarListaDesplegables();
-    },[]);
-    
+        cargarListaDesplegable();
+    }, []);
 
-    
+    const cargarListaDesplegable = async () => {
+        try {
+            const datos = await obtenerEstadoFalta();
+            setEstadoFalta(datos);
+            const certs = await obtenerCertificado();
+            setCertificado(Array.isArray(certs) ? certs : []);
+            
+        } catch (error) {
+            setEstadoFalta([]);
+            setCertificado([]);
+        }
+    };
 
     // Validar y convertir fechas
     const validarYConvertirFechas = (fechaDesde, fechaHasta) => {
+        // Validar formato DD/MM/AAAA
+        const formatoValido = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!formatoValido.test(fechaDesde) || !formatoValido.test(fechaHasta)) {
+            return { valido: false, mensaje: "Las fechas deben estar en formato DD/MM/AAAA." };
+        }
+        // Validar existencia real de la fecha
+        const esFechaValida = (fecha) => {
+            const [dia, mes, año] = fecha.split('/').map(Number);
+            const date = new Date(año, mes - 1, dia);
+            return (
+                date.getFullYear() === año &&
+                date.getMonth() === mes - 1 &&
+                date.getDate() === dia
+            );
+        };
+        if (!esFechaValida(fechaDesde) || !esFechaValida(fechaHasta)) {
+            return { valido: false, mensaje: "Alguna de las fechas ingresadas no existe." };
+        }
         const convertirFormatoFecha = (fecha) => {
             const [dia, mes, año] = fecha.split('/');
-            return `${año}-${mes}-${dia}`;
+            return `${año}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
         };
         const fechaDesdeConvertida = convertirFormatoFecha(fechaDesde);
         const fechaHastaConvertida = convertirFormatoFecha(fechaHasta);
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaDesdeConvertida) || !/^\d{4}-\d{2}-\d{2}$/.test(fechaHastaConvertida)) {
-            return { valido: false, mensaje: "Las fechas deben estar en formato DD/MM/YYYY." };
-        }
         if (new Date(fechaDesdeConvertida) > new Date(fechaHastaConvertida)) {
             return { valido: false, mensaje: "La fecha 'Desde' no puede ser mayor que la fecha 'Hasta'." };
         }
@@ -69,10 +86,17 @@ export default function JustificarFalta() {
     const handleConsultar = async () => {
         const resultado = validarYConvertirFechas(fechaDesde, fechaHasta);
         if (!resultado.valido) {
-            Alert.alert("Error", resultado.mensaje);
+            setMensajeError(resultado.mensaje); // Mensaje en pantalla
+            if (Platform.OS === 'web') 
+            {
+                window.alert("Fechas incorrectas: " + resultado.mensaje);
+            } else {
+                Alert.alert("Fechas incorrectas", resultado.mensaje);
+            }
             return;
         }
         try {
+            setMensajeError('');
             const datosObtenidos = await obtenerAlumnosAusentes(resultado.fechas.desde, resultado.fechas.hasta);
             setAlumnos(Array.isArray(datosObtenidos.alumnos) ? datosObtenidos.alumnos : []);
             // Inicializar los estados por alumno
@@ -90,38 +114,33 @@ export default function JustificarFalta() {
     };
 
     // Actualizar selección
-        const actualizarSeleccionadoAlumno = (tipo, valor, dni_alumno, fecha) => {
-        let nuevoEstado = estadoFaltaPorAlumno[dni_alumno];
-        let nuevoCertificado = certificadoPorAlumno[dni_alumno];
-
+    const actualizarSeleccionadoAlumno = (tipo, valor, dni_alumno, fecha) => {
         if (tipo === 'estadoFalta') {
-            nuevoEstado = valor;
             setEstadoFaltaPorAlumno(prev => ({
                 ...prev,
                 [dni_alumno]: valor
             }));
         } else if (tipo === 'certificado') {
-            nuevoCertificado = valor;
             setCertificadoPorAlumno(prev => ({
                 ...prev,
                 [dni_alumno]: valor
             }));
         }
-
+        // Solo enviar si ambos están seleccionados
+        const id_estado_falta_alumno = tipo === 'estadoFalta' ? valor : estadoFaltaPorAlumno[dni_alumno];
+        const id_certificado = tipo === 'certificado' ? valor : certificadoPorAlumno[dni_alumno];
         if (
-            nuevoEstado !== undefined &&
-            nuevoEstado !== null &&
-            nuevoCertificado !== undefined &&
-            nuevoCertificado !== null
+            id_estado_falta_alumno !== undefined &&
+            id_estado_falta_alumno !== null &&
+            id_certificado !== undefined &&
+            id_certificado !== null
         ) {
-            actualizarDatosEnBaseDeDatos(nuevoEstado, nuevoCertificado, dni_alumno, fecha);
+            actualizarJustificarFalta(id_estado_falta_alumno, id_certificado, dni_alumno, fecha);
         }
     };
 
     // Actualizar en base de datos
-    const actualizarDatosEnBaseDeDatos = async (id_estado_falta_alumno, id_certificado, dni_alumno, fecha) => {
-        
-        
+    const actualizarJustificarFalta = async (id_estado_falta_alumno, id_certificado, dni_alumno, fecha) => {
         const datosForm = {
             id_estado_falta_alumno,
             dni_alumno,
@@ -131,7 +150,6 @@ export default function JustificarFalta() {
 
         console.log(datosForm)
         try {
-            // Ver
             await actualizarJustificarFalta(datosForm);
         } catch (error) {
             // Manejo de error opcional
@@ -180,7 +198,7 @@ export default function JustificarFalta() {
                                     <View key={index} style={styles.fila}>
                                         <Text style={styles.celda}>{alumno.nombreapellido}</Text>
                                         <Text style={styles.celda}>{alumno.dni_alumno}</Text>
-                                        <Text style={styles.celda}>{formatFecha(alumno.fecha)}</Text>
+                                        <Text style={styles.celda}>{formatearFecha(alumno.fecha)}</Text>
                                         <Picker
                                             style={styles.celda}
                                             selectedValue={
@@ -250,6 +268,7 @@ export default function JustificarFalta() {
     );
 }
 
+
 const styles = StyleSheet.create({
     padre: {
         flex: 1,
@@ -265,8 +284,8 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     contenido: {
-        width: '95%',
-        maxWidth: 1100,
+        width: '100%',
+        maxWidth: 1250,
         backgroundColor: '#fff',
         padding: 32,
         borderRadius: 16,
@@ -292,6 +311,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 6,
         minWidth: 180,
+        color: '#2a3d6c',
     },
     label: {
         fontSize: 16,
@@ -310,6 +330,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
         textAlign: 'center',
         fontSize: 16,
+        
     },
     inputPequeño: {
         width: 140,
@@ -320,6 +341,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
         textAlign: 'center',
         fontSize: 15,
+        color: '#2a3d6c'
     },
     boton: {
         backgroundColor: '#f0f7ff',
@@ -346,7 +368,7 @@ const styles = StyleSheet.create({
     },
     tabla: {
         marginTop: 18,
-        minWidth: 900,
+        minWidth: 1200,
         backgroundColor: '#fff',
         borderRadius: 12,
         borderWidth: 1,

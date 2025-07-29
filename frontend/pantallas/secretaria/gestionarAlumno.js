@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
 import bg from '../../assets/bg1.jpg';
-import { obtenerLocalidad, obtenerCurso, obtenerSexo, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerLocalidad, obtenerCursoConAlumnos, obtenerSexo, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import * as DocumentPicker from 'expo-document-picker';
@@ -74,7 +74,7 @@ export default function GestionarAlumno() {
     }
 
     //Listas desplegables
-    const[cursos,setCursos] = useState([])
+    const[curso_cantidad,setCursoCantidad] = useState([])
     const[localidad,setLocalidad] = useState([])
     const[sexo,setSexos] = useState([])
     const[estado_general,setEstadoGeneral] = useState([])
@@ -82,13 +82,13 @@ export default function GestionarAlumno() {
     useEffect(() => {
         const cargarListaDesplegable = async () => {
             try {
-                const cursosData = await obtenerCurso();
+                const cursosData = await obtenerCursoConAlumnos();
                 const localidadData = await obtenerLocalidad();
                 const sexosData = await obtenerSexo();
                 const estadoData = await obtenerEstadoGeneral();
 
                 setSexos(sexosData);
-                setCursos(cursosData); 
+                setCursoCantidad(cursosData); 
                 setLocalidad(localidadData);
                 setEstadoGeneral(estadoData);
             } catch (error) {
@@ -101,7 +101,19 @@ export default function GestionarAlumno() {
 
 
     const handleChange = (name, value) => {
-            setFormData({ ...formData, [name]: value });
+            let updatedForm = { ...formData, [name]: value };
+
+            // Calcular CUIT automáticamente si están presentes DNI y sexo
+            if (
+            (name === 'dni_alumno' || name === 'id_sexo') &&
+            updatedForm.dni_alumno &&
+            updatedForm.id_sexo
+            ) {
+            const cuilCalculado = calcularCuil(updatedForm.dni_alumno, updatedForm.id_sexo);
+            updatedForm.cuil = cuilCalculado;
+            }
+
+    setFormData(updatedForm);
     };
 
 
@@ -395,6 +407,29 @@ export default function GestionarAlumno() {
         });
     }
     
+    const calcularCuil = (dni, sexoId) => {
+    let prefijo = sexoId === '1' || sexoId === 1 ? '20' : '27';
+    let dniStr = dni.toString().padStart(8, '0');
+    let cuilBase = prefijo + dniStr;
+
+    const multiplicadores = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+    let suma = 0;
+
+    for (let i = 0; i < multiplicadores.length; i++) {
+      suma += parseInt(cuilBase[i]) * multiplicadores[i];
+    }
+
+    let resto = suma % 11;
+    let digitoVerificador = 11 - resto;
+
+    if (digitoVerificador === 11) digitoVerificador = 0;
+    else if (digitoVerificador === 10) {
+      prefijo = prefijo === '20' ? '23' : '24';
+      return calcularCuil(dni, sexoId); 
+    }
+
+    return `${prefijo}-${dniStr}-${digitoVerificador}`;
+  };
 
     const [documentos, setDocumentos] = useState({
         dni_foto: null,
@@ -471,62 +506,45 @@ export default function GestionarAlumno() {
         }
     };
 
-    const validarFechaNacimiento = (fecha) =>{
-        const fechaIngresada = new Date(fecha);
-        const fechaActual = new Date(); // Obtiene la fecha actual
+    const validarFechaNacimiento = (fecha) => {
+    const fechaIngresada = new Date(fecha);
+    const fechaActual = new Date();
 
-        if (isNaN(fechaIngresada.getTime())) {
-            Alert.alert('Error', 'La fecha de nacimiento no es válida.');
-            console.log('Fecha de nacimiento no válida:', fecha);
-            return false;
-        }
-
-        if (fechaIngresada > fechaActual) {
-            Alert.alert('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
-            console.log('Fecha de nacimiento no válida, es mayor que la fecha actual:', fecha);
-            return false;
-        }
-
-        return true;
+    if (isNaN(fechaIngresada.getTime())) {
+        Alert.alert('Error', 'La fecha de nacimiento no es válida.');
+        console.log('Fecha de nacimiento no válida:', fecha);
+        return false;
     }
 
-    function validarCUIL(cuil, dni_alumno) {
-        // Asegurarse de que dni es una cadena
-        const dniFormateado = String(dni_alumno).trim(); // Convertir el DNI a cadena y eliminar espacios extra
-    
-        // Expresión regular para verificar el formato del CUIL: XX-XXXXXXXX-X
-        const regex = /^(\d{2})-(\d{8})-(\d{1})$/;
-    
-        if (regex.test(cuil)) {
-            // Extraer el bloque del medio (DNI) del CUIL
-            const dniDelCuil = cuil.split('-')[1].trim(); // Remover posibles espacios extra
-            
-            // Asegurarse de que el DNI tenga exactamente 8 dígitos
-            if (dniFormateado.length !== 8 || isNaN(dniFormateado)) {
-                Alert.alert('Error', 'El DNI debe tener 8 dígitos válidos.');
-                console.log('El DNI ingresado no tiene el formato correcto.');
-                return false;
-            }
-    
-            // Verificar que el DNI del CUIL coincida con el DNI ingresado
-            if (dniFormateado === dniDelCuil) {
-                // Si coincide, devolver true
-                console.log('CUIL válido y DNI coincidente.');
-                return true;
-            } else {
-                // Si no coincide, mostrar mensaje de error
-                Alert.alert('Error', 'El número del CUIL debe coincidir con el DNI.');
-                console.log('El DNI del CUIL no coincide con el DNI ingresado.');
-                return false;
-            }
-        } else {
-            // Si el CUIL no tiene el formato correcto
-            Alert.alert('Error', 'El CUIL no tiene el formato correcto. Debe ser XX-XXXXXXXX-X.');
-            console.log('El CUIL no tiene el formato correcto.');
-            return false;
-        }
+    if (fechaIngresada > fechaActual) {
+        Alert.alert('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
+        console.log('Fecha futura:', fecha);
+        return false;
     }
-    
+
+    // Calcular la edad
+    const edad = fechaActual.getFullYear() - fechaIngresada.getFullYear();
+    const mesActual = fechaActual.getMonth();
+    const mesNacimiento = fechaIngresada.getMonth();
+
+    // Si aún no cumplió años este año, restamos 1
+    if (
+        mesActual < mesNacimiento ||
+        (mesActual === mesNacimiento && fechaActual.getDate() < fechaIngresada.getDate())
+    ) {
+        edad--;
+    }
+
+    if (edad <= 11) {
+        Alert.alert('Error', 'El alumno debe tener más de 11 años.');
+        console.log('Edad menor o igual a 11:', edad);
+        return false;
+    }
+
+    return true;
+};
+
+  
     
     
     
@@ -553,8 +571,8 @@ export default function GestionarAlumno() {
                         <Text style={styles.label}>Apellido:</Text>
                         <TextInput style={styles.input} placeholder='Apellido' value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
                         
-                        <Text style={styles.label}>CUIL:</Text>
-                        <TextInput style={styles.input} placeholder='CUIL' value={formData.cuil} onChangeText={(value) => handleChange('cuil', value)} />
+                        <Text style={styles.label}>CUIL (autogenerado):</Text>
+                            <TextInput style={[styles.input, { backgroundColor: '#e0e0e0' }]} value={formData.cuil} editable={false} />
                         
                         
                         <Text style={styles.label}>Email:</Text>
@@ -567,7 +585,8 @@ export default function GestionarAlumno() {
                             formData={formData}
                             handleChange={handleChange}
                             sexo={sexo}
-                            curso={cursos}
+                            showLabel={true}
+                            curso_cantidad={curso_cantidad}
                             styles={styles}
                         />
                     </View>

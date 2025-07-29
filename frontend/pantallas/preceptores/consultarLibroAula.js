@@ -14,7 +14,7 @@ export default function ConsultarLibro() {
         handleConsultar,
         mostrarMensaje,
         reiniciarFiltro,
-        validarDatos,
+        validarCampo,
         setAlertVisible,
         setFormData,
         formData,
@@ -49,22 +49,23 @@ export default function ConsultarLibro() {
             <ListasDesplegables
                 formData={formData}
                 handleChange={handleChange}
-                materias={materia}
-                showLabel={true}
+                curso={curso}
                 styles={styles}
             />
             <ListasDesplegables
                 formData={formData}
                 handleChange={handleChange}
-                curso={curso}
+                materias={materia}
+                showLabel={true}
                 styles={styles}
             />
+            
 
             <View style={styles.botonesContainer}>
-                <TouchableOpacity style={[styles.botonConsultar, !validarDatos() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarDatos()}>
+                <TouchableOpacity style={[styles.botonConsultar, !validarCampo() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarCampo()}>
                     <Text style={styles.textoBoton}>Consultar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.botonReiniciar, !validarDatos() && styles.botonDeshabilitado]} onPress={reiniciarFiltro} disabled={!validarDatos()}>
+                <TouchableOpacity style={[styles.botonReiniciar, !validarCampo() && styles.botonDeshabilitado]} onPress={reiniciarFiltro} disabled={!validarCampo()}>
                     <Text style={styles.textoBoton}>Reiniciar Filtro</Text>
                 </TouchableOpacity>
             </View>
@@ -149,12 +150,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         backgroundColor: '#fafafa',
         fontSize: 16,
+        color: '#2a3d6c',
     },
     label: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#2a3d6c',
     },
     botonesContainer: {
         flexDirection: 'row',
@@ -184,10 +186,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     textoBoton: {
-        color: 'black',
+        color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+        letterSpacing: 0.5,
     },
     grilla: {
         marginTop: 20,

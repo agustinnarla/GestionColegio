@@ -22,7 +22,7 @@ export const obtenerProfesoresAsistencia = async () => {
 };
 
 //🟢
-export const registrarEntradaProfesor = async (profesorData) => {
+export const registrarEntradaProfesores = async (profesorData) => {
     try{
         const respuesta = await fetch(api_urlAsistenciaEntrada, {
             method: 'POST',
@@ -40,11 +40,11 @@ export const registrarEntradaProfesor = async (profesorData) => {
         return data; // Devuelve los datos al cliente
     }catch(error){
         console.error('Error al registrar la entrada del profesor:', error);
-        throw error; // Lanza el error para que el cliente lo maneje
+        throw error; 
     }
 }
 //🟢
-export const registrarSalidaProfesor = async (profesorData) => {
+export const registrarSalidaProfesores = async (profesorData) => {
     try{
         const respuesta = await fetch(api_urlAsistenciaSalida, {
             method: 'PUT',
@@ -62,6 +62,6 @@ export const registrarSalidaProfesor = async (profesorData) => {
         return data; // Devuelve los datos al cliente
     }catch(error){
         console.error('Error al registrar la salida del profesor:', error);
-        throw error; // Lanza el error para que el cliente lo maneje
+        throw error; 
     }
 }

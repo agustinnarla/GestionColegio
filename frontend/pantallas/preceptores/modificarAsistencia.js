@@ -13,10 +13,15 @@ export default function ModificarAsistencia() {
     const route = useRoute();
     const { id_curso } = route.params;
 
+    //🟢 Estado y lista de alumnos 
     const [students, setStudents] = useState([]);
     const [mensajeConfirmacion, setMensajeConfirmacion] = useState('');
+
+
+
     const [modalVisible, setModalVisible] = useState(false);
 
+    //🟢 Cambios en el switch
     const toggleSwitch = (id) => {
         setStudents((prevEstudiante) =>
             prevEstudiante.map((estudiante) =>
@@ -26,17 +31,19 @@ export default function ModificarAsistencia() {
     };
 
     
-    // Mensajes 
+    //🟢 Estado y Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
 
+    //🟢 Mensaje 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
+    //🟢 Obtenemos fecha actual 
     const obtenerFechaActual = () => {
         const fecha = new Date();
         const year = fecha.getFullYear();
@@ -45,6 +52,7 @@ export default function ModificarAsistencia() {
         return `${year}-${month}-${day}`;
     };
 
+    //🟢 Cargamos los alumnos 
     useEffect(() => {
         const cargarAlumnosAusentes = async () => {
             const fechaActual = obtenerFechaActual();
@@ -67,6 +75,7 @@ export default function ModificarAsistencia() {
         cargarAlumnosAusentes();
     }, [id_curso]);
 
+    //🟢 Registramos 
     const handleRegistrar = async () => {
         try {
             for (const estudiante of students) {
@@ -93,7 +102,6 @@ export default function ModificarAsistencia() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.wrapper}>
-                <Text style={styles.titulo}>Modificar Asistencia</Text>
                 <View style={styles.card}>
                     <View style={styles.busqueda}>
                         <FontAwesome5 name="search" size={15} color="#bbb" style={styles.icon} />
@@ -124,6 +132,12 @@ export default function ModificarAsistencia() {
                         <TouchableOpacity style={[styles.boton, styles.enviar]} onPress={handleRegistrar}>
                             <Text style={styles.botonTexto}>Enviar</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity
+                                                style={[styles.boton, styles.volver]}
+                                                
+                                            >
+                                                <Text style={styles.botonTexto}>📄</Text>
+                                            </TouchableOpacity>
                     </View>
                 </View>
                 {mensajeConfirmacion !== '' && (
@@ -200,7 +214,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
         fontSize: 15,
-        color: '#374151',
+        color: '#2a3d6c',
         backgroundColor: 'transparent',
     },
     headerLista: {
@@ -213,12 +227,12 @@ const styles = StyleSheet.create({
     },
     headerNombre: {
         fontWeight: '500',
-        color: '#1f2937',
+        color: '#2a3d6c',
         fontSize: 14,
     },
     headerPresente: {
         fontWeight: '500',
-        color: '#1f2937',
+        color: '#2a3d6c',
         fontSize: 14,
     },
     listaEstudiantes: {
@@ -266,19 +280,20 @@ const styles = StyleSheet.create({
     },
     volver: {
         backgroundColor: '#f6fafe',
-        borderColor: '#b6c6e0',
+         borderColor: '#746BC8',
         borderWidth: 1,
     },
     enviar: {
         backgroundColor: '#e8f5e9',
-        borderColor: '#b7e4c7',
+        borderColor: '#4caf50',
         borderWidth: 1,
     },
-    botonTexto: {
-        color: '#2c3e50',
-        fontSize: 15,
-        fontWeight: '500',
+     botonTexto: {
+        color: '#2a3d6c',
+        fontSize: 16,
+        fontWeight: 'bold',
         textAlign: 'center',
+        letterSpacing: 0.5,
     },
     mensajeOverlay: {
         position: 'absolute',

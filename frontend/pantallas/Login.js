@@ -1,5 +1,6 @@
 import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, ImageBackground, Platform } from 'react-native';
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // React Native
 
 import { FontAwesome5 } from '@expo/vector-icons';
 import { ingresarUsuario, olvideMiContrasena } from '../scripts/navegacion/scriptLogin.js';
@@ -8,6 +9,7 @@ import logo from '../assets/logo_huerto.png';
 import CustomAlert from '../componente/CustomAlerts.js';
 
 export default function Login(props) {
+    //🟢 Estados y Formulario
     const [dniUsuario, setDniUsuario] = useState('');
     const [contrasena, setContrasena] = useState('');
     const [alertVisible, setAlertVisible] = useState(false);
@@ -16,12 +18,14 @@ export default function Login(props) {
     const [intentosFallidos, setIntentosFallidos] = useState(0);
     const [bloqueado, setBloqueado] = useState(false);
 
+    //🟢 Mensajes
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
+    //🟢 Caputar Intentos 
     const capturarIntentos = () => {
         setIntentosFallidos((prev) => {
             const nuevosIntentos = prev + 1;
@@ -38,6 +42,13 @@ export default function Login(props) {
         });
     };
 
+    //🟢 Limpiar interfaz 
+    const limpiarInterfaz = () => {
+        setDniUsuario(''),
+        setContrasena('')
+    };
+
+    //🟢 Login 
     const handleLogin = async () => {
         if (bloqueado) {
             mostrarMensaje('Error', 'Cuenta bloqueada. Intente nuevamente en unos segundos.');
@@ -47,7 +58,9 @@ export default function Login(props) {
             const response = await ingresarUsuario(dniUsuario, contrasena, props.navigation, mostrarMensaje);
             if (response?.success) {  
                 setIntentosFallidos(0);
-
+                const token = response.token;
+                await AsyncStorage.setItem('token', token); 
+                limpiarInterfaz()
             } else {
                 capturarIntentos();
                 mostrarMensaje('Error', response?.message || 'Usuario o Contraseña incorrectos.');
@@ -57,6 +70,7 @@ export default function Login(props) {
         }
     };
     
+    //🟢 Olvide mi contraseña 
     const handleOlvideMiContrasena = async () => {
         if (!dniUsuario) {
             mostrarMensaje('Error', 'Por favor ingrese su DNI para recuperar la contraseña.');
@@ -74,12 +88,13 @@ export default function Login(props) {
         }
     };
 
+    //🟢 Validar Campos para habilitar botones 
     const validarCampos = () => {
         return dniUsuario.trim().length > 0 && contrasena.trim().length > 0;
     };
 
-    const isButtonDisabled = !validarCampos() || bloqueado;
-
+    
+    //🟢 Vista 
     return (
         <View style={styles.padre}>
             <ImageBackground source={bg} style={styles.bg} resizeMode='cover'>
@@ -111,9 +126,9 @@ export default function Login(props) {
                     </TouchableOpacity>
                     <View style={styles.padreBoton}>
                         <TouchableOpacity
-                            style={[styles.cajaBoton, isButtonDisabled && styles.botonDeshabilitado]}
+                            style={[styles.cajaBoton,  !validarCampos() && styles.botonDeshabilitado]}
                             onPress={handleLogin}
-                            disabled={isButtonDisabled}
+                            disabled={!validarCampos()}
                         >
                             <Text style={styles.textoBoton}>Ingresar</Text>
                         </TouchableOpacity>

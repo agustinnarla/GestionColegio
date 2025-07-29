@@ -59,7 +59,10 @@ export default function CargarNotas() {
     const [curso,setCursos] = useState([]);
     const [materias,setMaterias] = useState([]);
     const [alumnos, setAlumnos] = useState([]); 
-    
+    const [notaSeleccionada, setNotaSeleccionada] = useState('');
+    const [alumnosSeleccionados, setAlumnosSeleccionados] = useState([]);
+    const [notaGlobal, setNotaGlobal] = useState('');
+
     useEffect(() => {
         const cargarDatos = async () => {
             try {
@@ -302,66 +305,120 @@ const exportarNotasAExcel = async (alumnos) => {
                             <Text style={styles.textoBoton}>📄</Text>
                         </TouchableOpacity>
                     </View>
+                    <View style={styles.filtroGroup}>
+                    <Text style={styles.label}>Seleccionar campo a editar:</Text>
+                    <Picker
+                      selectedValue={notaSeleccionada}
+                      onValueChange={(itemValue) => setNotaSeleccionada(itemValue)}
+                      style={styles.inputDesplegable}
+                    >
+                      <Picker.Item label="Seleccione una opción" value="" />
+                      <Picker.Item label="Nota 1" value="nota1" />
+                      <Picker.Item label="Nota 2" value="nota2" />
+                      <Picker.Item label="Nota 3" value="nota3" />
+                      <Picker.Item label="Nota 4" value="nota4" />
+                      <Picker.Item label="Nota 5" value="nota5" />
+                      <Picker.Item label="Nota 6" value="nota6" />
+                      <Picker.Item label="TP1" value="tp1" />
+                      <Picker.Item label="TP2" value="tp2" />
+                      <Picker.Item label="TP3" value="tp3" />
+                      <Picker.Item label="Aulico" value="aulico" />
+                    </Picker>
+                  </View>
                 </View>
             </View>
 
             {/* Grilla de alumnos y notas */}
             <View style={styles.grillaContainer}>
                 <ScrollView>
-                    <View>
-                        <View style={styles.headerRow}>
-                          <Text style={styles.headerCellNombre}>Alumno</Text>
-                          {[1,2,3,4,5,6].map(num => (
-                            <Text key={`hnota${num}`} style={styles.headerCell}>{`Nota ${num}`}</Text>
-                          ))}
-                          {[1,2,3].map(num => (
-                            <Text key={`htp${num}`} style={styles.headerCell}>{`Tp ${num}`}</Text>
-                          ))}
-                          <Text style={styles.headerCell}>Aulico</Text>
-                        </View>
-                        {alumnos.map((item) => (
-                          <View key={item.dni_alumno} style={styles.row}>
-                            <Text style={styles.cellNombre} numberOfLines={1}>{item.nombre_completo}</Text>
-                            {[1,2,3,4,5,6].map((num) => (
-                              <TextInput
-                                key={num}
-                                style={[
-                                  styles.inputNota,
-                                  parseInt(item[`nota${num}`]) < 6 ? styles.notaMenor : styles.notaMayor
-                                ]}
-                                value={item[`nota${num}`]?.toString() || ''}
-                                inputMode="numeric"
-                                maxLength={2}
-                                onChangeText={(text) => validarNota(item.dni_alumno, `nota${num}`, text)}
-                              />
-                            ))}
-                            {[1,2,3].map((num) => (
-                              <TextInput
-                                key={`tp${num}`}
-                                style={[
-                                  styles.inputNota,
-                                  parseInt(item[`tp${num}`]) < 6 ? styles.notaMenor : styles.notaMayor
-                                ]}
-                                value={item[`tp${num}`]?.toString() || ''}
-                                inputMode="numeric"
-                                maxLength={2}
-                                onChangeText={(text) => validarNota(item.dni_alumno, `tp${num}`, text)}
-                              />
-                            ))}
-                            <TextInput
-                              style={[
-                                styles.inputNota,
-                                parseInt(item.aulico) < 6 ? styles.notaMenor : styles.notaMayor
-                              ]}
-                              value={item.aulico?.toString() || ''}
-                              inputMode="numeric"
-                              maxLength={2}
-                              onChangeText={(text) => validarNota(item.dni_alumno, 'aulico', text)}
-                            />
-                          </View>
-                        ))}
-                    </View>
-                        </ScrollView>
+  <View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+  <Text style={{ color: 'white', fontSize: 16, marginRight: 8 }}>Nota para seleccionados:</Text>
+  <TextInput
+    style={{
+      backgroundColor: 'white',
+      borderRadius: 5,
+      paddingHorizontal: 10,
+      height: 40,
+      width: 60,
+      marginRight: 10
+    }}
+    value={notaGlobal}
+    inputMode="numeric"
+    maxLength={2}
+    onChangeText={setNotaGlobal}
+  />
+  <TouchableOpacity
+    onPress={() => {
+      setAlumnos(prev =>
+        prev.map(alumno =>
+          alumnosSeleccionados.includes(alumno.dni_alumno)
+            ? { ...alumno, [notaSeleccionada]: notaGlobal }
+            : alumno
+        )
+      );
+      setNotaGlobal('');
+    }}
+    style={{
+      backgroundColor: 'blue',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 5
+    }}
+  >
+    <Text style={{ color: 'white' }}>Aplicar</Text>
+  </TouchableOpacity>
+</View>
+
+    <View style={styles.headerRow}>
+      <Text style={styles.headerCellNombre}>Alumno</Text>
+      <Text style={styles.headerCell}>{notaSeleccionada.toUpperCase()}</Text>
+    </View>
+{alumnos.map((item) => {
+  const seleccionado = alumnosSeleccionados.includes(item.dni_alumno);
+  const valor = item[notaSeleccionada]?.toString() || '';
+
+  return (
+    <View key={item.dni_alumno} style={[styles.row, seleccionado && { backgroundColor: 'rgba(0, 0, 255, 0.2)' }]}>
+      
+      {/* Zona de selección */}
+      <TouchableOpacity
+        onPress={() => {
+          setAlumnosSeleccionados(prev =>
+            prev.includes(item.dni_alumno)
+              ? prev.filter(dni => dni !== item.dni_alumno)
+              : [...prev, item.dni_alumno]
+          );
+        }}
+        delayLongPress={200}
+        style={{ paddingHorizontal: 10, justifyContent: 'center' }}
+      >
+        {/* Nombre del alumno */}
+      <Text style={styles.cellNombre} numberOfLines={1}>
+        {item.nombre_completo}
+      </Text>
+      </TouchableOpacity>
+
+      
+
+      {/* Nota editable */}
+      <TextInput
+        style={[
+          styles.inputNota,
+          parseInt(valor) < 6 ? styles.notaMenor : styles.notaMayor
+        ]}
+        value={valor}
+        inputMode="numeric"
+        maxLength={2}
+        onChangeText={(text) =>
+          validarNota(item.dni_alumno, notaSeleccionada, text)
+        }
+      />
+    </View>
+  );
+})}
+  </View>
+</ScrollView>
               
                 <TouchableOpacity 
                     style={[styles.botonConsultar, (!validarCampos() || alumnos.length === 0) && styles.botonDeshabilitado, {alignSelf: 'center', marginTop: 10, width: 180}]}

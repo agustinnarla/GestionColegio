@@ -22,8 +22,10 @@ export const registrarEvaluacion = async (req, res) => {
     const { id_materia, id_tipo_de_evaluacion, fecha, tema_abarcado, id_curso, dni_profesional } = req.body;
 
     try {
-        const cantidad = await contarEvaluacionesPorCursoYFecha(id_curso, fecha);
 
+        validarFecha(fecha)
+
+        const cantidad = await contarEvaluacionesPorCursoYFecha(id_curso, fecha);
         if (cantidad >= 3) {
             return res.status(400).json({ error: 'No se pueden registrar más de 3 evaluaciones por curso en la misma fecha' });
         }
@@ -43,4 +45,18 @@ export const registrarEvaluacion = async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Error al registrar la evaluación' });
     }
+};
+
+const validarFecha = (fecha) => {
+  const fechaEvaluacion = new Date(fecha);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  fechaEvaluacion.setHours(0, 0, 0, 0);
+
+  const hoyMasDosDias = new Date(hoy);
+  hoyMasDosDias.setDate(hoy.getDate() + 2);
+
+  if (fechaEvaluacion < hoyMasDosDias) {
+    throw new Error('La fecha de la evaluación debe ser al menos 2 días posterior a la fecha actual.');
+  }
 };

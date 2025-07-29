@@ -1,5 +1,6 @@
 import {pool} from '../../dataBase/coneccion.mjs'
 import {encriptarContrasena} from './metodosLogin.mjs'
+
 export const obtenerUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
     try {
@@ -17,6 +18,39 @@ export const obtenerUsuario = async (req, res) => {
     }
 };
 
+export const obtenerUsuarioAlumno = async (req, res) => {
+    const { dni_usuario} = req.params;
+    try {
+        const dni_alumno = dni_usuario
+        const respuesta = await pool.query(`SELECT 
+                    u.dni_usuario,
+                    u.email,
+                    (
+                        SELECT COALESCE(SUM(cantidad), 0)
+                        FROM amonestacion
+                        WHERE dni_alumno = u.dni_usuario
+                    ) AS total_amonestaciones,
+                    (
+                        SELECT COUNT(*)
+                        FROM asistencia_alumno
+                        WHERE dni_alumno = u.dni_usuario AND id_estado_asistencia = 2
+                    ) AS total_inasistencias,
+                    u.id_rol
+                FROM usuario u
+                WHERE u.dni_usuario = $1;
+                `, [dni_alumno]);
+
+        if (respuesta.rows.length > 0) {
+            res.json(respuesta.rows[0]);  // Enviar solo el primer usuario
+        } else {
+            res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: "Error en el servidor" });
+    }
+};
 
 export const restablecerContrasena = async (req, res) => {
     const { dni_usuario} = req.params;

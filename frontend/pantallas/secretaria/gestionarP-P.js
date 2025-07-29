@@ -9,356 +9,336 @@ import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 
 export default function GestionarProfesional() {
+ const [viveEnDepto, setViveEnDepto] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
 
-    const [viveEnDepto, setViveEnDepto] = useState(false); // Estado para la checkbox
-    const [piso, setPiso] = useState('');
-    const [depto, setDepto] = useState('');
+  const mostrarMensaje = (titulo, mensaje) => {
+    setAlertTitle(titulo);
+    setAlertMessage(mensaje);
+    setAlertVisible(true);
+  };
 
-    // Mensajes 
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertTitle, setAlertTitle] = useState('');
-    const [alertMessage, setAlertMessage] = useState('');
+  const [rol, setRol] = useState([]);
+  const [localidad, setLocalidad] = useState([]);
+  const [sexo, setSexos] = useState([]);
+  const [estado_general, setEstadoGeneral] = useState([]);
 
-    const mostrarMensaje = (titulo, mensaje) => {
-        setAlertTitle(titulo);
-        setAlertMessage(mensaje);
-        setAlertVisible(true);
-    };
+  const [formData, setFormData] = useState({
+    dni_profesional: '',
+    nombre: '',
+    apellido: '',
+    cuit: '',
+    id_sexo: '',
+    id_rol: '',
+    email: '',
+    fecha_nacimiento: '',
+    telefono_personal: '',
+    telefono_alternativo: '',
+    id_estado_general: '',
+    id_localidad: '',
+    domicilio: '',
+    edificio: false,
+    piso: '',
+    departamento: ''
+  });
 
-    const[rol, setRol] = useState([])
-    const[localidad,setLocalidad] = useState([])
-    const[sexo,setSexos] = useState([])
-    const[estado_general,setEstadoGeneral] = useState([])
+  // Función para calcular CUIT
+  const calcularCuit = (dni, sexoId) => {
+    let prefijo = sexoId === '1' || sexoId === 1 ? '20' : '27';
+    let dniStr = dni.toString().padStart(8, '0');
+    let cuitBase = prefijo + dniStr;
 
-    const [formData, setFormData] = useState({
-        dni_profesional: '',
-        nombre: '',
-        apellido: '',
-        cuit: '',
-        id_sexo: '',
-        id_rol: '',
-        email: '',
-        fecha_nacimiento: '',
-        telefono_personal: '',
-        telefono_alternativo:'',
-        id_estado_general: '',
-        id_localidad: '',
-        domicilio: '',
-        edificio: false,
-        piso: '',
-        departamento: ''
-    });
+    const multiplicadores = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+    let suma = 0;
 
-    
-    const validarCampos = () => {
-        return(
-            formData.dni_profesional &&
-            formData.nombre &&
-            formData.apellido &&
-            formData.cuit &&
-            formData.id_sexo &&
-            formData.id_rol &&
-            formData.email &&
-            formData.id_curso &&
-            formData.fecha_nacimiento &&
-            formData.telefono_personal &&
-            formData.telefono_alternativo &&
-            formData.id_estado_general &&
-            formData.id_localidad &&
-            formData.domicilio &&
-            formData.edificio != null  &&
-            formData.piso != null &&
-            formData.departamento  != null
-        )
-    }
-    const validarDni = () => {
-        return (
-            formData.dni_profesional
-        )
+    for (let i = 0; i < multiplicadores.length; i++) {
+      suma += parseInt(cuitBase[i]) * multiplicadores[i];
     }
 
-    
-        useEffect(() => {
-            const cargarListaDesplegable = async () => {
-                try {
-                    
-                    const localidadData = await obtenerLocalidad();
-                    const sexosData = await obtenerSexo();
-                    const estadoData = await obtenerEstadoGeneral();
-                    const rolData = await obtenerRoles();
-                    setRol(rolData);
-                    setSexos(sexosData);
-                    setLocalidad(localidadData);
-                    setEstadoGeneral(estadoData);
-                
-                    
-                } catch (error) {
-                    mostrarMensaje('Error', error.message);
-                    console.log(error);
-                }
-            };
-    
-        cargarListaDesplegable();
-        }, []);
+    let resto = suma % 11;
+    let digitoVerificador = 11 - resto;
 
-        const handleChange = (name, value) => {
-            setFormData({ ...formData, [name]: value });
-        };
+    if (digitoVerificador === 11) digitoVerificador = 0;
+    else if (digitoVerificador === 10) {
+      prefijo = prefijo === '20' ? '23' : '24';
+      return calcularCuit(dni, sexoId); // Recalcular
+    }
 
-        const handleRegistrar = async () => {
-            try{
-                const profesionalData = {
-                dni_profesional: parseInt(formData.dni_profesional),
-                nombre: formData.nombre,
-                apellido: formData.apellido,
-                cuit: parseInt(formData.cuit),
-                id_sexo: formData.id_sexo,
-                id_rol: formData.id_rol,
-                email: formData.email,
-                fecha_nacimiento: formData.fecha_nacimiento,
-                telefono_personal: parseInt(formData.telefono_personal),
-                telefono_alternativo: parseInt(formData.telefono_alternativo),
-                id_estado_general: formData.id_estado_general,
-                id_localidad: formData.id_localidad,
-                domicilio: formData.domicilio,
-                edificio: formData.edificio,
-                piso: formData.edificio ? formData.piso : null,
-                departamento: formData.edificio ? formData.departamento : null
-            };
-                console.log(profesionalData)
-                // Cambiar nombre a registrar profesional
-                const respuesta = await registrarProfesional(profesionalData)
-                if(respuesta){
-                    mostrarMensaje('Exito', 'Profesional registrado correctamente')
-                    limpiarInterfaz()
-                }
-            }catch(error){
-                mostrarMensaje('Error', 'Error al registrar el profesional')
-            }
-        }
-        const handleConsultar = async () => {
-            // Lógica para consultar el profesional
-            try{
-                const profesional = await obtenerProfesional(formData.dni_profesional)
-                if(profesional){
-                    setFormData({
-                        ...formData,
-                        apellido: profesional.apellido,
-                        cuit: profesional.cuit,
-                        departamento: profesional.departamento,
-                        domicilio: profesional.domicilio,
-                        email: profesional.email,
-                        fecha_nacimiento: profesional.fecha_nacimiento,
-                        id_estado_general: profesional.id_estado_general,
-                        id_localidad: profesional.id_localidad,
-                        id_rol: profesional.id_rol,
-                        id_sexo: profesional.id_sexo,
-                        nombre: profesional.nombre,
-                        piso: profesional.piso,
-                        telefono_personal: profesional.telefono_personal,
-                        telefono_alternativo: profesional.telefono_alternativo,
-                        edificio: profesional.edificio,
-                    })
-                }else{
-                    mostrarMensaje('Error', 'El profesional no existe, verifique el DNI')
-                }
-            }catch(error){
-                mostrarMensaje('Error', 'Error al consultar el profesional, contacté con el administrador')
-            }
-        }
+    return `${prefijo}-${dniStr}-${digitoVerificador}`;
+  };
 
-        const limpiarInterfaz = () => {
-            setFormData({
-                dni_profesional: '',
-                nombre: '',
-                apellido: '',
-                cuit: '',
-                id_sexo: '',
-                id_rol: '',
-                email: '',
-                fecha_nacimiento: '',
-                telefono_personal: '',
-                telefono_alternativo:'',
-                id_estado_general: '',
-                id_localidad: '',
-                domicilio: '',
-                edificio: false,
-                id_localidad: '',
-                piso: '',
-                departamento: ''
-            });
-        }
-        const handleDeshabilitar = async () => {
-            try{
-                const respuesta = await deshabilitarProfesional(formData.dni_profesional)
-                if(respuesta){
-                    mostrarMensaje('Exito', 'El profesional se deshabilito correctamente')
-                    console.log("El profesional fue deshabilitado correctamente")
-                }
-                limpiarInterfaz()
-            }catch(error){
-                mostrarMensaje('Error', 'Error al deshabilitar el profesional')
-                console.log(error)
-            }
-        }
-        const handleModificar = async () => {
-            try {
-                const profesionalData = {
-                    dni_profesional: parseInt(formData.dni_profesional),
-                    nombre: formData.nombre,
-                    apellido: formData.apellido,
-                    cuit: parseInt(formData.cuit),
-                    id_sexo: formData.id_sexo,
-                    id_rol: formData.id_rol,
-                    email: formData.email,
-                    fecha_nacimiento: formData.fecha_nacimiento,
-                    telefono_personal: parseInt(formData.telefono_personal),
-                    telefono_alternativo: parseInt(formData.telefono_alternativo),
-                    id_estado_general: formData.id_estado_general,
-                    id_localidad: formData.id_localidad,
-                    domicilio: formData.domicilio,
-                    edificio: formData.edificio,
-                    piso: formData.edificio ? formData.piso : null,
-                    departamento: formData.edificio ? formData.departamento : null
-                };
-                console.log(profesionalData)
-                const respuesta = await modificarProfesional(formData.dni_profesional, profesionalData)
-                if(respuesta){
-                    mostrarMensaje('Exito', 'El profesional se modifico correctamente')
-                    console.log("El profesional fue modificado correctamente")
-                    limpiarInterfaz()
-                }
-            } catch (error) {
-                mostrarMensaje('Error', 'Error al modificar el profesional')
-                console.log(error.message)
-            }
-        }
-
+  const validarCampos = () => {
     return (
-        <View style={styles.padre}>
-            <ScrollContainer />
-            <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
-            <View style={styles.formulario}>
-                <View style={styles.dniContainer}>
-                    <Text style={styles.label}>DNI:</Text>
-                    <TextInput
-                        style={styles.inputDni}
-                        placeholder='DNI'
-                        value={formData.dni_profesional}
-                        onChangeText={(value) => handleChange('dni_profesional', value)}
-                    />
-                    <TouchableOpacity style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarDni()}>
-                        <Text style={styles.consultarText}>Consultar</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.fila}>
-                    {/* Primera columna */}
-                    <View style={styles.columna}>
-                        <Text style={styles.label}>Nombre:</Text>
-                        <TextInput style={styles.input} placeholder='Nombre' value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
-                        <Text style={styles.label}>Apellido:</Text>
-                        <TextInput style={styles.input} placeholder='Apellido' value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
-                        <Text style={styles.label}>CUIT:</Text>
-                        <TextInput style={styles.input} placeholder='CUIT' value={formData.cuit} onChangeText={(value) => handleChange('cuit', value)} />
-                        <Text style={styles.label}>Correo:</Text>
-                        <TextInput style={styles.input} placeholder='Correo' value={formData.email} onChangeText={(value) => handleChange('email', value)} />
-            
-                        <Text style={styles.label}>CUIT:</Text>
-                        <ListasDesplegables
-                            formData={formData}
-                            handleChange={handleChange}
-                            roles={rol}
-                            sexo={sexo}
-                            styles={styles}
-                        />
-                    </View>
-
-                    {/* Segunda columna */}
-                    <View style={styles.columna}>
-                        <ListasDesplegables
-                            formData={formData}
-                            handleChange={handleChange}
-                            estado_general={estado_general}
-                            localidad={localidad}
-                            styles={styles}
-                            showLabel={true}
-                        />
-                        <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='DD/MM/AAAA' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
-                        <Text style={styles.label}>Teléfono Personal:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
-                        <Text style={styles.label}>Teléfono Alternativo:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Alternativo' value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
-                        
-                        
-
-                    </View>
-
-                    {/* Tercera columna */}
-                    <View style={styles.columna}>
-                        <Text style={styles.label}>Domicilio:</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder='Domicilio'
-                            value={formData.domicilio} 
-                            onChangeText={(value) => handleChange('domicilio', value)}
-                        />
-                        <View style={styles.checkboxContainer}>
-                            <Text style={styles.label}>¿Vives en un departamento?</Text>
-                                <CheckBox
-                                    value={formData.edificio}
-                                    onValueChange={() => handleChange('edificio', !formData.edificio)}
-                                    style={styles.check}
-                                />
-                        </View>
-
-                        {/* Inputs adicionales si vive en un departamento */}
-                        {formData.edificio && (
-                            <>
-                                <View style={styles.filaPisoDepto}>
-                                    <View style={{ flex: 1, marginRight: 8 }}>
-                                        <Text style={styles.label}>Piso:</Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder='Piso'
-                                            value={formData.piso}
-                                            onChangeText={(value) => handleChange('piso', value)}
-                                        />
-                                    </View>
-                                    <View style={{ flex: 1, marginLeft: 8 }}>
-                                        <Text style={styles.label}>Departamento:</Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder='Departamento'
-                                            value={formData.departamento}
-                                            onChangeText={(value) => handleChange('departamento', value)}
-                                        />
-                                    </View>
-                                </View>
-                            </>
-                            )}
-                        
-                    </View>
-                </View>
-            </View>
-
-            <View style={styles.contenidoBotones}>
-                <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
-            </View>
-            </ImageBackground>
-             <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
-            />
-        </View>
-        
+      formData.dni_profesional &&
+      formData.nombre &&
+      formData.apellido &&
+      formData.cuit &&
+      formData.id_sexo &&
+      formData.id_rol &&
+      formData.email &&
+      formData.fecha_nacimiento &&
+      formData.telefono_personal &&
+      formData.telefono_alternativo &&
+      formData.id_estado_general &&
+      formData.id_localidad &&
+      formData.domicilio &&
+      formData.edificio != null &&
+      formData.piso != null &&
+      formData.departamento != null
     );
+  };
+
+  const validarDni = () => formData.dni_profesional;
+
+  useEffect(() => {
+    const cargarListaDesplegable = async () => {
+      try {
+        const localidadData = await obtenerLocalidad();
+        const sexosData = await obtenerSexo();
+        const estadoData = await obtenerEstadoGeneral();
+        const rolData = await obtenerRoles();
+        setRol(rolData);
+        setSexos(sexosData);
+        setLocalidad(localidadData);
+        setEstadoGeneral(estadoData);
+      } catch (error) {
+        mostrarMensaje('Error', error.message);
+        console.log(error);
+      }
+    };
+    cargarListaDesplegable();
+  }, []);
+
+const validarFechaNacimiento = (fecha) => {
+    const fechaIngresada = new Date(fecha);
+    const fechaActual = new Date();
+
+    if (isNaN(fechaIngresada.getTime())) {
+        Alert.alert('Error', 'La fecha de nacimiento no es válida.');
+        console.log('Fecha de nacimiento no válida:', fecha);
+        return false;
+    }
+
+    if (fechaIngresada > fechaActual) {
+        Alert.alert('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
+        console.log('Fecha futura:', fecha);
+        return false;
+    }
+
+    // Calcular la edad
+    const edad = fechaActual.getFullYear() - fechaIngresada.getFullYear();
+    const mesActual = fechaActual.getMonth();
+    const mesNacimiento = fechaIngresada.getMonth();
+
+   
+    if (
+        mesActual < mesNacimiento ||
+        (mesActual === mesNacimiento && fechaActual.getDate() < fechaIngresada.getDate())
+    ) {
+        edad--;
+    }
+
+    if (edad <= 21) {
+        Alert.alert('Error', 'El profesional debe tener más de 21 años.');
+        console.log('Edad menor o igual a 21:', edad);
+        return false;
+    }
+
+    return true;
+};
+  const handleChange = (name, value) => {
+    let updatedForm = { ...formData, [name]: value };
+
+    // Calcular CUIT automáticamente si están presentes DNI y sexo
+    if (
+      (name === 'dni_profesional' || name === 'id_sexo') &&
+      updatedForm.dni_profesional &&
+      updatedForm.id_sexo
+    ) {
+      const cuitCalculado = calcularCuit(updatedForm.dni_profesional, updatedForm.id_sexo);
+      updatedForm.cuit = cuitCalculado;
+    }
+
+    setFormData(updatedForm);
+  };
+
+  const handleRegistrar = async () => {
+    try {
+      const profesionalData = {
+        ...formData,
+        dni_profesional: parseInt(formData.dni_profesional),
+        cuit: formData.cuit,
+        telefono_personal: parseInt(formData.telefono_personal),
+        telefono_alternativo: parseInt(formData.telefono_alternativo),
+        piso: formData.edificio ? formData.piso : null,
+        departamento: formData.edificio ? formData.departamento : null,
+      };
+
+      const respuesta = await registrarProfesional(profesionalData);
+      if (respuesta) {
+        mostrarMensaje('Éxito', 'Profesional registrado correctamente');
+        limpiarInterfaz();
+      }
+    } catch (error) {
+      mostrarMensaje('Error', 'Error al registrar el profesional');
+    }
+  };
+
+  const handleConsultar = async () => {
+    try {
+      const profesional = await obtenerProfesional(formData.dni_profesional);
+      if (profesional) {
+        setFormData({ ...formData, ...profesional });
+      } else {
+        mostrarMensaje('Error', 'El profesional no existe, verifique el DNI');
+      }
+    } catch (error) {
+      mostrarMensaje('Error', 'Error al consultar el profesional');
+    }
+  };
+
+  const limpiarInterfaz = () => {
+    setFormData({
+      dni_profesional: '',
+      nombre: '',
+      apellido: '',
+      cuit: '',
+      id_sexo: '',
+      id_rol: '',
+      email: '',
+      fecha_nacimiento: '',
+      telefono_personal: '',
+      telefono_alternativo: '',
+      id_estado_general: '',
+      id_localidad: '',
+      domicilio: '',
+      edificio: false,
+      piso: '',
+      departamento: ''
+    });
+  };
+
+  const handleDeshabilitar = async () => {
+    try {
+      const respuesta = await deshabilitarProfesional(formData.dni_profesional);
+      if (respuesta) {
+        mostrarMensaje('Éxito', 'El profesional se deshabilitó correctamente');
+        limpiarInterfaz();
+      }
+    } catch (error) {
+      mostrarMensaje('Error', 'Error al deshabilitar el profesional');
+    }
+  };
+
+  const handleModificar = async () => {
+    try {
+      const profesionalData = {
+        ...formData,
+        dni_profesional: parseInt(formData.dni_profesional),
+        telefono_personal: parseInt(formData.telefono_personal),
+        telefono_alternativo: parseInt(formData.telefono_alternativo),
+        piso: formData.edificio ? formData.piso : null,
+        departamento: formData.edificio ? formData.departamento : null,
+      };
+
+      const respuesta = await modificarProfesional(formData.dni_profesional, profesionalData);
+      if (respuesta) {
+        mostrarMensaje('Éxito', 'El profesional se modificó correctamente');
+        limpiarInterfaz();
+      }
+    } catch (error) {
+      mostrarMensaje('Error', 'Error al modificar el profesional');
+    }
+  };
+
+  return (
+    <View style={styles.padre}>
+      <ScrollContainer />
+      <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+        <View style={styles.formulario}>
+          <View style={styles.dniContainer}>
+            <Text style={styles.label}>DNI:</Text>
+            <TextInput
+              style={styles.inputDni}
+              placeholder="DNI"
+              value={formData.dni_profesional}
+              onChangeText={(value) => handleChange('dni_profesional', value)}
+            />
+            <TouchableOpacity
+              style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]}
+              onPress={handleConsultar}
+              disabled={!validarDni()}
+            >
+              <Text style={styles.consultarText}>Consultar</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.fila}>
+            {/* Primera columna */}
+            <View style={styles.columna}>
+              <Text style={styles.label}>Nombre:</Text>
+              <TextInput style={styles.input} placeholder="Nombre" value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
+              <Text style={styles.label}>Apellido:</Text>
+              <TextInput style={styles.input} placeholder="Apellido" value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
+
+              <Text style={styles.label}>CUIT (autogenerado):</Text>
+              <TextInput style={[styles.input, { backgroundColor: '#e0e0e0' }]} value={formData.cuit} editable={false} />
+
+              <Text style={styles.label}>Correo:</Text>
+              <TextInput style={styles.input} placeholder="Correo" value={formData.email} onChangeText={(value) => handleChange('email', value)} />
+
+              <ListasDesplegables formData={formData} handleChange={handleChange} roles={rol} sexo={sexo} styles={styles} />
+            </View>
+
+            {/* Segunda columna */}
+            <View style={styles.columna}>
+              <ListasDesplegables formData={formData} handleChange={handleChange} estado_general={estado_general} localidad={localidad} styles={styles} showLabel={true} />
+              <Text style={styles.label}>Fecha de Nacimiento:</Text>
+              <TextInput style={styles.input} placeholder="DD/MM/AAAA" value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
+              <Text style={styles.label}>Teléfono Personal:</Text>
+              <TextInput style={styles.input} placeholder="Teléfono Personal" value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
+              <Text style={styles.label}>Teléfono Alternativo:</Text>
+              <TextInput style={styles.input} placeholder="Teléfono Alternativo" value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
+            </View>
+
+            {/* Tercera columna */}
+            <View style={styles.columna}>
+              <Text style={styles.label}>Domicilio:</Text>
+              <TextInput style={styles.input} placeholder="Domicilio" value={formData.domicilio} onChangeText={(value) => handleChange('domicilio', value)} />
+              <View style={styles.checkboxContainer}>
+                <Text style={styles.label}>¿Vive en un departamento?</Text>
+                <CheckBox value={formData.edificio} onValueChange={() => handleChange('edificio', !formData.edificio)} style={styles.check} />
+              </View>
+
+              {formData.edificio && (
+                <View style={styles.filaPisoDepto}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.label}>Piso:</Text>
+                    <TextInput style={styles.input} placeholder="Piso" value={formData.piso} onChangeText={(value) => handleChange('piso', value)} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.label}>Departamento:</Text>
+                    <TextInput style={styles.input} placeholder="Departamento" value={formData.departamento} onChangeText={(value) => handleChange('departamento', value)} />
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.contenidoBotones}>
+          <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
+        </View>
+      </ImageBackground>
+
+      <CustomAlert isVisible={alertVisible} onClose={() => setAlertVisible(false)} title={alertTitle} message={alertMessage} />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

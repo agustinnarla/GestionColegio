@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { obtenerMateriaPorProfesor, obtenerProfesores, obtenerCursoPorMateria } from '../scripts/listasDesplegables/listaDesplegable.js'
+import {  obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCursoYProfesor } from '../scripts/listasDesplegables/listaDesplegable.js'
 import { obtenerLibroAula } from '../scripts/profesor/scriptLibroAula.js';
 
 
@@ -7,7 +7,8 @@ import { obtenerLibroAula } from '../scripts/profesor/scriptLibroAula.js';
 export default function useConsultarLibroAula(){
 
     const [datos, setDatos] = useState([]);
-    // Formularios
+
+    //🟢 Formularios
     const [formData, setFormData] = useState({
         id_materia: '',
         id_curso: '',
@@ -19,23 +20,24 @@ export default function useConsultarLibroAula(){
         tema_abarcado: ''
     });
 
-    // Mensajes 
+    //🟢 Estados de Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
 
+    //🟢 Mensajes
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
-    // Listas desplegables 
+    //🟢 Estados y Listas desplegables 
     const [materia, setMateria] = useState([]);
     const [profesores, setProfesores] = useState([]);
     const [curso, setCurso] = useState([]);
 
-    // Cargamos las listas desplegables a partir del backend 
+    //🟢Cargamos las listas desplegables  
     useEffect(() => {
         const cargarListaDesplegable = async () => {
             try {
@@ -43,27 +45,28 @@ export default function useConsultarLibroAula(){
                 setProfesores(profesoresData);
 
                 if (formData.dni_profesional) {
-                    const materiaData = await obtenerMateriaPorProfesor(formData.dni_profesional);
+                    const cursoData = await obtenerCursoPorProfesor(formData.dni_profesional);
+                    setCurso(cursoData);
+                } else {
+                    setCurso([]);
+                }
+
+                if (formData.id_curso,formData.dni_profesional) {
+                    const materiaData = await obtenerMateriaPorCursoYProfesor(formData.id_curso,formData.dni_profesional);
                     setMateria(materiaData);
                 } else {
                     setMateria([]);
                 }
 
-                if (formData.id_materia) {
-                    const cursoData = await obtenerCursoPorMateria(formData.id_materia);
-                    setCurso(cursoData);
-                } else {
-                    setCurso([]);
-                }
             } catch{
                 mostrarMensaje('Error', 'Error al cargar las listas desplegables, consulte con el administrador')
             }
         };
         cargarListaDesplegable();
-    }, [formData.dni_profesional, formData.id_materia]);
+    }, [formData.dni_profesional, formData.id_curso]);
     
 
-    // Consultamos el libro de aula
+    //🟢 Consultamos el libro de aula
     const handleConsultar = async () => {
         try {
             const respuesta = await obtenerLibroAula(formData.dni_profesional, formData.id_curso, formData.id_materia);
@@ -77,7 +80,8 @@ export default function useConsultarLibroAula(){
         }
     };
 
-    // Reiniciamos valores 
+    
+    //🟢 Reiniciamos valores 
     const reiniciarFiltro = () => {
         setDatos([]);
         setFormData({
@@ -92,8 +96,8 @@ export default function useConsultarLibroAula(){
         });
     };
 
-    // Validamos que los datos tengan contenido
-    const validarDatos = () => {
+    //🟢 Validamos los campos para habilitar el boton 
+    const validarCampo = () => {
         return (
             formData.dni_profesional &&
             formData.id_materia &&
@@ -101,7 +105,7 @@ export default function useConsultarLibroAula(){
         );
     };
 
-    // Cambiamos el valor de las listas desplegables 
+    //🟢 Cambiamos el estado de las listas desplegables 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
@@ -113,7 +117,7 @@ export default function useConsultarLibroAula(){
         handleConsultar,
         mostrarMensaje,
         reiniciarFiltro,
-        validarDatos,
+        validarCampo,
         setAlertVisible,
         setFormData,
         formData,

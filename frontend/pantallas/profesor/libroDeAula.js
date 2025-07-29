@@ -2,7 +2,7 @@ import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCaracteristicasUnidad, obtenerMateriaPorProfesor, obtenerCursoPorMateria } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { obtenerCaracteristicasUnidad, obtenerCursoPorProfesor, obtenerCursosPorProfesor, obtenerMateriaPorCursoYProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
@@ -11,9 +11,7 @@ import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 
 export default function LibroAula({ route }) {
 
-
-    
-
+    //🟢 Formulario
     const [formData, setFormData] = useState({
         id_materia: '',
         id_caracteristica_unidad: '',
@@ -25,22 +23,25 @@ export default function LibroAula({ route }) {
         dni_profesional: ''
     });
 
-    // Mensajes 
+    //🟢 Estado del Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
 
+    //🟢 Mesnaje 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
-    const [materias, setMaterias] = useState([]);
+    //🟢 Estado listas desplegables 
+    const [materiaPorCursoYProfesor, setMateriasPorCursoProfesor] = useState([]);
     const [caracteristica_unidad, setCaracteristica] = useState('');
     const [loading, setLoading] = useState(true);
-    const [cursoPorMateria, setCursoPorMateria] = useState([]);
+    const [cursoPorProfesor, setCursoPorProfesor] = useState([]);
 
+    //🟢 Capturamos Parametros 
     const { dni_usuario } = route.params;
     const dni_profesional = dni_usuario
 
@@ -52,25 +53,28 @@ export default function LibroAula({ route }) {
     console.log('DNI Usuario:', dni_usuario);
     console.log('El dni usuario se paso a ->', dni_profesional)
 
+
+    //🟢 Obtenemos curso por profesor
     useEffect(() => {
-            const cagarCursoPorMateria = async () => {
-                if (formData.id_materia) {
+            const cargarCursoPorProfesor = async () => {
+                
                     try {
-                        const cursoData = await obtenerCursoPorMateria(formData.id_materia);
-                        setCursoPorMateria(cursoData);
+                        const cursoData = await obtenerCursoPorProfesor(dni_profesional);
+                        setCursoPorProfesor(cursoData);
                     } catch (error) {
                         console.error('Error al cargar alumnos:', error);
                     }
-                }
+                
             };
-            cagarCursoPorMateria();
-        }, [formData.id_materia]);
+            cargarCursoPorProfesor();
+        }, [dni_profesional]);
 
+    //🟢 Obtenemos materias por profesor 
     useEffect(() => {
-        const cargarMaterias = async () => {
+        const cargarMateriasPorCursoYProfesor = async () => {
             try {
-                const data = await obtenerMateriaPorProfesor(dni_profesional);
-                setMaterias(data);
+                const data = await obtenerMateriaPorCursoYProfesor(formData.id_curso, dni_profesional);
+                setMateriasPorCursoProfesor(data);
             } catch (error) {
                 console.error('Error al cargar las materias:', error);
             } finally {
@@ -78,8 +82,8 @@ export default function LibroAula({ route }) {
             }
         };
 
-        cargarMaterias();
-    }, [dni_usuario]);
+        cargarMateriasPorCursoYProfesor();
+    }, [formData.id_curso, dni_profesional]);
 
     useEffect(() => {
         const cargarCaracteristicas = async () => {
@@ -93,7 +97,7 @@ export default function LibroAula({ route }) {
         cargarCaracteristicas();
     }, []);
 
-     const validarDatos = () => {
+    const validarDatos = () => {
         return  formData.id_materia &&
         formData.id_caracteristica_unidad &&
         formData.id_curso &&
@@ -110,42 +114,42 @@ export default function LibroAula({ route }) {
     };
 
     // Registrar 
-        const handleRegistrar = async () => {
-            try {
-                const libroAulaData = {
-                    id_curso: formData.id_curso,
-                    id_materia: formData.id_materia,
-                    id_caracteristica_unidad: formData.id_caracteristica_unidad,
-                    fecha: formatearFecha(formData.fecha),
-                    numero_clase: formData.numero_clase,
-                    unidad: formData.unidad,
-                    tema_abarcado: formData.tema_abarcado,
-                    dni_profesional: dni_usuario,
-                };
-    
-                if (!validarDatos()) {
-                    mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
-                    return;
-                }
-    
-                console.log('Datos del libro de aula', libroAulaData); 
-                
-                const respuesta = await registrarLibroAula(libroAulaData);
-                mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
-                //console.log('Libro de Aula Registrada:', respuesta);
-                console.log('Respuesta del servidor:', respuesta);
-                // if (respuesta) {
-                //     mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
-                // } else {
-                //     mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
-                // }
-                limpiarInterfaz();
-            } catch (error) {
-                console.error('Error al registrar el libro de aula:', error.message);
-                mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+    const handleRegistrar = async () => {
+        try {
+            const libroAulaData = {
+                id_curso: formData.id_curso,
+                id_materia: formData.id_materia,
+                id_caracteristica_unidad: formData.id_caracteristica_unidad,
+                fecha: formatearFecha(formData.fecha),
+                numero_clase: formData.numero_clase,
+                unidad: formData.unidad,
+                tema_abarcado: formData.tema_abarcado,
+                dni_profesional: dni_usuario,
+            };
+
+            if (!validarDatos()) {
+                mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
+                return;
             }
-        };
-    
+
+            console.log('Datos del libro de aula', libroAulaData); 
+            
+            const respuesta = await registrarLibroAula(libroAulaData);
+            mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+            //console.log('Libro de Aula Registrada:', respuesta);
+            console.log('Respuesta del servidor:', respuesta);
+            // if (respuesta) {
+            //     mostrarMensaje('¡Éxito!', 'El libro de Aula se registró correctamente');
+            // } else {
+            //     mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+            // }
+            limpiarInterfaz();
+        } catch (error) {
+            console.error('Error al registrar el libro de aula:', error.message);
+            mostrarMensaje('Error', 'No se pudo registrar el libro de aula');
+        }
+    };
+
         // Limpiar formulario
         const limpiarInterfaz = () => {
             setFormData({
@@ -179,15 +183,22 @@ export default function LibroAula({ route }) {
                             <ListasDesplegables 
                                 formData={formData} 
                                 handleChange={handleChange} 
-                                materias={materias}
+                                cursos={cursoPorProfesor}
                                 showLabel={true}
                                 styles={styles}
                             />
                             <ListasDesplegables 
                                 formData={formData} 
                                 handleChange={handleChange} 
-                                curso={cursoPorMateria}
+                                materias_curso_profesor={materiaPorCursoYProfesor}
+                                showLabel={true}
+                                styles={styles}
+                            />
+                            <ListasDesplegables 
+                                formData={formData} 
+                                handleChange={handleChange} 
                                 caracteristica_unidad={caracteristica_unidad}
+                                showLabel={true}
                                 styles={styles}
                             />
                         </View>

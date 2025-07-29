@@ -3,7 +3,7 @@ import { pool } from '../../dataBase/coneccion.mjs';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
-
+import jwt from 'jsonwebtoken';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -15,10 +15,14 @@ const transporter = nodemailer.createTransport({
 });
 
 
+//🟢 Ingresar Usuario
 export const ingresarUsuario = async (req, res) => {
     const { dni_usuario, contrasena } = req.body;
     try {
-        const respuesta = await pool.query('SELECT * FROM usuario WHERE dni_usuario = $1 AND id_estado_general = 1', [dni_usuario]);
+        const respuesta = await pool.query(`SELECT u.dni_usuario, u.id_rol, u.contrasena, u.email, r.detalle 
+            FROM usuario AS u
+            INNER JOIN roles r ON r.id_rol = u.id_rol 
+            WHERE u.dni_usuario = $1 AND u.id_estado_general = 1`, [dni_usuario]);
         if (respuesta.rows.length === 0) {
             return res.status(401).json({ message: 'Usuario no encontrado' });
         }
@@ -28,14 +32,25 @@ export const ingresarUsuario = async (req, res) => {
         if (!contrasenaValida) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
         }
-        console.log('Usuario ingresado exitosamente');
-        res.status(200).json({ usuario });
+
+        // Generar JWT
+        const token = jwt.sign(
+            {
+                dni_usuario: usuario.dni_usuario,
+                id_rol: usuario.id_rol
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '8h' }
+        );
+
+        res.status(200).json({ usuario, token });
     } catch (error) {
         console.log(error.message);
         res.status(500).json({ message: 'Error al ingresar usuario' });
     }
 };
 
+//🟢 Contraseña generada para "olvide mi contraseña"
 export const generarContrasena = async () => {
     // Generar contraseña temporal aleatoria de 8 caracteres
     const caracteresPermitidos = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -50,6 +65,7 @@ export const generarContrasena = async () => {
     return { contrasenaTemporal, contrasenaEncriptada };
 };
 
+//🟢 Encriptación de contraseña implementando hasheo
 export const encriptarContrasena = async (contrasena) => {
     try {
         const salto = await bcrypt.genSalt(10);
@@ -60,7 +76,7 @@ export const encriptarContrasena = async (contrasena) => {
     }
 };
 
-//enviarNuevaContrasena
+//🟢 Metodo de Olvide mi contraseña
 export const enviarNuevaContrasena = async (req, res) => {
     const { dni_usuario } = req.body;
 
@@ -81,12 +97,15 @@ export const enviarNuevaContrasena = async (req, res) => {
             const mailOptions = {
                 from: process.env.EMAIL_USER,
                 to: resultado.email,
-                subject: 'Nueva contraseña temporal',
+                subject: 'Acceso temporal a la plataforma',
                 html: `
-                    <h2>Datos de acceso temporales</h2>
+                    <h2>Acceso temporal a la plataforma</h2>
+                    <p>Le informamos que se ha generado una contraseña temporal para su cuenta.</p>
                     <p><strong>DNI:</strong> ${dni_usuario}</p>
                     <p><strong>Contraseña temporal:</strong> ${contrasenaTemporal}</p>
-                    <p>Por favor, cambie su contraseña después de iniciar sesión.</p>
+                    <p>Por favor, cambie su contraseña una vez que inicie sesión por primera vez.</p>
+                    <p>Ante cualquier consulta, no dude en contactarnos.</p>
+                    <p><em>Colegio Nuestra Señora del Huerto</em><br>Tel: 12345-21234</p>
                 `
             };
 
@@ -102,7 +121,7 @@ export const enviarNuevaContrasena = async (req, res) => {
     }
 };
 
-// Actualizar contraseña
+//🟢 Actualizar contraseña del perfil
 export const actualizarContrasena = async (contrasenaEncriptada, dni_usuario) => {
     try {
         const resultado = await pool.query(
@@ -130,6 +149,7 @@ export const actualizarContrasena = async (contrasenaEncriptada, dni_usuario) =>
     }
 };
 
+//🟢 Obtener Tareas a partir del Rol al iniciar sesion
 export const obtenerTareasPorRol = async (req, res) => {
     const { id_rol } = req.params
     try{

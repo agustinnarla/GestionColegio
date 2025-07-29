@@ -7,7 +7,7 @@ export const obtenerProfesionalesAsistencia = async (req, res) => {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaActual = diasSemana[new Date().getDay()];
 
-        // Consulta corregida
+        
         const respuesta = await pool.query(
             `SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional
             FROM horario h
@@ -34,53 +34,75 @@ export const obtenerProfesionalesAsistencia = async (req, res) => {
 
 
 export const registrarEntradaProfesional = async (req, res) => {
-    const { dni_profesional, hora_entrada, fecha } = req.body;
-    try {
-        const respuesta = await pool.query(
-            "INSERT INTO asistencia_profesional (dni_profesional, fecha, hora_entrada, hora_salida, id_estado_asistencia) " +
-            "VALUES ($1, $2, $3, NULL, 1)", // La salida se deja como NULL
-            [dni_profesional, fecha, hora_entrada]
-        );
-        if (respuesta.rowCount === 0) {
-            return res.status(404).json({ message: 'No se pudo registrar la entrada del profesional' });
-        }
-        console.log('Entrada del profesional registrada exitosamente');
-        res.json({ message: 'Entrada del profesional registrada exitosamente' });
+  const profesionales = req.body;
 
-    } catch (error) {
-        console.error('Error al registrar la entrada del profesional:', error);
-        res.status(500).json({ error: 'Error al registrar la entrada del profesional' });
+  if (!Array.isArray(profesionales) || profesionales.length === 0) {
+    return res.status(400).json({ message: 'Se esperaba un array de profesionales' });
+  }
+
+  try {
+    for (const profesional of profesionales) {
+      const { dni_profesional, hora_entrada, fecha } = profesional;
+
+      const respuesta = await pool.query(
+        "INSERT INTO asistencia_profesional (dni_profesional, fecha, hora_entrada, hora_salida, id_estado_asistencia) " +
+        "VALUES ($1, $2, $3, NULL, 1)",
+        [dni_profesional, fecha, hora_entrada]
+      );
+
+      if (respuesta.rowCount === 0) {
+        console.warn(`No se pudo registrar la entrada para el profesional ${dni_profesional}`);
+      }
     }
+
+    console.log('Entradas de profesionales registradas exitosamente');
+    res.json({ message: 'Entradas de profesionales registradas exitosamente' });
+
+  } catch (error) {
+    console.error('Error al registrar entradas de los profesionales:', error);
+    res.status(500).json({ error: 'Error al registrar entradas de los profesionales' });
+  }
 };
 
 export const registrarSalidaProfesional = async (req, res) => {
-    const { dni_profesional, hora_salida, fecha } = req.body;
-    try {
-        const respuesta = await pool.query(
-            "UPDATE asistencia_profesional " +
-            "SET hora_salida = $1 " +
-            "WHERE dni_profesional = $2 AND fecha = $3 AND hora_salida IS NULL", // Asegura que no se sobrescriba una salida ya registrada
-            [hora_salida, dni_profesional, fecha]
-        );
-        if (respuesta.rowCount === 0) {
-            return res.status(404).json({ message: 'No se pudo registrar la salida del profesional o ya fue registrada' });
-        }
-        console.log('Salida del profesional registrada exitosamente');
-        res.json({ message: 'Salida del profesional registrada exitosamente' });
+  const profesionales = req.body;
 
-    } catch (error) {
-        console.error('Error al registrar la salida del profesional:', error);
-        res.status(500).json({ error: 'Error al registrar la salida del profesional' });
+  if (!Array.isArray(profesionales) || profesionales.length === 0) {
+    return res.status(400).json({ message: 'Se esperaba un array de profesionales' });
+  }
+
+  try {
+    for (const profesional of profesionales) {
+      const { dni_profesional, hora_salida, fecha } = profesional;
+
+      const respuesta = await pool.query(
+        "UPDATE asistencia_profesional " +
+        "SET hora_salida = $1 " +
+        "WHERE dni_profesional = $2 AND fecha = $3 AND hora_salida IS NULL",
+        [hora_salida, dni_profesional, fecha]
+      );
+
+      if (respuesta.rowCount === 0) {
+        console.warn(`No se pudo registrar la salida o ya fue registrada para el profesional ${dni_profesional}`);
+      }
     }
+
+    console.log('Salidas de profesionales registradas exitosamente');
+    res.json({ message: 'Salidas de profesionales registradas exitosamente' });
+
+  } catch (error) {
+    console.error('Error al registrar salidas de los profesionales:', error);
+    res.status(500).json({ error: 'Error al registrar salidas de los profesionales' });
+  }
 };
 
 export const marcarAusentes = async (req, res) => {
     try {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaActual = diasSemana[new Date().getDay()];
-        const fechaActual = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const fechaActual = new Date().toISOString().split('T')[0]; 
 
-        // Insertar ausentes: los que tenían clases hoy y no tienen asistencia cargada
+        
         const resultado = await pool.query(`
             INSERT INTO asistencia_profesional (dni_profesional, fecha, hora_entrada, hora_salida, id_estado_asistencia)
             SELECT h.dni_profesional, $1, NULL, NULL, 2

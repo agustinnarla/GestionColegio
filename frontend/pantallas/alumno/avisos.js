@@ -6,10 +6,12 @@ import ListasDesplegables from '../../componente/ListasDesplegables';
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../../scripts/alumno/scriptAvisos';
 
 export default function Avisos({ route }) {
+    //🟢 Formulario
     const [formData, setFormData] = useState({
         id_curso: ''
     });
 
+    //🟢 Fecha formateada 
     const formatearFechaYHora = (fechaISO) => {
         if (!fechaISO) return '';
 
@@ -25,51 +27,57 @@ export default function Avisos({ route }) {
         return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
     };
 
+    //🟢 Estados 
     const [datos, setDatos] = useState([]);
     const [cursos, setCursos] = useState([]);
     const [fechaFiltro, setFechaFiltro] = useState('');
+    
+    //🟢 Responsivo 
     const { width } = useWindowDimensions();
     const isMobile = width < 768;
 
+    //🟢 Capturar Parametros 
     const { dni_usuario } = route.params || {}; 
     const { id_rol } = route.params || {};
 
+    //🟢 Obtener Avisos 
     useEffect(() => {
 
-        const cargarAvisos = async () => {
-            try {
-                const dni_alumno = dni_usuario
-                const cursoData = await obtenerCurso();
-                const avisoDatos = await obtenerAvisosGenerales();
-                const avisoCursoData = await obtenerAvisosCurso(dni_alumno);
-                // Combina los avisos generales y los avisos por curso
-                if (!Array.isArray(avisoDatos) || !Array.isArray(avisoCursoData)) {
-                    throw new Error('Error al obtener los datos de avisos');
-                }
-                // Combina los avisos generales y los avisos por curso
-                if (avisoCursoData.length > 0) {
-                    avisoDatos.push(...avisoCursoData);
-                }
-                
-                const todosLosAvisos = [
-                    ...(Array.isArray(avisoDatos) ? avisoDatos : []),
-                ];
-
-                setDatos(todosLosAvisos); // Establece los avisos combinados
-                setCursos(Array.isArray(cursoData) ? cursoData : []);
-            } catch (error) {
-                Alert.alert('Error', error.message);
+    const cargarAvisos = async () => {
+        try {
+            const dni_alumno = dni_usuario
+            const cursoData = await obtenerCurso();
+            const avisoDatos = await obtenerAvisosGenerales();
+            const avisoCursoData = await obtenerAvisosCurso(dni_alumno);
+            // Combina los avisos generales y los avisos por curso
+            if (!Array.isArray(avisoDatos) || !Array.isArray(avisoCursoData)) {
+                throw new Error('Error al obtener los datos de avisos');
             }
-        };
+            // Combina los avisos generales y los avisos por curso
+            if (avisoCursoData.length > 0) {
+                avisoDatos.push(...avisoCursoData);
+            }
+            
+            const todosLosAvisos = [
+                ...(Array.isArray(avisoDatos) ? avisoDatos : []),
+            ];
+
+            setDatos(todosLosAvisos); // Establece los avisos combinados
+            setCursos(Array.isArray(cursoData) ? cursoData : []);
+        } catch (error) {
+            Alert.alert('Error', error.message);
+        }
+    };
 
         cargarAvisos();
     }, []);
 
+    //🟢 Cambios de estado en las listas 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
 
-    // Filtra los avisos por curso y fecha
+    //🟢 Filtra los avisos por curso y fecha
     const filtrarAvisos = datos.filter((aviso) => {
     // Si el aviso es general, no tiene id_curso (o es null/undefined)
         const coincideCurso =
@@ -82,6 +90,7 @@ export default function Avisos({ route }) {
         return coincideCurso && coincideFecha;
     });
 
+    //🟢 Obtención de la fecha actual
     const fechaActual = (fechaStr) => {
         if (!fechaStr) return false;
         const fecha = new Date(fechaStr);
@@ -94,13 +103,13 @@ export default function Avisos({ route }) {
         );
     };
 
+    //🟢 Vista 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
 
             <View style={styles.contenedor}>
-                <Text style={styles.titulo}>Avisos</Text>
-                
+               
                 <View style={[styles.filaFiltros, isMobile && styles.filaFiltrosMobile]}>
                     <View style={isMobile ? styles.filtroItemMobile : styles.filtroItem}>
                         <ListasDesplegables
@@ -181,7 +190,7 @@ const styles = StyleSheet.create({
     titulo: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#1a365d',
+        color: '#2a3d6c',
         marginBottom: 24,
         textAlign: 'center',
         textTransform: 'uppercase',
@@ -222,7 +231,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         fontSize: 16,
         paddingHorizontal: 16,
-        color: '#2d3748',
+        color: '#2a3d6c',
     },
     filtroInputMobile: {
         flex: undefined,
@@ -255,12 +264,12 @@ const styles = StyleSheet.create({
     },
     fecha: {
         fontSize: 14,
-        color: '#718096',
+        color: '#2a3d6c',
         fontWeight: '500',
     },
     curso: {
         fontSize: 14,
-        color: '#4a5568',
+        color: '#2a3d6c',
         fontWeight: '600',
         backgroundColor: '#edf2f7',
         paddingHorizontal: 12,
@@ -270,7 +279,7 @@ const styles = StyleSheet.create({
     textoAviso: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#2d3748',
+        color: '#2a3d6c',
         marginBottom: 16,
         lineHeight: 24,
     },
@@ -291,7 +300,7 @@ const styles = StyleSheet.create({
     },
     detalleTexto: {
         fontSize: 14,
-        color: '#2d3748',
+       color: '#2a3d6c',
         flex: 1,
     },
     sinAvisos: {
@@ -303,7 +312,7 @@ const styles = StyleSheet.create({
     },
     textoSinAvisos: {
         fontSize: 16,
-        color: '#718096',
+        color: '#2a3d6c',
         textAlign: 'center',
     },
     badgeNuevo: {

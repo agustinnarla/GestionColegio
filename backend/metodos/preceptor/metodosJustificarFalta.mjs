@@ -1,13 +1,16 @@
 import {pool} from '../../dataBase/coneccion.mjs'
 
 export const obtenerAlumnosAusentes = async (req, res) => {
-    const { fechadesde, fechahasta } = req.params; // Obtenemos fechadesde y fechahasta de los parámetros
+    const { fechadesde, fechahasta } = req.params;
     try {
         const respuesta = await pool.query(
-            "SELECT a.dni_alumno, CONCAT(a.nombre, ' ', a.apellido) AS nombreapellido, asi.fecha " +
-            "FROM alumno AS a " +
-            "INNER JOIN asistencia_alumno AS asi ON asi.dni_alumno = a.dni_alumno " +
-            "WHERE asi.fecha BETWEEN $1 AND $2 AND id_estado_asistencia = 2",
+            `SELECT a.dni_alumno, CONCAT(a.nombre, ' ', a.apellido) AS nombreapellido, asi.fecha
+            FROM alumno AS a
+            INNER JOIN asistencia_alumno AS asi ON asi.dni_alumno = a.dni_alumno
+            LEFT JOIN justificar_falta_alumno AS ja ON ja.dni_alumno = a.dni_alumno AND ja.fecha = asi.fecha
+            WHERE asi.fecha BETWEEN $1 AND $2 
+            AND asi.id_estado_asistencia = 2
+            AND (ja.id_estado_general IS NULL OR ja.id_estado_general != 1)`,
             [fechadesde, fechahasta]
         );
         console.log('Consulta ejecutada con éxito');
@@ -55,7 +58,7 @@ export const registrarJustificacion = async (req, res) => {
             // Construimos la consulta de actualización con los valores modificados
             const query = `
                 UPDATE justificar_falta_alumno
-                SET id_estado_falta_alumno = $1, id_certificado = $2
+                SET id_estado_falta_alumno = $1, id_certificado = $2, id_estado_general = 1
                 WHERE dni_alumno = $3 AND fecha = $4
             `;
 
@@ -72,7 +75,7 @@ export const registrarJustificacion = async (req, res) => {
         } else {
             // Si no existe, insertamos un nuevo registro
             const respuesta = await pool.query(
-                "INSERT INTO justificar_falta_alumno (id_estado_falta_alumno, dni_alumno, id_certificado, fecha) VALUES ($1, $2, $3, $4)", 
+                "INSERT INTO justificar_falta_alumno (id_estado_falta_alumno, dni_alumno, id_certificado, fecha, id_estado_general) VALUES ($1, $2, $3, $4,1)", 
                 [id_estado_falta_alumno, dni_alumno, id_certificado, fecha]
             );
             console.log("Nuevo registro insertado");
@@ -96,6 +99,7 @@ export const obtenerEstadosFalta = async (req,res) => {
     }
     
 }
+
 export const obtenerJustificarFalta = async (req, res) => {
     try {
         const { fechadesde, fechahasta } = req.params; 
@@ -105,7 +109,7 @@ export const obtenerJustificarFalta = async (req, res) => {
         }
 
         const respuesta = await pool.query(
-            "SELECT * FROM justificar_falta_alumno WHERE fecha BETWEEN $1 AND $2",
+            "SELECT * FROM justificar_falta_alumno WHERE fecha BETWEEN $1 AND $2 ",
             [fechadesde, fechahasta]
         );
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import { API_BASE_URL } from '../config.js';
 
 
@@ -7,7 +7,7 @@ const api_urlLogin = `${API_BASE_URL}/usuario/ingresar`;
 const api_urlOlvideMiContraseña = `${API_BASE_URL}/usuario/recuperarContrasena`;
 const api_urlTareaPorRol = `${API_BASE_URL}/usuario/tareas`;
 
-// 🟢
+//🟢
 export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostrarMensaje) => {
     if (!dniUsuario || !contrasena) {
         mostrarMensaje('Error', 'Por favor, ingrese su DNI y contraseña');
@@ -21,16 +21,19 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
         });
 
         if (response.status === 200) {
-            const { usuario } = response.data;
-            const { id_rol } = usuario;
-            
-            mostrarMensaje('Éxito', 'Login exitoso');
+            const { usuario, token } = response.data; // <-- Obtén el token
+            const { id_rol, detalle } = usuario;
+
+            // Guarda el token en AsyncStorage
+            await AsyncStorage.setItem('token', token);
+
+            mostrarMensaje(`Éxito', 'Login exitoso --> Bienvenido ${detalle}'`);
             navigation.navigate('BottomTab', { 
                 id_rol: id_rol,
                 dni_usuario: dniUsuario 
             });
 
-            return { success: true };  
+            return { success: true, token };  
         }
     } catch (error) {
         console.error('Error al iniciar sesión:', error.message);
@@ -39,7 +42,7 @@ export const ingresarUsuario = async (dniUsuario, contrasena, navigation, mostra
     }
 };
 
-// 🟢
+//🟢
 export const olvideMiContrasena = async (dni_usuario) => {
     try {
         const response = await fetch(api_urlOlvideMiContraseña, {
@@ -64,6 +67,7 @@ export const olvideMiContrasena = async (dni_usuario) => {
     }
 };
 
+//🟢
 export const obtenerTareasPorRol = async (id_rol) => {
     try {
         const response = await fetch(`${api_urlTareaPorRol}/${id_rol}`, {
@@ -83,4 +87,5 @@ export const obtenerTareasPorRol = async (id_rol) => {
         console.error('Error al obtener tareas por rol:', error);
         return [];
     }
-}
+};
+

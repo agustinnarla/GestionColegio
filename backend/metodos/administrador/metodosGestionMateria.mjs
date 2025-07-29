@@ -157,12 +157,18 @@ export const deshabilitarMateria = async (req, res) => {
     }
 };
 
-export const agregarMateria = async (req, res) => {
+export const registrarMateria = async (req, res) => {
     const { detalle } = req.body; // Recibe el nombre de la materia desde el frontend
     if (!detalle) {
         return res.status(400).json({ error: "El detalle de la materia es obligatorio" });
     }
     try {
+
+        const existente = await pool.query("SELECT 1 FROM materia WHERE detalle = $1", [detalle]);
+        if (existente.rowCount > 0) {
+            return res.status(409).json({ message: 'La materia ya está registrada' });
+        }
+
         const respuesta = await pool.query(
             "INSERT INTO materia (detalle, id_estado_general) VALUES ($1, 1) RETURNING *",
             [detalle]
@@ -212,9 +218,9 @@ export const consultarMateria = async (req, res) => {
 };
 
 export const modificarMateria = async (req, res) => {   
-    const { id_materia } = req.params;
+    const { detalle } = req.params;
     const campos = [
-        "detalle", "id_estado_general"
+        "detalle"
     ];
     const valores = [];
     const sets = [];
@@ -230,9 +236,9 @@ export const modificarMateria = async (req, res) => {
         return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
     }
 
-    valores.push(id_materia); // Para el WHERE
+    valores.push(detalle); // Para el WHERE
 
-    const query = `UPDATE materia SET ${sets.join(', ')} WHERE id_materia = $${valores.length} RETURNING *`;
+    const query = `UPDATE materia SET ${sets.join(', ')} WHERE detalle = $${valores.length} RETURNING *`;
 
     try {
         const respuesta = await pool.query(query, valores);

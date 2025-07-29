@@ -40,89 +40,109 @@ export const obtenerAlumnoFinal = async (req, res) => {
 };
 
 export const registrarCursoNuevo = async (req, res) => {
-    try {
-        const alumnos = req.body; // Espera un array de alumnos
+     try {
+    const alumnos = req.body;
 
-        if (!Array.isArray(alumnos) || alumnos.length === 0) {
-            return res.status(400).json({
-                message: "Se esperaba un array de alumnos"
-            });
-        }
-
-        // Obtener el curso actual del primer alumno para referencia
-        const cursoActual = await pool.query(
-            `SELECT c.detalle 
-            FROM alumno_curso ac 
-            JOIN curso c ON ac.id_curso = c.id_curso 
-            WHERE ac.dni_alumno = $1`,
-            [alumnos[0].dni_alumno]
-        );
-
-        if (!cursoActual.rows[0]) {
-            return res.status(404).json({
-                message: 'No se encontró el curso actual'
-            });
-        }
-
-        // Extraer el número del curso actual (ej: "1a" => 1)
-        const detalle = cursoActual.rows[0].detalle;
-        const match = detalle.match(/^(\d+)/);
-        if (!match) {
-            return res.status(400).json({
-                message: 'El detalle del curso actual no tiene un número válido'
-            });
-        }
-        const añoActual = parseInt(match[1]);
-        const añoSiguiente = añoActual + 1;
-
-        // Buscar el primer curso del año siguiente (por ejemplo, "2a")
-        const cursoSiguiente = await pool.query(
-            `SELECT id_curso 
-            FROM curso 
-            WHERE detalle LIKE $1
-            ORDER BY detalle ASC
-            LIMIT 1`,
-            [`${añoSiguiente}%`]
-        );
-
-        if (!cursoSiguiente.rows[0]) {
-            return res.status(404).json({
-                message: `No existe un curso siguiente (${añoSiguiente}°) para este grupo.`
-            });
-        }
-
-        const idcursonuevo = cursoSiguiente.rows[0].id_curso;
-
-        // Actualizar todos los alumnos en una sola transacción
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            for (const alumno of alumnos) {
-                await client.query(
-                    'UPDATE alumno_curso SET id_curso = $1 WHERE dni_alumno = $2',
-                    [idcursonuevo, alumno.dni_alumno]
-                );
-            }
-
-            await client.query('COMMIT');
-
-            res.status(200).json({
-                success: true,
-                message: "Alumnos actualizados correctamente"
-            });
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
-
-    } catch (error) {
-        console.log('Error:', error.message);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    if (!Array.isArray(alumnos) || alumnos.length === 0) {
+      return res.status(400).json({
+        message: "Se esperaba un array de alumnos"
+      });
     }
-}
+
+    // Obtener curso actual del primer alumno
+    const cursoActual = await pool.query(
+      `SELECT c.id_curso, c.detalle 
+       FROM alumno_curso ac 
+       JOIN curso c ON ac.id_curso = c.id_curso 
+       WHERE ac.dni_alumno = $1`,
+      [alumnos[0].dni_alumno]
+    );
+
+    if (!cursoActual.rows[0]) {
+      return res.status(404).json({
+        message: 'No se encontró el curso actual del alumno'
+      });
+    }
+
+    const detalle = cursoActual.rows[0].detalle;
+    const match = detalle.match(/^(\d+)/);
+    if (!match) {
+      return res.status(400).json({
+        message: 'El detalle del curso actual no tiene un número válido'
+      });
+    }
+
+    const añoActual = parseInt(match[1]);
+    let idcursonuevo;
+
+    if (añoActual === 6) {
+      // Curso Egresado
+      const cursoEgresado = await pool.query(
+        `SELECT id_curso FROM curso WHERE detalle ILIKE 'Egresado'`
+      );
+
+      if (!cursoEgresado.rows[0]) {
+        return res.status(404).json({
+          message: `No existe un curso con el detalle "Egresado".`
+        });
+      }
+
+      idcursonuevo = cursoEgresado.rows[0].id_curso;
+    } else {
+      // Curso del año siguiente
+      const añoSiguiente = añoActual + 1;
+
+      const cursoSiguiente = await pool.query(
+        `SELECT id_curso 
+         FROM curso 
+         WHERE detalle LIKE $1
+         ORDER BY detalle ASC
+         LIMIT 1`,
+        [`${añoSiguiente}%`]
+      );
+
+      if (!cursoSiguiente.rows[0]) {
+        return res.status(404).json({
+          message: `No existe un curso siguiente (${añoSiguiente}°) para este grupo.`
+        });
+      }
+
+      idcursonuevo = cursoSiguiente.rows[0].id_curso;
+    }
+
+    // Actualización en transacción
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const dnis = alumnos.map(a => a.dni_alumno);
+      await client.query(
+        `UPDATE alumno_curso 
+         SET id_curso = $1 
+         WHERE dni_alumno = ANY($2::text[])`,
+        [idcursonuevo, dnis]
+      );
+
+      await client.query('COMMIT');
+      res.status(200).json({
+        success: true,
+        message: añoActual === 6 
+          ? "Alumnos marcados como egresados correctamente"
+          : "Alumnos promovidos al siguiente curso correctamente"
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+  } catch (error) {
+    console.error('Error en alumnoRecibido:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ocurrió un error al procesar los alumnos'
+    });
+  }
+};
+

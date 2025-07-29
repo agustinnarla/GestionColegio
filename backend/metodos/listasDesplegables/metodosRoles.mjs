@@ -27,6 +27,10 @@ export const obtenerRolesDeshabilitados = async (req,res) => {
 export const registrarRol = async (req,res) => {
     const {detalle} = req.body;
     try{
+        const existente = await pool.query(`SELECT detalle FROM roles WHERE detalle = $1`, [detalle])
+         if (existente.rowCount > 0) {
+            return res.status(409).json({ message: 'El rol ya está registrada' });
+        }
         const respuesta = await pool.query('INSERT INTO roles (detalle, id_estado_general) VALUES ($1,1)',[detalle]);
         console.log('Rol registrado exitosamente');
         res.status(200).json({ roles: respuesta.rows});
@@ -107,9 +111,9 @@ export const consultarRol = async (req, res) => {
 }
 
 export const modificarRol = async (req, res) => {   
-    const { id_rol } = req.params;
+    const { detalle } = req.params;
     const campos = [
-        "detalle", "id_estado_general"
+        "detalle"
     ];
     const valores = [];
     const sets = [];
@@ -125,9 +129,9 @@ export const modificarRol = async (req, res) => {
         return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
     }
 
-    valores.push(id_rol); // Para el WHERE
+    valores.push(detalle); // Para el WHERE
 
-    const query = `UPDATE roles SET ${sets.join(', ')} WHERE id_rol = $${valores.length} RETURNING *`;
+    const query = `UPDATE roles SET ${sets.join(', ')} WHERE detalle = $${valores.length} RETURNING *`;
 
     try {
         const respuesta = await pool.query(query, valores);

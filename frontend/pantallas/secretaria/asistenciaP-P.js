@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert, Platform, Dimensions  } from 'react-native';
 import { obtenerProfesionalesAsistencia} from '../../scripts/listasDesplegables/listaDesplegable.js'
-import { registrarEntradaProfesor, registrarSalidaProfesor } from '../../scripts/secretaria/scriptAsistenciaProfesor.js';
+import { registrarEntradaProfesores, registrarSalidaProfesores } from '../../scripts/secretaria/scriptAsistenciaProfesor.js';
 import { ImageBackground } from 'react-native-web';
 import bg from '../../assets/bg1.jpg';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -12,10 +12,11 @@ const isWeb = Platform.OS === 'web';
 
 
 export default function RegistroAsistencia() {
-  const [profesores, setProfesores] = useState([]); 
-  const [busqueda, setBusqueda] = useState(''); 
-  const [seleccionado, setSeleccionado] = useState(null); 
-  const [entrada, setEntrada] = useState(false); 
+  const [profesores, setProfesores] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
+  const [seleccionados, setSeleccionados] = useState([]);
+  const [entrada, setEntrada] = useState(false);
+
 
    useEffect(() => {
         if (isWeb) {
@@ -26,11 +27,9 @@ export default function RegistroAsistencia() {
       }, []);
 
   const [formData, setFormData] = useState({
-    dni_profesional: '',
-    fecha: '',
-    hora_entrada: '',
-    hora_salida: '',
-  });
+  hora_entrada: '',
+  hora_salida: '',
+});
 
   // Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
@@ -55,6 +54,16 @@ export default function RegistroAsistencia() {
         )
     }
     
+
+    const toggleSeleccion = (profesor) => {
+  setSeleccionados((prev) => {
+    if (prev.includes(profesor.dni_profesional)) {
+      return prev.filter((dni) => dni !== profesor.dni_profesional);
+    } else {
+      return [...prev, profesor.dni_profesional];
+    }
+  });
+};
   // Cargar los profesores al montar el componente
   useEffect(() => {
     const cargarProfesionales = async () => {
@@ -69,15 +78,6 @@ export default function RegistroAsistencia() {
     cargarProfesionales();
   }, []);
 
-  // Actualizar `formData` al seleccionar un profesor
-  const handleSeleccionarProfesional = (profesor) => {
-    setSeleccionado(profesor);
-    setFormData({
-      ...formData,
-      dni_profesional: profesor.dni_profesional, // Actualiza el DNI del profesor seleccionado
-      fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
-    });
-  };
 
   // Manejar cambios en los campos del formulario
   const handleChange = (name, value) => {
@@ -86,153 +86,148 @@ export default function RegistroAsistencia() {
 };
 
  const handleRegistrar = async () => {
-    try {
-        const profesorData = {
-            dni_profesional: parseInt(formData.dni_profesional),
-            fecha: formData.fecha,
-            hora_entrada: entrada ? formData.hora_entrada : null,
-            hora_salida: !entrada ? formData.hora_salida : null,
-        };
-
-        console.log("Datos enviados al servidor:", profesorData);
-
-        if (entrada) {
-            //Profesionales
-            const respuesta = await registrarEntradaProfesor(profesorData);
-            //console.log("Registro de entrada exitoso:", respuesta);
-            mostrarMensaje('Exito','Se registro la entrada del profesional exitosamente')
-            // Actualizar el estado del profesor en la lista
-            setProfesores(prevProfesores => 
-                prevProfesores.map(prof => 
-                    prof.dni_profesional === profesorData.dni_profesional 
-                        ? { ...prof, tieneEntrada: true }
-                        : prof
-                )
-            );
-        } else {
-            //Profesionales
-            const respuesta = await registrarSalidaProfesor(profesorData);
-            mostrarMensaje('Exito','Se registro la salida del profesional exitosamente')
-            //console.log("Registro de salida exitoso:", respuesta);
-            // Actualizar el estado del profesor en la lista
-            setProfesores(prevProfesores => 
-                prevProfesores.map(prof => 
-                    prof.dni_profesional === profesorData.dni_profesional 
-                        ? { ...prof, tieneSalida: true }
-                        : prof
-                )
-            );
-        }
-
-        // Hacer metodo limpiar interfaz
-        setFormData({
-            dni_profesional: "",
-            fecha: "",
-            hora_entrada: "",
-            hora_salida: "",
-        });
-        setSeleccionado(null);
-    } catch (error) {
-        //console.error("Error al registrar la entrada/salida:", error.message);
-        mostrarMensaje('¡Error!', 'Error al registrar la asistencia del profesional');
+  try {
+    if (seleccionados.length === 0) {
+      mostrarMensaje('Aviso', 'No seleccionaste ningún profesional');
+      return;
     }
+
+    const fecha = new Date().toISOString().split('T')[0];
+    const data = seleccionados.map((dni) => ({
+      dni_profesional: parseInt(dni),
+      fecha: fecha,
+      hora_entrada: entrada ? formData.hora_entrada : null,
+      hora_salida: !entrada ? formData.hora_salida : null,
+    }));
+
+    const respuesta = entrada
+      ? await registrarEntradaProfesores(data)
+      : await registrarSalidaProfesores(data);
+
+    mostrarMensaje('Exito', `Se registró la ${entrada ? 'entrada' : 'salida'} de los profesionales`);
+
+    setProfesores((prev) =>
+      prev.map((prof) =>
+        seleccionados.includes(prof.dni_profesional)
+          ? {
+              ...prof,
+              tieneEntrada: entrada ? true : prof.tieneEntrada,
+              tieneSalida: !entrada ? true : prof.tieneSalida,
+            }
+          : prof
+      )
+    );
+
+    setSeleccionados([]);
+    setFormData({ hora_entrada: '', hora_salida: '' });
+  } catch (error) {
+    console.error(error);
+    mostrarMensaje('Error', 'Error al registrar asistencia');
+  }
 };
+
 
   // Filtrar los profesores según la búsqueda
   const profesoresFiltrados = profesores.filter((profesor) =>
     profesor.nombre_apellido.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  return (
-    <View style={styles.container}>
-       <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+return (
+  <View style={styles.container}>
+    <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
       <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
-      <Text style={styles.titulo}>Registro de Asistencia</Text>
+        <Text style={styles.titulo}>Registro de Asistencia</Text>
 
-      {/* Botones Entrada / Salida */}
-      <View style={styles.botonesContainer}>
-        <TouchableOpacity
-          style={[styles.boton, entrada && styles.botonActivoEntrada]}
-          onPress={() => setEntrada(true)}
-        >
-          <Text>Entrada</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.boton, !entrada && styles.botonActivoSalida]}
-          onPress={() => setEntrada(false)}
-        >
-          <Text>Salida</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Botones Entrada / Salida */}
+        <View style={styles.botonesContainer}>
+          <TouchableOpacity
+            style={[styles.boton, entrada && styles.botonActivoEntrada]}
+            onPress={() => setEntrada(true)}
+          >
+            <Text>Entrada</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.boton, !entrada && styles.botonActivoSalida]}
+            onPress={() => setEntrada(false)}
+          >
+            <Text>Salida</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Campo de búsqueda */}
-      <TextInput
-        style={styles.input}
-        placeholder="Buscar profesor/preceptor"
-        value={busqueda}
-        onChangeText={setBusqueda}
-      />
+        {/* Campo de búsqueda */}
+        <TextInput
+          style={styles.input}
+          placeholder="Buscar profesor/preceptor"
+          value={busqueda}
+          onChangeText={setBusqueda}
+        />
 
-      {/* Lista de profesores */}
-      <FlatList
-          data={profesoresFiltrados}
-          keyExtractor={(item, index) => index.toString()}
+        {/* Lista de profesores */}
+        <FlatList
+          data={profesores.filter((p) =>
+            p.nombre_apellido.toLowerCase().includes(busqueda.toLowerCase())
+          )}
+          keyExtractor={(item) => item.dni_profesional.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[
                 styles.profesor,
-                item.tieneEntrada && !item.tieneSalida ? styles.profesorEntradaRegistrada :
-                item.tieneEntrada && item.tieneSalida ? styles.profesorCompleto :
-                styles.profesorNoRegistrado
+                seleccionados.includes(item.dni_profesional) && styles.profesorSeleccionado,
+                item.tieneEntrada && !item.tieneSalida
+                  ? styles.profesorEntradaRegistrada
+                  : item.tieneEntrada && item.tieneSalida
+                  ? styles.profesorCompleto
+                  : styles.profesorNoRegistrado,
               ]}
-              onPress={() => {
-                if (item.tieneEntrada && !item.tieneSalida) {
-                  setEntrada(false); // Cambiar a modo salida si ya tiene entrada registrada
-                }
-                handleSeleccionarProfesional(item);
-              }}
+              onPress={() => toggleSeleccion(item)}
             >
               <Text style={styles.profesorTexto}>{item.nombre_apellido}</Text>
             </TouchableOpacity>
           )}
-          contentContainerStyle={styles.listaProfesores}
         />
 
-      {/* Formulario para registrar asistencia */}
-      {seleccionado && (
-        <View style={styles.formulario}>
-          <Text>Registro de {entrada ? 'Entrada' : 'Salida'} para {seleccionado.nombre_apellido}</Text>
-
-          <TextInput
+        {/* Formulario para registrar asistencia */}
+        {seleccionados.length > 0 && (
+          <View style={styles.formulario}>
+            <Text>
+            Registro de {entrada ? 'entrada' : 'salida'} para{' '}
+          {seleccionados.length > 1
+            ? `${seleccionados.length} profesionales`
+            : seleccionados.length === 1
+            ? profesores.find(p => p.dni_profesional === seleccionados[0])?.nombre_apellido || '1 profesional'
+            : 'profesionales'}
+        </Text>
+            <TextInput
               style={styles.input}
               placeholder={`Hora de ${entrada ? 'entrada' : 'salida'} (ej: 08:30)`}
               onChangeText={(text) => handleChange(entrada ? 'hora_entrada' : 'hora_salida', text)}
               value={entrada ? formData.hora_entrada : formData.hora_salida}
-          />
-
-         <TouchableOpacity
-          style={[
-            styles.botonRegistrar,
-            (entrada ? !validarEntrada() : !validarSalida()) && styles.botonDeshabilitado
-          ]}
-          onPress={handleRegistrar}
-          disabled={entrada ? !validarEntrada() : !validarSalida()}
-        >
-          <Text>Aceptar</Text>
-        </TouchableOpacity>
-        </View>
-      )}
+            />
+            <TouchableOpacity
+              style={[
+                 
+                styles.botonRegistrar,
+                !(entrada ? formData.hora_entrada : formData.hora_salida) && styles.botonDeshabilitado,
+              ]}
+              onPress={handleRegistrar}
+              disabled={!(entrada ? formData.hora_entrada : formData.hora_salida)}
+              
+            >
+              <Text>Aceptar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
+
       <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
-    />
-      </ImageBackground>
-    </View>
-  );
-}
+        isVisible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
+      />
+    </ImageBackground>
+  </View>
+)}
 
 
 const styles = StyleSheet.create({
@@ -247,6 +242,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  profesorSeleccionado: {
+  backgroundColor: '#a0c4ff',
+  borderColor: '#3b82f6', 
+  borderWidth: 2,
+},
   botonDeshabilitado: {
         opacity: 0.5,
         backgroundColor: '#cccccc',

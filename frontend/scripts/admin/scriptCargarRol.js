@@ -1,8 +1,10 @@
-const api_url = 'http://localhost:5000/'
-const api_urlRol = 'http://localhost:5000/rol'
-const api_urlRolesAlta = 'http://localhost:5000/rol/alta'
-const api_urlTareas = 'http://localhost:5000/tareas'
-const api_urlTareasRol = 'http://localhost:5000/tarearol'
+import { API_BASE_URL } from '../config.js';
+
+const api_urlRol = `${API_BASE_URL}/rol`
+const api_urlRolesAlta = `${API_BASE_URL}/rol/alta`
+const api_urlRolModificar = `${API_BASE_URL}/rol/modificar`
+const api_urlTareas = `${API_BASE_URL}/tareas`
+const api_urlTareasRol = `${API_BASE_URL}/tarearol`
 
 
 
@@ -69,6 +71,20 @@ export const habilitarRol = async (id_rol) => {
     }
 };
 
+export const modificarRol = async (detalle, rolData) => {
+    try {
+        const respuesta = await fetch(`${api_urlRolModificar}/${encodeURIComponent(detalle)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rolData) 
+        });
 
-
+        if (!respuesta.ok) {
+            throw new Error('Error al modificar el rol');
+        }
+        return await respuesta.json();
+    }catch(error){
+        console.log("Error en el script", error);
+    }
+}
 

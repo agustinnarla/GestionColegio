@@ -2,6 +2,7 @@ import express from 'express'
 import { ruta } from './ruta/ruta.mjs'
 import dotenv from 'dotenv'
 import cors from 'cors'
+import jwt from 'jsonwebtoken';
 
 dotenv.config()
 
@@ -49,7 +50,20 @@ app.use('/', ruta)
 
 const port = process.env.PUERTO || 5000 
 
+export const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Token requerido' });
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Token inválido' });
+        req.user = user;
+        next();
+    });
+};
+
 app.listen(port,() => {
     console.log(`El servidor se alojo en http://192.168.0.21:${port}`)
 })
+
 

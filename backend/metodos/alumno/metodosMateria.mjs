@@ -57,7 +57,7 @@ export const obtenerMateriaPorDni = async (req, res) => {
     am.tp2,
     am.tp3,
     am.aulico,
-    am.promedio
+    ROUND(am.promedio::numeric, 2) AS promedio
 FROM alumno_curso ac
 INNER JOIN curso c ON c.id_curso = ac.id_curso 
 INNER JOIN alumno a ON a.dni_alumno = ac.dni_alumno
@@ -67,7 +67,7 @@ LEFT JOIN materia_profesor mp ON mp.id_materia = m.id_materia
 LEFT JOIN profesional p ON p.dni_profesional = mp.dni_profesional
 LEFT JOIN horario h ON mc.id_materia = h.id_materia AND mc.id_curso = h.id_curso
 INNER JOIN alumno_materia am ON am.id_materia = m.id_materia AND a.dni_alumno = am.dni_alumno
-WHERE a.dni_alumno = $1 AND ac.id_curso = am.id_curso
+WHERE a.dni_alumno = $1 AND ac.id_curso = am.id_curso AND mp.id_estado_general = 1
 GROUP BY p.nombre, p.apellido, c.id_curso, c.detalle, m.id_materia, m.detalle, am.nota1, am.nota2, am.nota3, am.nota4, am.nota5, am.nota6, am.tp1, am.tp2, am.tp3, am.aulico, am.promedio
         `, [dni_alumno]);
 

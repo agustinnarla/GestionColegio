@@ -58,6 +58,8 @@ const enviarObservacion = async (dni_alumno, fecha, motivo) => {
                     <p><strong>Fecha:</strong> ${fecha}</p>
                     <p><strong>Motivo:</strong> ${motivo}</p>
                     <p>Por favor, revise la observación en el sistema.</p>
+                    <p>Ante cualquier consulta, no dude en contactarnos.</p>
+                    <p><em>Colegio Nuestra Señora del Huerto</em><br>Tel: 12345-21234</p>
                 `
             };
 

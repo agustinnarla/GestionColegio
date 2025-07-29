@@ -15,7 +15,7 @@ import * as Sharing from 'expo-sharing';
 export default function GestionarAsistencia(){
     const navegacion = useNavigation();
 
-    //Formulario
+    //🟢 Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
         fecha: '',
@@ -23,11 +23,12 @@ export default function GestionarAsistencia(){
         id_estado_asistencia: ''
     });
 
-     // Mensajes 
+    //🟢 Estado y Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
 
+    //🟢 Mensaje 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
@@ -35,16 +36,21 @@ export default function GestionarAsistencia(){
     };
 
     
-    // Listas desplegables
+    //🟢 Estados y  Listas desplegables
     const [cursos, setCursos] = useState([]);
     const [botonActivado, setBotonActivado] = useState(false);
     const [estudiantes, setEstudiantes] = useState([]);
-    const [ausentes, setAusentes] = useState([]); // Lista de alumnos ausentes
-    const [modalVisible, setModalVisible] = useState(false); // Control del modal
-    const [mensajeConfirmacion, setMensajeConfirmacion] = useState(''); // Estado para el mensaje de confirmación
+    const [ausentes, setAusentes] = useState([]); 
+
+    //🟢 Modal
+    const [modalVisible, setModalVisible] = useState(false); 
+
+    //🟢 Confirmación
+    const [mensajeConfirmacion, setMensajeConfirmacion] = useState(''); 
+
     const [botonModificarActivado, setBotonModificarActivado] = useState(false);
 
-    // Cargar cursos
+    //🟢 Cargamos listas desplegable del curso
     useEffect(() => {
         const cargarListaDesplegables = async () => {
             try {
@@ -68,7 +74,7 @@ export default function GestionarAsistencia(){
         cargarListaDesplegables();
     }, []);
 
-    // Marca el curso seleccionado y habilita el botón de modificar si tiene asistencia
+    //🟢 Marca el curso seleccionado y habilita el botón de modificar si tiene asistencia
     useEffect(() => {
         if (formData.id_curso) {
             const cursoSeleccionado = cursos.find(curso => Number(curso.id_curso) === Number(formData.id_curso));
@@ -82,7 +88,7 @@ export default function GestionarAsistencia(){
         }
     }, [formData.id_curso, cursos]);
 
-    // Carga alumnos en base al curso
+    //🟢 Cargamos los alumnos 
     useEffect(() => {
         const cargarAlumnos = async () => {
             if (formData.id_curso) {
@@ -108,7 +114,7 @@ export default function GestionarAsistencia(){
         cargarAlumnos();
     }, [formData.id_curso]);
 
-    // Cambiar Estado de Asistencia 
+    //🟢 Cambiar Estado de Asistencia 
     const toggleSwitch = (dni) => {
         setEstudiantes((prevEstudiantes) =>
             prevEstudiantes.map((estudiante) => {
@@ -129,6 +135,7 @@ export default function GestionarAsistencia(){
         );
     };
 
+    //🟢 Limpiar interfaz
     const limpiarInterfaz = async () => {
         setModalVisible(false);
         setMensajeConfirmacion('');
@@ -152,6 +159,7 @@ export default function GestionarAsistencia(){
         }
     };
 
+    //🟢 Registrar 
     const handleRegistrar = async () => {
         try {
             const ausentesTemp = [];
@@ -189,6 +197,7 @@ export default function GestionarAsistencia(){
         }
     };
 
+    //🟢 Confirmar 
     const confirmarRegistro = async () => {
         setModalVisible(false);
         try {
@@ -211,7 +220,7 @@ export default function GestionarAsistencia(){
         }
     };
 
-
+    //🟢 Obtenemos fecha del día 
     const obtenerFechaActual = () => {
         const fecha = new Date();
         const anio = fecha.getFullYear();
@@ -252,6 +261,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
     };
 
 
+    //🟢 Exportamos excel 
     const exportarAsistenciaExcel = async (alumnos) => {
       if (!Array.isArray(alumnos) || alumnos.length === 0) {
         alert("No hay alumnos para exportar.");
@@ -303,7 +313,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.wrapper}>
-                <Text style={styles.titulo}>Asistencia</Text>
+
                 <View style={styles.card}>
                    <Picker
                         selectedValue={formData.id_curso}
@@ -357,12 +367,13 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                     <TouchableOpacity style={[styles.boton, styles.enviar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado} onPress={handleRegistrar}>
                         <Text style={styles.botonTexto}>Enviar</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
                         style={[styles.boton, styles.exportar, !botonActivado && styles.botonDeshabilitado]}
                         disabled={!botonActivado}
                         onPress={() => exportarAsistenciaExcel(estudiantes)}
                     >
-                        <Text style={styles.botonTexto}>Exportar</Text>
+                        <Text style={styles.botonTexto}>📄</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -463,7 +474,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
         fontSize: 15,
-        color: '#374151',
+        color: '#2a3d6c',
         backgroundColor: 'transparent',
     },
     headerLista: {
@@ -476,12 +487,12 @@ const styles = StyleSheet.create({
     },
     headerNombre: {
         fontWeight: '500',
-        color: '#1f2937',
+        color: '#2a3d6c',
         fontSize: 14,
     },
     headerPresente: {
         fontWeight: '500',
-        color: '#1f2937',
+        color: '#2a3d6c',
         fontSize: 14,
     },
     listaEstudiantes: {
@@ -529,24 +540,25 @@ const styles = StyleSheet.create({
     },
     modificar: {
         backgroundColor: '#f6fafe',
-        borderColor: '#b6c6e0',
+         borderColor: '#746BC8',
         borderWidth: 1,
     },
     enviar: {
         backgroundColor: '#e8f5e9',
-        borderColor: '#b7e4c7',
+        borderColor: '#4caf50',
         borderWidth: 1,
     },
     exportar: {
-        backgroundColor: '#fff8e1',
-        borderColor: '#ffe066',
+        backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
         borderWidth: 1,
     },
     botonTexto: {
-        color: '#2c3e50',
-        fontSize: 15,
-        fontWeight: '500',
+        color: '#2a3d6c',
+        fontSize: 16,
+        fontWeight: 'bold',
         textAlign: 'center',
+        letterSpacing: 0.5,
     },
     botonDeshabilitado: {
         opacity: 0.5,

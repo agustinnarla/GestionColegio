@@ -62,15 +62,15 @@ export default function GestionarAmonestaciones() {
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
-                    <Text style={styles.textoBoton}>Cancelar</Text>
+                    <Text style={styles.textoBoton}>Limpiar</Text>
                 </TouchableOpacity>
             </View>
             {enviando && (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="#007bff" />
-                            <Text style={styles.loadingText}>Enviando observación al email...</Text>
-                        </View>
-                    )}
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007bff" />
+                    <Text style={styles.loadingText}>Enviando amonetación al email...</Text>
+                </View>
+            )}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -126,10 +126,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     contenido: {
-        width: '100%',
-        maxWidth: 620,
+        width: '90%',
+        maxWidth: 650,
         backgroundColor: '#fff',
-        padding: 32,
+        padding: 26,
         borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
         elevation: 6,
         alignSelf: 'center',
         alignItems: 'stretch',
-        marginTop: 26,
+        marginTop: 24,
         marginBottom: 26,
     },
     label: {

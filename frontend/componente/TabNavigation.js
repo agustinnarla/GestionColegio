@@ -121,7 +121,7 @@ export const BottomTab = ({ route }) => {
       <Tab.Screen
       name="PERFIL"
   component={Perfil}
-  initialParams={{ dni_usuario }} 
+  initialParams={{ dni_usuario, id_rol }} 
   options={{
     title: "PERFIL",
     headerTintColor: "white",

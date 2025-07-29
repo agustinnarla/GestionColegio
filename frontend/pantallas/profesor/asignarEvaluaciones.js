@@ -2,7 +2,7 @@ import { StyleSheet, View, Image, ScrollView, TextInput, Text,ImageBackground, T
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCursoPorMateria, obtenerMateriaPorProfesor, obtenerTipoDeEvaluacion } from '../../scripts/listasDesplegables/listaDesplegable'
+import { obtenerCursoPorProfesor, obtenerMateriaPorCursoYProfesor, obtenerTipoDeEvaluacion } from '../../scripts/listasDesplegables/listaDesplegable'
 import { registrarEvaluacion } from '../../scripts/profesor/scriptAsignarEvaluacion';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -12,8 +12,7 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 
 export default function LibroAula({ route }) {
 
- 
-
+    //🟢 Formulario
     const [formData, setFormData] = useState({
             id_materia: '',
             id_curso: '',
@@ -22,136 +21,147 @@ export default function LibroAula({ route }) {
             tema_abarcado: ''
         });
 
+    //🟢 Estado del Mensaje
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
 
+    //🟢 Mensaje 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
-    const [materias, setMaterias] = useState([]);
+    //🟢 Estado listas desplegables 
+    const [materiaPorCursoYProfesor, setMateriasPorCursoProfesor] = useState([]);
     const [tipo_de_evaluacion, setTipoEvaluacion] = useState('');
     const [loading, setLoading] = useState(true);
-    const [cursoPorMateria, setCursoPorMateria] = useState([]);
+    const [cursoPorProfesor, setCursoPorProfesor] = useState([]);
 
+    //🟢 Capturamos Parametro 
+    const { dni_usuario } = route.params;
 
-        const { dni_usuario } = route.params;
-    
-        if (!dni_usuario) {
-            console.error('DNI Usuario no definido');
-            return <Text>Error: DNI Usuario no definido</Text>;
-        }
-    
-        console.log('DNI Usuario:', dni_usuario);
-        const dni_profesional = dni_usuario
+    if (!dni_usuario) {
+        console.error('DNI Usuario no definido');
+        return <Text>Error: DNI Usuario no definido</Text>;
+    }
 
-        useEffect(() => {
-                const cagarCursoPorMateria = async () => {
-                    if (formData.id_materia) {
-                        try {
-                            const cursoData = await obtenerCursoPorMateria(formData.id_materia);
-                            setCursoPorMateria(cursoData);
-                        } catch (error) {
-                            console.error('Error al cargar alumnos:', error);
-                        }
+    console.log('DNI Usuario:', dni_usuario);
+    const dni_profesional = dni_usuario
+
+    //🟢 Cargamos lista desplegable curso 
+    useEffect(() => {
+            const cargarCursosPorProfesor = async () => {
+                if (dni_profesional) {
+                    try {
+                        const cursoData = await obtenerCursoPorProfesor(dni_profesional);
+                        console.log("cursos" + cursoData)
+                        setCursoPorProfesor(cursoData);
+                    } catch (error) {
+                        console.error('Error al cargar cursos:', error);
                     }
-                };
-                cagarCursoPorMateria();
-            }, [formData.id_materia]);
-        
-        useEffect(() => {
-            const cargarMaterias = async () => {
-                try {
-                    const data = await obtenerMateriaPorProfesor(dni_profesional);
-                    setMaterias(data);
-                } catch (error) {
-                    console.error('Error al cargar las materias:', error);
-                } finally {
-                    setLoading(false);
                 }
             };
-    
-            cargarMaterias();
+            cargarCursosPorProfesor();
         }, [dni_profesional]);
-        
-            useEffect(() => {
-                const cargarTipoDeEvaluacion = async () => {
-                    try{
-                        const data = await obtenerTipoDeEvaluacion();
-                        setTipoEvaluacion(data);
-                    }catch(error){  
-                        console.log("Error al cargar las características de la unidad", error)
-                    }
-                };
-                cargarTipoDeEvaluacion();
-            }, []);
-        
-                const formatearFecha = (fecha) => {
-                const [dia, mes, año] = fecha.split('/');
-                return `${dia}/${mes}/${año}`;
-                };
-        
-                if (loading) {
-                    return <ActivityIndicator size="large" color="#0000ff" />;
-                }
-                
-                
-    const validarDatos = () => {
+    
+    
+    //🟢 Cargamos lista desplegable materia 
+    useEffect(() => {
+        const cargarMateriasPorCursoYProfesor = async () => {
+            try {
+                const data = await obtenerMateriaPorCursoYProfesor(formData.id_curso, dni_profesional);
+                setMateriasPorCursoProfesor(data);
+            } catch (error) {
+                console.error('Error al cargar las materias:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        cargarMateriasPorCursoYProfesor();
+    }, [formData.id_curso,dni_profesional]);
+    
+    //🟢 Cargamos lista desplegable tipo de evaluación
+    useEffect(() => {
+        const cargarTipoDeEvaluacion = async () => {
+            try{
+                const data = await obtenerTipoDeEvaluacion();
+                setTipoEvaluacion(data);
+            }catch(error){  
+                console.log("Error al cargar las características de la unidad", error)
+            }
+        };
+        cargarTipoDeEvaluacion();
+    }, []);
+
+    //🟢 Formateamos fecha 
+    const formatearFecha = (fecha) => {
+    const [dia, mes, año] = fecha.split('/');
+    return `${dia}/${mes}/${año}`;
+    };
+
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" />;
+    }
+    
+    //🟢 Validamos campos para habilitar botones 
+    const validarCampos = () => {
         return formData.id_materia &&
             formData.id_curso &&
             formData.id_tipo_de_evaluacion &&
             formData.fecha &&
             formData.tema_abarcado
     };
-            const handleRegistrar = async () => {
-                    try {
-                        const asignarEvaluacionData = {
-                            id_curso: formData.id_curso,
-                            id_materia: formData.id_materia,
-                            id_tipo_de_evaluacion: formData.id_tipo_de_evaluacion,
-                            fecha: formatearFecha(formData.fecha),
-                            tema_abarcado: formData.tema_abarcado,
-                            dni_profesional: dni_usuario,
-                        };
-            
-                    if (!validarDatos()) {
-                        mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
-                        return;
-                    }
-            
-                        console.log('Datos del libro de aula', asignarEvaluacionData); 
-                        
-                        const respuesta = await registrarEvaluacion(asignarEvaluacionData);
-                        mostrarMensaje('¡Éxito!', 'Se asigno la evaluación correctamente');
-                        console.log('Respuesta del servidor:', respuesta);
-                        limpiarInterfaz();
-                    } catch (error) {
-                        console.error('Error al asignar la evaluación:', error.message);
-                        mostrarMensaje('Error', 'No se pudo asignar la evaluación');
-                    }
-                };
-                    
-                // Limpiar formulario
-                const limpiarInterfaz = () => {
-                    setFormData({
-                        id_materia: '',
-                        id_curso: '',
-                        id_tipo_de_evaluacion: '',
-                        fecha: '',
-                        tema_abarcado: '',
-                        dni_profesional: ''
-                    });
-                };
-                
-                 // Manejar cambios en el formulario
-                const handleChange = (name, value) => {
-                    setFormData({ ...formData, [name]: value });
-                };
-            
 
+    //🟢 Registramos evaluacion
+    const handleRegistrar = async () => {
+            try {
+                const asignarEvaluacionData = {
+                    id_curso: formData.id_curso,
+                    id_materia: formData.id_materia,
+                    id_tipo_de_evaluacion: formData.id_tipo_de_evaluacion,
+                    fecha: formatearFecha(formData.fecha),
+                    tema_abarcado: formData.tema_abarcado,
+                    dni_profesional: dni_usuario,
+                };
+    
+            if (!validarCampos()) {
+                mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
+                return;
+            }
+    
+                console.log('Datos del libro de aula', asignarEvaluacionData); 
+                
+                const respuesta = await registrarEvaluacion(asignarEvaluacionData);
+                mostrarMensaje('¡Éxito!', 'Se asigno la evaluación correctamente');
+                console.log('Respuesta del servidor:', respuesta);
+                limpiarInterfaz();
+            } catch (error) {
+                console.error('Error al asignar la evaluación:', error.message);
+                mostrarMensaje('Error', 'No se pudo asignar la evaluación');
+            }
+    };
+
+    //🟢 Limpiar interfaz
+    const limpiarInterfaz = () => {
+        setFormData({
+            id_materia: '',
+            id_curso: '',
+            id_tipo_de_evaluacion: '',
+            fecha: '',
+            tema_abarcado: '',
+            dni_profesional: ''
+        });
+    };
+    
+    //🟢 Manejar cambios en el formulario
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+    
+    //🟢 Vista 
     return (
         <View style={styles.padre}>
             <ImageBackground source={bg} style={styles.bg} resizeMode="cover"> 
@@ -160,15 +170,22 @@ export default function LibroAula({ route }) {
                         <ListasDesplegables 
                             formData={formData} 
                             handleChange={handleChange} 
-                            materias={materias}
+                            cursos={cursoPorProfesor}
                             showLabel={true}
                             styles={styles}
                         />
                         <ListasDesplegables 
                             formData={formData} 
                             handleChange={handleChange} 
-                            curso={cursoPorMateria}
+                            materias_curso_profesor={materiaPorCursoYProfesor}
+                            showLabel={true}
+                            styles={styles}
+                        />
+                        <ListasDesplegables 
+                            formData={formData} 
+                            handleChange={handleChange} 
                             tipo_de_evaluacion={tipo_de_evaluacion}
+                            showLabel={true}
                             styles={styles}
                         />
             
@@ -191,7 +208,7 @@ export default function LibroAula({ route }) {
                         />
 
                         <View style={styles.contenidoBoton}>
-                            <TouchableOpacity style={[styles.botonRegistrar, !validarDatos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarDatos()}>
+                            <TouchableOpacity style={[styles.botonRegistrar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}>
                                 <Text style={styles.textoBoton}>Registrar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>

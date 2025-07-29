@@ -6,16 +6,18 @@ import { obtenerMateriasPorDni } from '../../scripts/alumno/scripMaterias'; // I
 const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practico, aulico }) => {
   const [expandido, setExpandido] = useState(false);
 
+  //🟢 Funcion para expandir
   const toggleExpandir = () => {
     setExpandido(!expandido);
   };
 
-  // Agrupar las notas en etapas
+  //🟢 Agrupar las notas en etapas
   const etapas = [
     { nombre: 'Etapa 1', notas: notas.slice(0, 3) }, // nota1, nota2, nota3
     { nombre: 'Etapa 2', notas: notas.slice(3, 6) }, // nota4, nota5, nota6
   ];
 
+  //🟢 Vista 
   return (
     <View style={styles.cardMateria}>
       <TouchableOpacity onPress={toggleExpandir} style={styles.materiaHeader} activeOpacity={0.8}>
@@ -70,10 +72,15 @@ const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practi
 };
 
 const Materias = ({ route }) => {
+  //🟢 Estado 
   const [materias, setMaterias] = useState([]); 
-  const [curso, setCurso] = useState(''); // Estado para almacenar el curso
+  const [curso, setCurso] = useState(''); 
+  
+  //🟢 Capturar Parametros 
   const { dni_usuario } = route.params; 
 
+
+  //🟢 Cargar materias 
   useEffect(() => {
     const cargarMaterias = async () => {
       try {
@@ -97,6 +104,7 @@ const Materias = ({ route }) => {
     }
   }, [dni_usuario]);
 
+  //🟢 Vista 
   return (
     <View style={styles.container}>
       <Image source={bg} style={styles.bg} />
@@ -155,9 +163,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#333', 
+    color: '#2a3d6c', 
   }, 
   cardMateria: {
+    width:'100%',
+    alignSelf:'center',
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 18,
@@ -181,7 +191,7 @@ const styles = StyleSheet.create({
   materiaNombre: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2d6a4f',
+    color: '#2a3d6c',
   },
   expandirIcon: {
     fontSize: 20,
@@ -192,12 +202,13 @@ const styles = StyleSheet.create({
   },
   texto: {
     fontSize: 16,
-    color: '#333',
+     color: '#2a3d6c',
     marginBottom: 5,
+    fontWeight: '500'
   },
   negrita: {
     fontWeight: 'bold',
-    color: '#2d6a4f',
+     color: '#2a3d6c',
   },
   chipsDiasContainer: {
     flexDirection: 'row',
@@ -206,7 +217,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   chipDia: {
-    backgroundColor: '#e9f5ef',
+    backgroundColor: '#eef7ffff',
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -214,13 +225,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   chipDiaTexto: {
-    color: '#2d6a4f',
-    fontWeight: '600',
+    color: '#2a3d6c',
+    fontWeight: '500',
     fontSize: 14,
   },
   separador: {
     borderBottomWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#eef7ffff',
     marginVertical: 10,
   },
   contenidoNotas: {
@@ -232,7 +243,7 @@ const styles = StyleSheet.create({
   etapaTitulo: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#457b9d',
+    color: '#2a3d6c',
     marginTop: 10,
     marginBottom: 4,
   },
@@ -243,7 +254,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   notaChip: {
-    backgroundColor: '#f1faee',
+    backgroundColor: '#eef7ffff',
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -253,9 +264,10 @@ const styles = StyleSheet.create({
   notaChipTexto: {
     color: '#1d3557',
     fontSize: 14,
+    fontWeight: '500'
   },
   tpChip: {
-    backgroundColor: '#ffe5d9',
+    backgroundColor: '#eef7ffff',
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -263,39 +275,47 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   tpChipTexto: {
-    color: '#e76f51',
+    color: '#2a3d6c',
     fontSize: 14,
+    fontWeight: '500'
   },
   aulicoChip: {
-    backgroundColor: '#e0e7ff',
+    
+    backgroundColor: '#eef7ffff',
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    marginLeft: 6,
+    marginRight: 6,
+    marginTop:4
   },
   aulicoChipTexto: {
-    color: '#3b5bdb',
+     color: '#2a3d6c',
     fontSize: 14,
+    fontWeight: '500'
   },
-  promedioDestacado: {
-    backgroundColor: '#d1fae5',
+  promedioDestacado: {  
+    width: '60%',
+    backgroundColor: '#eef7ffff',
     borderRadius: 12,
     paddingVertical: 10,
     marginTop: 14,
     alignItems: 'center',
+    alignSelf:'center',
     borderWidth: 1,
-    borderColor: '#34d399',
+    borderColor: '#746BC8',
   },
   promedioTexto: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#059669',
+    fontWeight: '500',
+    color: '#2a3d6c',
+    
   },
   textoAviso: {
     fontSize: 18,
     textAlign: 'center',
     marginTop: 20,
     color: '#999',
+    fontWeight: '500'
   },
 });
 

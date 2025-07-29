@@ -11,7 +11,7 @@ import { ImageBackground } from 'react-native-web';
 
 export default function GestionarObservaciones() {
     
-    // Formulario
+    //🟢 Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
         dni_profesional: '',
@@ -21,27 +21,28 @@ export default function GestionarObservaciones() {
     });
 
     
-    // Modal
+    //🟢 Modal
     const [modalVisible, setModalVisible] = useState(false);
 
-    // Mensajes 
+    //🟢 Estado de Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [enviando, setEnviando] = useState(false);
 
+    //🟢 Mensaje 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
-    // Listas desplegables
+    //🟢 Estados y Listas desplegables
     const [cursos, setCursos] = useState([]);
     const [profesional, setProfesional] = useState([]);
     const [alumnos, setAlumnos] = useState([]);
 
-    // Validamos que los datos tengan contenido
+    //🟢 Validamos que los datos tengan contenido para habilitar botones 
     const validarCampos = () => {
         const fechaEsValida = validarFecha(formData.fecha);
         return (
@@ -54,7 +55,7 @@ export default function GestionarObservaciones() {
         );
     };
 
-    // Metodo para limpiar la interfaz al apretar el boton cancelar o registrar
+    //🟢 Limpiar interfaz
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
@@ -66,7 +67,7 @@ export default function GestionarObservaciones() {
         setModalVisible(false);
     };
 
-    // RegistrarObservación()
+    //🟢 Registrar
     const handleRegistrar = async () => {
         try {
             if (!validarCampos()) {
@@ -100,7 +101,7 @@ export default function GestionarObservaciones() {
         }
     };
 
-    // ImprimirArchivo()
+    //🟢 Imprimir
     const handleImprimir = async () => {
         try {
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
@@ -120,6 +121,7 @@ export default function GestionarObservaciones() {
         }
     };
 
+    //🟢 Validamos fecha 
     const validarFecha = (fecha) => {
         // Verificar formato DD-MM-AAAA
         const regex = /^\d{2}\/\d{2}\/\d{4}$/;
@@ -155,15 +157,16 @@ export default function GestionarObservaciones() {
         return true;
     };
 
-      // Formatear fecha en formato AAAA/MM/DD
+    //🟢 Formatear fecha 
     const formatearFecha = (fecha) => {
         const [dia, mes, año] = fecha.split('/');
         return `${año}/${mes}/${dia}`;
     };
 
+    //🟢 Validamos formulario 
     const validarFormulario = useMemo(() => validarCampos(), [formData]);
 
-    // Cargar cursos y solicitantes
+    //🟢 Cargar listas desplegables 
     useEffect(() => {
         const cargarListaDesplegable = async () => {
             try {
@@ -188,7 +191,7 @@ export default function GestionarObservaciones() {
 
     
 
-    // Manejar cambios en el formulario
+    //🟢 Manejar cambios de estado en el formulario
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
@@ -227,7 +230,7 @@ export default function GestionarObservaciones() {
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
-                    <Text style={styles.textoBoton}>Cancelar</Text>
+                    <Text style={styles.textoBoton}>Limpiar</Text>
                 </TouchableOpacity>
             </View>
             {enviando && (
@@ -254,7 +257,6 @@ export default function GestionarObservaciones() {
                     </View>
                 </View>
             </Modal>
-           
         </View>
         
     );
@@ -324,7 +326,8 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#2a3d6c',
+        
     },
     input: {
         width: '100%',
@@ -335,6 +338,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         backgroundColor: '#fafafa',
         fontSize: 16,
+        color: '#2a3d6c',
     },
     lista: {
         width: '100%',
@@ -348,30 +352,50 @@ const styles = StyleSheet.create({
     },
     botonesContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 25,
-        alignSelf: 'center'
+        justifyContent: 'center',
+        gap: 18,
+        marginTop: 18,
+        marginBottom: 36,
+        width: '100%',
     },
     botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 50,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-        minWidth: 200,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#CED9EF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 4,
+        minWidth: 120,
+        alignItems: 'center',
+        marginRight: 8,
     },
     botonCancelar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 50,
-        borderRadius: 5,
-        flex: 1,
-        minWidth: 200,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#f44336',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 4,
+        minWidth: 120,
+        alignItems: 'center',
+        marginLeft: 8,
+    },
+    textoBoton: {
+        color: '#2a3d6c',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        letterSpacing: 0.5,
     },
     botonImprimir:{
         flex: 1,
@@ -384,12 +408,6 @@ const styles = StyleSheet.create({
         marginRight: 15,
         marginLeft: 15,
         alignItems: 'center',
-    },
-    textoBoton: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
     },
     botonDeshabilitado: {
         opacity: 0.5,
@@ -414,7 +432,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 20,
-        color: '#333',
+        color: '#2a3d6c',
     },
     botonesModal: {
         flexDirection: 'row',
@@ -445,5 +463,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#2a3d6c'
     }
 });

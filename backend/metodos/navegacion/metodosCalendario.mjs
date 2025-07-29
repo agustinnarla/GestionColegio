@@ -7,22 +7,24 @@ export const obtenerEvaluacionesPorAlumno = async (req, res) => {
             `SELECT 
                 e.id_evaluacion, 
                 m.detalle AS materia_detalle, 
+                e.id_tipo_de_evaluacion,
                 te.detalle, 
                 TO_CHAR(e.fecha, 'DD-MM-YYYY') AS fecha, 
                 e.tema_abarcado, 
                 c.detalle AS curso_detalle, 
                 e.dni_profesional
-             FROM evaluacion e
-             JOIN alumno_curso ac 
-                ON e.id_curso = ac.id_curso 
-             JOIN materia m
-                ON m.id_materia = e.id_materia
-             JOIN curso c 
-                ON c.id_curso = e.id_curso
-             JOIN tipo_de_evaluacion te
-                ON te.id_tipo_de_evaluacion = e.id_tipo_de_evaluacion
-             WHERE ac.dni_alumno = $1
-             ORDER BY e.fecha ASC`,
+            FROM evaluacion e
+            JOIN alumno_curso ac 
+            ON e.id_curso = ac.id_curso 
+            JOIN materia m
+            ON m.id_materia = e.id_materia
+            JOIN curso c 
+            ON c.id_curso = e.id_curso
+            JOIN tipo_de_evaluacion te
+            ON te.id_tipo_de_evaluacion = e.id_tipo_de_evaluacion
+            WHERE ac.dni_alumno = $1
+            AND e.fecha >= CURRENT_DATE
+            ORDER BY e.fecha ASC`,
             [dni_alumno]
         );
         res.json({ evaluaciones: resultado.rows });

@@ -10,7 +10,7 @@ import { BottomTab } from './frontend/componente/TabNavigation';
 //Preceptores
 import GestionarAsistencia from './frontend/pantallas/preceptores/gestionarAsistencia';
 import GestionarAmonestaciones from './frontend/pantallas/preceptores/gestionarAmonestaciones';
-import JustificarFalta from './frontend/pantallas/preceptores/justificarFalta'
+import JustificarFaltaAlumnos from './frontend/pantallas/preceptores/justificarFaltaAlumnos.js';
 import GestionarObservaciones from './frontend/pantallas/preceptores/gestionarObservaciones'
 import ConsultarLibro from './frontend/pantallas/preceptores/consultarLibroAula'
 import ModificarAsistencia from './frontend/pantallas/preceptores/modificarAsistencia';
@@ -143,10 +143,10 @@ function MyStack() {
           }}
         />
           <Stack.Screen
-          name="Gestionar Amonestaciones"
+          name="Gestionar Amonestación"
           component={GestionarAmonestaciones}
           options={{
-            title: "Gestionar Amonestaciones",
+            title: "Gestionar Amonestación",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -160,10 +160,10 @@ function MyStack() {
           }}
         />
           <Stack.Screen
-          name="Justificar Falta"
-          component={JustificarFalta}
+          name="Justificar Falta Alumnos"
+          component={JustificarFaltaAlumnos}
           options={{
-            title: "Justificar Falta",
+            title: "Justificar Falta Alumnos",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (

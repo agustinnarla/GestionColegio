@@ -10,6 +10,7 @@ import { Picker } from '@react-native-picker/picker';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
 export default function CargarTareas() {
+    //🟢 Estados del formulario y listas desplegables
     const [rolesDisponibles, setRolesDisponibles] = useState([]); // Lista de roles disponibles
     const [selectedRoles, setSelectedRoles] = useState([]); // Roles seleccionados
     const [tareasDisponibles, setTareasDisponibles] = useState([]); // Tareas disponibles
@@ -20,12 +21,13 @@ export default function CargarTareas() {
     const [tareasDeshabilitadas, setTareasDeshabilitadas] = useState([]);
     const [nuevaRuta, setNuevaRuta] = useState(''); // Estado para almacenar la ruta de la nueva tarea
 
-    // Mensajes 
+    //🟢 Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [onConfirm, setOnConfirm] = useState(null);
 
+    //🟢 Mensajes
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
@@ -39,7 +41,7 @@ export default function CargarTareas() {
         setAlertVisible(true);
     };
 
-    //CARGA Lista desplegables
+    //🟢 Cargar lista desplegables
     const cargarTareas = async () => {
         try {
             const tareasObtenidas = await obtenerTareas();
@@ -59,7 +61,7 @@ export default function CargarTareas() {
         }
     };
 
-    //CARGA LOS ROLES DENTRO DEL MULTIPLESELECT
+    //🟢 Cargar roles dentro del MultiSelect
     const cargarRoles = async () => {
         try {
             const rolesObtenidos = await obtenerRoles();
@@ -79,7 +81,7 @@ export default function CargarTareas() {
         }
     };
 
-    //CARGA TAREAS DESHABILITADAS DENTRO DEL MODAL MODIFICAR
+    //🟢 Cargar tareas deshabilitadas para habilitarlas 
     const cargarTareasDeshabilitadas = async () => {
         try {
             const respuesta = await obtenerTareasDeshabilitadas();
@@ -90,6 +92,7 @@ export default function CargarTareas() {
         }
     };
 
+    //🟢 Cargar roles de la tarea seleccionada
     const cargarRolesTareas = async (id_tarea) => {
         try {
             const data = await obtenerRolesDeTarea(id_tarea); // Obtener los roles asociados a la tarea
@@ -115,8 +118,8 @@ export default function CargarTareas() {
         }
     };
 
-    //ES PARA REGISTRARLO
-    const cargarRolTarea = async () => {
+    //🟢 Registrar Tarea y Rol
+    const handleRegistrarCombinacion = async () => {
         if (selectedRoles.length > 0 && selectedTarea) {
             console.log("Roles seleccionados:", selectedRoles);
             console.log("Tarea seleccionada:", selectedTarea);
@@ -155,8 +158,8 @@ export default function CargarTareas() {
         }
     };
 
-    //METODO QUE GESTIONA EL CAMBIO DEL SWITCH
-    const toggleSwitch = (idTarea) => {
+    //🟢 Cambiar estado de la tarea
+    const cambiarSwitch = (idTarea) => {
         setTareasDeshabilitadas((prev) =>
             prev.map((tarea) =>
                 tarea.id_tarea === idTarea
@@ -169,7 +172,7 @@ export default function CargarTareas() {
         );
     };
 
-    //Confirma la habilitacion de la tarea
+    //🟢 Confirmar modificación
     const handleConfirmarModificacion = async () => {
         try {
             // Filtra las tareas que tienen id_estado_general === 1
@@ -193,8 +196,8 @@ export default function CargarTareas() {
     };
 
 
-    //CAMBIA EL ESTADO DE LA TAREA SELECCIONADA
-    const handleTareaChange = async (itemValue) => {
+    //🟢 Validar cambios en el formulario
+    const handleChange = async (itemValue) => {
         setSelectedTarea(itemValue); // Actualizar la tarea seleccionada
         if (itemValue) {
             await cargarRolesTareas(itemValue); // Cargar los roles asociados a la tarea
@@ -347,7 +350,7 @@ export default function CargarTareas() {
                         <View style={styles.pickerContainer}>
                             <Picker
                                 selectedValue={selectedTarea}
-                                onValueChange={handleTareaChange}
+                                onValueChange={handleChange}
                                 style={styles.inputPicker}
                             >
                                 <Picker.Item label="Seleccionar Tarea" value="" />
@@ -377,7 +380,7 @@ export default function CargarTareas() {
                     </View>
                     {/* Columna derecha: Acciones */}
                     <View style={styles.columna}>
-                        <TouchableOpacity style={styles.botonAlta} onPress={cargarRolTarea}>
+                        <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarCombinacion}>
                             <Text style={styles.textoBoton}>Registrar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}>
@@ -453,7 +456,7 @@ export default function CargarTareas() {
                                         <Text style={styles.textoTarea}>{tarea.detalle}</Text>
                                         <Switch
                                             value={tarea.id_estado_general === 1}
-                                            onValueChange={() => toggleSwitch(tarea.id_tarea)}
+                                            onValueChange={() => cambiarSwitch(tarea.id_tarea)}
                                         />
                                     </View>
                                 ))}

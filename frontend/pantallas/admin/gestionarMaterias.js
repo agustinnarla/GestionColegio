@@ -4,7 +4,7 @@ import bg from '../../assets/bg1.jpg';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import MultiSelect from 'react-native-multiple-select';
 import { Picker } from '@react-native-picker/picker';
-import { registrarMateriaProfesor, deshabilitarMateria, registrarMateria, habilitarMateria } from '../../scripts/admin/scriptGestionMaterias.js';
+import { registrarMateriaProfesor, deshabilitarMateria, registrarMateria, habilitarMateria, modificarMateria } from '../../scripts/admin/scriptGestionMaterias.js';
 import { obtenerMateria, obtenerProfesores, obtenerProfesorPorMateria, obtenerMateriasDeshabilitadas } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
@@ -18,7 +18,8 @@ export default function GestionarMaterias() {
     const [nuevaMateria, setNuevaMateria] = useState('');
     const [modalModificarVisible, setModalModificarVisible] = useState(false);
     const [materiasDeshabilitadas, setMateriasDeshabilitadas] = useState([]);
-
+    const [materiaOriginal, setMateriaOriginal] = useState('');
+    
 
     // Mensajes 
     const [alertVisible, setAlertVisible] = useState(false);
@@ -258,8 +259,35 @@ export default function GestionarMaterias() {
     const limpiarInterfaz = () => {
         setSelectedMateria("");
         setSelectedProfesores([]);
+        setNuevaMateria("");
+        setMateriaOriginal("");
         setResetKey(prevKey => prevKey + 1);  // Cambiar la clave para reiniciar el componente
     };
+
+    const handleModificar = async () => {
+        try {
+            if (!materiaOriginal) {
+                mostrarMensaje("Error", "Seleccione una materia para modificar");
+                return;
+            }
+            if (!nuevaMateria.trim()) {
+                mostrarMensaje("Error", "El nuevo nombre de la materia no puede estar vacío");
+                return;
+            }
+            const materiaData = { detalle: nuevaMateria };
+            const respuesta = await modificarMateria(materiaOriginal, materiaData);
+            if (respuesta) {
+                mostrarMensaje("Éxito", "La materia se modificó correctamente");
+                limpiarInterfaz();
+                setModalVisible(false);
+                cargarListaDesplegable();
+            }
+        } catch (error) {
+            mostrarMensaje("Error", "Error al modificar la materia");
+            console.log(error);
+        }
+    }
+    
 
     useEffect(() => { 
         cargarListaDesplegable();
@@ -269,7 +297,7 @@ export default function GestionarMaterias() {
     }, []);
 
     useEffect(() => {
-        console.log("hola" + materiasDeshabilitadas)
+        console.log("Materias deshabilitadas: " + materiasDeshabilitadas)
     }, [materiasDeshabilitadas]);    
 
   return (
@@ -332,23 +360,43 @@ export default function GestionarMaterias() {
                 <Modal visible={modalVisible} transparent animationType="slide">
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            <Text style={styles.titulo}>Nueva Materia</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Ingrese nombre de la materia"
-                                value={nuevaMateria}
-                                onChangeText={setNuevaMateria}
-                            />
+                            <Text style={styles.titulo}>Gestión de Materias</Text>
+                            <View style={styles.divider} />
+                            {/* ComboBox: Picker + TextInput */}
+                            <Text style={styles.label}>Selecciona una materia existente o escribe una nueva:</Text>
+                            <View style={styles.comboContainer}>
+                                <Picker
+                                    selectedValue={materiaOriginal}
+                                    onValueChange={(value) => {
+                                        setMateriaOriginal(value);
+                                        setNuevaMateria(value); // Para mostrar en el input
+                                    }}
+                                    style={styles.inputPicker}
+                                >
+                                    <Picker.Item label="Seleccionar una Materia" value="" />
+                                    {materias.map((materia) => (
+                                        <Picker.Item key={materia.key} label={materia.value} value={materia.value} />
+                                    ))}
+                                </Picker>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="O escriba una materia nueva"
+                                    value={nuevaMateria}
+                                    onChangeText={setNuevaMateria}
+                                />
+                            </View>
                             <View style={styles.botonesModal}>
+                                <TouchableOpacity style={styles.botonCancelar} onPress={() => { setModalVisible(false); limpiarInterfaz(); }}>
+                                    <Text style={styles.textoBoton}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.botonModificar} onPress={handleModificar}>
+                                    <Text style={styles.textoBoton}>Modificar</Text>
+                                </TouchableOpacity>
                                 <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarMateria}>
                                     <Text style={styles.textoBoton}>Registrar</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.botonBaja} onPress={() => setModalVisible(false)}>
-                                    <Text style={styles.textoBoton}>Cancelar</Text>
-                                </TouchableOpacity>
                             </View>
                         </View>
-                
                     </View>
                 </Modal>
                 {/* Modal para modificar materias */}
@@ -399,182 +447,215 @@ export default function GestionarMaterias() {
  }
  
  
- const styles = StyleSheet.create({
-     padre: {
-         flex: 1,
-         justifyContent: 'center',
-         alignItems: 'center',
-         backgroundColor: '#f6f8fa',
-     },
-     bg: {
-         position: 'absolute',
-         width: '100%',
-         height: '100%',
-         resizeMode: 'cover',
-     },
-     formulario: {
-         width: '100%',
-         maxWidth: 900,
-         alignSelf: 'center',
-         marginTop: 32,
-         marginBottom: 24,
-         padding: 30,
-         backgroundColor: '#fff',
-         borderRadius: 14,
-         elevation: 2,
-         shadowColor: '#000',
-         shadowOffset: { width: 0, height: 2 },
-         shadowOpacity: 0.06,
-         shadowRadius: 6,
-     },
-     titulo: {
-         fontSize: 22,
-         fontWeight: '600',
-         color: '#2a3d6c',
-         marginBottom: 18,
-         textAlign: 'center',
-         letterSpacing: 0.2,
-     },
-     fila: {
-         flexDirection: 'row',
-         justifyContent: 'space-between',
-         width: '100%',
-         gap: 24,
-     },
-     columna: {
-         width: '48%',
-         minWidth: 260,
-     },
-     label: {
-         fontSize: 15,
-         marginBottom: 6,
-         fontWeight: '500',
-         color: '#2a3d6c',
-     },
-     input: {
-         borderWidth: 1,
-         borderColor: '#e5e7eb',
-         padding: 10,
-         borderRadius: 7,
-         marginBottom: 13,
-         backgroundColor: '#f3f4f6',
-         height: 38,
-         fontSize: 15,
-     },
-     pickerContainer: {
-         flexDirection: 'row',
-         alignItems: 'center',
-         marginBottom: 15,
-         gap: 8,
-     },
-     inputPicker: {
-         flex: 1,
-         borderWidth: 1,
-         borderColor: '#e5e7eb',
-         borderRadius: 7,
-         backgroundColor: '#f3f4f6',
-         fontSize: 15,
-         height: 38,
-         paddingHorizontal: 10,
-     },
-     botonAgregar: {
-         backgroundColor: '#6c7ae0',
-         padding: 10,
-         borderRadius: 7,
-         width: 38,
-         height: 38,
-         justifyContent: 'center',
-         alignItems: 'center',
-     },
-     textoBotonAgregar: {
-         color: '#fff',
-         fontSize: 20,
-         fontWeight: 'bold',
-     },
-     seleccionadasContainer: {
-         marginTop: 10,
-         marginBottom: 10,
-         width: '100%',
-     },
-     botonAlta: {
-         backgroundColor: '#e8f5e9',
-         borderColor: '#4caf50',
-         borderWidth: 1,
-         paddingVertical: 10,
-         borderRadius: 7,
-         alignItems: 'center',
-         marginBottom: 10,
-     },
-     botonBaja: {
-         backgroundColor: '#ffebee',
-         borderColor: '#f44336',
-         borderWidth: 1,
-         paddingVertical: 10,
-         borderRadius: 7,
-         alignItems: 'center',
-         marginBottom: 10,
-     },
-     botonModificar: {
-         backgroundColor: '#e3f2fd',
-         borderColor: '#746BC8',
-         borderWidth: 1,
-         paddingVertical: 10,
-         borderRadius: 7,
-         alignItems: 'center',
-         marginBottom: 10,
-     },
-     botonLimpiar: {
-         backgroundColor: '#f5f5f5',
-         borderColor: '#9e9e9e',
-         borderWidth: 1,
-         paddingVertical: 10,
-         borderRadius: 7,
-         alignItems: 'center',
-         marginBottom: 10,
-     },
-     textoBoton: {
-         color: '#2c3e50',
-         fontSize: 15,
-         fontWeight: '600',
-         textAlign: 'center',
-     },
-     modalContainer: {
-         flex: 1,
-         justifyContent: 'center',
-         alignItems: 'center',
-         backgroundColor: 'rgba(0, 0, 0, 0.12)',
-         zIndex: 10,
-     },
-     modalContent: {
-         backgroundColor: '#fff',
-         padding: 24,
-         borderRadius: 10,
-         width: '90%',
-         maxWidth: 400,
-         alignItems: 'center',
-         shadowColor: '#000',
-         shadowOffset: { width: 0, height: 2 },
-         shadowOpacity: 0.08,
-         shadowRadius: 8,
-         elevation: 2,
-     },
-     botonesModal: {
-         flexDirection: 'row',
-         justifyContent: 'space-between',
-         width: '100%',
-         marginTop: 18,
-         gap: 12,
-     },
-     textoTarea: {
-         fontSize: 15,
-         flex: 1,
-         color: '#222',
-     },
-     itemContainer: {
-         flexDirection: 'row',
-         justifyContent: 'space-between',
-         alignItems: 'center',
-         width: '100%',
-         marginBottom: 10,
-     },
- });
+const styles = StyleSheet.create({
+    padre: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f6f8fa',
+    },
+    bg: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    formulario: {
+        width: '100%',
+        maxWidth: 900,
+        alignSelf: 'center',
+        marginTop: 32,
+        marginBottom: 24,
+        padding: 30,
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
+    },
+    titulo: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#2a3d6c',
+        marginBottom: 18,
+        textAlign: 'center',
+        letterSpacing: 0.2,
+    },
+    fila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        gap: 24,
+    },
+    columna: {
+        width: '48%',
+        minWidth: 260,
+    },
+    label: {
+        fontSize: 15,
+        marginBottom: 6,
+        fontWeight: '500',
+        color: '#2a3d6c',
+    },
+    input: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        padding: 10,
+        borderRadius: 7,
+        backgroundColor: '#f3f4f6',
+        height: 44, // más alto
+        fontSize: 15,
+    },
+    pickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+        gap: 8,
+    },
+    inputPicker: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        borderRadius: 7,
+        backgroundColor: '#f3f4f6',
+        fontSize: 15,
+        height: 44, // más alto
+        paddingHorizontal: 10,
+        marginRight: 8,
+    },
+    botonAgregar: {
+        backgroundColor: '#6c7ae0',
+        padding: 10,
+        borderRadius: 7,
+        width: 38,
+        height: 38,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    textoBotonAgregar: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    seleccionadasContainer: {
+        marginTop: 10,
+        marginBottom: 10,
+        width: '100%',
+    },
+    botonAlta: {
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    botonBaja: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    botonModificar: {
+        backgroundColor: '#e3f2fd',
+        borderColor: '#746BC8',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    botonLimpiar: {
+        backgroundColor: '#f5f5f5',
+        borderColor: '#9e9e9e',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    textoBoton: {
+        color: '#2c3e50',
+        fontSize: 15,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.12)',
+        zIndex: 10,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 24,
+        borderRadius: 10,
+        width: '100%',
+        maxWidth: 600,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    botonesModal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 18,
+        gap: 12,
+    },
+    textoTarea: {
+        fontSize: 15,
+        flex: 1,
+        color: '#222',
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 10,
+    },
+    divider: {
+        height: 1,
+        width: '100%',
+        backgroundColor: '#e0e0e0',
+        marginVertical: 16,
+    },
+    comboContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+        gap: 16, // más espacio entre picker e input
+    },
+    botonConsultar: {
+        backgroundColor: '#e3f2fd',
+        borderColor: '#2196F3',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+        width: '50%',
+    },
+    botonCancelar: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+});

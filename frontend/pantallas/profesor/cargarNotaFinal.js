@@ -4,7 +4,7 @@ import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { agregarNota, modificarEstadoEvaluativo } from '../../scripts/profesor/scriptCargarNotaFinal';
-import { obtenerCursoPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosNoRegulares } from '../../scripts/listasDesplegables/listaDesplegable';
+import { obtenerCursoPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosNoRegulares, obtenerMateriaPorCursoYProfesor } from '../../scripts/listasDesplegables/listaDesplegable';
 
 
 export default function CargarNotasFinal({route}) {
@@ -14,7 +14,7 @@ export default function CargarNotasFinal({route}) {
     const [cursos, setCursos] = useState([]);
     const [cursosSeleccionados, setCursosSeleccionados] = useState([]); // Estado para los cursos seleccionados
     const [cursoSeleccionado, setCursoSeleccionado] = useState(null); // Estado para un curso único seleccionado
-    const [materias, setMaterias] = useState([]);
+    const [materias_curso_profesor, setMaterias] = useState([]);
     const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
     const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]); // Debe contener los ID de las materias seleccionadas    const [modalVisible, setModalVisible] = useState(false);
     const [notasAEnviar, setNotasAEnviar] = useState([]);
@@ -49,9 +49,9 @@ export default function CargarNotasFinal({route}) {
             // Filtrar localmente según las selecciones
             const alumnosFiltrados = todosLosAlumnos.filter(alumno => {
                 const cumpleCurso = cursosSeleccionados.length === 0 || 
-                                    cursosSeleccionados.includes(alumno.id_curso?.toString());
+                                cursosSeleccionados.includes(alumno.id_curso?.toString());
                 const cumpleMateria = materiasSeleccionadas.length === 0 || 
-                                      materiasSeleccionadas.includes(alumno.id_materia?.toString());
+                                materiasSeleccionadas.includes(alumno.id_materia?.toString());
                 return cumpleCurso && cumpleMateria; // Filtra por curso y materia
             });
     
@@ -81,40 +81,59 @@ export default function CargarNotasFinal({route}) {
 
     };
 
+    const dni_profesional = dni_usuario
+    // 🟢 Cargar cursos una sola vez
+useEffect(() => {
     const cargarCursosPorProfesor = async () => {
         try {
-            const data = await obtenerCursoPorProfesor(dni_usuario);
-            console.log("DATA RECIBIDA:", data);
-            setCursos(data.cursos);
+            const data = await obtenerCursoPorProfesor(dni_profesional);
+            console.log("CURSOS RECIBIDOS:", data);
+            setCursos(data); // Asegurate que `data` sea un array
         } catch (error) {
             console.error("Error al cargar cursos del profesor:", error);
         }
     };
-    
-    const cargarMateriasPorProfesor = async () => {
+
+    if (dni_profesional && cursos.length === 0) {
+        cargarCursosPorProfesor();
+    }
+}, [dni_profesional]);
+
+console.log("cursoSeleccionado:", cursos);
+console.log("dni_profesional:", dni_profesional);
+// 🟢 Cargar materias al cambiar cursoSeleccionado
+
+useEffect(() => {
+    const cargarMateriasPorCursoYProfesor = async () => {
+        if (!cursosSeleccionados || !dni_profesional) {
+            console.warn("Faltan datos: cursos o dni_profesional");
+            return;
+        }
+
         try {
-            const data = await obtenerMateriasPorProfesor(dni_usuario);
+            const data = await obtenerMateriaPorCursoYProfesor(cursosSeleccionados, dni_profesional);
             console.log("MATERIAS RECIBIDAS:", data);
-    
-            if (data && data.materias) {
-                const materiasFormateadas = data.materias.map(materia => ({
-                    key: materia.id_materia.toString(), // Clave única para el MultipleSelectList
-                    value: materia.detalle // Nombre de la materia
+
+            if (Array.isArray(data)) { // ✅ ya es un array
+                const materiasFormateadas = data.map(m => ({
+                    key: m.id_materia.toString(),
+                    value: m.detalle
                 }));
-                setMaterias(materiasFormateadas); // Actualiza el estado con las materias formateadas
+                setMaterias(materiasFormateadas);
+            } else {
+                console.warn("La respuesta no es un array:", data);
+                setMaterias([]);
             }
+
         } catch (error) {
-            console.error("Error al cargar materias del profesor:", error);
+            console.error("Error al cargar materias:", error);
         }
     };
 
-    useEffect(() => {
-        if (dni_usuario && cursos.length === 0 && materias.length === 0) {
-            cargarCursosPorProfesor();
-            cargarMateriasPorProfesor();
-        }
-    }, [dni_usuario]);
-    
+    if (cursosSeleccionados.length > 0) {
+        cargarMateriasPorCursoYProfesor();
+    }
+}, [cursosSeleccionados, dni_profesional]);
     
     const handleNotaChange = (idAlumno, idMateria, valorNota) => {
         const key = `${idAlumno}-${idMateria}`;
@@ -142,7 +161,7 @@ export default function CargarNotasFinal({route}) {
                     dni_profesional: dni_usuario,
                     dni_alumno: alumno.id,
                     nota_final: Number(notaActual),
-                    nombre: alumno.nombre // 👉 agregamos nombre para mostrarlo en errores
+                    nombre: alumno.nombre 
                 };
             })
             .filter(Boolean);
@@ -257,35 +276,36 @@ export default function CargarNotasFinal({route}) {
                 <View style={styles.filtrosContainer}>
                     <View style={styles.filtroGroup}>
                     <MultipleSelectList
-                            setSelected={(val) => {
-                                console.log("Cursos seleccionados:", val);
-                                setCursosSeleccionados(val); // Actualiza el estado con los cursos seleccionados
-                            }}
-                            data={cursos.map(curso => ({
-                                key: curso.id_curso?.toString() || '', // Clave única para cada curso
-                                value: curso.detalle || 'Sin detalle' // Nombre del curso
-                            }))}
-                            save="key"
-                            label="Cursos"
-                            placeholder="Seleccionar cursos"
-                            boxStyles={styles.dropdown}
-                            dropdownTextStyles={styles.dropdownText}
-                        />
+                        setSelected={(val) => {
+                        console.log("Cursos seleccionados:", val);
+                        setCursosSeleccionados(val);
+                        setMateriasSeleccionadas([]); // opcional: reiniciar materias si los cursos cambian
+                        }}
+                        data={cursos.map(curso => ({
+                        key: curso.id_curso?.toString() || '',
+                        value: curso.detalle || 'Sin detalle'
+                        }))}
+                        save="key"
+                        label="Cursos"
+                        placeholder="Seleccionar cursos"
+                        boxStyles={styles.dropdown}
+                        dropdownTextStyles={styles.dropdownText}
+                    />
                     </View>
 
                     <View style={styles.filtroGroup}>
                     <MultipleSelectList
                         setSelected={(val) => {
                             console.log("Materias seleccionadas:", val);
-                            setMateriasSeleccionadas(val); // Actualiza el estado con los ID de las materias seleccionadas
+                            setMateriasSeleccionadas(val); // Guarda las materias seleccionadas
                         }}
-                        data={materias} // Usa el estado `materias` directamente
-                        save="key" // Clave que se guardará en el estado
+                        data={materias_curso_profesor} // Estado ya cargado en useEffect
+                        save="key" // Guarda los IDs como strings
                         label="Materias"
                         placeholder="Seleccionar materias"
                         boxStyles={styles.dropdown}
                         dropdownTextStyles={styles.dropdownText}
-                    />
+                        />
                     </View>
                     <View style={styles.botonesContainer}>
                         <TouchableOpacity style={styles.botonConsultar} onPress={consultarDatos}>

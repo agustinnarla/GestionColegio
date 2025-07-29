@@ -10,6 +10,7 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 const { width } = Dimensions.get('window');
 const isDesktop = width >= 768;
 const isWeb = Platform.OS === 'web';
+
 export default function PasarDeAño() {
    useEffect(() => {
           if (isWeb) {
@@ -91,16 +92,9 @@ const toggleSeleccionAlumno = (dni_alumno) => {
   });
 };
 
-// Seleccionar todos
-const seleccionarTodos = () => {
-  const todosDni = alumnos.map((a) => a.dni_alumno);
-  setAlumnosSeleccionados(todosDni);
-};
 
-// Deseleccionar todos
-const deseleccionarTodos = () => {
-  setAlumnosSeleccionados([]);
-};
+
+
 
 // Registrar
 const handleRegistrar = async () => {
@@ -121,8 +115,12 @@ const handleRegistrar = async () => {
     const respuesta = await registrarCursoNuevo(alumnosData);
     console.log('Alumnos asignados:', respuesta);
 
-    mostrarMensaje('¡Éxito!', 'Alumnos asignados al nuevo curso');
-
+    if((parseInt(formData.id_curso) === 11 || parseInt(formData.id_curso) === 12)) {
+      mostrarMensaje('¡Éxito!', 'Alumno/os egresado/os');
+    } else {
+      mostrarMensaje('¡Éxito!', 'Curso nuevo registrado');
+    }
+    
     setAlumnos([]);
     setAlumnosSeleccionados([]);
     setFormData({ dni_alumno: '', id_curso: '' });
@@ -163,15 +161,7 @@ return (
 
           <Text style={styles.tituloLista}>Alumnos</Text>
 
-          <View style={styles.botonesFiltros}>
-            <TouchableOpacity style={styles.botonSecundario} onPress={seleccionarTodos}>
-              <Text style={styles.textoBoton}>Seleccionar todos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.botonSecundario} onPress={deseleccionarTodos}>
-              <Text style={styles.textoBoton}>Deseleccionar todos</Text>
-            </TouchableOpacity>
-          </View>
-
+      
           <View style={styles.listaAlumnosContainer}>
             <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.scrollViewContent}>
               {alumnos.map((item) => (

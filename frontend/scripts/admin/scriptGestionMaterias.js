@@ -4,6 +4,7 @@ const api_urlMateriaAlta = `${API_BASE_URL}/materia/alta`;
 const api_urlMateriaDeshabilitar = `${API_BASE_URL}/materia/deshabilitar`;
 const api_urlMateriaHabilitar = `${API_BASE_URL}/materia/habilitar`;
 const api_urlMateriaProfesor = `${API_BASE_URL}/profesor/materia/alta`;
+const api_urlMateriaModificar = `${API_BASE_URL}/materia/modificar`;
 
 // 🟢
 export const registrarMateriaProfesor = async (relaciones) => {
@@ -87,3 +88,20 @@ export const registrarMateria = async (detalle) => {
         return null;
     }
 };
+
+export const modificarMateria = async (detalle, materiaData) => {
+    try {
+        const respuesta = await fetch(`${api_urlMateriaModificar}/${encodeURIComponent(detalle)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(materiaData) 
+        });
+
+        if (!respuesta.ok) {
+            throw new Error('Error al modificar la materia');
+        }
+        return await respuesta.json();
+    }catch(error){
+        console.log("Error en el script", error);
+    }
+}

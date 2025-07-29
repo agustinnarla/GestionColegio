@@ -23,11 +23,11 @@ const api_urlMateriaPorProfesor = `${API_BASE_URL}/listaDesplegable/materia/prof
 const api_urlCaracteristicasUnidad = `${API_BASE_URL}/listaDesplegable/caracteristicas`;
 const api_urlCursoPorMateria = `${API_BASE_URL}/listaDesplegable/curso/materia`;
 const api_urlTipoDeEvaluacion = `${API_BASE_URL}/listaDesplegable/tipo_de_evaluacion`;
-const api_urlCursosPorProfesor = `${API_BASE_URL}/listaDesplegable/profesor/curso`;
+const api_urlCursosPorProfesor = `${API_BASE_URL}/listaDesplegable/profesor/curso/`;
 const api_urlMateriasPorProfesor = `${API_BASE_URL}/listaDesplegable/profesor/curso/materia`;
 const api_urlAlumnosNoRegulares = `${API_BASE_URL}/listaDesplegable/profesor/curso/alumnos`;
 const api_urlProfesores = `${API_BASE_URL}/listaDesplegable/profesores`;
-const api_urlCursoPorProfesor = `${API_BASE_URL}/listaDesplegable/curso/profesor`;
+const api_urlCursoPorProfesor = `${API_BASE_URL}/listaDesplegable/profesor/curso`;
 const api_urlMateriaPorCurso = `${API_BASE_URL}/listaDesplegable/materia/curso`;
 const api_urlProfesionalesAsistencia = `${API_BASE_URL}/listaDesplegable/profesionales/asistencia`;
 const api_urlEstadosFaltaProfesionales = `${API_BASE_URL}/listaDesplegable/justificar/profesional/estadoFalta`;
@@ -35,6 +35,8 @@ const api_urlAlumnoCurso = `${API_BASE_URL}/listaDesplegable/alumnos/curso`;
 const api_urlAsistencia = `${API_BASE_URL}/alumno/justificarFalta/estado_falta`;
 const api_urlProfesionales = `${API_BASE_URL}/listaDesplegable/profesionales`;
 const api_urlMotivos = `${API_BASE_URL}/listaDesplegable/motivos`;
+const api_urlMateriaCursoProfesor =  `${API_BASE_URL}/listaDesplegable/materia/curso/profesor`;
+const api_urlCursoPorCantidadAlumnos = `${API_BASE_URL}/listaDesplegable/cursos/cantidad`
 
 export const obtenerSexo = async () => {
     try {
@@ -304,6 +306,7 @@ export const obtenerCursosPorProfesor = async (dni_profesional) => {
     try {
         const response = await fetch(`${api_urlCursosPorProfesor}/${dni_profesional}`);
         const data = await response.json();
+        console.log(data)
         return data.cursos || [];
     } catch (error) {
         console.error('Error al obtener cursos por profesor:', error);
@@ -348,7 +351,7 @@ export const obtenerCursoPorProfesor = async (dni_profesional) => {
     try {
         const response = await fetch(`${api_urlCursoPorProfesor}/${dni_profesional}`);
         const data = await response.json();
-        return data;
+        return data.cursos || [];
     } catch (error) {
         console.error('Error al obtener curso por profesor:', error);
         return { cursos: [] };
@@ -435,7 +438,31 @@ export const obtenerProfesionales = async () => {
         const data = await response.json();
         return data.profesionales || [];
     } catch (error) {
-        console.error('Error al obtener sexo:', error);
+        console.error('Error al obtener profesionales:', error);
+        return [];
+    }
+};
+
+export const obtenerMateriaPorCursoYProfesor = async (id_curso, dni_profesional) => {
+    try {
+        const response = await fetch(`${api_urlMateriaCursoProfesor}/${id_curso}/${dni_profesional}`);
+        const data = await response.json();
+        console.log(data)
+        return data.materias_curso_profesor || [];
+    } catch (error) {
+        console.error('Error al obtener curso por materia y profesor:', error);
+        return [];
+    }
+};
+
+export const obtenerCursoConAlumnos = async () => {
+    try {
+        const response = await fetch(`${api_urlCursoPorCantidadAlumnos}`);
+        const data = await response.json();
+        console.log(data)
+        return data.curso_cantidad || [];
+    } catch (error) {
+        console.error('Error al obtener curso ', error);
         return [];
     }
 };

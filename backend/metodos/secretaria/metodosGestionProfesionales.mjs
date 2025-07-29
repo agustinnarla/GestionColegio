@@ -10,11 +10,17 @@ export const registrarProfesional = async (req, res) => {
         if (existente.rowCount > 0) {
             return res.status(409).json({ message: 'El profesional ya está registrado' });
         }
-
+        
+        const edad = calcularEdad(fecha_nacimiento);
+        if (edad <= 21) {
+            return res.status(400).json({
+                message: 'El profesional debe tener más de 11 años.'
+            });
+        }
         
         const respuesta = await pool.query("INSERT INTO profesional (dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio)" + 
             " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *",
-            [dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio]
+            [dni_profesional, nombre, apellido, email, edad, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio]
         )
 
         const contrasenaHaseada = await encriptarContrasena(dni_profesional.toString());
@@ -113,3 +119,15 @@ export const modificarProfesional = async (req, res) => {
         res.status(500).json({ message: 'Error al modificar el profesor preceptor' });
     }
 };
+
+const calcularEdad = (fechaNacimiento) => {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+    }
+    return edad;
+};
+

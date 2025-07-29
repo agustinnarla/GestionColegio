@@ -51,7 +51,7 @@ export const actualizarJustificarFalta = async (formData) => {
     try {
         const url = `${api_urlAsistencia}`; // Usa la URL que corresponde
         // Aquí recibimos los valores del 'formData' que se envían desde el componente
-        const { id_estado_falta, dni_alumno, id_certificado, fecha } = formData;
+        const { id_estado_falta_alumno, dni_alumno, id_certificado, fecha } = formData;
 
         const respuesta = await fetch(url, {
             method: 'POST',
@@ -59,16 +59,16 @@ export const actualizarJustificarFalta = async (formData) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                id_estado_falta, // Usamos los valores directamente
+                id_estado_falta_alumno, // Usamos los valores directamente
                 dni_alumno, // Usamos los valores directamente
                 id_certificado, // Usamos los valores directamente
-                fecha, // Usamos los valores directamente
+                fecha, 
             }),
         });
 
         const result = await respuesta.json();
         console.log('Justificación de falta insertada:', result);
-        // Aquí podrías hacer algo con la respuesta, como mostrar un mensaje de éxito
+        
     } catch (error) {
         console.error('Error al insertar la justificación de falta:', error);
     }

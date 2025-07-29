@@ -75,6 +75,61 @@ export function MateriaPorProfesor({ formData, handleChange, materia, styles, sh
     return <PickerField {...selectorConfig} style={styles} />;
 }
 
+export function CursoPorProfesor({ formData, handleChange, cursos, styles, showLabel }) {
+    const selectorConfig = {
+        ...(showLabel && { label: 'Seleccione un Curso:' }),
+        selectedValue: formData.id_curso,
+        onValueChange: (value) => handleChange('id_curso', value),
+        items: [
+            { label: 'Seleccione un curso', value: '' },
+            ...(cursos || []).map(item => ({
+                label: item.detalle,
+                value: item.id_curso,
+                key: item.id_curso
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+export function MateriaPorCursoYProfesor({ formData, handleChange, materias_curso_profesor, styles, showLabel }) {
+    const selectorConfig = {
+        ...(showLabel && { label: 'Seleccione una Materia:' }),
+        selectedValue: formData.id_materia ,
+        onValueChange: (value) => handleChange('id_materia', value),
+        items: [
+            { label: 'Seleccione una materia', value: '' },
+            ...(materias_curso_profesor || []).map(item => ({
+                label: item.detalle,
+                value: item.id_materia,
+                key: item.id_materia
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
+
+export function CursoPorCantidadAlumnos({ formData, handleChange, curso_cantidad, styles, showLabel }) {
+    const selectorConfig = {
+        ...(showLabel && { label: 'Seleccione un Curso:' }),
+        selectedValue: formData.id_curso ,
+        onValueChange: (value) => handleChange('id_curso', value),
+        items: [
+            { label: 'Seleccione un curso', value: '' },
+            ...(curso_cantidad || []).map(item => ({
+                label: item.detalle,
+                value: item.id_curso,
+                key: item.id_curso
+            }))
+        ]
+    };
+
+    return <PickerField {...selectorConfig} style={styles} />;
+}
+
 export function EtapaSelector({ formData, handleChange, etapaEscolar, styles }) {
     const selectorConfig = {
         label: 'Seleccione una etapa evaluativa',
@@ -337,6 +392,7 @@ function ListasDesplegables({
     etapaEscolar,
     materias,
     alumnos,
+    materias_curso_profesor,
     solicitantes,
     roles,
     styles,
@@ -353,7 +409,9 @@ function ListasDesplegables({
     showLabel,
     estado_falta_profesional,
     especialidad,
-    motivos
+    motivos,
+    curso_cantidad,
+    cursos
 }) {
     return (
         <View style={styles.filtrosContainer}>
@@ -383,11 +441,29 @@ function ListasDesplegables({
                     showLabel={showLabel}
                 />
             )}
+            {materias_curso_profesor && (
+                <MateriaPorCursoYProfesor
+                    formData={formData}
+                    handleChange={handleChange}
+                    materias_curso_profesor={materias_curso_profesor}
+                    styles={styles}
+                    showLabel={showLabel}
+                />
+            )}
             {materia && (
                 <MateriaPorProfesor
                     formData={formData}
                     handleChange={handleChange}
                     materias={materia}
+                    styles={styles}
+                    showLabel={showLabel}
+                />
+            )}
+            {cursos && (
+                <CursoPorProfesor
+                    formData={formData}
+                    handleChange={handleChange}
+                    cursos={cursos}
                     styles={styles}
                     showLabel={showLabel}
                 />
@@ -456,6 +532,15 @@ function ListasDesplegables({
                     estado_general={estado_general}
                     styles={styles}
                     showLabel={showLabel}
+                />
+            )}
+            {curso_cantidad && (
+                <CursoPorCantidadAlumnos
+                    formData={formData}
+                    handleChange={handleChange}
+                    curso_cantidad={curso_cantidad}
+                    showLabel={showLabel}
+                    styles={styles}
                 />
             )}
             {localidad && (
