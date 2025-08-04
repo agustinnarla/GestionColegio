@@ -148,43 +148,44 @@ const validarFechaNacimiento = (fecha) => {
 
     return true;
 };
-  const handleChange = (name, value) => {
-    let updatedForm = { ...formData, [name]: value };
 
-    // Calcular CUIT automáticamente si están presentes DNI y sexo
-    if (
-      (name === 'dni_profesional' || name === 'id_sexo') &&
-      updatedForm.dni_profesional &&
-      updatedForm.id_sexo
-    ) {
-      const cuitCalculado = calcularCuit(updatedForm.dni_profesional, updatedForm.id_sexo);
-      updatedForm.cuit = cuitCalculado;
+const handleChange = (name, value) => {
+let updatedForm = { ...formData, [name]: value };
+
+// Calcular CUIT automáticamente si están presentes DNI y sexo
+if (
+    (name === 'dni_profesional' || name === 'id_sexo') &&
+    updatedForm.dni_profesional &&
+    updatedForm.id_sexo
+) {
+    const cuitCalculado = calcularCuit(updatedForm.dni_profesional, updatedForm.id_sexo);
+    updatedForm.cuit = cuitCalculado;
+}
+
+setFormData(updatedForm);
+};
+
+const handleRegistrar = async () => {
+try {
+    const profesionalData = {
+    ...formData,
+    dni_profesional: parseInt(formData.dni_profesional),
+    cuit: formData.cuit,
+    telefono_personal: parseInt(formData.telefono_personal),
+    telefono_alternativo: parseInt(formData.telefono_alternativo),
+    piso: formData.edificio ? formData.piso : null,
+    departamento: formData.edificio ? formData.departamento : null,
+    };
+    
+    const respuesta = await registrarProfesional(profesionalData);
+    if (respuesta) {
+    mostrarMensaje('Éxito', 'Profesional registrado correctamente');
+    limpiarInterfaz();
     }
-
-    setFormData(updatedForm);
-  };
-
-  const handleRegistrar = async () => {
-    try {
-      const profesionalData = {
-        ...formData,
-        dni_profesional: parseInt(formData.dni_profesional),
-        cuit: formData.cuit,
-        telefono_personal: parseInt(formData.telefono_personal),
-        telefono_alternativo: parseInt(formData.telefono_alternativo),
-        piso: formData.edificio ? formData.piso : null,
-        departamento: formData.edificio ? formData.departamento : null,
-      };
-
-      const respuesta = await registrarProfesional(profesionalData);
-      if (respuesta) {
-        mostrarMensaje('Éxito', 'Profesional registrado correctamente');
-        limpiarInterfaz();
-      }
-    } catch (error) {
-      mostrarMensaje('Error', 'Error al registrar el profesional');
-    }
-  };
+} catch (error) {
+    mostrarMensaje('Error', 'Error al registrar el profesional');
+}
+};
 
   const handleConsultar = async () => {
     try {
@@ -242,6 +243,7 @@ const validarFechaNacimiento = (fecha) => {
         piso: formData.edificio ? formData.piso : null,
         departamento: formData.edificio ? formData.departamento : null,
       };
+      
 
       const respuesta = await modificarProfesional(formData.dni_profesional, profesionalData);
       if (respuesta) {

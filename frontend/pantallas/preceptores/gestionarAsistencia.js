@@ -2,7 +2,7 @@ import { StyleSheet,View,Image,TouchableOpacity,Text,TextInput,Switch,ScrollView
 import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { registrarAsistenciaFrontend, obtenerCursoFrontend, validarFechaAsistencia } from '../../scripts/preceptor/scriptGestionAsistencia.js';
+import { registrarAsistenciaFrontend, obtenerCursoFrontend, validarFechaAsistencia, exportarExcelConDatos  } from '../../scripts/preceptor/scriptGestionAsistencia.js';
 import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
 import { obtenerCurso, obtenerAlumnoCurso} from '../../scripts/listasDesplegables/listaDesplegable.js';
 import bg from '../../assets/bg1.jpg'
@@ -262,51 +262,15 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
 
 
     //🟢 Exportamos excel 
-    const exportarAsistenciaExcel = async (alumnos) => {
-      if (!Array.isArray(alumnos) || alumnos.length === 0) {
-        alert("No hay alumnos para exportar.");
-        return;
-      }
-    
-      try {
-        const data = alumnos.map(a => ({
-          DNI: a.dni_alumno,
-          Alumno: a.nombrecompleto || `${a.nombre || ''} ${a.apellido || ''}`,
-          Estado: a.presente ? 'Presente' : 'Ausente'
+    const exportarAsistenciaExcel = (estudiantes) => {
+        const data = estudiantes.map(a => ({
+            Fecha: obtenerFechaActual(),
+            DNI: a.dni_alumno,
+            Alumno: a.nombrecompleto || `${a.nombre || ''} ${a.apellido || ''}`,
+            Estado: a.presente ? 'Presente' : 'Ausente'
         }));
 
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
-
-        if (Platform.OS === 'web') {
-          const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-          const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "asistencia.xlsx";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        } else {
-          const excelBinary = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
-          const fileUri = FileSystem.documentDirectory + "asistencia.xlsx";
-          await FileSystem.writeAsStringAsync(fileUri, excelBinary, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-
-          if (!(await Sharing.isAvailableAsync())) {
-            alert("La función para compartir no está disponible en este dispositivo");
-            return;
-          }
-          await Sharing.shareAsync(fileUri);
-        }
-      } catch (error) {
-        console.error("Error al exportar Excel:", error);
-        alert("Error al exportar la asistencia.");
-      }
+        exportarExcelConDatos(data);
     };
 
     return (

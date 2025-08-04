@@ -305,7 +305,7 @@ export default function RegistrarRol() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.formulario}>
-                <Text style={styles.titulo}>Gestión de Roles</Text>
+  
                 <View style={styles.fila}>
                     {/* Columna izquierda: Picker de tareas y agregar */}
                     <View style={styles.columna}>
@@ -347,7 +347,7 @@ export default function RegistrarRol() {
                             <Text style={styles.textoBoton}>Registrar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}>
-                            <Text style={styles.textoBoton}>Eliminar</Text>
+                            <Text style={styles.textoBoton}>Deshabilitar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificar(true)}>
                             <Text style={styles.textoBoton}>Habilitar</Text>

@@ -6,16 +6,16 @@ export const obtenerProfesionalesAsistencia = async (req, res) => {
     try {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaActual = diasSemana[new Date().getDay()];
+        const fechaActual = new Date().toISOString().split('T')[0];
 
-        
         const respuesta = await pool.query(
             `SELECT DISTINCT CONCAT(p.nombre, ' ', p.apellido) as nombre_apellido, p.dni_profesional
             FROM horario h
             INNER JOIN profesional p ON p.dni_profesional = h.dni_profesional
-            LEFT JOIN asistencia_profesional a ON a.dni_profesional = p.dni_profesional AND a.fecha = CURRENT_DATE
-            WHERE h.dia_semana = $1
-            AND (a.hora_entrada IS NULL OR a.hora_salida IS NULL)`,
-            [diaActual]
+            LEFT JOIN asistencia_profesional a ON a.dni_profesional = p.dni_profesional AND a.fecha = $1
+            WHERE h.dia_semana = $2
+            AND (a.dni_profesional IS NULL OR a.hora_salida IS NULL)`,
+            [fechaActual, diaActual]
         );
 
         if (respuesta.rows.length === 0) {

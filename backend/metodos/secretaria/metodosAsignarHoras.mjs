@@ -23,6 +23,16 @@ export const asignacionDeHoras = async (req, res) => {
                 });
                 continue;
             }
+            const horasTotales = await obtenerhorasTotales(dni_profesional);
+            console.log(horasTotales)
+            if (horasTotales > 30) {
+                resultados.push({ 
+                    asignacion, 
+                    success: false, 
+                    message: 'El profesor ya tiene 30 horas asignadas.' 
+                });
+                continue;
+            }
 
             // Insertar el nuevo horario
             const nuevoHorario = await insertarHorario(id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional);
@@ -46,6 +56,7 @@ export const verificarHorario = async (id_curso, dia_semana, hora_inicio, hora_f
         SELECT * FROM horario
         WHERE id_curso = $1
         AND dia_semana = $2
+        AND id_estado_general = 1
         AND (
             (hora_inicio <= $3 AND hora_final > $3) OR
             (hora_inicio < $4 AND hora_final >= $4) OR
@@ -58,15 +69,58 @@ export const verificarHorario = async (id_curso, dia_semana, hora_inicio, hora_f
 };
 
 export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional) => {
+
     const query = `
-        INSERT INTO horario (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO horario (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional, id_estado_general)
+        VALUES ($1, $2, $3, $4, $5, $6, 1)
         RETURNING *
     `;
     const valores = [id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional];
     const resultado = await pool.query(query, valores);
     return resultado.rows[0];
 };
+
+// Función para deshabilitar horarios
+export const deshabilitarHorario = async (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional) => {
+
+    const query = `
+        UPDATE horario 
+        SET id_estado_general = 2 
+        WHERE id_materia = $1 AND id_curso = $2 AND dia_semana = $3
+        AND hora_inicio = $4 AND hora_final = $5 AND dni_profesional = $6
+        RETURNING *
+    `;
+    const valores = [id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional];
+    await pool.query(query, valores);
+
+};
+
+// Función para habilitar horarios
+export const habilitarHorario = async (req, res) => {
+    const { id_horario } = req.params;
+    
+    try {
+        const query = `
+            UPDATE horario 
+            SET id_estado_general = 1 
+            WHERE id_horario = $1
+            RETURNING *
+        `;
+        const resultado = await pool.query(query, [id_horario]);
+        
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({ message: 'Horario no encontrado' });
+        }
+        
+        console.log('Horario habilitado exitosamente');
+        res.json({ message: 'Horario habilitado exitosamente', horario: resultado.rows[0] });
+    } catch (error) {
+        console.error('Error al habilitar horario:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
+
 
 export const obtenerProfesores = async (req, res) => {
     try {
@@ -91,7 +145,7 @@ export const obtenerCursoPorProfesor = async (req, res) => {
             `SELECT pc.id_curso, c.detalle 
             FROM profesor_curso AS pc 
             INNER JOIN curso c ON c.id_curso = pc.id_curso 
-            WHERE pc.dni_profesional = $1`, 
+            WHERE pc.dni_profesional = $1 AND id_estado_general = 1`, 
             [dni_profesional]
         );
 
@@ -142,7 +196,7 @@ export const obtenerHorasProfesor = async (req, res) => {
             FROM horario AS h
             INNER JOIN curso AS c ON c.id_curso = h.id_curso
             INNER JOIN materia AS m ON m.id_materia = h.id_materia
-            WHERE h.dni_profesional = $1 AND h.id_curso = $2 AND h.id_materia = $3`,
+            WHERE h.dni_profesional = $1 AND h.id_curso = $2 AND h.id_materia = $3 AND h.id_estado_general = 1`,
             [dni_profesional, id_curso, id_materia]
         );
 
@@ -163,7 +217,7 @@ export const obtenerHorarioProfesional = async (req, res) => {
         const respuesta = await pool.query(
             `SELECT h.dia_semana, CONCAT(TO_CHAR(h.hora_inicio, 'HH24:MI'), ' - ', TO_CHAR(h.hora_final, 'HH24:MI')) AS horario
              FROM horario AS h
-             WHERE h.dni_profesional = $1`,
+             WHERE h.dni_profesional = $1 AND h.id_estado_general = 1`,
             [dni_profesional]
         );
         
@@ -181,8 +235,8 @@ export const obtenerHorarioCurso = async (req, res) => {
         const respuesta = await pool.query(
             `SELECT h.dia_semana, CONCAT(TO_CHAR(h.hora_inicio, 'HH24:MI'), ' - ', TO_CHAR(h.hora_final, 'HH24:MI')) AS horario
              FROM horario h
-             JOIN materia_curso mc ON h.id_materia = mc.id_materia AND h.id_curso = mc.id_curso
-             WHERE h.id_curso = $1`,
+             JOIN materia_curso mc ON h.id_materia = mc.id_materia AND h.id_curso = mc.id_curso 
+             WHERE h.id_curso = $1 AND h.id_estado_general = 1`,
             [id_curso]
         );
         
@@ -195,3 +249,25 @@ export const obtenerHorarioCurso = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener los horarios del curso' });
     }
 };
+
+// Función interna para obtener horas totales
+const obtenerhorasTotales = async (dni_profesional) => {
+    try{
+        const respuesta = await pool.query(
+            `SELECT SUM(EXTRACT(EPOCH FROM (hora_final - hora_inicio))/3600) AS horas_totales
+             FROM horario
+             WHERE dni_profesional = $1 AND id_estado_general = 1`,
+            [dni_profesional]
+        );
+        
+        if (respuesta.rows.length === 0 || respuesta.rows[0].horas_totales === null) {
+            return 0;
+        }
+        
+        return parseFloat(respuesta.rows[0].horas_totales);
+    }catch (error) {
+        console.error('Error al obtener las horas totales:', error);
+        return 0;
+    }
+}
+

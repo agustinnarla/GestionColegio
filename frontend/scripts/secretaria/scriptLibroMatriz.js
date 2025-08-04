@@ -109,28 +109,36 @@ export const imprimirLibroMatriz = async (alumno, cursos) => {
 */
 // 🟢
 export const obtenerLetra = (promedio) => {
-    switch (true) {
-        case promedio == 10:
+    // Si el promedio es null, undefined o no es un número válido
+    if (promedio === null || promedio === undefined || isNaN(promedio)) {
+        return 'no hay notas registradas';
+    }
+    
+    // Convertir a número y redondear para manejar decimales
+    const promedioNum = Math.round(parseFloat(promedio));
+    
+    switch (promedioNum) {
+        case 10:
             return 'diez';
-        case promedio == 9:
+        case 9:
             return 'nueve';
-        case promedio == 8:
+        case 8:
             return 'ocho';
-        case promedio == 7:
+        case 7:
             return 'siete';
-        case promedio == 6:
+        case 6:
             return 'seis';
-        case promedio == 5:
+        case 5:
             return 'cinco';
-        case promedio == 4:
+        case 4:
             return 'cuatro';
-        case promedio == 3:
+        case 3:
             return 'tres';
-        case promedio == 2:
+        case 2:
             return 'dos';
-        case promedio == 1:
+        case 1:
             return 'uno';
-        case promedio == 0:
+        case 0:
             return 'cero';
         default:
             return 'no hay notas registradas';

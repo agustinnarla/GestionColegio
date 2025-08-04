@@ -38,9 +38,13 @@ export default function LibroMatriz() {
         setAlertVisible(true);
     };
 
-    const validarDatos = () => {
-        return formData.dni_alumno 
+    const validarCampos = () => {
+        return formData.dni_alumno.length >= 8 
     };
+
+    const validarGrilla = () => {
+      return datos.length > 0
+    }
 
     const [datos, setDatos] = useState([]);
     const [cursoActual, setCursoActual] = useState('');
@@ -135,7 +139,7 @@ export default function LibroMatriz() {
                 datos: datos.filter(item => item.id_curso === curso.id_curso)
             }));
             await imprimirLibroMatriz(formData, cursos);
-            mostrarMensaje('Éxito', 'Documento listo para imprimir');
+            mostrarMensaje('Éxito', 'Archivo inpreso correctamente');
         } catch (error) {
             console.error('Error al imprimir:', error.message);
             mostrarMensaje('Error', 'No se pudo generar el documento');
@@ -155,17 +159,18 @@ export default function LibroMatriz() {
                         placeholder='dni' 
                         keyboardType='numeric' 
                         accessibilityLabel="Ingrese su DNI"
+                        maxLength={8}
                         value={formData.dni_alumno}
                         onChangeText={(text) => setFormData({...formData, dni_alumno: text})}
                     />
                 </View>
                 
                 <View style={styles.contenidoBoton}>
-                    <TouchableOpacity style={[styles.botonConsultar, !validarDatos() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarDatos()}>
+                    <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarCampos()}>
                         <Text style={styles.textoBoton}>Consultar</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.botonImprimir, !validarDatos() && styles.botonDeshabilitado]} onPress={handleImprimir} disabled={!validarDatos()}>
+                    <TouchableOpacity style={[styles.botonImprimir, !validarGrilla() && styles.botonDeshabilitado]} onPress={handleImprimir} disabled={!validarGrilla()}>
                         <Text style={styles.imprimir} >Imprimir</Text>
                     </TouchableOpacity>
                 </View>

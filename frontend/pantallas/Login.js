@@ -44,8 +44,8 @@ export default function Login(props) {
 
     //🟢 Limpiar interfaz 
     const limpiarInterfaz = () => {
-        setDniUsuario(''),
-        setContrasena('')
+        setDniUsuario('');
+        setContrasena('');
     };
 
     //🟢 Login 
@@ -109,6 +109,11 @@ export default function Login(props) {
                             style={styles.textInput}
                             onChangeText={(text) => setDniUsuario(text)}
                             value={dniUsuario}
+                            autoComplete="off"
+                            autoCorrect={false}
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            textContentType="none"
                         />
                     </View>
                     <View style={styles.cajaTexto}>
@@ -119,6 +124,11 @@ export default function Login(props) {
                             style={styles.textInput}
                             onChangeText={(text) => setContrasena(text)}
                             value={contrasena}
+                            autoComplete="off"
+                            autoCorrect={false}
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            textContentType="none"
                         />
                     </View>
                     <TouchableOpacity onPress={handleOlvideMiContrasena}>

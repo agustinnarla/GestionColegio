@@ -6,6 +6,7 @@ import { obtenerUsuario, obtenerUsuarioAlumno, restablecerContrasena } from '../
 import CustomAlert from '../componente/CustomAlerts.js';
 
 export default function Perfil({ route, navigation }) {
+  //🟢 Estados y Formulario
   const [datos, setDatos] = useState(null);
   const [datosAlumno, setDatosAlumno] = useState(null)
   const [modalVisible, setModalVisible] = useState(false);
@@ -15,15 +16,19 @@ export default function Perfil({ route, navigation }) {
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
 
+
+  //🟢 Mensajes
   const mostrarMensaje = (titulo, mensaje) => {
     setAlertTitle(titulo);
     setAlertMessage(mensaje);
     setAlertVisible(true);
   };
 
+  //🟢 Capturamos parametros 
   const { dni_usuario, id_rol } = route.params;
   
 
+  //🟢 Obtenemos datos 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -45,6 +50,7 @@ export default function Perfil({ route, navigation }) {
     cargarDatos();
   }, [dni_usuario, id_rol]);
 
+  //🟢 Restablecer contrasena 
   const handleRestablecerContrasena = async () => {
     if (nuevaContrasena !== confirmarContrasena) {
       mostrarMensaje("¡Advertencia!", 'No coinciden las contraseñas');
@@ -61,8 +67,8 @@ export default function Perfil({ route, navigation }) {
       mostrarMensaje("¡Error!", 'Error al restablecer contraseña');
     }
   };
-  
 
+  //🟢 Cerrar Sesion para eliminar token 
   const cerrarSesion = async () => {
     try {
       await AsyncStorage.removeItem('token'); 
@@ -73,8 +79,7 @@ export default function Perfil({ route, navigation }) {
     }
   };
 
-
-
+  //🟢 Vista 
   return (
     <View style={styles.padre}>
       <Image source={bg} style={styles.bg} />

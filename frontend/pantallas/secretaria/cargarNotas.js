@@ -1,6 +1,6 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList, TextInput,Alert,ScrollView, Platform, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, Modal, StyleSheet, Dimensions, Image, TouchableOpacity, FlatList, Alert, ScrollView, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import React, { useState,useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import { obtenerMateriaPorCurso, obtenerCurso  } from '../../scripts/listasDesplegables/listaDesplegable.js';
@@ -62,6 +62,52 @@ export default function CargarNotas() {
     const [notaSeleccionada, setNotaSeleccionada] = useState('');
     const [alumnosSeleccionados, setAlumnosSeleccionados] = useState([]);
     const [notaGlobal, setNotaGlobal] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [sumaEsperada, setSumaEsperada] = useState('');
+    const [mensajeValidacion, setMensajeValidacion] = useState('');
+    const [modalSumaEsperadaVisible, setModalSumaEsperadaVisible] = useState(false);
+
+    const cargarAlumnosConSumaEsperada = () => {
+        setModalSumaEsperadaVisible(true);
+    };
+
+    const confirmarSumaEsperada = async () => {
+        setModalSumaEsperadaVisible(false);
+        await cargarAlumnos();
+    };
+
+    const validarYRegistrarNotas = async () => {
+        // Suma las notas ingresadas por el usuario en la grilla
+        const sumaNotasIngresadas = alumnos.reduce((total, alumno) => {
+            let sumaAlumno = 0;
+            // Suma solo la nota seleccionada
+            if (alumno[notaSeleccionada] !== undefined && alumno[notaSeleccionada] !== null && alumno[notaSeleccionada] !== '') {
+                sumaAlumno += parseInt(alumno[notaSeleccionada]) || 0;
+            }
+            console.log('Alumno:', alumno.nombre_completo, 'Suma Alumno:', sumaAlumno);
+            return total + sumaAlumno;
+        }, 0);
+
+        console.log('Suma total de notas ingresadas:', sumaNotasIngresadas);
+        console.log('Suma esperada:', sumaEsperada);
+
+        // Compara la suma ingresada con la suma esperada
+        if (parseInt(sumaEsperada) === sumaNotasIngresadas) {
+            setMensajeValidacion('Las notas coinciden. ¿Desea registrar las notas?');
+        } else {
+            setMensajeValidacion(`La suma de las notas ingresadas (${sumaNotasIngresadas}) no coincide con la suma esperada (${sumaEsperada}). ¿Desea registrar las notas de todas formas?`);
+        }
+        setModalVisible(true);
+    };
+
+    const confirmarRegistro = async () => {
+        setModalVisible(false);
+        await handleRegistrar();
+    };
+
+    const cancelarRegistro = () => {
+        setModalVisible(false);
+    };
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -275,6 +321,29 @@ const exportarNotasAExcel = async (alumnos) => {
   }
 };
 
+const validarNotas = () => {
+  
+  const sumaNotasIngresadas = alumnos.reduce((total, alumno) => {
+    let sumaAlumno = 0;
+    
+    if (alumno[notaSeleccionada] !== undefined && alumno[notaSeleccionada] !== null && alumno[notaSeleccionada] !== '') {
+      sumaAlumno += parseInt(alumno[notaSeleccionada]) || 0;
+    }
+    console.log('Alumno:', alumno.nombre_completo, 'Suma Alumno:', sumaAlumno);
+    return total + sumaAlumno;
+  }, 0);
+
+  console.log('Suma total de notas ingresadas:', sumaNotasIngresadas);
+  console.log('Suma esperada:', sumaEsperada);
+
+  
+  if (parseInt(sumaEsperada) === sumaNotasIngresadas) {
+    setMensajeValidacion('Las notas coinciden. ¿Desea continuar?');
+  } else {
+    setMensajeValidacion(`La suma de las notas ingresadas (${sumaNotasIngresadas}) no coincide con la suma esperada (${sumaEsperada}).`);
+  }
+  setModalVisible(true);
+};
   
 
     return (
@@ -285,7 +354,7 @@ const exportarNotasAExcel = async (alumnos) => {
             <View style={styles.contenedorSuperior}>
                 <View style={styles.filtrosRow}>
                     <View style={styles.filtrosContainer}>
-                        <ListasDesplegables 
+                        <ListasDesplegables
                             formData={formData}
                             handleChange={handleChange}
                             curso={curso}
@@ -295,7 +364,7 @@ const exportarNotasAExcel = async (alumnos) => {
                         />
                     </View>
                     <View style={styles.botonesContainer}>
-                        <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={cargarAlumnos} disabled={!validarCampos()}>
+                        <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={cargarAlumnosConSumaEsperada} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>Consultar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
@@ -305,135 +374,172 @@ const exportarNotasAExcel = async (alumnos) => {
                             <Text style={styles.textoBoton}>📄</Text>
                         </TouchableOpacity>
                     </View>
-                    <View style={styles.filtroGroup}>
-                    <Text style={styles.label}>Seleccionar campo a editar:</Text>
-                    <Picker
-                      selectedValue={notaSeleccionada}
-                      onValueChange={(itemValue) => setNotaSeleccionada(itemValue)}
-                      style={styles.inputDesplegable}
-                    >
-                      <Picker.Item label="Seleccione una opción" value="" />
-                      <Picker.Item label="Nota 1" value="nota1" />
-                      <Picker.Item label="Nota 2" value="nota2" />
-                      <Picker.Item label="Nota 3" value="nota3" />
-                      <Picker.Item label="Nota 4" value="nota4" />
-                      <Picker.Item label="Nota 5" value="nota5" />
-                      <Picker.Item label="Nota 6" value="nota6" />
-                      <Picker.Item label="TP1" value="tp1" />
-                      <Picker.Item label="TP2" value="tp2" />
-                      <Picker.Item label="TP3" value="tp3" />
-                      <Picker.Item label="Aulico" value="aulico" />
-                    </Picker>
-                  </View>
                 </View>
             </View>
 
+            <View style={styles.headerContainer}>
+                            <View style={styles.leftContainer}>
+                                <Text style={styles.headerText}>Nota para seleccionados:</Text>
+                                <TextInput
+                                    style={styles.notaGlobalInput}
+                                    value={notaGlobal}
+                                    inputMode="numeric"
+                                    maxLength={2}
+                                    onChangeText={setNotaGlobal}
+                                />
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setAlumnos(prev =>
+                                            prev.map(alumno =>
+                                                alumnosSeleccionados.includes(alumno.dni_alumno)
+                                                    ? { ...alumno, [notaSeleccionada]: notaGlobal }
+                                                    : alumno
+                                            )
+                                        );
+                                        setNotaGlobal('');
+                                    }}
+                                    style={styles.aplicarButton}
+                                >
+                                    <Text style={{ color: 'white' }}>Aplicar</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.rightContainer}>
+                                <View style={styles.filtroGroupInline}>
+                                    <Text style={styles.headerText}>Seleccionar campo a editar:</Text>
+                                    <Picker
+                                        selectedValue={notaSeleccionada}
+                                        onValueChange={(itemValue) => setNotaSeleccionada(itemValue)}
+                                        style={styles.inputDesplegable}
+                                    >
+                                        <Picker.Item label="Seleccione una opción" value="" />
+                                        <Picker.Item label="Nota 1" value="nota1" />
+                                        <Picker.Item label="Nota 2" value="nota2" />
+                                        <Picker.Item label="Nota 3" value="nota3" />
+                                        <Picker.Item label="Nota 4" value="nota4" />
+                                        <Picker.Item label="Nota 5" value="nota5" />
+                                        <Picker.Item label="Nota 6" value="nota6" />
+                                        <Picker.Item label="TP1" value="tp1" />
+                                        <Picker.Item label="TP2" value="tp2" />
+                                        <Picker.Item label="TP3" value="tp3" />
+                                        <Picker.Item label="Aulico" value="aulico" />
+                                    </Picker>
+                                </View>
+                            </View>
+                        </View>
+                        
             {/* Grilla de alumnos y notas */}
             <View style={styles.grillaContainer}>
                 <ScrollView>
-  <View>
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
-  <Text style={{ color: 'white', fontSize: 16, marginRight: 8 }}>Nota para seleccionados:</Text>
-  <TextInput
-    style={{
-      backgroundColor: 'white',
-      borderRadius: 5,
-      paddingHorizontal: 10,
-      height: 40,
-      width: 60,
-      marginRight: 10
-    }}
-    value={notaGlobal}
-    inputMode="numeric"
-    maxLength={2}
-    onChangeText={setNotaGlobal}
-  />
-  <TouchableOpacity
-    onPress={() => {
-      setAlumnos(prev =>
-        prev.map(alumno =>
-          alumnosSeleccionados.includes(alumno.dni_alumno)
-            ? { ...alumno, [notaSeleccionada]: notaGlobal }
-            : alumno
-        )
-      );
-      setNotaGlobal('');
-    }}
-    style={{
-      backgroundColor: 'blue',
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 5
-    }}
-  >
-    <Text style={{ color: 'white' }}>Aplicar</Text>
-  </TouchableOpacity>
-</View>
+                    <View>
+                        
 
-    <View style={styles.headerRow}>
-      <Text style={styles.headerCellNombre}>Alumno</Text>
-      <Text style={styles.headerCell}>{notaSeleccionada.toUpperCase()}</Text>
-    </View>
-{alumnos.map((item) => {
-  const seleccionado = alumnosSeleccionados.includes(item.dni_alumno);
-  const valor = item[notaSeleccionada]?.toString() || '';
+                        <View style={styles.headerRow}>
+                            <Text style={styles.headerCellNombre}>Alumno</Text>
+                            <Text style={styles.headerCell}>{notaSeleccionada.toUpperCase()}</Text>
+                        </View>
+                        {alumnos.map((item) => {
+                            const seleccionado = alumnosSeleccionados.includes(item.dni_alumno);
+                            const valor = item[notaSeleccionada]?.toString() || '';
 
-  return (
-    <View key={item.dni_alumno} style={[styles.row, seleccionado && { backgroundColor: 'rgba(0, 0, 255, 0.2)' }]}>
-      
-      {/* Zona de selección */}
-      <TouchableOpacity
-        onPress={() => {
-          setAlumnosSeleccionados(prev =>
-            prev.includes(item.dni_alumno)
-              ? prev.filter(dni => dni !== item.dni_alumno)
-              : [...prev, item.dni_alumno]
-          );
-        }}
-        delayLongPress={200}
-        style={{ paddingHorizontal: 10, justifyContent: 'center' }}
-      >
-        {/* Nombre del alumno */}
-      <Text style={styles.cellNombre} numberOfLines={1}>
-        {item.nombre_completo}
-      </Text>
-      </TouchableOpacity>
+                            return (
+                                <View key={item.dni_alumno} style={[styles.row, seleccionado && { backgroundColor: 'rgba(0, 0, 255, 0.2)' }]}>
 
-      
+                                    {/* Zona de selección */}
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setAlumnosSeleccionados(prev =>
+                                                prev.includes(item.dni_alumno)
+                                                    ? prev.filter(dni => dni !== item.dni_alumno)
+                                                    : [...prev, item.dni_alumno]
+                                            );
+                                        }}
+                                        delayLongPress={200}
+                                        style={{ paddingHorizontal: 10, justifyContent: 'center' }}
+                                    >
+                                        {/* Nombre del alumno */}
+                                        <Text style={styles.cellNombre} numberOfLines={1}>
+                                            {item.nombre_completo}
+                                        </Text>
+                                    </TouchableOpacity>
 
-      {/* Nota editable */}
-      <TextInput
-        style={[
-          styles.inputNota,
-          parseInt(valor) < 6 ? styles.notaMenor : styles.notaMayor
-        ]}
-        value={valor}
-        inputMode="numeric"
-        maxLength={2}
-        onChangeText={(text) =>
-          validarNota(item.dni_alumno, notaSeleccionada, text)
-        }
-      />
-    </View>
-  );
-})}
-  </View>
-</ScrollView>
-              
-                <TouchableOpacity 
-                    style={[styles.botonConsultar, (!validarCampos() || alumnos.length === 0) && styles.botonDeshabilitado, {alignSelf: 'center', marginTop: 10, width: 180}]}
-                    onPress={handleRegistrar}
+
+
+                                    {/* Nota editable */}
+                                    <TextInput
+                                        style={[
+                                            styles.inputNota,
+                                            parseInt(valor) < 6 ? styles.notaMenor : styles.notaMayor
+                                        ]}
+                                        value={valor}
+                                        inputMode="numeric"
+                                        maxLength={2}
+                                        onChangeText={(text) =>
+                                            validarNota(item.dni_alumno, notaSeleccionada, text)
+                                        }
+                                    />
+                                </View>
+                            );
+                        })}
+                    </View>
+                </ScrollView>
+
+                <TouchableOpacity
+                    style={[styles.botonConsultar, (!validarCampos() || alumnos.length === 0) && styles.botonDeshabilitado, { alignSelf: 'center', marginTop: 10, width: 180 }]}
+                    onPress={validarYRegistrarNotas}
                     disabled={!validarCampos() || alumnos.length === 0}
                 >
                     <Text style={styles.textoBoton}>Confirmar Notas</Text>
                 </TouchableOpacity>
             </View>
             <CustomAlert
-              isVisible={alertVisible}
-              onClose={() => setAlertVisible(false)}
-              title={alertTitle}
-              message={alertMessage}
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
             />
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>{mensajeValidacion}</Text>
+                        <View style={styles.botonesModal}>
+                            <Button title="Continuar" onPress={confirmarRegistro} />
+                            <Button title="Cancelar" onPress={cancelarRegistro} />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalSumaEsperadaVisible}
+                onRequestClose={() => {
+                    setModalSumaEsperadaVisible(!modalSumaEsperadaVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Ingrese la suma esperada:</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Suma esperada"
+                            keyboardType="number-pad"
+                            value={sumaEsperada}
+                            onChangeText={setSumaEsperada}
+                        />
+                        <View style={styles.botonesModal}>
+                            <Button title="Continuar" onPress={confirmarSumaEsperada} />
+                            <Button title="Cancelar" onPress={() => setModalSumaEsperadaVisible(false)} />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -443,7 +549,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f7fa',
     alignItems: 'center',
-    justifyContent: 'center', // Centrado vertical
+    justifyContent: 'center', 
     position: 'relative',
   },
   bg: {
@@ -465,7 +571,7 @@ botonDeshabilitado: {
         backgroundColor: '#cccccc',
         borderColor: '#999999',
     },
-  // Sección superior
+  
   contenedorSuperior: {
     width: '97%',
     maxWidth: 1200,
@@ -512,7 +618,7 @@ botonDeshabilitado: {
     fontSize: 16,
   },
 
-  // Botones
+ 
   botonesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -562,8 +668,8 @@ botonDeshabilitado: {
 
   // Grilla
   grillaContainer: {
-    width: '97%',
-    maxWidth: 1200,
+    width: '50%',
+    maxWidth: 800,
     backgroundColor: '#fff',
     borderRadius: 16,
     marginBottom: 32,
@@ -579,22 +685,26 @@ botonDeshabilitado: {
   headerRow: {
     flexDirection: 'row',
     backgroundColor: '#f0f7ff',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     borderBottomWidth: 1.5,
     borderBottomColor: '#b6c6e0',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerCell: {
   textAlign: 'center',
   fontWeight: '700',
-  fontSize: 15,
+  fontSize: 14,
   color: '#2a3d6c',
   letterSpacing: 0.5,
-  paddingHorizontal: 4,
-  minWidth: 80, // Cambia a 80 para que no se superpongan
-  flex: 1,
+  paddingHorizontal: 2,
+  minWidth: 70, 
+  maxWidth: 80,
+  flex: 0,
+  alignSelf: 'center',
 },
   headerCellNombre: {
    textAlign: 'left',
@@ -604,46 +714,49 @@ botonDeshabilitado: {
   letterSpacing: 0.5,
   paddingHorizontal: 8,
   minWidth: 120,
-  flex: 2,
+  flex: 1,
   },
 
   row: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     alignItems: 'center',
     backgroundColor: '#fff',
+    justifyContent: 'space-between',
   },
   rowEven: {
     backgroundColor: '#f4f8fd',
   },
   cellNombre: {
-    flex: 2,
-  paddingHorizontal: 8,
-  minWidth: 120,
-  textAlign: 'left',
-  fontSize: 15,
-  fontWeight: '500',
-  color: '#2a3d6c',
+    flex: 1,
+    paddingHorizontal: 8,
+    minWidth: 130,
+    textAlign: 'left',
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#2a3d6c',
   },
 
   inputNota: {
-  height: 34,
+  height: 28,
   borderWidth: 1,
   borderColor: '#b6c6e0',
-  borderRadius: 7,
+  borderRadius: 6,
   textAlign: 'center',
-  marginHorizontal: 4, // Menos separación para mejor alineación
+  marginHorizontal: 2, 
   backgroundColor: '#f9f9f9',
-  minWidth: 80, // Igual que headerCell
-  fontSize: 15,
+  minWidth: 50, 
+  maxWidth: 60,
+  fontSize: 14,
   color: '#2a3d6c',
-  flex: 1,
+  flex: 0,
+  alignSelf: 'center',
 },
 
-  // Botón confirmar
+  
   botonConfirmar: {
     backgroundColor: '#e8f5e9',
     borderColor: '#4caf50',
@@ -724,5 +837,114 @@ botonDeshabilitado: {
       fontSize: 13,
       minWidth: 90,
     },
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
+  },
+  botonesModal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    width: 200,
+  },
+  notaGlobalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+    width: '97%',
+    maxWidth: 1200,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 32,
+    paddingBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
+    elevation: 6,
+    alignSelf: 'center',
+  },
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 28, 
+    marginTop: 10
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10
+  },
+  headerText: {
+    color: 'black',
+    fontSize: 16,
+    marginRight: 8,
+  },
+  notaGlobalInput: {
+    backgroundColor: 'white',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    height: 40,
+    width: 60,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#b6c6e0'
+  },
+  aplicarButton: {
+    backgroundColor: 'blue',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  filtroGroupInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputDesplegable: {
+    flex: 1,
+    minWidth: 120,
+    maxWidth: 200,
+    height: 40,
+    borderWidth: 1.5,
+    borderColor: '#d1d9e6',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+    marginRight: 8,
+    paddingHorizontal: 10,
+    fontSize: 16,
   },
 });

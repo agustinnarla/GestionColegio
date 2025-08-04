@@ -1,4 +1,8 @@
 import { API_BASE_URL } from "../config";
+import * as XLSX from 'xlsx';
+import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 //Rutas que utilizamos
 const api_url = 'http://localhost:5000'
 const api_urlAsistencia = `${ API_BASE_URL }/alumno/asistencia`
@@ -99,7 +103,66 @@ export const obtenerAlumnosAusentes = async (idcurso, fecha) => {
 };
 
 
+export const exportarExcelConDatos = async (nuevosDatos, nombreArchivo = 'asistencia.xlsx') => {
+  try {
+    const fileName = nombreArchivo;
 
+    if (Platform.OS === 'web') {
+      // 👉 Exportación para web
+      const worksheet = XLSX.utils.json_to_sheet(nuevosDatos);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia');
 
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
 
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } else {
+      // 👉 Exportación para Android/iOS
+      const pathArchivo = FileSystem.documentDirectory + fileName;
+      let workbook;
+      let worksheet;
 
+      const fileInfo = await FileSystem.getInfoAsync(pathArchivo);
+      if (fileInfo.exists) {
+        const contenidoBase64 = await FileSystem.readAsStringAsync(pathArchivo, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const buffer = Buffer.from(contenidoBase64, 'base64');
+        workbook = XLSX.read(buffer, { type: 'buffer' });
+
+        worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const datosExistentes = XLSX.utils.sheet_to_json(worksheet);
+        const nuevosCombinados = [...datosExistentes, ...nuevosDatos];
+        const nuevoSheet = XLSX.utils.json_to_sheet(nuevosCombinados);
+        workbook.Sheets[workbook.SheetNames[0]] = nuevoSheet;
+      } else {
+        worksheet = XLSX.utils.json_to_sheet(nuevosDatos);
+        workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia');
+      }
+
+      const excelBase64 = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
+      await FileSystem.writeAsStringAsync(pathArchivo, excelBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      if (!(await Sharing.isAvailableAsync())) {
+        alert("Compartir no está disponible en este dispositivo");
+        return;
+      }
+
+      await Sharing.shareAsync(pathArchivo);
+    }
+  } catch (error) {
+    console.error("Error al exportar Excel:", error);
+    alert("Error al exportar la asistencia.");
+  }
+};

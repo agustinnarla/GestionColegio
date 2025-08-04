@@ -103,8 +103,9 @@ export default function JustificarFaltaAlumnos() {
             const estadoInicial = {};
             const certificadoInicial = {};
             (datosObtenidos.alumnos || []).forEach(alumno => {
-                estadoInicial[alumno.dni_alumno] = alumno.id_estado_falta_alumno || undefined;
-                certificadoInicial[alumno.dni_alumno] = alumno.id_certificado || undefined;
+                const key = `${alumno.dni_alumno}_${alumno.fecha}`;
+                estadoInicial[key] = alumno.id_estado_falta_alumno || undefined;
+                certificadoInicial[key] = alumno.id_certificado || undefined;
             });
             setEstadoFaltaPorAlumno(estadoInicial);
             setCertificadoPorAlumno(certificadoInicial);
@@ -115,32 +116,33 @@ export default function JustificarFaltaAlumnos() {
 
     // Actualizar selección
     const actualizarSeleccionadoAlumno = (tipo, valor, dni_alumno, fecha) => {
+        const key = `${dni_alumno}_${fecha}`;
         if (tipo === 'estadoFalta') {
             setEstadoFaltaPorAlumno(prev => ({
                 ...prev,
-                [dni_alumno]: valor
+                [key]: valor
             }));
         } else if (tipo === 'certificado') {
             setCertificadoPorAlumno(prev => ({
                 ...prev,
-                [dni_alumno]: valor
+                [key]: valor
             }));
         }
         // Solo enviar si ambos están seleccionados
-        const id_estado_falta_alumno = tipo === 'estadoFalta' ? valor : estadoFaltaPorAlumno[dni_alumno];
-        const id_certificado = tipo === 'certificado' ? valor : certificadoPorAlumno[dni_alumno];
+        const id_estado_falta_alumno = tipo === 'estadoFalta' ? valor : estadoFaltaPorAlumno[key];
+        const id_certificado = tipo === 'certificado' ? valor : certificadoPorAlumno[key];
         if (
             id_estado_falta_alumno !== undefined &&
             id_estado_falta_alumno !== null &&
             id_certificado !== undefined &&
             id_certificado !== null
         ) {
-            actualizarJustificarFalta(id_estado_falta_alumno, id_certificado, dni_alumno, fecha);
+            enviarJustificacionFalta(id_estado_falta_alumno, id_certificado, dni_alumno, fecha);
         }
     };
 
     // Actualizar en base de datos
-    const actualizarJustificarFalta = async (id_estado_falta_alumno, id_certificado, dni_alumno, fecha) => {
+    const enviarJustificacionFalta = async (id_estado_falta_alumno, id_certificado, dni_alumno, fecha) => {
         const datosForm = {
             id_estado_falta_alumno,
             dni_alumno,
@@ -150,12 +152,19 @@ export default function JustificarFaltaAlumnos() {
 
         console.log(datosForm)
         try {
-            await actualizarJustificarFalta(datosForm);
+            await actualizarJustificarFalta(datosForm); // Esta es la función importada
         } catch (error) {
             // Manejo de error opcional
             console.log("Error")
         }
     };
+
+    const validarCampos = () => {
+        return(
+            fechaDesde >= 10 &&
+            fechaHasta >= 10
+        )
+    }
 
     return (
         <View style={styles.padre}>
@@ -180,7 +189,7 @@ export default function JustificarFaltaAlumnos() {
                                 onChangeText={setFechaHasta}
                             />
                         </View>
-                        <TouchableOpacity style={styles.boton} onPress={handleConsultar}>
+                        <TouchableOpacity style={[styles.boton, !validarCampos() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarCampos()}>
                             <Text style={styles.botonTexto}>Consultar</Text>
                         </TouchableOpacity>
                     </View>
@@ -194,63 +203,66 @@ export default function JustificarFaltaAlumnos() {
                                 <Text style={styles.encabezado}>Certificado Médico</Text>
                             </View>
                             {alumnos.length > 0 ? (
-                                alumnos.map((alumno, index) => (
-                                    <View key={index} style={styles.fila}>
-                                        <Text style={styles.celda}>{alumno.nombreapellido}</Text>
-                                        <Text style={styles.celda}>{alumno.dni_alumno}</Text>
-                                        <Text style={styles.celda}>{formatearFecha(alumno.fecha)}</Text>
-                                        <Picker
-                                            style={styles.celda}
-                                            selectedValue={
-                                                estadoFaltaPorAlumno[alumno.dni_alumno] !== undefined
-                                                    ? estadoFaltaPorAlumno[alumno.dni_alumno]
-                                                    : undefined
-                                            }
-                                            onValueChange={(itemValue) => {
-                                                actualizarSeleccionadoAlumno(
-                                                    "estadoFalta",
-                                                    itemValue,
-                                                    alumno.dni_alumno,
-                                                    alumno.fecha
-                                                );
-                                            }}
-                                        >
-                                            <Picker.Item label="Seleccione estado de falta" value={undefined} />
-                                            {estadoFalta.map((estado) => (
-                                                <Picker.Item
-                                                    key={estado.id_estado_falta_alumno}
-                                                    label={estado.detalle}
-                                                    value={Number(estado.id_estado_falta_alumno)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                        <Picker
-                                            style={styles.celda}
-                                            selectedValue={
-                                                certificadoPorAlumno[alumno.dni_alumno] !== undefined
-                                                    ? certificadoPorAlumno[alumno.dni_alumno]
-                                                    : undefined
-                                            }
-                                            onValueChange={(itemValue) => {
-                                                actualizarSeleccionadoAlumno(
-                                                    "certificado",
-                                                    itemValue,
-                                                    alumno.dni_alumno,
-                                                    alumno.fecha
-                                                );
-                                            }}
-                                        >
-                                            <Picker.Item label="Seleccione certificado médico" value={undefined} />
-                                            {certificado.map((cert) => (
-                                                <Picker.Item
-                                                    key={cert.id_certificado}
-                                                    label={cert.detalle}
-                                                    value={Number(cert.id_certificado)}
-                                                />
-                                            ))}
-                                        </Picker>
-                                    </View>
-                                ))
+                                alumnos.map((alumno, index) => {
+                                    const key = `${alumno.dni_alumno}_${alumno.fecha}`;
+                                    return (
+                                        <View key={index} style={styles.fila}>
+                                            <Text style={styles.celda}>{alumno.nombreapellido}</Text>
+                                            <Text style={styles.celda}>{alumno.dni_alumno}</Text>
+                                            <Text style={styles.celda}>{formatearFecha(alumno.fecha)}</Text>
+                                            <Picker
+                                                style={styles.celda}
+                                                selectedValue={
+                                                    estadoFaltaPorAlumno[key] !== undefined
+                                                        ? estadoFaltaPorAlumno[key]
+                                                        : undefined
+                                                }
+                                                onValueChange={(itemValue) => {
+                                                    actualizarSeleccionadoAlumno(
+                                                        "estadoFalta",
+                                                        itemValue,
+                                                        alumno.dni_alumno,
+                                                        alumno.fecha
+                                                    );
+                                                }}
+                                            >
+                                                <Picker.Item label="Seleccione estado de falta" value={undefined} />
+                                                {estadoFalta.map((estado) => (
+                                                    <Picker.Item
+                                                        key={estado.id_estado_falta_alumno}
+                                                        label={estado.detalle}
+                                                        value={Number(estado.id_estado_falta_alumno)}
+                                                    />
+                                                ))}
+                                            </Picker>
+                                            <Picker
+                                                style={styles.celda}
+                                                selectedValue={
+                                                    certificadoPorAlumno[key] !== undefined
+                                                        ? certificadoPorAlumno[key]
+                                                        : undefined
+                                                }
+                                                onValueChange={(itemValue) => {
+                                                    actualizarSeleccionadoAlumno(
+                                                        "certificado",
+                                                        itemValue,
+                                                        alumno.dni_alumno,
+                                                        alumno.fecha
+                                                    );
+                                                }}
+                                            >
+                                                <Picker.Item label="Seleccione certificado médico" value={undefined} />
+                                                {certificado.map((cert) => (
+                                                    <Picker.Item
+                                                        key={cert.id_certificado}
+                                                        label={cert.detalle}
+                                                        value={Number(cert.id_certificado)}
+                                                    />
+                                                ))}
+                                            </Picker>
+                                        </View>
+                                    );
+                                })
                             ) : (
                                 <View style={styles.fila}>
                                     <Text style={styles.celda}>No hay datos disponibles</Text>
@@ -275,6 +287,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#f5f7fa',
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
     },
     bg: {
         alignItems: 'center',

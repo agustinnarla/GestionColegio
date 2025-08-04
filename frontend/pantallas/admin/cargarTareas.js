@@ -342,7 +342,7 @@ export default function CargarTareas() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.formulario}>
-                <Text style={styles.titulo}>Gestión de Tareas</Text>
+
                 <View style={styles.fila}>
                     {/* Columna izquierda: Picker de tareas y agregar */}
                     <View style={styles.columna}>
@@ -476,7 +476,7 @@ export default function CargarTareas() {
             isVisible={alertVisible}
             onClose={() => {
                 setAlertVisible(false);
-                setOnConfirm(null); // Limpia el callback al cerrar
+                setOnConfirm(null); 
             }}
             title={alertTitle}
             message={alertMessage}
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 7,
         backgroundColor: '#f3f4f6',
-        height: 44, // más alto
+        height: 44, 
         fontSize: 15,
     },
     pickerContainer: {
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         backgroundColor: '#f3f4f6',
         fontSize: 15,
-        height: 44, // más alto
+        height: 44, 
         paddingHorizontal: 10,
         marginRight: 8,
     },
@@ -654,12 +654,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         marginTop: 18,
-        gap: 12,
+        gap: 15,
     },
     textoTarea: {
         fontSize: 15,
         flex: 1,
-        color: '#222',
+        color: '#2a3d6c',
     },
     itemContainer: {
         flexDirection: 'row',
@@ -679,17 +679,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 16,
-        gap: 16, // más espacio entre picker e input
+        gap: 16, 
     },
     botonConsultar: {
         backgroundColor: '#e3f2fd',
-        borderColor: '#2196F3',
+        borderColor: '#746BC8',
         borderWidth: 1,
         paddingVertical: 10,
         borderRadius: 7,
         alignItems: 'center',
         marginBottom: 10,
-        width: '50%',
+        width: '40%',
     },
     botonCancelar: {
         backgroundColor: '#ffebee',

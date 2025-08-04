@@ -102,3 +102,22 @@ export const obtenerLibroAula = async (req, res) => {
         res.status(500).json({ error: "Error al traer el libro de aula" });
     }
 }
+
+export const obtenerNumeroDeClase = async (req, res) => {
+    const {dni_profesional, id_curso, id_materia} = req.params
+    try{
+        const respuesta = await pool.query(`SELECT COUNT(*) cantidad  
+            FROM libro_aula 
+            WHERE dni_profesional = $1 AND id_curso = $2 AND id_materia = $3`, [dni_profesional, id_curso, id_materia])
+
+             const cantidad = parseInt(respuesta.rows[0].cantidad, 10) || 0;
+
+    // Le sumamos 1 para devolver el número de clase siguiente
+    const numeroSiguiente = cantidad + 1;
+
+    res.status(200).json({ numero_clase: numeroSiguiente });
+
+    }catch{
+        console.log("Error")
+    }
+}

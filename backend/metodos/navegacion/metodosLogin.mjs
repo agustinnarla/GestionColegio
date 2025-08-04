@@ -50,7 +50,7 @@ export const ingresarUsuario = async (req, res) => {
     }
 };
 
-//🟢 Contraseña generada para "olvide mi contraseña"
+//🟢 Contraseña generada para "olvide mi contraseña" 
 export const generarContrasena = async () => {
     // Generar contraseña temporal aleatoria de 8 caracteres
     const caracteresPermitidos = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

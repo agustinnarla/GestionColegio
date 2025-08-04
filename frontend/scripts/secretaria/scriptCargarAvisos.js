@@ -18,7 +18,7 @@ export const crearAvisos = async (formData) => {
         const requestBody = {
             informacion: formData.informacion,
             id_motivo: idMotivo, // Asegurar que es número
-            fecha: formData.fecha, // Ya viene formateada desde agregarAviso
+            fecha_aviso: formData.fecha_aviso, // Ya viene formateada desde agregarAviso
             id_estado_general: formData.id_estado_general, // Asegurar que es número
             profesores: formData.profesores || [], // Cambiado a "profesores" (coherente con backend)
             cursos: formData.cursos || [] // Cambiado a "cursos" (coherente con backend)

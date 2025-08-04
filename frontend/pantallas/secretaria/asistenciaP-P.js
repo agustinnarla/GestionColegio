@@ -43,17 +43,7 @@ export default function RegistroAsistencia() {
           setAlertVisible(true);
       };
 
-    const validarEntrada = () => {
-       return (
-           formData.hora_entrada 
-        )
-    }
-    const validarSalida = () => {
-       return (
-           formData.hora_salida 
-        )
-    }
-    
+   
 
     const toggleSeleccion = (profesor) => {
   setSeleccionados((prev) => {
@@ -106,20 +96,32 @@ export default function RegistroAsistencia() {
 
     mostrarMensaje('Exito', `Se registró la ${entrada ? 'entrada' : 'salida'} de los profesionales`);
 
-    setProfesores((prev) =>
-      prev.map((prof) =>
-        seleccionados.includes(prof.dni_profesional)
-          ? {
-              ...prof,
-              tieneEntrada: entrada ? true : prof.tieneEntrada,
-              tieneSalida: !entrada ? true : prof.tieneSalida,
-            }
-          : prof
-      )
-    );
+    // Si es salida, recargar la lista completa desde el backend
+    if (!entrada) {
+      try {
+        const data = await obtenerProfesionalesAsistencia();
+        setProfesores(data.profesor);
+      } catch (error) {
+        console.log('Error al recargar los profesores:', error);
+      }
+    } else {
+      // Si es entrada, actualizar el estado local
+      setProfesores((prev) =>
+        prev.map((prof) =>
+          seleccionados.includes(prof.dni_profesional)
+            ? {
+                ...prof,
+                tieneEntrada: true,
+                tieneSalida: prof.tieneSalida,
+              }
+            : prof
+        )
+      );
+    }
 
     setSeleccionados([]);
     setFormData({ hora_entrada: '', hora_salida: '' });
+    
   } catch (error) {
     console.error(error);
     mostrarMensaje('Error', 'Error al registrar asistencia');
@@ -136,7 +138,6 @@ return (
   <View style={styles.container}>
     <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
       <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
-        <Text style={styles.titulo}>Registro de Asistencia</Text>
 
         {/* Botones Entrada / Salida */}
         <View style={styles.botonesContainer}>
@@ -144,13 +145,13 @@ return (
             style={[styles.boton, entrada && styles.botonActivoEntrada]}
             onPress={() => setEntrada(true)}
           >
-            <Text>Entrada</Text>
+            <Text style={styles.botonTexto}>Entrada</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.boton, !entrada && styles.botonActivoSalida]}
             onPress={() => setEntrada(false)}
           >
-            <Text>Salida</Text>
+            <Text style={styles.botonTexto}>Salida</Text>
           </TouchableOpacity>
         </View>
 
@@ -213,7 +214,7 @@ return (
               disabled={!(entrada ? formData.hora_entrada : formData.hora_salida)}
               
             >
-              <Text>Aceptar</Text>
+              <Text style={styles.botonTexto}>Aceptar</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -237,6 +238,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%', 
     alignItems: 'center',
+  },
+  botonTexto:{
+    color: '#2a3d6c',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   bg: {
     width: '100%',
@@ -281,6 +287,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   botonesContainer: {
+    marginTop: 40,  
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 18,
@@ -334,11 +341,13 @@ const styles = StyleSheet.create({
   },
   profesor: {
     padding: 16,
+    marginTop: 10,
+    marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
+ 
     marginVertical: 4,
     borderRadius: 10,
-    backgroundColor: '#f9fafb',
+
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,

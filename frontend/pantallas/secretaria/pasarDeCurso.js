@@ -92,22 +92,44 @@ const toggleSeleccionAlumno = (dni_alumno) => {
   });
 };
 
-
+const validarCurso = () => {
+  return(
+    formData.id_curso
+  )
+}
+const validarAlumnos = () => {
+  return(
+    alumnos.length > 0
+  )
+}
 
 
 
 // Registrar
 const handleRegistrar = async () => {
   try {
-    const alumnosData = alumnos
-      .filter((alumno) => alumnosSeleccionados.includes(alumno.dni_alumno))
-      .map((alumno) => ({
+    let alumnosData;
+    
+    // Si no hay alumnos seleccionados, pasar todos los alumnos
+    if (alumnosSeleccionados.length === 0) {
+      alumnosData = alumnos.map((alumno) => ({
         dni_alumno: alumno.dni_alumno,
         id_curso: parseInt(formData.id_curso)
       }));
+      console.log('Pasando todos los alumnos:', alumnosData.length);
+    } else {
+      // Si hay alumnos seleccionados, pasar solo los seleccionados
+      alumnosData = alumnos
+        .filter((alumno) => alumnosSeleccionados.includes(alumno.dni_alumno))
+        .map((alumno) => ({
+          dni_alumno: alumno.dni_alumno,
+          id_curso: parseInt(formData.id_curso)
+        }));
+      console.log('Pasando alumnos seleccionados:', alumnosData.length);
+    }
 
     if (alumnosData.length === 0) {
-      mostrarMensaje('Aviso', 'No seleccionaste ningún alumno');
+      mostrarMensaje('Aviso', 'No hay alumnos para pasar de curso');
       return;
     }
 
@@ -152,14 +174,18 @@ return (
 
           <View style={styles.botonesFiltros}>
             <TouchableOpacity
-              style={[styles.botonPrimario, !validarDatos() && styles.botonDeshabilitado]}
+              style={[styles.botonPrimario, !validarCurso() && styles.botonDeshabilitado]}
               onPress={cargarAlumnos}
+              disabled={!validarCurso()}
             >
               <Text style={styles.textoBoton}>Consultar</Text>
             </TouchableOpacity>
           </View>
 
           <Text style={styles.tituloLista}>Alumnos</Text>
+          <Text style={styles.textoInformativo}>
+            Selecciona alumnos específicos o deja sin seleccionar para pasar todos
+          </Text>
 
       
           <View style={styles.listaAlumnosContainer}>
@@ -179,7 +205,7 @@ return (
             </ScrollView>
           </View>
 
-          <TouchableOpacity style={styles.botonConfirmar} onPress={handleRegistrar}>
+          <TouchableOpacity style={[styles.botonConfirmar, !validarAlumnos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarAlumnos()}>
             <Text style={styles.textoBotonGrande}>Confirmar</Text>
           </TouchableOpacity>
         </View>
@@ -204,6 +230,11 @@ const styles = StyleSheet.create({
   justifyContent: 'center', 
   position: 'relative',
 },
+  botonDeshabilitado: {
+    opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
+  },
   bg: {
     width: '100%',
     height: '100%',
@@ -288,6 +319,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     letterSpacing: 0.7,
     textTransform: 'uppercase',
+  },
+  textoInformativo: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontStyle: 'italic',
   },
   listaAlumnosContainer: {
     backgroundColor: '#f9fafb',

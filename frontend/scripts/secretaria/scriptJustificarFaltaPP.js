@@ -5,8 +5,12 @@ const api_urlJustificarFaltaAlta = 'http://localhost:5000/justificar/profesional
   // 🟢
   export const obtenerFaltasPP = async (fechaInicio, fechaFin) => {
     try {
+      console.log('Enviando petición a:', `${api_urlJustificarFalta}/${fechaInicio}/${fechaFin}`);
       const respuesta = await fetch(`${api_urlJustificarFalta}/${fechaInicio}/${fechaFin}`);
       const data = await respuesta.json();
+  
+      console.log('Respuesta del servidor:', data);
+      console.log('Status de la respuesta:', respuesta.status);
   
       if (respuesta.ok) {
         return data; // ← Devuelve el array de asistencias con id_estadoasistencia = 2

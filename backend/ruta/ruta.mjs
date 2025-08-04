@@ -39,10 +39,10 @@ import { enviarNuevaContrasena, ingresarUsuario, obtenerTareasPorRol} from '../m
 import { obtenerEspecialidad } from '../metodos/listasDesplegables/metodosEspecialidad.mjs'
 import { obtenerUsuario, restablecerContrasena, obtenerUsuarioAlumno } from '../metodos/navegacion/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso, actualizarUltimaVisitaAvisos, obtenerUltimaVisitaAvisos } from '../metodos/alumno/metodosAvisos.mjs'
-import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula, obtenerMateriaPorCursoYProfesor } from '../metodos/profesores/metodosLibroAula.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula, obtenerMateriaPorCursoYProfesor,obtenerNumeroDeClase } from '../metodos/profesores/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/profesores/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/profesores/metodosCargarNotasFinal.mjs'
-import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, obtenerHorasProfesor, obtenerHorarioCurso, obtenerHorarioProfesional } from '../metodos/secretaria/metodosAsignarHoras.mjs'
+import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, deshabilitarHorario,obtenerHorasProfesor, obtenerHorarioCurso, obtenerHorarioProfesional } from '../metodos/secretaria/metodosAsignarHoras.mjs'
 import { marcarAusentes, obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/secretaria/metodosAsistenciaProfesores.mjs'
 import { registrarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/secretaria/metodosGestionProfesionales.mjs'
 import { obtenerEstadosFaltaProfesionales, obtenerFaltasProfesionales, registrarJustificacionProfesionales} from '../metodos/secretaria/metodosJustificarFaltaProfesionales.mjs'
@@ -214,6 +214,7 @@ ruta.get('/alumno/avisos/ultima_visita/:dni_usuario', obtenerUltimaVisitaAvisos)
 
 // == LIBRO AULA
 ruta.post('/profesor/libroAula/alta', registrarLibroAula) // 🟢 
+ruta.get('/profesor/libroAula/numero_clase/:dni_profesional/:id_curso/:id_materia',obtenerNumeroDeClase)
 ruta.get('/profesor/libroAula/:dni_profesional/:id_curso/:id_materia', obtenerLibroAula)
 
 // == ASIGNAR EVALUACION 

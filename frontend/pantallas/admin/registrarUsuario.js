@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { obtenerRoles } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { consultarUsuario, registrarUsuario, modificarUsuario, deshabilitarUsuario } from '../../scripts/admin/scriptRegistrarUsuario.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -14,7 +15,9 @@ export default function RegistrarUsuario() {
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [habilitarBotones, setHabilitarBotones] = useState(false);
-    
+    const [mostrarContrasena, setMostrarContrasena] = useState(false);
+    const [mostrarConfirmarContrasena, setMostrarConfirmarContrasena] = useState(false);
+
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
@@ -201,97 +204,163 @@ export default function RegistrarUsuario() {
     //🟢 Vista
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg}></Image>
+            <Image source={bg} style={styles.bg} />
             <View style={styles.formulario}>
-            <Text style={styles.label}>Dni</Text> 
-            <View style={styles.dniContainer}>
-                <TextInput
-                    style={[styles.input, styles.inputDNI]}
-                    placeholder='DNI'
-                    keyboardType='numeric'
-                    onChangeText={(text) => handleChange('dni_usuario', text)}
-                    value={formData.dni_usuario}
-                />
-                <TouchableOpacity style={[styles.botonConsultar, styles.botonBase, !validarDni() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarDni()}>
-                    <Text style={styles.textoBoton}>Consultar</Text>
-                </TouchableOpacity>
-            </View>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='Email'
-                    keyboardType='email-address'
-                    onChangeText={(text) => handleChange('email', text)}
-                    value={formData.email}
-                />
+                <View style={styles.fila}>
+                    {/* Columna izquierda: Formulario */}
+                    <View style={styles.columna}>
+                        <Text style={styles.label}>DNI:</Text>
+                        <View style={styles.dniContainer}>
+                            <TextInput
+                                style={[styles.input, styles.inputDNI]}
+                                placeholder='Ingrese DNI'
+                                placeholderTextColor="#888"
+                                keyboardType='numeric'
+                                onChangeText={(text) => handleChange('dni_usuario', text)}
+                                value={formData.dni_usuario}
+                                autoComplete="off"
+                                autoCorrect={false}
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                textContentType="none"
+                            />
+                            <TouchableOpacity 
+                                style={[styles.botonConsultar, !validarDni() && styles.botonDeshabilitado]} 
+                                onPress={handleConsultar} 
+                                disabled={!validarDni()}
+                            >
+                                <Text style={styles.textoBoton}>Consultar</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                <Text style={styles.label}>Contraseña</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='Contraseña'
-                    secureTextEntry={true}
-                    onChangeText={(text) => handleChange('contrasena', text)}
-                    value={formData.contrasena}
-                />
-
-                <Text style={styles.label}>Confirmar Contraseña</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='Confirmar Contraseña'
-                    secureTextEntry={true}
-                    onChangeText={(text) => handleChange('confirmarContrasena', text)}
-                    value={formData.confirmarContrasena}
-                />
-
-                <View style={styles.rolRow}>
-                    <View style={{ flex: 1 }}>
-                        <ListasDesplegables 
-                            formData={formData} 
-                            handleChange={handleChange} 
-                            roles={roles} 
-                            styles={styles}
+                        <Text style={styles.label}>Email:</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder='Ingrese email'
+                            placeholderTextColor="#888"
+                            keyboardType='email-address'
+                            onChangeText={(text) => handleChange('email', text)}
+                            value={formData.email}
+                            autoComplete="off"
+                            autoCorrect={false}
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            textContentType="none"
                         />
+
+                        <Text style={styles.label}>Contraseña:</Text>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                style={styles.inputConIcono}
+                                placeholder='Ingrese contraseña'
+                                placeholderTextColor="#888"
+                                secureTextEntry={!mostrarContrasena}
+                                onChangeText={(text) => handleChange('contrasena', text)}
+                                value={formData.contrasena}
+                                autoComplete="off"
+                                autoCorrect={false}
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                textContentType="none"
+                            />
+                            <TouchableOpacity
+                                style={styles.iconoOjo}
+                                onPress={() => setMostrarContrasena(!mostrarContrasena)}
+                            >
+                                <FontAwesome5 
+                                    name={mostrarContrasena ? "eye-slash" : "eye"} 
+                                    size={16} 
+                                    color="#6366f1" 
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.label}>Confirmar Contraseña:</Text>
+                         <View style={styles.inputContainer}>
+                            <TextInput
+                                style={[
+                                    styles.inputConIcono,
+                                    formData.confirmarContrasena !== '' && !validarContrasenas() && { borderColor: 'red', borderWidth: 1 }
+                                ]}
+                                placeholder='Confirme contraseña'
+                                placeholderTextColor="#888"
+                                secureTextEntry={!mostrarConfirmarContrasena}
+                                onChangeText={(text) => handleChange('confirmarContrasena', text)}
+                                value={formData.confirmarContrasena}
+                                autoComplete="off"
+                                autoCorrect={false}
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                textContentType="none"
+                            />
+                            <TouchableOpacity
+                                style={styles.iconoOjo}
+                                onPress={() => setMostrarConfirmarContrasena(!mostrarConfirmarContrasena)}
+                            >
+                                <FontAwesome5 
+                                    name={mostrarConfirmarContrasena ? "eye-slash" : "eye"} 
+                                    size={16} 
+                                    color="#6366f1" 
+                                />
+                            </TouchableOpacity>
+                            
+                        </View>
+                        {formData.confirmarContrasena !== '' && !validarContrasenas() && (
+                                <Text style={{ color: 'red', marginBottom: 10 }}>
+                                    Las contraseñas no coinciden
+                                </Text>
+                                )}
+
+                        <View style={styles.rolRow}>
+                            <View style={{ flex: 1 }}>
+                                <ListasDesplegables 
+                                    formData={formData} 
+                                    handleChange={handleChange} 
+                                    roles={roles} 
+                                    styles={styles}
+                                />
+                            </View>
+                            <TouchableOpacity 
+                                style={styles.botonAgregarRol}
+                                onPress={() => navegacion.navigate('Registrar Rol')} 
+                            >
+                                <Text style={styles.textoBotonAgregarRol}>+</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                    <TouchableOpacity 
-                        style={[styles.botonAgregarRol, styles.botonBase]}
-                        onPress={() => navegacion.navigate('Registrar Rol')} 
-                    >
-                        <Text style={styles.textoBotonAgregarRol}>+</Text>
-                    </TouchableOpacity>
-                </View>
+                    {/* Columna derecha: Acciones */}
+                    <View style={styles.columnaDerecha}>
+                        <TouchableOpacity
+                            style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]}
+                            onPress={handleRegistrar}
+                            disabled={!validarCampos()}
+                        >
+                            <Text style={styles.textoBoton}>Registrar</Text>
+                        </TouchableOpacity>
 
-                <View style={styles.contenidoBoton}>
-                <TouchableOpacity
-                    style={[styles.botonRegistrar, !validarCampos() && styles.botonDeshabilitado]}
-                    onPress={handleRegistrar}
-                    disabled={!validarCampos()}
-                >
-                    <Text style={styles.textoBoton}>Registrar</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]}
+                            onPress={handleModificar}
+                            disabled={!validarCampos()}
+                        >
+                            <Text style={styles.textoBoton}>Modificar</Text>
+                        </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]}
-                    onPress={handleModificar}
-                    disabled={!validarCampos()}
-                >
-                    <Text style={styles.textoBoton}>Modificar</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]}
+                            onPress={handleDeshabilitar}
+                            disabled={!validarCampos()}
+                        >
+                            <Text style={styles.textoBoton}>Eliminar</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                    style={[styles.botonDeshabilitar, !validarCampos() && styles.botonDeshabilitado]}
-                    onPress={handleDeshabilitar}
-                    disabled={!validarCampos()}
-                    >
-                    <Text style={styles.textoBoton}>Eliminar</Text>
-                </TouchableOpacity>
-
-                    <TouchableOpacity
-                    style={styles.botonCancelar}
-                    onPress={limpiarInterfaz}
-                    
-                    >
-                    <Text style={styles.textoBoton}>Cancelar</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.botonLimpiar}
+                            onPress={limpiarInterfaz}
+                        >
+                            <Text style={styles.textoBoton}>Limpiar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <CustomAlert
                     isVisible={alertVisible}
@@ -309,141 +378,165 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#f6f8fa',
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        borderRadius: 7,
+        backgroundColor: '#f3f4f6',
+        marginBottom: 13,
+        height: 44,
+    },
+    inputConIcono: {
+        flex: 1,
+        padding: 10,
+        fontSize: 15,
+        backgroundColor: 'transparent',
+    },
+    iconoOjo: {
+        padding: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     bg: {
         position: 'absolute',
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
-        zIndex: -1,
-    },
-     botonDeshabilitado: {
-        opacity: 0.5,
-        backgroundColor: '#cccccc',
-        borderColor: '#999999',
     },
     formulario: {
         width: '100%',
-        maxWidth: 800, 
-        padding: 20,
-        borderRadius: 10,
+        maxWidth: 900,
+        alignSelf: 'center',
+        marginTop: 32,
+        marginBottom: 24,
+        padding: 30,
         backgroundColor: '#fff',
+        borderRadius: 14,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
+    },
+    fila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        gap: 24,
+    },
+    columna: {
+        width: '48%',
+        minWidth: 260,
+    },
+    columnaDerecha: {
+        width: '48%',
+        minWidth: 260,
+        marginTop: 25,
+    },
+    label: {
+        fontSize: 15,
+        marginBottom: 6,
+        fontWeight: '500',
+        color: '#2a3d6c',
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        padding: 10,
+        borderRadius: 7,
+        marginBottom: 13,
+        backgroundColor: '#f3f4f6',
+        height: 44,
+        fontSize: 15,
     },
     dniContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 13,
+        gap: 8,
     },
     inputDNI: {
         flex: 1,
-        marginRight: 10,
-    },
-    deshabilitarBoton: {
-        backgroundColor: '#cccccc',
-        borderColor: '#999999',
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#2c3e50',
-    },
-    botonBase: {
-    height: 48, // igual que los inputs
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+        marginRight: 0,
+        marginBottom: 0,
     },
     rolRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 15,
-        gap: 10, // si usas React Native Web, si no, usa marginLeft en el botón
-    },
-    botonAgregarRol: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#5245D6',
-        borderWidth: 1,
-        width: 48,
-        marginLeft: 10,
+        gap: 8,
     },
     botonConsultar: {
-        backgroundColor: '#CED9EF',
+        backgroundColor: '#e3f2fd',
         borderColor: '#746BC8',
         borderWidth: 1,
-        width: 120,
-        marginLeft: 10,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        width: 100,
+        height: 44,
     },
-    input: {
-        borderWidth: 1,
-        borderColor: '#bdc3c7',
-        borderRadius: 5,
+    botonAgregarRol: {
+        backgroundColor: '#6c7ae0',
         padding: 10,
-        marginBottom: 15,
-        backgroundColor: '#ecf0f1',
-        fontSize: 16,
-        width: '100%',
+        borderRadius: 7,
+        width: 38,
+        height: 38,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     textoBotonAgregarRol: {
+        color: '#fff',
         fontSize: 20,
-        color: 'black',
         fontWeight: 'bold',
-        textAlign: 'center',
     },
-    contenidoBoton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 30,
-        gap: 10,
-    },
-    botonRegistrar: {
-        backgroundColor: '#CFEFCE',
-        borderColor: '#33FF00',
+    botonAlta: {
+        backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
     },
-    botonCancelar: {
-        backgroundColor: '#f9e0e0',
-        borderColor: 'pink',
+    botonBaja: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
-    },
-    botonDeshabilitar: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
-        borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
     },
     botonModificar: {
-        backgroundColor: '#CED9EF',
+        backgroundColor: '#e3f2fd',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 5,
-        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    botonLimpiar: {
+        backgroundColor: '#f5f5f5',
+        borderColor: '#9e9e9e',
+        borderWidth: 1,
+        paddingVertical: 10,
+        borderRadius: 7,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
     },
     textoBoton: {
-        color: 'black',
-        fontSize: 16,
-        fontWeight: 'bold',
+        color: '#2c3e50',
+        fontSize: 15,
+        fontWeight: '600',
         textAlign: 'center',
     },
 });

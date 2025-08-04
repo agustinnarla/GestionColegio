@@ -2,7 +2,7 @@ import { StyleSheet, View, Image, TouchableOpacity, Text, TextInput, Switch, Scr
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { obtenerAlumnosAusentes, obtenerCursoFrontend, registrarAsistenciaFrontend } from '../../scripts/preceptor/scriptGestionAsistencia.js';
+import { obtenerAlumnosAusentes, obtenerCursoFrontend, registrarAsistenciaFrontend, exportarExcelConDatos } from '../../scripts/preceptor/scriptGestionAsistencia.js';
 import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
 import bg from '../../assets/bg1.jpg';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -98,6 +98,17 @@ export default function ModificarAsistencia() {
         }
     };
 
+    const exportarModificacionExcel = () => {
+    const data = students.map(a => ({
+        Fecha: obtenerFechaActual(),
+        DNI: a.id,
+        Alumno: a.nombre,
+        Estado: a.presente ? 'Modificado a Presente' : 'Sigue Ausente'
+    }));
+
+    exportarExcelConDatos(data);
+    };
+
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
@@ -132,12 +143,13 @@ export default function ModificarAsistencia() {
                         <TouchableOpacity style={[styles.boton, styles.enviar]} onPress={handleRegistrar}>
                             <Text style={styles.botonTexto}>Enviar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                                                style={[styles.boton, styles.volver]}
-                                                
-                                            >
-                                                <Text style={styles.botonTexto}>📄</Text>
-                                            </TouchableOpacity>
+                         <TouchableOpacity
+                            style={styles.boton}
+                            
+                            onPress={() => exportarModificacionExcel(students)}
+                        >
+                            <Text style={styles.botonTexto}>📄</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
                 {mensajeConfirmacion !== '' && (

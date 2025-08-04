@@ -7,6 +7,7 @@ import { obtenerAvisosCurso, obtenerAvisosGenerales } from '../../scripts/alumno
 import { obtenerAvisos, crearAvisos} from '../../scripts/secretaria/scriptCargarAvisos.js';
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
+import CustomAlert from '../../componente/CustomAlerts.js';
 
 export default function Avisos() {
   const [informacion, setInformacion] = useState('');
@@ -15,16 +16,32 @@ export default function Avisos() {
   const [profesor, setProfesor] = useState([]); // Cambiado a array para múltiple selección
   const [cursosData, setCursosData] = useState([]); // Nuevo estado para cursos
   const [cursosAfectados, setCursosAfectados] = useState([]);
-  const [fecha, setFecha] = useState(new Date());
+  const [fecha_aviso, setFecha] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [fechaTexto, setFechaTexto] = useState('');
+  const [fechaValida, setFechaValida] = useState(true);
   const [profesoresData, setProfesoresData] = useState([]); // Para almacenar los datos de profesores
   const [estado_general, setEstadoGeneral] = useState([]);
+  const [selectKey, setSelectKey] = useState(1);
 
+    // Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [enviando, setEnviado] = useState(false)
+  
+  
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
+  
   const [formData, setFormData] = useState({
     id_estado_general: '',
     id_motivo: '',
-  })
+  });
 
     // En tu componente:
     const [avisos, setAvisos] = useState([]);
@@ -32,7 +49,7 @@ export default function Avisos() {
     const [errorAvisos, setErrorAvisos] = useState(null);
 
   const onChangeDate = (event, selectedDate) => {
-    const currentDate = selectedDate || fecha;
+    const currentDate = selectedDate || fecha_aviso;
     setShowDatePicker(false);
     setFecha(currentDate);
     
@@ -47,24 +64,45 @@ export default function Avisos() {
   };
 
   const validarFecha = (text) => {
-    // Expresión regular para validar DD/MM/YYYY
-    const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-    const esValida = regex.test(text);
-    setFechaValida(esValida);
-    setFecha(text);
+    setFechaTexto(text);
     
-    // Autoformateo mientras escribe
-    if (text.length === 2 || text.length === 5) {
-      if (text.length === 2 && text.indexOf('/') === -1) {
-        setFecha(text + '/');
-      } else if (text.length === 5 && text.lastIndexOf('/') === 2) {
-        setFecha(text + '/');
-      }
+    // Si está vacío, no mostrar error
+    if (!text.trim()) {
+      setFechaValida(true);
+      return;
     }
+    
+    // Expresión regular para validar YYYY-MM-DD
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    const formatoValido = regex.test(text);
+    
+    if (!formatoValido) {
+      setFechaValida(false);
+      return;
+    }
+    
+    // Verificar que la fecha sea real
+    const fecha = new Date(text);
+    const esFechaReal = fecha instanceof Date && !isNaN(fecha) && fecha.getFullYear() > 1900;
+    
+    // Verificar que los valores de mes y día sean válidos
+    const [year, month, day] = text.split('-').map(Number);
+    const mesValido = month >= 1 && month <= 12;
+    const diaValido = day >= 1 && day <= 31;
+    
+    // Verificación adicional para días específicos por mes
+    const diasPorMes = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const esBisiesto = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    if (month === 2 && esBisiesto) {
+      diasPorMes[2] = 29;
+    }
+    const diaCorrecto = day <= diasPorMes[month];
+    
+    setFechaValida(esFechaReal && mesValido && diaValido && diaCorrecto);
   };
 
  
-    const cargarEstadoGeneral = async () => {
+  const cargarEstadoGeneral = async () => {
         try {
             
             const estadoData = await obtenerEstadoGeneral();
@@ -80,8 +118,7 @@ export default function Avisos() {
     cargarCursos();
     cargarMotivos();
     cargarEstadoGeneral();
-    cargarAvisos();
-  }, []); // Solo se ejecuta al montar el componente
+  }, []); 
 
   const cargarProfesores = async () => {
     try {
@@ -89,7 +126,7 @@ export default function Avisos() {
       console.log("Datos crudos de profesores:", response); 
       
       // Accedemos al array de profesores dentro del objeto
-const listaProfesores = Array.isArray(response) ? response : (response.profesores || []);      
+      const listaProfesores = Array.isArray(response) ? response : (response.profesores || []);      
       if (listaProfesores.length > 0) {
         const profesoresFormateados = listaProfesores.map(prof => ({
           key: prof.dni_profesional.toString(),
@@ -154,7 +191,9 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
             fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`;
           }
         }
-
+        setEnviado(true)
+        mostrarMensaje('Enviando', 'Enviando aviso al email...');
+        
         const datosParaBackend = {
           informacion,
           id_motivo: formData.id_motivo,
@@ -165,66 +204,68 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
         };
 
         console.log('Datos a enviar al backend:', datosParaBackend);
-
+        
         const respuesta = await crearAvisos(datosParaBackend);
         console.log('Respuesta del backend:', respuesta);
-        cargarAvisos();
-        Alert.alert('Éxito', 'Aviso creado correctamente');
-        limpiarInterfaz();
 
+        // Transición suave entre mensajes
+        setTimeout(() => {
+            setAlertVisible(false);
+            setTimeout(() => {
+                mostrarMensaje('Éxito', 'Aviso creado correctamente');
+                limpiarInterfaz();
+                setEnviado(false);
+            }, 300); // Pequeña pausa para la transición
+        }, 500);
       } catch (error) {
-        console.error('Error al crear aviso:', error);
-        Alert.alert('Error', error.message || 'Error al crear el aviso');
+        setEnviado(false)
+        // Transición suave para el error también
+        setTimeout(() => {
+            setAlertVisible(false);
+            setTimeout(() => {
+                console.error('Error al crear aviso:', error);
+                mostrarMensaje('Error', error.message || 'Error al crear el aviso');
+            }, 300);
+        }, 500);
+        
       }
     } else {
+      setEnviado(false)
       console.error('Completar');
-      Alert.alert('Error', 'Complete todos los campos obligatorios');
+      mostrarMensaje('Error', 'Complete todos los campos obligatorios');
     }
-};
+  };
 
-const cargarAvisos = async () => {
-    try {
-        setCargandoAvisos(true);
-        setErrorAvisos(null);
-
-        const avisosObtenidosGenerales = await obtenerAvisosGenerales();
-        console.log("Datos recibidos del backend:", avisosObtenidosGenerales);
-
-        // Accede al array de avisos correctamente
-        const listaAvisos = Array.isArray(avisosObtenidosGenerales)
-            ? avisosObtenidosGenerales
-            : avisosObtenidosGenerales.avisos || [];
-
-        // Filtrar por fecha mayor o igual a hoy
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Ignora la hora
-
-        const avisosFiltrados = listaAvisos.filter(aviso => {
-            if (!aviso.fecha) return false;
-            // Convertir "DD-MM-YYYY" a Date
-            const [dia, mes, anio] = aviso.fecha.split('-');
-            const fechaAviso = new Date(`${anio}-${mes}-${dia}T00:00:00`);
-            return fechaAviso >= hoy;
-        });
-
-
-        setAvisos(avisosFiltrados);
-    } catch (error) {
-        console.error('Error al cargar avisos:', error);
-        setErrorAvisos('No se pudieron cargar los avisos. Intente nuevamente.');
-        Alert.alert('Error', 'No se pudieron cargar los avisos');
-    } finally {
-        setCargandoAvisos(false);
-    }
-};
+  const validarCampos = () => {
+    return(
+      informacion && fechaTexto && formData.id_motivo && formData.id_estado_general
+    )
+  }
 
   const limpiarInterfaz = () => {
+    console.log('Limpiando interfaz...');
+    
+    // Limpiar todos los estados del formulario
     setInformacion('');
-    setMotivo('');
+    setFormData({
+      id_estado_general: '',
+      id_motivo: '',
+    });
     setProfesor([]);
     setCursosAfectados([]);
     setFecha(new Date());
     setFechaTexto('');
+    setFechaValida(true);
+    
+    // Forzar la recreación de los componentes MultipleSelectList
+    setSelectKey(prev => prev + 1); 
+    
+    // Asegurar que los componentes se limpien completamente después de un breve delay
+    setTimeout(() => {
+      setProfesor([]);
+      setCursosAfectados([]);
+      console.log('Interfaz limpiada completamente');
+    }, 50);
   };
   
 const handleChange = (name, value) => {
@@ -238,7 +279,7 @@ const handleChange = (name, value) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.flexRow}>
           {/* Formulario */}
-          <View style={styles.formulario}>
+                    <View style={styles.formulario}>
             <Text style={styles.label}>Información</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
@@ -249,14 +290,19 @@ const handleChange = (name, value) => {
             />
 
             <Text style={styles.label}>Fecha</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="AAAA-MM-DD"
-              value={fechaTexto}
-              onChangeText={setFechaTexto}
-              keyboardType="numeric"
-              maxLength={10}
-            />
+                         <TextInput
+               style={[styles.input, !fechaValida && styles.inputError]}
+               placeholder="AAAA-MM-DD"
+               value={fechaTexto}
+               onChangeText={validarFecha}
+               keyboardType="numeric"
+               maxLength={10}
+             />
+             {!fechaValida && fechaTexto && (
+               <Text style={styles.errorText}>
+                 Formato inválido. Use YYYY-MM-DD (ej: 2024-12-25)
+               </Text>
+             )}
             
             <ListasDesplegables
                 formData={formData}
@@ -276,6 +322,7 @@ const handleChange = (name, value) => {
 
             <Text style={styles.label}>Profesores Afectados</Text>
             <MultipleSelectList
+              key={`profesores-${selectKey}`} 
               setSelected={(val) => setProfesor(val)}
               data={profesoresData}
               save="key"
@@ -287,40 +334,37 @@ const handleChange = (name, value) => {
             />
             <Text style={styles.label}>Cursos afectados</Text>
             <MultipleSelectList
-            setSelected={(val) => setCursosAfectados(val)}
-            data={cursosData} // Usamos los cursos cargados dinámicamente
-            save="key"
-            label="Cursos"
-            placeholder="Seleccionar curso(s) (opcional)"
-            boxStyles={styles.dropdown}
-            dropdownTextStyles={styles.dropdownText}
-            notFoundText="No hay cursos disponibles"
+              key={`cursos-${selectKey}`} 
+              setSelected={(val) => setCursosAfectados(val)}
+              data={cursosData} 
+              save="key"
+              label="Cursos"
+              placeholder="Seleccionar curso(s) (opcional)"
+              boxStyles={styles.dropdown}
+              dropdownTextStyles={styles.dropdownText}
+              notFoundText="No hay cursos disponibles"
           />
-            <TouchableOpacity style={styles.boton} onPress={agregarAviso}>
-              <Text style={styles.botonTexto}>Agregar Aviso</Text>
-            </TouchableOpacity>
+        
+          
+            <View style={styles.botonesContainer}>
+              <TouchableOpacity style={[styles.boton, styles.botonAgregar, !validarCampos() && styles.botonDeshabilitado]} onPress={agregarAviso} disabled={!validarCampos()}>
+                <Text style={styles.botonTexto}>Agregar Aviso</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.boton, styles.botonLimpiar]} onPress={limpiarInterfaz}>
+                <Text style={styles.botonTexto}>Limpiar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          {/* Lista de avisos */}
-          <View style={styles.listaAvisosContainer}>
-            <Text style={styles.tituloAvisos}>Lista de Avisos</Text>
-            <ScrollView style={styles.scrollAvisos}>
-            {avisos.length === 0 ? (
-              <Text style={styles.textoSinAvisos}>No hay avisos disponibles</Text>
-            ) : (
-              avisos.map((avisos) => (
-                <View key={avisos.id} style={styles.tarjeta}>
-                  <Text style={styles.textoAviso}>{avisos.informacion}</Text>
-                  <Text style={styles.textoMotivo}>Motivo: {avisos.detalle}</Text>
-                  {avisos.profesor && <Text style={styles.textoMotivo}>{avisos.profesor}</Text>}
-                  {avisos.cursos && <Text style={styles.textoMotivo}>{avisos.cursos}</Text>}
-                  <Text style={styles.textoDH}>{avisos.fecha}</Text>
-                </View>
-              ))
-            )}
-          </ScrollView>
-          </View>
-        </View>
+      </View>
+
       </ScrollView>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            showSpinner={enviando}
+     />   
     </View>
   );
 }
@@ -333,32 +377,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f7fa',
     position: 'relative',
   },
-  container: { // AGREGA ESTE ESTILO
+  botonDeshabilitado: {
+    opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
+  },
+  container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
+    alignItems: 'center',
   },
   bg: {
     position: 'absolute',
-    top: 0,
-    left: 0,
     width: '100%',
     height: '100%',
     zIndex: -1,
   },
   formulario: {
-    width: '95%',
-    maxWidth: 600,
+    width: '100%',
+    maxWidth: '95%',
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 28,
-    marginTop: 10, // <--- REDUCE ESTE VALOR
+    marginTop: 10, 
     marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.10,
     shadowRadius: 12,
     elevation: 6,
-    alignSelf: 'center',
   },
   input: {
     marginTop: 10,
@@ -371,20 +418,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2a3d6c',
   },
+  botonesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 15,
+    marginTop: 10,
+  },
   boton: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#4caf50',
-    borderWidth: 1,
+    flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 10,
     elevation: 2,
     shadowColor: '#CED9EF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 4,
+    borderWidth: 1,
+  },
+  botonAgregar: {
+    backgroundColor: '#e8f5e9',
+        borderColor: '#4caf50',
+        borderWidth: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        elevation: 2,
+        shadowColor: '#CED9EF',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.10,
+        shadowRadius: 4,
+        minWidth: 120,
+        alignItems: 'center',
+        marginRight: 8,
+  },
+  botonLimpiar: {
+    backgroundColor: '#ffebee',
+    borderColor: '#f44336',
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#f44336',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    minWidth: 120,
+    alignItems: 'center',
+    marginLeft: 8,
   },
   botonTexto: {
     color: '#2a3d6c',
@@ -477,7 +560,8 @@ const styles = StyleSheet.create({
     color: '#2a3d6c',
   },
   textArea: {
-    height: 100,
+    height: 120,
+    minHeight: 120,
   },
   pickerContainer: {
     backgroundColor: '#f9f9f9',
@@ -500,6 +584,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 20,
   },
+
   flexRow: {
     flexDirection: 'row',
     width: '100%',

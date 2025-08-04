@@ -57,9 +57,11 @@ export default function JustificarFaltaP_P() {
         }
     };
 
-    const cargarFaltas = async () => {
+    const cargarFaltas = async (fechaDesdeParam, fechaHastaParam) => {
         try {
-            const faltasData = await obtenerFaltasPP(fechaDesde, fechaHasta);
+            console.log('Consultando faltas con fechas:', fechaDesdeParam, 'hasta', fechaHastaParam);
+            const faltasData = await obtenerFaltasPP(fechaDesdeParam, fechaHastaParam);
+            console.log('Datos recibidos del backend:', faltasData);
             setFaltas(Array.isArray(faltasData) ? faltasData : []);
             
             // Inicializar los estados por profesor
@@ -85,13 +87,75 @@ export default function JustificarFaltaP_P() {
         cargarCertificados();
     }, []);
 
-    const handleConsultar = () => {
-        if (fechaDesde && fechaHasta) {
-            cargarFaltas();
-        } else {
-            Alert.alert('Error', 'Por favor ingrese ambas fechas');
-        }
+    const formatearFecha = (fechaISO) => {
+        if (!fechaISO) return '--/--/----';
+        const fecha = new Date(fechaISO);
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const año = fecha.getFullYear();
+        return `${dia}/${mes}/${año}`;
     };
+
+    const validarYConvertirFechas = (fechaDesde, fechaHasta) => {
+        // Validar formato DD/MM/AAAA
+        const formatoValido = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!formatoValido.test(fechaDesde) || !formatoValido.test(fechaHasta)) {
+            return { valido: false, mensaje: "Las fechas deben estar en formato DD/MM/AAAA." };
+        }
+        // Validar existencia real de la fecha
+        const esFechaValida = (fecha) => {
+            const [dia, mes, año] = fecha.split('/').map(Number);
+            const date = new Date(año, mes - 1, dia);
+            return (
+                date.getFullYear() === año &&
+                date.getMonth() === mes - 1 &&
+                date.getDate() === dia
+            );
+        };
+        if (!esFechaValida(fechaDesde) || !esFechaValida(fechaHasta)) {
+            return { valido: false, mensaje: "Alguna de las fechas ingresadas no existe." };
+        }
+        const convertirFormatoFecha = (fecha) => {
+            const [dia, mes, año] = fecha.split('/');
+            return `${año}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+        };
+        const fechaDesdeConvertida = convertirFormatoFecha(fechaDesde);
+        const fechaHastaConvertida = convertirFormatoFecha(fechaHasta);
+        if (new Date(fechaDesdeConvertida) > new Date(fechaHastaConvertida)) {
+            return { valido: false, mensaje: "La fecha 'Desde' no puede ser mayor que la fecha 'Hasta'." };
+        }
+        return {
+            valido: true,
+            fechas: {
+                desde: fechaDesdeConvertida,
+                hasta: fechaHastaConvertida
+            }
+        };
+    };
+    
+    const handleConsultar = async () => {
+        const resultado = validarYConvertirFechas(fechaDesde, fechaHasta);
+        if (!resultado.valido) {
+            setMensajeError(resultado.mensaje); 
+            if (Platform.OS === 'web') 
+            {
+                window.alert("Fechas incorrectas: " + resultado.mensaje);
+            } else {
+                Alert.alert("Fechas incorrectas", resultado.mensaje);
+            }
+            return;
+        }
+
+        try {
+
+            await cargarFaltas(resultado.fechas.desde, resultado.fechas.hasta);
+        } catch (error) {
+            console.error('Error al cargar faltas:', error);
+            setMensajeError('Error al cargar las faltas');
+        } finally {
+            setCargando(false);
+        }
+    };  
 
     // Cambiar a profesional
     const actualizarSeleccionProfesor = (tipo, valor, dni_profesional, fecha) => {
@@ -108,7 +172,7 @@ export default function JustificarFaltaP_P() {
             }));
         }
 
-        // Preparar datos para enviar al backend
+       
         const datosParaEnviar = {
             dni_profesional,
             fecha,
@@ -132,15 +196,10 @@ export default function JustificarFaltaP_P() {
         }
     };
 
-    const formatearFecha= (fechaISO) => {
-        if (!fechaISO) return null;
-        const fecha = new Date(fechaISO);
-        const año = fecha.getFullYear();
-        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-        const dia = fecha.getDate().toString().padStart(2, '0');
-        return `${año}-${mes}-${dia}`;
-    };
-
+   
+    const validarCampos = () => {
+        return fechaDesde.length >= 10 && fechaHasta.length >= 10
+    }
     const handleRegistrarJustificacion = async ({ dni_profesional, fecha, id_estado_falta_profesionales, id_certificado }) => {
         if (!dni_profesional || !fecha) {
             console.log('Faltan datos requeridos');
@@ -200,7 +259,7 @@ export default function JustificarFaltaP_P() {
                             onChangeText={setFechaHasta}
                         />
                     </View>
-                    <TouchableOpacity style={styles.boton} onPress={handleConsultar}>
+                    <TouchableOpacity style={[styles.boton, !validarCampos() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarCampos()}>
                         <Text style={styles.botonTexto}>Consultar</Text>
                     </TouchableOpacity>
                 </View>
@@ -299,6 +358,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#f5f7fa',
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
     },
     bg: {
         alignItems: 'center',

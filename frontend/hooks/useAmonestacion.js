@@ -4,7 +4,7 @@ import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../scrip
 import { registrarAmonestacion, imprimirArchivo, obtenerCantidadAmonestaciones } from '../scripts/preceptor/scriptGestionAmonestacion.js';
 
 export default function useAmonestacion() {
-    // Formulario
+    //🟢Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
         dni_profesional: '',
@@ -14,28 +14,30 @@ export default function useAmonestacion() {
         id_curso: ''
     });
 
-    // Listas desplegables
+    //🟢 Estados y Listas desplegables
     const [cursos, setCursos] = useState([]);
     const [profesionales, setProfesionales] = useState([]);
     const [alumnos, setAlumnos] = useState([]);
     const [totalAmonestaciones, setTotalAmonestaciones] = useState('0');
 
-    // Modal y mensajes
+    //🟢Modal y mensajes
     const [modalVisible, setModalVisible] = useState(false);
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [enviando, setEnviando] = useState(false);
 
+    //🟢 Mensajes
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
     };
 
-    // Validaciones y helpers
+    //🟢 Validacio de número 
     const validarNumeroPositivo = (numero) => !isNaN(numero) && parseInt(numero) > 0;
 
+    //🟢 Validación de fecha 
     const validarFecha = (fecha) => {
         const regex = /^\d{2}\/\d{2}\/\d{4}$/;
         if (!regex.test(fecha)) return false;
@@ -53,11 +55,13 @@ export default function useAmonestacion() {
         return true;
     };
 
+    //🟢 Formatear fecha 
     const formatearFecha = (fecha) => {
         const [dia, mes, año] = fecha.split('/');
         return `${año}/${mes}/${dia}`;
     };
 
+    //🟢 Validar campos para la habilitación de botones 
     const validarCampos = () => {
         const fechaEsValida = validarFecha(formData.fecha);
         return formData.dni_alumno &&
@@ -70,9 +74,10 @@ export default function useAmonestacion() {
             validarNumeroPositivo(formData.cantidad);
     };
 
+    //🟢 Validamos datos 
     const validarFomulario = useMemo(() => validarCampos(), [formData]);
 
-    // Cargar cursos y solicitantes
+    //🟢 Cargar Listas desplegables 
     useEffect(() => {
         const cargarListaDesplegables = async () => {
             try {
@@ -96,7 +101,7 @@ export default function useAmonestacion() {
     }, [formData.id_curso]);
 
     
-    // Cargar cantidad de amonestaciones de acuerdo al DNI
+    //🟢 Cargar cantidad de amonestaciones de acuerdo al DNI
     useEffect(() => {
         const cargarAmonestacion = async () => {
             if (formData.dni_alumno) {
@@ -112,7 +117,7 @@ export default function useAmonestacion() {
         cargarAmonestacion();
     }, [formData.dni_alumno]);
 
-    // Acciones
+    //🟢 Registrar 
     const handleRegistrar = async () => {
         try {
             const alumnoData = {
@@ -134,6 +139,7 @@ export default function useAmonestacion() {
         }
     };
 
+    //🟢 Limpiar interrfaz
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
@@ -148,6 +154,7 @@ export default function useAmonestacion() {
     };
 
 
+    //🟢 Imprimir
     const handleImprimir = async () => {
         try {
             const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
@@ -163,7 +170,7 @@ export default function useAmonestacion() {
         }
     };
 
-    // Cambio de valor en una lista desplegable 
+    //🟢 Cambio de estados en una lista desplegable 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };

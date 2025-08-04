@@ -120,7 +120,7 @@ export const deshabilitarCurso = async (req, res) => {
             return res.status(400).json({ error: 'ID del curso es requerido' });
         }
         await pool.query('UPDATE curso SET id_estado_general = 2 WHERE id_curso = $1', [id_curso]);
-
+        
         res.status(200).json({ mensaje: 'Curso deshabilitado exitosamente' });
     } catch (error) {
         console.error('Error al deshabilitar el curso:', error);

@@ -3,7 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import { obtenerCaracteristicasUnidad, obtenerCursoPorProfesor, obtenerCursosPorProfesor, obtenerMateriaPorCursoYProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js';
-import { registrarLibroAula } from '../../scripts/profesor/scriptLibroAula.js';
+import { registrarLibroAula, obtenerNumeroDeClase } from '../../scripts/profesor/scriptLibroAula.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 
@@ -40,6 +40,7 @@ export default function LibroAula({ route }) {
     const [caracteristica_unidad, setCaracteristica] = useState('');
     const [loading, setLoading] = useState(true);
     const [cursoPorProfesor, setCursoPorProfesor] = useState([]);
+    const [numero_clase, setNumeroClase] = useState(0);
 
     //🟢 Capturamos Parametros 
     const { dni_usuario } = route.params;
@@ -97,12 +98,25 @@ export default function LibroAula({ route }) {
         cargarCaracteristicas();
     }, []);
 
+    useEffect(() => {
+        const cargarNumerClase = async () => {
+            try{
+                
+                const data = await obtenerNumeroDeClase(dni_profesional, formData.id_curso, formData.id_materia);
+                setNumeroClase(data ? data.toString() : "0");
+            }catch(error){
+                console.log(error)
+            }
+        }
+        cargarNumerClase();
+    }, [dni_profesional, formData.id_curso, formData.id_materia]);
+
+
     const validarDatos = () => {
         return  formData.id_materia &&
         formData.id_caracteristica_unidad &&
         formData.id_curso &&
         formData.fecha &&
-        formData.numero_clase &&
         formData.unidad &&
         formData.tema_abarcado 
     };
@@ -121,7 +135,7 @@ export default function LibroAula({ route }) {
                 id_materia: formData.id_materia,
                 id_caracteristica_unidad: formData.id_caracteristica_unidad,
                 fecha: formatearFecha(formData.fecha),
-                numero_clase: formData.numero_clase,
+                numero_clase: numero_clase,
                 unidad: formData.unidad,
                 tema_abarcado: formData.tema_abarcado,
                 dni_profesional: dni_usuario,
@@ -157,11 +171,11 @@ export default function LibroAula({ route }) {
                 id_caracteristica_unidad: '',
                 id_curso: '',
                 fecha: '',
-                numero_clase: '',
                 unidad: '',
                 tema_abarcado: '',
                 dni_profesional: ''
             });
+            setNumeroClase('')
         };
 
     
@@ -206,7 +220,6 @@ export default function LibroAula({ route }) {
                         <Text style={styles.label}>Fecha:</Text>
                         <TextInput style={styles.input} 
                             placeholder='DD/MM/AAAA' 
-                            keyboardType="numeric" 
                             value={formData.fecha}
                             onChangeText={(value) => handleChange('fecha', value)}
                         />
@@ -215,10 +228,12 @@ export default function LibroAula({ route }) {
                         <TextInput style={styles.input} 
                             placeholder='0' 
                             keyboardType="numeric"
-                            value={formData.numero_clase}
+                            editable={false}
+                            value={numero_clase}
                             onChangeText={(value) => handleChange('numero_clase', value)} 
                         />
 
+ 
                         <Text style={styles.label} >Unidad:</Text>
                         <TextInput style={styles.input} 
                             placeholder='0' 
@@ -263,6 +278,9 @@ const styles = StyleSheet.create({
     },
     bg: {
         flex: 1,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
     },
     scrollContainer: {
         flexGrow: 1,
@@ -277,7 +295,7 @@ const styles = StyleSheet.create({
     },
     card: {
         width: '90%',
-        maxWidth: 500,
+        maxWidth: 400,
         backgroundColor: '#fff',
         padding: 20,
         borderRadius: 10,
@@ -291,7 +309,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#2a3d6c',
     },
     input: {
         width: '100%',
@@ -302,6 +320,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         backgroundColor: '#fafafa',
         fontSize: 16,
+         color: '#2a3d6c'
     },
     textArea: {
         height: 100,
@@ -311,6 +330,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 20,
+
     },
     botonRegistrar: {
         backgroundColor: '#CFEFCE',
@@ -332,12 +352,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     textoBoton: {
-        color: 'black',
+       color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
     },
-    contenidoLista: {
-        // Si necesitas estilos específicos para el contenedor de ListasDesplegables
-    }
 });

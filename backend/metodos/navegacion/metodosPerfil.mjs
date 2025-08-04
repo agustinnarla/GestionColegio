@@ -1,6 +1,7 @@
 import {pool} from '../../dataBase/coneccion.mjs'
 import {encriptarContrasena} from './metodosLogin.mjs'
 
+//🟢 Obtenemos Usuario
 export const obtenerUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
     try {
@@ -18,6 +19,7 @@ export const obtenerUsuario = async (req, res) => {
     }
 };
 
+//🟢 Obtenemos el Usuario en caso de que sea alumno para que sea más detallado
 export const obtenerUsuarioAlumno = async (req, res) => {
     const { dni_usuario} = req.params;
     try {
@@ -52,6 +54,7 @@ export const obtenerUsuarioAlumno = async (req, res) => {
     }
 };
 
+//🟢 Función restablecer contraseña del perfil 
 export const restablecerContrasena = async (req, res) => {
     const { dni_usuario} = req.params;
     const { nuevaContrasena } = req.body;

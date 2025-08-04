@@ -1,11 +1,11 @@
 import { StyleSheet, View, Image, Text, TouchableOpacity, FlatList,ImageBackground, TextInput, ScrollView, Modal, Alert} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import { agregarNota, modificarEstadoEvaluativo } from '../../scripts/profesor/scriptCargarNotaFinal';
 import { obtenerCursoPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosNoRegulares, obtenerMateriaPorCursoYProfesor } from '../../scripts/listasDesplegables/listaDesplegable';
-
+import CustomAlert from '../../componente/CustomAlerts';
 
 export default function CargarNotasFinal({route}) {
     const [datos, setDatos] = useState([]);
@@ -18,6 +18,7 @@ export default function CargarNotasFinal({route}) {
     const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
     const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]); // Debe contener los ID de las materias seleccionadas    const [modalVisible, setModalVisible] = useState(false);
     const [notasAEnviar, setNotasAEnviar] = useState([]);
+    const [selectKey, setSelectKey] = useState(0);
 
     const consultarDatos = () => {
         console.log("Consultando datos con filtros:");
@@ -25,6 +26,19 @@ export default function CargarNotasFinal({route}) {
         console.log("Materias seleccionadas:", materiasSeleccionadas);
         cargarAlumnosFiltrados(); // Llama al método que aplica el filtro
     };
+
+        //🟢 Estado del Mensaje
+        const [alertVisible, setAlertVisible] = useState(false);
+        const [alertTitle, setAlertTitle] = useState('');
+        const [alertMessage, setAlertMessage] = useState('');
+        const [enviando, setEnviando] = useState(false);
+    
+        //🟢 Mensaje 
+        const mostrarMensaje = (titulo, mensaje) => {
+            setAlertTitle(titulo);
+            setAlertMessage(mensaje);
+            setAlertVisible(true);
+        };
 
     const { dni_usuario } = route.params;
 
@@ -76,14 +90,19 @@ export default function CargarNotasFinal({route}) {
     };
 
     const reiniciarFiltro = () => {
-        setCursosSeleccionados([]);
-        setMateriasSeleccionadas([]);
-
+    setCursosSeleccionados([]);
+    setMateriasSeleccionadas([]);
+    setDatos([]);
+    setNotas({});
+    setNotasAEnviar([]);
+    setModalVisible(false);
+    setSelectKey(prev => prev + 1); 
     };
 
     const dni_profesional = dni_usuario
+    
     // 🟢 Cargar cursos una sola vez
-useEffect(() => {
+    useEffect(() => {
     const cargarCursosPorProfesor = async () => {
         try {
             const data = await obtenerCursoPorProfesor(dni_profesional);
@@ -97,44 +116,47 @@ useEffect(() => {
     if (dni_profesional && cursos.length === 0) {
         cargarCursosPorProfesor();
     }
-}, [dni_profesional]);
+    }, [dni_profesional]);
 
-console.log("cursoSeleccionado:", cursos);
-console.log("dni_profesional:", dni_profesional);
+
 // 🟢 Cargar materias al cambiar cursoSeleccionado
-
-useEffect(() => {
-    const cargarMateriasPorCursoYProfesor = async () => {
-        if (!cursosSeleccionados || !dni_profesional) {
-            console.warn("Faltan datos: cursos o dni_profesional");
-            return;
-        }
-
-        try {
-            const data = await obtenerMateriaPorCursoYProfesor(cursosSeleccionados, dni_profesional);
-            console.log("MATERIAS RECIBIDAS:", data);
-
-            if (Array.isArray(data)) { // ✅ ya es un array
-                const materiasFormateadas = data.map(m => ({
-                    key: m.id_materia.toString(),
-                    value: m.detalle
-                }));
-                setMaterias(materiasFormateadas);
-            } else {
-                console.warn("La respuesta no es un array:", data);
-                setMaterias([]);
+    useEffect(() => {
+        const cargarMateriasPorCursoYProfesor = async () => {
+            if (!cursosSeleccionados || !dni_profesional) {
+                console.warn("Faltan datos: cursos o dni_profesional");
+                return;
             }
 
-        } catch (error) {
-            console.error("Error al cargar materias:", error);
+            try {
+                const data = await obtenerMateriaPorCursoYProfesor(cursosSeleccionados, dni_profesional);
+                console.log("MATERIAS RECIBIDAS:", data);
+
+                if (Array.isArray(data)) { 
+                    const materiasFormateadas = data.map(m => ({
+                        key: m.id_materia.toString(),
+                        value: m.detalle
+                    }));
+                    setMaterias(materiasFormateadas);
+                } else {
+                    console.warn("La respuesta no es un array:", data);
+                    setMaterias([]);
+                }
+
+            } catch (error) {
+                console.error("Error al cargar materias:", error);
+            }
+        };
+
+        if (cursosSeleccionados.length > 0) {
+            cargarMateriasPorCursoYProfesor();
         }
+    }, [cursosSeleccionados, dni_profesional]);
+    
+
+   const validarListas = () => {
+    return cursosSeleccionados.length > 0 && materiasSeleccionadas.length > 0;
     };
 
-    if (cursosSeleccionados.length > 0) {
-        cargarMateriasPorCursoYProfesor();
-    }
-}, [cursosSeleccionados, dni_profesional]);
-    
     const handleNotaChange = (idAlumno, idMateria, valorNota) => {
         const key = `${idAlumno}-${idMateria}`;
         setNotas(prevState => ({
@@ -219,6 +241,7 @@ useEffect(() => {
                         dni_alumno: notaParaEnviar.dni_alumno,
                         id_materia: notaParaEnviar.id_materia
                     });
+                
                 } catch (error) {
                     const errorMsg = `Error al procesar nota para ${nota.nombre || 'undefined'}: ${error.message}`;
                     console.error(errorMsg);
@@ -232,9 +255,9 @@ useEffect(() => {
                 if (errores.length > 0) {
                     mensaje += `\n\nErrores (${errores.length}):\n${errores.join('\n')}`;
                 }
-                Alert.alert("Éxito", mensaje);
+                mostrarMensaje('Exito', 'Notas registradas exitosamente')
             } else {
-                Alert.alert("Error", "No se pudo enviar ninguna nota");
+                mostrarMensaje("Error", "No se pudo enviar ninguna nota");
             }
     
             setModalVisible(false);
@@ -242,9 +265,10 @@ useEffect(() => {
             cargarAlumnosFiltrados();
         } catch (error) {
             console.error("Error en confirmarEnvio:", error);
-            Alert.alert("Error", "Ocurrió un problema al enviar las notas");
+            mostrarMensaje("Error", "Ocurrió un problema al enviar las notas");
         }
     };
+
     const renderItem = ({ item }) => {
         const key = `${item.id}-${item.id_materia}`;
         const nota = notas[key] || { nota_final: '' };
@@ -276,14 +300,16 @@ useEffect(() => {
                 <View style={styles.filtrosContainer}>
                     <View style={styles.filtroGroup}>
                     <MultipleSelectList
+                    key={selectKey} 
                         setSelected={(val) => {
-                        console.log("Cursos seleccionados:", val);
-                        setCursosSeleccionados(val);
-                        setMateriasSeleccionadas([]); // opcional: reiniciar materias si los cursos cambian
+                            console.log("Cursos seleccionados:", val);
+                            setCursosSeleccionados(val);
+                            setMateriasSeleccionadas([]); 
                         }}
+                        selected={cursosSeleccionados} 
                         data={cursos.map(curso => ({
-                        key: curso.id_curso?.toString() || '',
-                        value: curso.detalle || 'Sin detalle'
+                            key: curso.id_curso?.toString() || '',
+                            value: curso.detalle || 'Sin detalle'
                         }))}
                         save="key"
                         label="Cursos"
@@ -295,25 +321,24 @@ useEffect(() => {
 
                     <View style={styles.filtroGroup}>
                     <MultipleSelectList
-                        setSelected={(val) => {
-                            console.log("Materias seleccionadas:", val);
-                            setMateriasSeleccionadas(val); // Guarda las materias seleccionadas
-                        }}
-                        data={materias_curso_profesor} // Estado ya cargado en useEffect
-                        save="key" // Guarda los IDs como strings
-                        label="Materias"
-                        placeholder="Seleccionar materias"
-                        boxStyles={styles.dropdown}
-                        dropdownTextStyles={styles.dropdownText}
+                        key={selectKey} 
+                            setSelected={setMateriasSeleccionadas}
+                            selected={materiasSeleccionadas}
+                            data={materias_curso_profesor}
+                            save="key"
+                            label="Materias"
+                            placeholder="Seleccionar materias"
+                            boxStyles={styles.dropdown}
+                            dropdownTextStyles={styles.dropdownText}
                         />
                     </View>
                     <View style={styles.botonesContainer}>
-                        <TouchableOpacity style={styles.botonConsultar} onPress={consultarDatos}>
+                        <TouchableOpacity style={[styles.botonConsultar, !validarListas() && styles.botonDeshabilitado]} onPress={consultarDatos} disabled={!validarListas()}>
                             <Text style={styles.textoBoton}>Consultar</Text>
                         </TouchableOpacity>
                         
-                        <TouchableOpacity style={styles.botonReiniciar} onPress={reiniciarFiltro}>
-                            <Text style={styles.textoBoton}>Reiniciar</Text>
+                        <TouchableOpacity style={[styles.botonReiniciar, !validarListas() && styles.botonDeshabilitado]} onPress={reiniciarFiltro} disabled={!validarListas()}>
+                            <Text style={styles.textoBoton}>Reiniciar Filtros</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -338,7 +363,7 @@ useEffect(() => {
                         <TouchableOpacity
                             style={styles.botonEnviar}
                             onPress={prepararEnvio}>
-                            <Text style={styles.textoBotonEnviar}>ENVIAR DATOS</Text>
+                            <Text style={styles.textoBotonEnviar}>Registrar</Text>
                         </TouchableOpacity>
                     </>
                 )}
@@ -356,15 +381,15 @@ useEffect(() => {
                         <Text style={styles.modalSubtitulo}>¿Estás seguro que deseas enviar estas notas?</Text>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
+                                style={[styles.botonReiniciar, styles.botonReiniciar]}
                                 onPress={() => setModalVisible(false)}>
-                                <Text style={styles.modalButtonText}>Cancelar</Text>
+                                <Text style={styles.textoBoton}>Cancelar</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.confirmButton]}
+                                style={[styles.botonEnviar, styles.botonConsultar]}
                                 onPress={confirmarEnvio}>
-                                <Text style={styles.modalButtonText}>Confirmar</Text>
+                                <Text style={styles.textoBoton}>Confirmar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -382,11 +407,19 @@ const styles = StyleSheet.create({
     },
     bg: {
         flex: 1,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
     },
     scrollContainer: {
         padding: 0,
         alignItems: 'center',
         minHeight: '100%',
+    },
+    botonDeshabilitado: {
+        opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
     },
     filtrosContainer: {
         width: '100%',
@@ -426,6 +459,30 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     botonConsultar: {
+        backgroundColor: '#CED9EF',
+    borderColor: '#0500FF',
+    borderWidth: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
+        minWidth: 120,
+    },
+    botonReiniciar: {
+          backgroundColor: '#DADADA',
+        borderColor: '#000000',
+        borderWidth: 1,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+        minWidth: 120,
+    },
+    botonEnviar: {
+        
         backgroundColor: '#e8f5e9',
         borderColor: '#4caf50',
         borderWidth: 1,
@@ -441,46 +498,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight: 8,
     },
-    botonReiniciar: {
-        backgroundColor: '#ffebee',
-        borderColor: '#f44336',
-        borderWidth: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 24,
-        borderRadius: 10,
-        elevation: 2,
-        shadowColor: '#f44336',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.10,
-        shadowRadius: 4,
-        minWidth: 120,
-        alignItems: 'center',
-        marginLeft: 8,
-    },
-    botonEnviar: {
-        backgroundColor: '#746BC8',
-        borderColor: '#4b3bbd',
-        borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 32,
-        borderRadius: 10,
-        marginTop: 24,
-        alignItems: 'center',
-        alignSelf: 'center',
-        elevation: 3,
-        shadowColor: '#CED9EF',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.10,
-        shadowRadius: 4,
-        minWidth: 180,
-    },
     textoBoton: {
         color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
     },
     textoBotonEnviar: {
-        color: '#fff',
+        color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 0.5,

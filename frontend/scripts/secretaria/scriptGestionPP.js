@@ -19,7 +19,7 @@ export const obtenerProfesional = async (dni) => {
 
 }
 //🟢
-export const habilitarProfesional = async (profesionalData) => {
+export const registrarProfesional = async (profesionalData) => {
     try{
         const respuesta = await fetch(`${api_urlProfesionalAlta}`, {
             method: 'POST',

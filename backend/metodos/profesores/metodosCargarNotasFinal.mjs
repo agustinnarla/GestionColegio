@@ -115,8 +115,12 @@ export const registrarNotaFinal = async (req, res) => {
             const respuesta = await pool.query(`UPDATE alumno_materia SET id_estado_evaluativo = 1
                 WHERE dni_alumno = $1 AND id_materia = $2 AND id_curso = $3`, 
                 [dni_alumno, id_materia, id_curso]);
+            const promedio = await pool.query(`UPDATE alumno_materia SET promedio = $1 WHERE dni_alumno = $2 AND id_materia = $3 AND id_curso = $4`, [nota_final, dni_alumno, id_materia, id_curso])
             if (respuesta.rowCount > 0) {
                 console.log("Estado evaluativo actualizado a 1");
+            }
+            if (promedio.rowCount > 0) {
+                console.log("Promedio actualizado");
             }
         } else {
            console.log("Estado evaluativo mantenido en 2");

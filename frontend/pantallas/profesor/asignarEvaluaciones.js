@@ -25,6 +25,7 @@ export default function LibroAula({ route }) {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [enviando, setEnviando] = useState(false);
 
     //🟢 Mensaje 
     const mostrarMensaje = (titulo, mensaje) => {
@@ -97,9 +98,10 @@ export default function LibroAula({ route }) {
     }, []);
 
     //🟢 Formateamos fecha 
-    const formatearFecha = (fecha) => {
-    const [dia, mes, año] = fecha.split('/');
-    return `${dia}/${mes}/${año}`;
+   const validarFormatoFecha = (fecha) => {
+    // Regex para dd/mm/yyyy, días 01-31, meses 01-12, años 4 dígitos
+    const regex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+    return regex.test(fecha);
     };
 
     if (loading) {
@@ -118,30 +120,56 @@ export default function LibroAula({ route }) {
     //🟢 Registramos evaluacion
     const handleRegistrar = async () => {
             try {
+                if (!validarFormatoFecha(formData.fecha)) {
+                    mostrarMensaje('Error', 'Ingrese una fecha válida con formato DD/MM/AAAA');
+                    return;
+                }
+
                 const asignarEvaluacionData = {
                     id_curso: formData.id_curso,
                     id_materia: formData.id_materia,
                     id_tipo_de_evaluacion: formData.id_tipo_de_evaluacion,
-                    fecha: formatearFecha(formData.fecha),
+                    fecha: formData.fecha,
                     tema_abarcado: formData.tema_abarcado,
                     dni_profesional: dni_usuario,
                 };
-    
+                
             if (!validarCampos()) {
                 mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
                 return;
             }
-    
+
+                setEnviando(true);
                 console.log('Datos del libro de aula', asignarEvaluacionData); 
                 
                 const respuesta = await registrarEvaluacion(asignarEvaluacionData);
                 mostrarMensaje('¡Éxito!', 'Se asigno la evaluación correctamente');
                 console.log('Respuesta del servidor:', respuesta);
+                setEnviando(false);
                 limpiarInterfaz();
-            } catch (error) {
-                console.error('Error al asignar la evaluación:', error.message);
-                mostrarMensaje('Error', 'No se pudo asignar la evaluación');
-            }
+    
+                } catch (error) {
+   
+    if (error.message === 'Failed to fetch') {
+        mostrarMensaje('Error de red', 'No se pudo conectar con el servidor');
+        return;
+    }
+
+    switch (error.code) {
+        case 'FECHA_INVALIDA':
+            mostrarMensaje('Fecha inválida', 'La fecha debe ser al menos 2 días posterior a la actual.');
+            break;
+        case 'LIMITE_EVALUACIONES':
+            mostrarMensaje('Límite alcanzado', 'Ya hay 3 evaluaciones asignadas para este curso en esa fecha.');
+            break;
+        default:
+            mostrarMensaje('Error', error.message || 'No se pudo asignar la evaluación');
+            break;
+
+             
+    }
+    setEnviando(false);
+}
     };
 
     //🟢 Limpiar interfaz
@@ -195,7 +223,6 @@ export default function LibroAula({ route }) {
                             placeholder='DD/MM/AAAA'
                             onChangeText={(value) => handleChange('fecha', value)}
                             value={formData.fecha}
-                            keyboardType='numeric'
                         />
                         <Text style={styles.label}>Temas:</Text>
                         <TextInput
@@ -215,6 +242,12 @@ export default function LibroAula({ route }) {
                                 <Text style={styles.textoBoton}>Cancelar</Text>
                             </TouchableOpacity>
                         </View>
+                        {enviando && (
+                                        <View style={styles.loadingContainer}>
+                                            <ActivityIndicator size="large" color="#007bff" />
+                                            <Text style={styles.loadingText}>Enviando fecha de evaluación al email de los alumnos...</Text>
+                                        </View>
+                        )}
                     </View>
                 </ScrollView>
             </ImageBackground>
@@ -234,12 +267,25 @@ const styles = StyleSheet.create({
     },
     bg: {
         flex: 1,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
     },
     scrollContainer: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 20,
+    },
+     loadingContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#333',
     },
     card: {
         width: '90%',
@@ -262,7 +308,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#2a3d6c',
     },
     input: {
         borderWidth: 1,
@@ -273,6 +319,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fafafa',
         fontSize: 16,
         width: '100%',
+        color: '#2a3d6c'
     },
     textArea: {
         height: 100,
@@ -303,7 +350,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     textoBoton: {
-        color: 'black',
+        color: '#2a3d6c',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',

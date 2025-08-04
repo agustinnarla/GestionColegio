@@ -9,7 +9,7 @@ export const obtenerLibroMatriz = async (req, res) => {
                 am.dni_alumno, 
                 m.detalle AS materia_detalle, 
                 ev.detalle AS estado_detalle, 
-                am.promedio, 
+                ROUND(am.promedio::numeric, 0) AS promedio, 
                 c.detalle AS curso_detalle, 
                 c.id_curso
             FROM alumno_materia AS am

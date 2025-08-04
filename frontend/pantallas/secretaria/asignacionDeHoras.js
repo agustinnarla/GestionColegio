@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ImageBackground,TextInput, FlatList, Platform, Dimensions } from 'react-native';
 import { ScrollView } from 'react-native-web';
 import bg from '../../assets/bg1.jpg';
-import { obtenerProfesores, obtenerCursosPorProfesor, obtenerMateriaPorCurso} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import { obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCursoYProfesor} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import {  obtenerHorasProfesor, asignacionDeHoras, obtenerHorariosProfesional, obtenerHorariosCurso } from '../../scripts/secretaria/scriptAsignacionHoras.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -17,15 +17,15 @@ export default function AsignacionHoras() {
   
     useEffect(() => {
       if (isWeb) {
-      document.body.style.overflow = 'auto'; // Activar scroll en web
+      document.body.style.overflow = 'auto'; 
     } else {
-      document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
+      document.body.style.overflow = 'hidden';
     }
     }, []);
 
-    const [profesores, setProfesor] = useState([]);
+    const [materia, setMateria] = useState([]);
+    const [profesores, setProfesores] = useState([]);
     const [curso, setCurso] = useState([]);
-    const [materias, setMateria] = useState([]);
     const [horas, setHoras] = useState([]);
     const [asignaciones, setAsignaciones] = useState([]);
     const [horariosAsignados, setHorariosAsignados] = useState({});
@@ -75,7 +75,7 @@ export default function AsignacionHoras() {
     }, []);
 
     const limpiarInterfaz = () => {
-        setProfesor([]);
+        setProfesores([]);
         setCurso([]);
         setMateria([]);
         setHoras([]);
@@ -226,34 +226,32 @@ export default function AsignacionHoras() {
 };
     
 
-    useEffect(() => {
-        const cargarListaDesplegable = async () => {
-            try {
-                const profesoresData = await obtenerProfesores();
-                setProfesor(profesoresData);
-                
-                if (formData.dni_profesional) {
-                    const data = await obtenerCursosPorProfesor(formData.dni_profesional);
-                    setCurso(data);
-                    console.log('Cursos traídos exitosamente');
-                }else{
-                    console.log('error')
-                }
-                if (formData.id_curso) {
-                    const materiaData = await obtenerMateriaPorCurso(formData.id_curso);
-                    setMateria(materiaData);
-                    console.log('Materias traídas exitosamente');
-                }else{
-                    console.log('error')
-                }
-                
-            } catch (error) {
-                console.log('Error al cargar los profesores:', error);
-            }
-        };
-        cargarListaDesplegable();
-    }, [formData.dni_profesional, formData.id_curso]);
+  useEffect(() => {
+    const cargarListaDesplegable = async () => {
+        try {
+            const profesoresData = await obtenerProfesores();
+            setProfesores(profesoresData);
 
+            if (formData.dni_profesional) {
+                const cursoData = await obtenerCursoPorProfesor(formData.dni_profesional);
+                setCurso(cursoData);
+            } else {
+                setCurso([]);
+            }
+
+            if (formData.id_curso,formData.dni_profesional) {
+                const materiaData = await obtenerMateriaPorCursoYProfesor(formData.id_curso,formData.dni_profesional);
+                setMateria(materiaData);
+            } else {
+                setMateria([]);
+            }
+
+        } catch{
+            mostrarMensaje('Error', 'Error al cargar las listas desplegables, consulte con el administrador')
+        }
+    };
+    cargarListaDesplegable();
+  }, [formData.dni_profesional, formData.id_curso]);
 
 
     const handleChange = (name, value) => {
@@ -270,9 +268,27 @@ return (
           <View style={styles.filtrosScroll}>
             <View style={styles.filaFiltros}>
               <View style={styles.filtrosHorizontales}>
-                <ListasDesplegables formData={formData} handleChange={handleChange} profesores={profesores} showLabel={true} styles={styles} label="Profesor" />
-                <ListasDesplegables formData={formData} handleChange={handleChange} curso={curso} showLabel={true} styles={styles} label="Curso" />
-                <ListasDesplegables formData={formData} handleChange={handleChange} materias={materias} showLabel={true} styles={styles} label="Materia" />
+              <ListasDesplegables
+                formData={formData}
+                handleChange={handleChange}
+                profesores={profesores}
+                showLabel={true}
+                styles={styles}
+            />
+            <ListasDesplegables
+                formData={formData}
+                handleChange={handleChange}
+                curso={curso}
+                styles={styles}
+            />
+            <ListasDesplegables
+                formData={formData}
+                handleChange={handleChange}
+                materias={materia}
+                showLabel={true}
+                styles={styles}
+            />
+            
               </View>
             
             </View>
@@ -381,10 +397,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 20,
-    marginTop: 10,
+    marginTop: 5,
     marginBottom: 10,
   },
-  // Sección de filtros mejorada
+
   filaFiltros: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -419,7 +435,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 20,
-    marginTop: 10,
+    marginTop: 5,
     marginBottom: 10,
   },
 
@@ -480,7 +496,7 @@ const styles = StyleSheet.create({
 
   textoBotonGrande: {
     color: '#2c3e50',
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
   },

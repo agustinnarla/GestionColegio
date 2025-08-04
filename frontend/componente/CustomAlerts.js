@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import Modal from 'react-native-modal';
 
 const CustomAlert = ({
@@ -11,12 +11,49 @@ const CustomAlert = ({
     showConfirm = false,
     onConfirm,
     confirmText = 'Confirmar',
-    cancelText = 'Cancelar'
+    cancelText = 'Cancelar',
+    showSpinner = false
 }) => {
+    const [fadeAnim] = useState(new Animated.Value(0));
+    const [scaleAnim] = useState(new Animated.Value(0.8));
+
+    useEffect(() => {
+        if (isVisible) {
+            // Animación de entrada
+            Animated.parallel([
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(scaleAnim, {
+                    toValue: 1,
+                    tension: 50,
+                    friction: 7,
+                    useNativeDriver: true,
+                })
+            ]).start();
+        } else {
+            // Animación de salida
+            Animated.parallel([
+                Animated.timing(fadeAnim, {
+                    toValue: 0,
+                    duration: 200,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 0.8,
+                    duration: 200,
+                    useNativeDriver: true,
+                })
+            ]).start();
+        }
+    }, [isVisible]);
+
     return (
         <Modal
             isVisible={isVisible}
-            onBackdropPress={onClose}
+            onBackdropPress={showSpinner ? undefined : onClose}
             animationIn="zoomInDown"
             animationOut="zoomOutUp"
             animationInTiming={600}
@@ -24,24 +61,41 @@ const CustomAlert = ({
             backdropTransitionInTiming={600}
             backdropTransitionOutTiming={600}
         >
-            <View style={styles.modalContent}>
+            <Animated.View 
+                style={[
+                    styles.modalContent,
+                    {
+                        opacity: fadeAnim,
+                        transform: [{ scale: scaleAnim }]
+                    }
+                ]}
+            >
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.message}>{message}</Text>
-                {showConfirm ? (
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <TouchableOpacity style={[styles.button, { backgroundColor: '#6c757d' }]} onPress={onClose}>
-                            <Text style={styles.buttonText}>{cancelText}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.button} onPress={() => { onConfirm(); onClose(); }}>
-                            <Text style={styles.buttonText}>{confirmText}</Text>
-                        </TouchableOpacity>
+                
+                {showSpinner && (
+                    <View style={styles.spinnerContainer}>
+                        <ActivityIndicator size="large" color="#007BFF" />
                     </View>
-                ) : (
-                    <TouchableOpacity style={styles.button} onPress={onClose}>
-                        <Text style={styles.buttonText}>{buttonText}</Text>
-                    </TouchableOpacity>
                 )}
-            </View>
+                
+                {!showSpinner && (
+                    showConfirm ? (
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            <TouchableOpacity style={[styles.button, { backgroundColor: '#6c757d' }]} onPress={onClose}>
+                                <Text style={styles.buttonText}>{cancelText}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.button} onPress={() => { onConfirm(); onClose(); }}>
+                                <Text style={styles.buttonText}>{confirmText}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <TouchableOpacity style={styles.button} onPress={onClose}>
+                            <Text style={styles.buttonText}>{buttonText}</Text>
+                        </TouchableOpacity>
+                    )
+                )}
+            </Animated.View>
         </Modal>
     );
 };
@@ -62,6 +116,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 20,
         textAlign: 'center',
+    },
+    spinnerContainer: {
+        marginVertical: 15,
     },
     button: {
         backgroundColor: '#007BFF',

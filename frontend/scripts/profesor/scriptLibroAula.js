@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../config.js'
 const api_urlLibroAulaAlta = `${API_BASE_URL}/profesor/libroAula/alta`
 const api_urlLibroAula = `${API_BASE_URL}/profesor/libroAula`
-
+const api_urlLibroAulaNumClase = `${API_BASE_URL}/profesor/libroAula/numero_clase`                
 // 🟢
 export const registrarLibroAula = async (formData) => {
     try{
@@ -44,3 +44,26 @@ export const obtenerLibroAula = async (dni_profesional, id_curso, id_materia) =>
         throw error; 
     }
 }
+
+export const obtenerNumeroDeClase = async (dni_profesional, id_curso, id_materia) => {
+  try {
+    const respuesta = await fetch(`${api_urlLibroAulaNumClase}/${dni_profesional}/${id_curso}/${id_materia}`);
+
+    if (!respuesta.ok) {
+      throw new Error(`Error en la API: ${respuesta.status} ${respuesta.statusText}`);
+    }
+
+    const data = await respuesta.json();
+
+    if (!data || typeof data.numero_clase !== 'number') {
+      throw new Error('No se pudo obtener el número de clase');
+    }
+
+    console.log('Número de clase traído exitosamente:', data.numero_clase);
+    return data.numero_clase; 
+
+  } catch (error) {
+    console.error('Error al obtener el número de clase:', error);
+    throw error;
+  }
+};

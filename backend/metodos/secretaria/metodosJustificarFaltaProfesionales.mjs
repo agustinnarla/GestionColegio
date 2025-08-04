@@ -17,10 +17,13 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
 
     try {
       const query = `
-        SELECT * 
-        FROM asistencia_profesional 
-        WHERE fecha BETWEEN $1 AND $2
-          AND id_estado_asistencia = 2
+        SELECT p.dni_profesional, p.nombre, p.apellido, ap.fecha, ap.id_estado_asistencia, jfp.id_estado_general
+        FROM profesional AS p
+        INNER JOIN asistencia_profesional AS ap ON ap.dni_profesional = p.dni_profesional
+        LEFT JOIN justificar_falta_profesionales AS jfp ON jfp.dni_profesional = p.dni_profesional AND jfp.fecha = ap.fecha
+        WHERE ap.fecha BETWEEN $1 AND $2
+        AND ap.id_estado_asistencia = 2
+        AND (jfp.id_estado_general IS NULL OR jfp.id_estado_general = 0)
         ORDER BY hora_entrada ASC
       `;
 
@@ -71,7 +74,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
             // Construimos la consulta de actualización
             const query = `
                 UPDATE justificar_falta_profesionales
-                SET id_estado_falta_profesionales = $1, id_certificado = $2
+                SET id_estado_falta_profesionales = $1, id_certificado = $2, id_estado_general = 1
                 WHERE dni_profesional = $3 AND fecha = $4
             `;
 
@@ -88,8 +91,8 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
         } else {
             // Si no existe, insertamos un nuevo registro
             const respuesta = await pool.query(
-                "INSERT INTO justificar_falta_profesionales (id_estado_falta_profesionales, dni_profesional, id_certificado, fecha) " +
-                "VALUES ($1, $2, $3, $4) RETURNING *", 
+                "INSERT INTO justificar_falta_profesionales (id_estado_falta_profesionales, dni_profesional, id_certificado, fecha, id_estado_general) " +
+                "VALUES ($1, $2, $3, $4, 1) RETURNING *", 
                 [id_estado_falta_profesionales, dni_profesional, id_certificado, fecha]
             );
             console.log("Nuevo registro profesionales insertado");
