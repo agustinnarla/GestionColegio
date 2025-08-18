@@ -56,7 +56,13 @@ export default function AsignacionHoras() {
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
   
-  
+    const validarCampos = (...campos) => 
+      campos.every(campo => formData[campo]?.length > 0);
+
+  const habilitarListaCurso = () => validarCampos('id_curso');
+  const habilitarListaProfesores = () => validarCampos('dni_profesional');
+  const habilitarConsultar = () => validarCampos('dni_profesional', 'id_curso', 'id_materia');
+
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
@@ -90,7 +96,7 @@ export default function AsignacionHoras() {
         setHorariosAsignados([]);
     };
 
-   const handleConsultar = async () => {
+  const handleConsultar = async () => {
         try {
             if (formData.dni_profesional && formData.id_curso && formData.id_materia) {
                 setTipoConsulta('asignar');
@@ -294,16 +300,16 @@ return (
             </View>
               <View style={styles.botonesFiltrosAbajo}>
                 <>
-                    <TouchableOpacity onPress={handleConsultar} style={styles.botonPrimario}>
+                    <TouchableOpacity onPress={handleConsultar} style={[styles.botonPrimario, !habilitarConsultar() && styles.botonDeshabilitado]}  disabled={!habilitarConsultar()}>
                         <Text style={styles.textoBoton}>Consultar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={limpiarInterfaz} style={styles.botonSecundario}>
                         <Text style={styles.textoBoton}>Reiniciar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={handleConsultarProfesional} style={styles.botonInfo}>
+                    <TouchableOpacity onPress={handleConsultarProfesional} style={[styles.botonInfo, !habilitarListaProfesores() && styles.botonDeshabilitado]} disabled={!habilitarListaProfesores()}>
                         <Text style={styles.textoBoton}>Ver Horarios Profesor</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={handleConsultarCurso} style={styles.botonInfo}>
+                    <TouchableOpacity onPress={handleConsultarCurso} style={[styles.botonInfo, !habilitarListaCurso() && styles.botonDeshabilitado]} disabled={!habilitarListaCurso()}>
                         <Text style={styles.textoBoton}>Ver Horarios Curso</Text>
                     </TouchableOpacity>
                 </>
@@ -342,7 +348,7 @@ return (
               ))}
             </View>
           </View>
-          <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar}>
+          <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar} > 
             <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
           </TouchableOpacity>
         </View>
@@ -370,6 +376,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: 'white',
   },
+  botonDeshabilitado: {
+    opacity: 0.5,
+    backgroundColor: '#cccccc',
+    borderColor: '#999999',
+},
   bg: {
     width: '100%',
     height: '100%',

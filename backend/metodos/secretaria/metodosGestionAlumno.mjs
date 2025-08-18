@@ -118,14 +118,14 @@ export const registrarAlumno = async (req, res) => {
             const edad = calcularEdad(fecha_nacimiento);
             if (edad <= 11) {
                 return res.status(400).json({
-                    message: 'El profesional debe tener más de 11 años.'
+                    message: 'El alumno debe tener más de 11 años.'
                 });
             }
         const respuesta = await pool.query(
             'INSERT INTO alumno (dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil,'
             + 'fecha_nacimiento, id_localidad, id_estado_general, telefono_personal,telefono_madre, telefono_padre, email_personal, email_familiar,edificio)'
             + 'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,$16,$17) RETURNING *',
-            [dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, edad, id_localidad, id_estado_general, telefono_personal, 
+            [dni_alumno, nombre, apellido, domicilio, departamento, piso, id_sexo, cuil, fecha_nacimiento, id_localidad, id_estado_general, telefono_personal, 
                 telefono_madre, telefono_padre, email_personal, email_familiar,edificio]
         );
 

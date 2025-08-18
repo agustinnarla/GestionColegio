@@ -20,7 +20,7 @@ export default function CargarNotasFinal({route}) {
     const [notasAEnviar, setNotasAEnviar] = useState([]);
     const [selectKey, setSelectKey] = useState(0);
 
-    const consultarDatos = () => {
+    const consultarAlumnos = () => {
         console.log("Consultando datos con filtros:");
         console.log("Cursos seleccionados:", cursosSeleccionados);
         console.log("Materias seleccionadas:", materiasSeleccionadas);
@@ -269,7 +269,7 @@ export default function CargarNotasFinal({route}) {
         }
     };
 
-    const renderItem = ({ item }) => {
+    const cargarGrilla = ({ item }) => {
         const key = `${item.id}-${item.id_materia}`;
         const nota = notas[key] || { nota_final: '' };
         
@@ -299,6 +299,21 @@ export default function CargarNotasFinal({route}) {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.filtrosContainer}>
                     <View style={styles.filtroGroup}>
+                    
+
+                    <View style={styles.filtroGroup}>
+                    <MultipleSelectList
+                        key={selectKey} 
+                            setSelected={setMateriasSeleccionadas}
+                            selected={materiasSeleccionadas}
+                            data={materias_curso_profesor}
+                            save="key"
+                            label="Materias"
+                            placeholder="Seleccionar materias"
+                            boxStyles={styles.dropdown}
+                            dropdownTextStyles={styles.dropdownText}
+                        />
+                    </View>
                     <MultipleSelectList
                     key={selectKey} 
                         setSelected={(val) => {
@@ -318,22 +333,8 @@ export default function CargarNotasFinal({route}) {
                         dropdownTextStyles={styles.dropdownText}
                     />
                     </View>
-
-                    <View style={styles.filtroGroup}>
-                    <MultipleSelectList
-                        key={selectKey} 
-                            setSelected={setMateriasSeleccionadas}
-                            selected={materiasSeleccionadas}
-                            data={materias_curso_profesor}
-                            save="key"
-                            label="Materias"
-                            placeholder="Seleccionar materias"
-                            boxStyles={styles.dropdown}
-                            dropdownTextStyles={styles.dropdownText}
-                        />
-                    </View>
                     <View style={styles.botonesContainer}>
-                        <TouchableOpacity style={[styles.botonConsultar, !validarListas() && styles.botonDeshabilitado]} onPress={consultarDatos} disabled={!validarListas()}>
+                        <TouchableOpacity style={[styles.botonConsultar, !validarListas() && styles.botonDeshabilitado]} onPress={consultarAlumnos} disabled={!validarListas()}>
                             <Text style={styles.textoBoton}>Consultar</Text>
                         </TouchableOpacity>
                         
@@ -354,7 +355,7 @@ export default function CargarNotasFinal({route}) {
                         </View>
                             <FlatList
                                 data={datos}
-                                renderItem={renderItem}
+                                renderItem={cargarGrilla}
                                 keyExtractor={(item) => `${item.id}-${item.id_materia}`}
                                 scrollEnabled={false}
                             />

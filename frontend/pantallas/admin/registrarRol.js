@@ -196,32 +196,26 @@ export default function RegistrarRol() {
     };
 
     //DESHABILITAR ROL
-    const handleDeshabilitar = () => {
+    const handleDeshabilitar = async () => {
         if (!selectedRol) {
             mostrarMensaje('Advertencia', 'No hay un rol seleccionado');
             return;
         }
-        mostrarConfirmacion(
-            'Confirmación',
-            '¿Seguro que quiere deshabilitar el rol?',
-            async () => {
-                try {
-                    const respuesta = await deshabilitarRol(selectedRol);
-                    if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') {
-                        setSelectedRol(null);
-                        mostrarMensaje('Éxito', 'Rol deshabilitado exitosamente');
-                    } else {
-                        mostrarMensaje('Error', respuesta.mensaje || 'Error al deshabilitar el rol');
-                    }
-                } catch (error) {
-                    mostrarMensaje('Error', 'Error al deshabilitar el rol');
+            try {
+                const respuesta = await deshabilitarRol(selectedRol);
+                if (respuesta && respuesta.mensaje === 'Rol deshabilitado exitosamente') {
+                    setSelectedRol(null);
+                    mostrarMensaje('Éxito', 'Rol deshabilitado exitosamente');
+                } else {
+                    mostrarMensaje('Error', respuesta.mensaje || 'Error al deshabilitar el rol');
                 }
-                cargarTareas();
-                cargarListaDesplegable();
-                cargarRolesDeshabilitados();
-                limpiarInterfaz()
+            } catch (error) {
+                mostrarMensaje('Error', 'Error al deshabilitar el rol');
             }
-        );
+            cargarTareas();
+            cargarListaDesplegable();
+            cargarRolesDeshabilitados();
+            limpiarInterfaz()
     };
     
     //SWITCH DEL MODAL
@@ -287,6 +281,13 @@ export default function RegistrarRol() {
     }
   };
 
+    const validarCampos = () => {
+        return(
+            selectedRol.length > 0 && selectedItems.length > 0
+        )
+    }
+
+
     const limpiarInterfaz = () => {
     setSelectedItems([])
     setSelectedRol('');
@@ -305,7 +306,6 @@ export default function RegistrarRol() {
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.formulario}>
-  
                 <View style={styles.fila}>
                     {/* Columna izquierda: Picker de tareas y agregar */}
                     <View style={styles.columna}>
@@ -343,10 +343,10 @@ export default function RegistrarRol() {
                     </View>
                     {/* Columna derecha: Acciones */}
                     <View style={styles.columna}>
-                        <TouchableOpacity style={styles.botonAlta} onPress={cargarTareaRol}>
+                        <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={cargarTareaRol} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>Registrar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}>
+                        <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>Deshabilitar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificar(true)}>
@@ -490,6 +490,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
+  },
+  botonDeshabilitado:{
+    opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
   },
   titulo: {
     fontSize: 22,

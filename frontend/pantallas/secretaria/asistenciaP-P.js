@@ -45,7 +45,7 @@ export default function RegistroAsistencia() {
 
    
 
-    const toggleSeleccion = (profesor) => {
+    const seleccionarProfesional = (profesor) => {
   setSeleccionados((prev) => {
     if (prev.includes(profesor.dni_profesional)) {
       return prev.filter((dni) => dni !== profesor.dni_profesional);
@@ -130,9 +130,7 @@ export default function RegistroAsistencia() {
 
 
   // Filtrar los profesores según la búsqueda
-  const profesoresFiltrados = profesores.filter((profesor) =>
-    profesor.nombre_apellido.toLowerCase().includes(busqueda.toLowerCase())
-  );
+
 
 return (
   <View style={styles.container}>
@@ -180,7 +178,7 @@ return (
                   ? styles.profesorCompleto
                   : styles.profesorNoRegistrado,
               ]}
-              onPress={() => toggleSeleccion(item)}
+              onPress={() => seleccionarProfesional(item)}
             >
               <Text style={styles.profesorTexto}>{item.nombre_apellido}</Text>
             </TouchableOpacity>

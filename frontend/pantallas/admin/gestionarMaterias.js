@@ -325,6 +325,13 @@ export default function GestionarMaterias() {
     }
   };
 
+  const validarCampos = () => {
+        return (
+            selectedProfesores.length > 0 && 
+            selectedMateria.length > 0
+        );
+    };
+
   useEffect(() => {
     cargarListaDesplegable();
     cargarProfesores();
@@ -378,7 +385,7 @@ export default function GestionarMaterias() {
                 selectText="Seleccionar Profesores"
                 searchInputPlaceholderText="Buscar..."
                 displayKey="value" // Clave para mostrar el nombre del profesor
-                submitButtonColor="#48d22b"
+                submitButtonColor="#6c7ae0"
                 submitButtonText="Seleccionar"
                 styleDropdownMenu={styles.dropdown}
               />
@@ -387,14 +394,16 @@ export default function GestionarMaterias() {
           {/* Columna derecha: Acciones */}
           <View style={styles.columna}>
             <TouchableOpacity
-              style={styles.botonAlta}
+              style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]}
               onPress={cargarMateriaProfesor}
+              disabled={!validarCampos()}
             >
               <Text style={styles.textoBoton}>Registrar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.botonBaja}
+              style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]}
               onPress={handleDeshabilitarMateria}
+              disabled={!validarCampos()}
             >
               <Text style={styles.textoBoton}>Deshabilitar</Text>
             </TouchableOpacity>
@@ -571,6 +580,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     gap: 24,
+  },
+  botonDeshabilitado:{
+    opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
   },
   columna: {
     width: "48%",

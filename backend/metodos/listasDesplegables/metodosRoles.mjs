@@ -40,7 +40,6 @@ export const registrarRol = async (req,res) => {
     }
 }
 
-
 export const deshabilitarRol = async (req, res) => {
     const { id_rol } = req.params; // Recibe el id_rol desde el frontend
     if (!id_rol) {

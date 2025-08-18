@@ -46,11 +46,32 @@ export default function CargarNotas() {
         aulico: ''
     });
     
+    const validarCampos = (...campos) => 
+      campos.every(campo => formData[campo]?.length > 0);
+
+    const habilitarBotones = () => validarCampos('id_curso','id_materia');
+ 
+ 
+
     
-    const validarCampos = () => {
+
+    const validarLista = () => {
       return(
-        formData.id_curso &&
-        formData.id_materia
+        alumnos.length > 0
+      )
+    }
+
+    const habilitarAgregar= () => {
+      return(
+        alumnosSeleccionados.length > 0 && 
+        notaGlobal.length > 0 &&
+        notaSeleccionada.length > 0
+      )
+    }
+
+    const habilitarGrilla = () => {
+      return(
+        notaSeleccionada.length > 0
       )
     }
     /*
@@ -67,7 +88,7 @@ export default function CargarNotas() {
     const [mensajeValidacion, setMensajeValidacion] = useState('');
     const [modalSumaEsperadaVisible, setModalSumaEsperadaVisible] = useState(false);
 
-    const cargarAlumnosConSumaEsperada = () => {
+    const modalSumaEsperada = () => {
         setModalSumaEsperadaVisible(true);
     };
 
@@ -127,17 +148,17 @@ export default function CargarNotas() {
         cargarDatos();
     }, [formData.id_curso]);
 
-     // Mensajes 
-        const [alertVisible, setAlertVisible] = useState(false);
-        const [alertTitle, setAlertTitle] = useState('');
-        const [alertMessage, setAlertMessage] = useState('');
-      
-      
-         const mostrarMensaje = (titulo, mensaje) => {
-              setAlertTitle(titulo);
-              setAlertMessage(mensaje);
-              setAlertVisible(true);
-          };
+    // Mensajes 
+      const [alertVisible, setAlertVisible] = useState(false);
+      const [alertTitle, setAlertTitle] = useState('');
+      const [alertMessage, setAlertMessage] = useState('');
+    
+    
+        const mostrarMensaje = (titulo, mensaje) => {
+            setAlertTitle(titulo);
+            setAlertMessage(mensaje);
+            setAlertVisible(true);
+        };
 
     /*
         CARGAMOS ALUMNOS SEGÚN EL CURSO Y MATERIA SELECCIONADOS
@@ -178,6 +199,9 @@ export default function CargarNotas() {
           aulico: ''
       });
       setAlumnos([]); 
+      setNotaSeleccionada('')
+      setNotaGlobal([]);
+      setSumaEsperada([])
   };
   
     /*
@@ -230,7 +254,7 @@ export default function CargarNotas() {
             // Llamar al backend para registrar las notas
             const respuesta = await registrarNotas(notasParaRegistrar);
             //console.log('Respuesta del servidor:', respuesta);
-            mostrarMensaje('Éxito', 'Se registro las notas de los alumnos exitosamente');
+            mostrarMensaje('Éxito', 'Notas registradas correctamente');
             limpiarInterfaz()
            
 
@@ -241,8 +265,11 @@ export default function CargarNotas() {
     };
 
     const validarNota = (dni_alumno, campo, valor) => {
-        // Validar que el valor sea un número entre 0 y 10
-        if (valor === '' || (parseInt(valor) >= 1 && parseInt(valor) <= 10)) {
+        // Permitir formato como "1-", "2-", etc. o números del 1-10
+        if (valor === '' || 
+            (parseInt(valor) >= 1 && parseInt(valor) <= 10) ||
+            /^[1-9]-$/.test(valor) ||
+            /^10-$/.test(valor)) {
             setAlumnos(prevAlumnos => 
                 prevAlumnos.map(alumno => 
                     alumno.dni_alumno === dni_alumno 
@@ -254,96 +281,94 @@ export default function CargarNotas() {
     };
 
    
-
-
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
     };
 
-const exportarNotasAExcel = async (alumnos) => {
-  if (!Array.isArray(alumnos) || alumnos.length === 0) {
-    alert("No hay alumnos para exportar.");
-    return;
-  }
-
-  try {
-    const data = alumnos.map(a => ({
-      DNI: a.dni_alumno,
-      Alumno: a.nombre_completo,
-      Nota1: a.nota1 || '',
-      Nota2: a.nota2 || '',
-      Nota3: a.nota3 || '',
-      Nota4: a.nota4 || '',
-      Nota5: a.nota5 || '',
-      Nota6: a.nota6 || '',
-      TP1: a.tp1 || '',
-      TP2: a.tp2 || '',
-      TP3: a.tp3 || '',
-      Aulico: a.aulico || ''
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Notas");
-
-    if (Platform.OS === 'web') {
-      // WEB: Descargar usando Blob y enlace
-      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-      const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-
-      a.href = url;
-      a.download = "notas.xlsx";
-      document.body.appendChild(a);
-      
-      a.click();
-
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } else {
-      // MOBILE: Usar expo-file-system y expo-sharing
-      const excelBinary = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
-      const fileUri = FileSystem.documentDirectory + "notas.xlsx";
-      await FileSystem.writeAsStringAsync(fileUri, excelBinary, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      if (!(await Sharing.isAvailableAsync())) {
-        mostrarMensaje("Advertencia","La función para compartir no está disponible en este dispositivo");
+    const exportarNotasAExcel = async (alumnos) => {
+      if (!Array.isArray(alumnos) || alumnos.length === 0) {
+        alert("No hay alumnos para exportar.");
         return;
       }
-      await Sharing.shareAsync(fileUri);
-    }
-  } catch (error) {
-    console.error("Error al exportar Excel:", error);
-    mostrarMensaje("Error","Error al exportar las notas.");
-  }
-};
 
-const validarNotas = () => {
-  
-  const sumaNotasIngresadas = alumnos.reduce((total, alumno) => {
-    let sumaAlumno = 0;
-    
-    if (alumno[notaSeleccionada] !== undefined && alumno[notaSeleccionada] !== null && alumno[notaSeleccionada] !== '') {
-      sumaAlumno += parseInt(alumno[notaSeleccionada]) || 0;
-    }
-    console.log('Alumno:', alumno.nombre_completo, 'Suma Alumno:', sumaAlumno);
-    return total + sumaAlumno;
-  }, 0);
+      try {
+        const data = alumnos.map(a => ({
+          DNI: a.dni_alumno,
+          Alumno: a.nombre_completo,
+          Nota1: a.nota1 || '',
+          Nota2: a.nota2 || '',
+          Nota3: a.nota3 || '',
+          Nota4: a.nota4 || '',
+          Nota5: a.nota5 || '',
+          Nota6: a.nota6 || '',
+          TP1: a.tp1 || '',
+          TP2: a.tp2 || '',
+          TP3: a.tp3 || '',
+          Aulico: a.aulico || ''
+        }));
 
-  console.log('Suma total de notas ingresadas:', sumaNotasIngresadas);
-  console.log('Suma esperada:', sumaEsperada);
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Notas");
 
-  
-  if (parseInt(sumaEsperada) === sumaNotasIngresadas) {
-    setMensajeValidacion('Las notas coinciden. ¿Desea continuar?');
-  } else {
-    setMensajeValidacion(`La suma de las notas ingresadas (${sumaNotasIngresadas}) no coincide con la suma esperada (${sumaEsperada}).`);
-  }
-  setModalVisible(true);
-};
+        if (Platform.OS === 'web') {
+          // WEB: Descargar usando Blob y enlace
+          const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+          const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+
+          a.href = url;
+          a.download = "notas.xlsx";
+          document.body.appendChild(a);
+          
+          a.click();
+
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          // MOBILE: Usar expo-file-system y expo-sharing
+          const excelBinary = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+          const fileUri = FileSystem.documentDirectory + "notas.xlsx";
+          await FileSystem.writeAsStringAsync(fileUri, excelBinary, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          if (!(await Sharing.isAvailableAsync())) {
+            mostrarMensaje("Advertencia","La función para compartir no está disponible en este dispositivo");
+            return;
+          }
+          await Sharing.shareAsync(fileUri);
+        }
+      } catch (error) {
+        console.error("Error al exportar Excel:", error);
+        mostrarMensaje("Error","Error al exportar las notas.");
+      }
+    };
+
+    const validarNotas = () => {
+      
+      const sumaNotasIngresadas = alumnos.reduce((total, alumno) => {
+        let sumaAlumno = 0;
+        
+        if (alumno[notaSeleccionada] !== undefined && alumno[notaSeleccionada] !== null && alumno[notaSeleccionada] !== '') {
+          sumaAlumno += parseInt(alumno[notaSeleccionada]) || 0;
+        }
+        console.log('Alumno:', alumno.nombre_completo, 'Suma Alumno:', sumaAlumno);
+        return total + sumaAlumno;
+      }, 0);
+
+      console.log('Suma total de notas ingresadas:', sumaNotasIngresadas);
+      console.log('Suma esperada:', sumaEsperada);
+
+      
+      if (parseInt(sumaEsperada) === sumaNotasIngresadas) {
+        setMensajeValidacion('Las notas coinciden. ¿Desea continuar?');
+      } else {
+        setMensajeValidacion(`La suma de las notas ingresadas (${sumaNotasIngresadas}) no coincide con la suma esperada (${sumaEsperada}).`);
+      }
+      setModalVisible(true);
+    };
   
 
     return (
@@ -364,13 +389,13 @@ const validarNotas = () => {
                         />
                     </View>
                     <View style={styles.botonesContainer}>
-                        <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={cargarAlumnosConSumaEsperada} disabled={!validarCampos()}>
+                        <TouchableOpacity style={[styles.botonConsultar, !habilitarBotones() && styles.botonDeshabilitado]} onPress={modalSumaEsperada} disabled={!habilitarBotones()}>
                             <Text style={styles.textoBoton}>Consultar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonReiniciar} onPress={limpiarInterfaz}>
+                        <TouchableOpacity style={[styles.botonReiniciar, !habilitarBotones() && styles.botonDeshabilitado]} onPress={limpiarInterfaz} disabled={!habilitarBotones()}>
                             <Text style={styles.textoBoton}>Reiniciar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.botonConsultar, !validarCampos() && styles.botonDeshabilitado]} onPress={() => exportarNotasAExcel(alumnos)} disabled={!validarCampos()}>
+                        <TouchableOpacity style={[styles.botonConsultar, !habilitarBotones() && styles.botonDeshabilitado]} onPress={() => exportarNotasAExcel(alumnos)} disabled={!habilitarBotones()}>
                             <Text style={styles.textoBoton}>📄</Text>
                         </TouchableOpacity>
                     </View>
@@ -379,34 +404,10 @@ const validarNotas = () => {
 
             <View style={styles.headerContainer}>
                             <View style={styles.leftContainer}>
-                                <Text style={styles.headerText}>Nota para seleccionados:</Text>
-                                <TextInput
-                                    style={styles.notaGlobalInput}
-                                    value={notaGlobal}
-                                    inputMode="numeric"
-                                    maxLength={2}
-                                    onChangeText={setNotaGlobal}
-                                />
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setAlumnos(prev =>
-                                            prev.map(alumno =>
-                                                alumnosSeleccionados.includes(alumno.dni_alumno)
-                                                    ? { ...alumno, [notaSeleccionada]: notaGlobal }
-                                                    : alumno
-                                            )
-                                        );
-                                        setNotaGlobal('');
-                                    }}
-                                    style={styles.aplicarButton}
-                                >
-                                    <Text style={{ color: 'white' }}>Aplicar</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <View style={styles.rightContainer}>
                                 <View style={styles.filtroGroupInline}>
                                     <Text style={styles.headerText}>Seleccionar campo a editar:</Text>
                                     <Picker
+                                        disabled={!validarLista()}
                                         selectedValue={notaSeleccionada}
                                         onValueChange={(itemValue) => setNotaSeleccionada(itemValue)}
                                         style={styles.inputDesplegable}
@@ -425,11 +426,46 @@ const validarNotas = () => {
                                     </Picker>
                                 </View>
                             </View>
+                            <View style={styles.rightContainer}>
+                                <Text style={styles.headerText}>Nota para seleccionados:</Text>
+                                <TextInput
+                                    disabled={!habilitarGrilla()}
+                                    style={styles.notaGlobalInput}
+                                    value={notaGlobal}
+                                    inputMode="numeric"
+                                    maxLength={2}
+                                    onChangeText={(text) => {
+                                       
+                                        if (text === '' || 
+                                            (parseInt(text) >= 1 && parseInt(text) <= 10) ||
+                                            /^[1-9]-$/.test(text) ||
+                                            /^10-$/.test(text)) {
+                                            setNotaGlobal(text);
+                                        }
+                                    }}
+                                />
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setAlumnos(prev =>
+                                            prev.map(alumno =>
+                                                alumnosSeleccionados.includes(alumno.dni_alumno)
+                                                    ? { ...alumno, [notaSeleccionada]: notaGlobal }
+                                                    : alumno
+                                            )
+                                        );
+                                        setNotaGlobal('');
+                                    }}
+                                    style={[styles.aplicarButton, !habilitarAgregar() && styles.botonDeshabilitado]}
+                                    disabled={!habilitarAgregar()}
+                                >
+                                    <Text style={{ color: '#2a3d6c', fontWeight: 'bold'}}>Aplicar</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         
             {/* Grilla de alumnos y notas */}
-            <View style={styles.grillaContainer}>
-                <ScrollView>
+            <View style={[styles.grillaContainer, !habilitarGrilla() && styles.botonDeshabilitado]}>
+                <ScrollView scrollEnabled={habilitarGrilla()}>
                     <View>
                         
 
@@ -440,12 +476,13 @@ const validarNotas = () => {
                         {alumnos.map((item) => {
                             const seleccionado = alumnosSeleccionados.includes(item.dni_alumno);
                             const valor = item[notaSeleccionada]?.toString() || '';
-
+                        
                             return (
                                 <View key={item.dni_alumno} style={[styles.row, seleccionado && { backgroundColor: 'rgba(0, 0, 255, 0.2)' }]}>
 
                                     {/* Zona de selección */}
                                     <TouchableOpacity
+                                        disabled={!habilitarGrilla()}
                                         onPress={() => {
                                             setAlumnosSeleccionados(prev =>
                                                 prev.includes(item.dni_alumno)
@@ -454,7 +491,10 @@ const validarNotas = () => {
                                             );
                                         }}
                                         delayLongPress={200}
-                                        style={{ paddingHorizontal: 10, justifyContent: 'center' }}
+                                        style={[
+                                            { paddingHorizontal: 10, justifyContent: 'center' },
+                                            !habilitarGrilla() && styles.botonDeshabilitado
+                                        ]}
                                     >
                                         {/* Nombre del alumno */}
                                         <Text style={styles.cellNombre} numberOfLines={1}>
@@ -468,11 +508,13 @@ const validarNotas = () => {
                                     <TextInput
                                         style={[
                                             styles.inputNota,
-                                            parseInt(valor) < 6 ? styles.notaMenor : styles.notaMayor
+                                            parseInt(valor) < 6 ? styles.notaMenor : styles.notaMayor,
+                                            !habilitarGrilla() && styles.botonDeshabilitado
                                         ]}
                                         value={valor}
                                         inputMode="numeric"
                                         maxLength={2}
+                                        editable={habilitarGrilla()}
                                         onChangeText={(text) =>
                                             validarNota(item.dni_alumno, notaSeleccionada, text)
                                         }
@@ -925,10 +967,13 @@ botonDeshabilitado: {
     borderColor: '#b6c6e0'
   },
   aplicarButton: {
-    backgroundColor: 'blue',
+    backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
+    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 5,
+    marginRight: 30,
   },
   filtroGroupInline: {
     flexDirection: 'row',

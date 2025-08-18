@@ -79,7 +79,7 @@ export default function GestionarObservaciones() {
                 return;
             }
             
-            setEnviando(true);
+            
 
             const alumnoData = {
                 dni_alumno: parseInt(formData.dni_alumno),
@@ -87,14 +87,22 @@ export default function GestionarObservaciones() {
                 fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
             };
-    
+            
+            setEnviando(true);
+            mostrarMensaje('Enviando', 'La observación se está enviando al email...');
             //console.log('Datos de la observación', alumnoData);
             const respuesta = await registrarObservacion(alumnoData);
-            mostrarMensaje('Exito','Observación registrada correctamente');
+                 setTimeout(() => {
+        setAlertVisible(false);
+        setTimeout(() => {
+            mostrarMensaje('Éxito', 'La observación se registró correctamente');
+            limpiarInterfaz();
             setEnviando(false);
-            //console.log('Observación Registrada:', respuesta);
-    
-            setModalVisible(true); // Abrir el modal después de registrar la observación
+            setModalVisible(true);
+        }, 300); 
+      }, 500);   
+           
+           
         } catch (error) {
             //console.error('Error al registrar la observación:', error.message);
             mostrarMensaje('Error', 'No se pudo registrar la observación');
@@ -233,12 +241,6 @@ export default function GestionarObservaciones() {
                     <Text style={styles.textoBoton}>Limpiar</Text>
                 </TouchableOpacity>
             </View>
-            {enviando && (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#007bff" />
-                    <Text style={styles.loadingText}>Enviando observación al email...</Text>
-                </View>
-            )}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -267,11 +269,12 @@ export default function GestionarObservaciones() {
             <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
             {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
             <CustomAlert
-                isVisible={alertVisible}
-                onClose={() => setAlertVisible(false)}
-                title={alertTitle}
-                message={alertMessage}
-            />
+        isVisible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
+        showSpinner={enviando}
+                />
             </ImageBackground>
         </View>
     );

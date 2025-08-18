@@ -158,7 +158,7 @@ export default function JustificarFaltaP_P() {
     };  
 
     // Cambiar a profesional
-    const actualizarSeleccionProfesor = (tipo, valor, dni_profesional, fecha) => {
+    const actualizarProfesionalSeleccionado = (tipo, valor, dni_profesional, fecha) => {
         // Actualizar el estado local
         if (tipo === 'estadoFalta') {
             setEstadoFaltaPorProfesor(prev => ({
@@ -200,6 +200,7 @@ export default function JustificarFaltaP_P() {
     const validarCampos = () => {
         return fechaDesde.length >= 10 && fechaHasta.length >= 10
     }
+
     const handleRegistrarJustificacion = async ({ dni_profesional, fecha, id_estado_falta_profesionales, id_certificado }) => {
         if (!dni_profesional || !fecha) {
             console.log('Faltan datos requeridos');
@@ -286,7 +287,7 @@ export default function JustificarFaltaP_P() {
                                                 : undefined
                                         }
                                         onValueChange={(itemValue) => {
-                                            actualizarSeleccionProfesor(
+                                            actualizarProfesionalSeleccionado(
                                                 "estadoFalta",
                                                 itemValue,
                                                 falta.dni_profesional,
@@ -314,7 +315,7 @@ export default function JustificarFaltaP_P() {
                                                 : undefined
                                         }
                                         onValueChange={(itemValue) => {
-                                            actualizarSeleccionProfesor(
+                                            actualizarProfesionalSeleccionado(
                                                 "certificado",
                                                 itemValue,
                                                 falta.dni_profesional,

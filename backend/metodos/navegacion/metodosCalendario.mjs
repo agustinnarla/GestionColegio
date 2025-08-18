@@ -1,6 +1,6 @@
 import { pool } from '../../dataBase/coneccion.mjs'
 
-export const obtenerEvaluacionesPorAlumno = async (req, res) => {
+export const obtenerEvaluacionesAlumno = async (req, res) => {
     const { dni_alumno } = req.params;
     try {
         const resultado = await pool.query(
@@ -34,7 +34,7 @@ export const obtenerEvaluacionesPorAlumno = async (req, res) => {
     }
 };
 
-export const obtenerEvaluacionesCargadas= async (req, res) => {
+export const obtenerEvaluacionesProfesor= async (req, res) => {
     const { dni_profesional } = req.params;
     try {
         const resultado = await pool.query(

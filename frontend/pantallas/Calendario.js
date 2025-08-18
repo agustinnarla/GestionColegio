@@ -129,7 +129,7 @@ export default function Calendario({route}) {
 
   
   //🟢 Cuando se selecciona un día
-  const diaPresionado = (dia) => {
+  const seleccionarDia = (dia) => {
     console.log('Día seleccionado:', dia);
     setSelectedDate(dia.dateString);
     
@@ -150,7 +150,7 @@ export default function Calendario({route}) {
       <Image source={bg} style={styles.bg} />
       <View style={[styles.calendarioContainer, isSmallScreen && styles.calendarioContainerSmall]}>
         <Calendar
-          onDayPress={diaPresionado}
+          onDayPress={seleccionarDia}
           markedDates={{
             ...markedDates,
             [selectedDate]: {

@@ -1,440 +1,429 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ScrollView, Platform, Dimensions, ImageBackground } from 'react-native';
-import bg from '../../assets/bg1.jpg';
-import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable.js';
-import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
-import {  registrarCursoNuevo, obtenerAlumnoFinal } from '../../scripts/secretaria/scriptPasarCurso.js';
-import CustomAlert from '../../componente/CustomAlerts.js';
+import {
+  StyleSheet,
+  View,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import React, { useState, useEffect } from "react";
+import { Picker } from "@react-native-picker/picker";
+import MultiSelect from "react-native-multiple-select";
+import bg from "../../assets/bg1.jpg";
+import {
+  obtenerMateria,
+  obtenerEspecialidad,
+  obtenerEstadoGeneral,
+} from "../../scripts/listasDesplegables/listaDesplegable.js";
+import {
+  registrarCursoPorMateria,
+  consultarCurso,
+  deshabilitarCurso,
+  modificarCurso,
+} from "../../scripts/admin/scriptRegistrarCurso.js";
+import ListasDesplegables from "../../componente/ListasDesplegables.jsx";
+import CustomAlert from "../../componente/CustomAlerts.js";
 
+export default function RegistrarCurso() {
+  const [materias, setMaterias] = useState([]);
+  const [especialidad, setEspecialidades] = useState([]);
+  const [estado_general, setEstadoGeneral] = useState([]);
+  const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]);
 
-const { width } = Dimensions.get('window');
-const isDesktop = width >= 768;
-const isWeb = Platform.OS === 'web';
-
-export default function PasarDeAño() {
-   useEffect(() => {
-          if (isWeb) {
-          document.body.style.overflow = 'auto'; // Activar scroll en web
-        } else {
-          document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
-        }
-        }, []);
-
-  
-  //Formulario
   const [formData, setFormData] = useState({
-  dni_alumno: '',
-  id_curso: ''
-});
+    id_curso: "",
+    detalle: "",
+    id_especialidad: "",
+    id_materia: [],
+    id_estado_general: "",
+  });
 
-const validarDatos = () => {
-  return formData.id_curso;
-};
+  // Mensajes
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [onConfirm, setOnConfirm] = useState(null);
 
-const [alumnos, setAlumnos] = useState([]);
-const [curso, setCursos] = useState([]);
-const [alumnosSeleccionados, setAlumnosSeleccionados] = useState([]);
-
-// Alertas
-const [alertVisible, setAlertVisible] = useState(false);
-const [alertTitle, setAlertTitle] = useState('');
-const [alertMessage, setAlertMessage] = useState('');
-
-const mostrarMensaje = (titulo, mensaje) => {
-  setAlertTitle(titulo);
-  setAlertMessage(mensaje);
-  setAlertVisible(true);
-};
-
-// Cargar cursos al iniciar
-useEffect(() => {
-  const cargarListaDesplegable = async () => {
-    try {
-      const cursosData = await obtenerCurso();
-      setCursos(cursosData);
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
+  const mostrarMensaje = (titulo, mensaje) => {
+    setAlertTitle(titulo);
+    setAlertMessage(mensaje);
+    setAlertVisible(true);
   };
 
-  cargarListaDesplegable();
-}, []);
+  useEffect(() => {
+    const cargarListaDesplegable = async () => {
+      try {
+        // Cargar materias
+        const materiasData = await obtenerMateria();
+        const materiasTransformadas = Array.isArray(materiasData)
+          ? materiasData.map((materia) => ({
+              id: materia.id_materia,
+              name: materia.detalle,
+            }))
+          : [];
+        setMaterias(materiasTransformadas);
 
-const handleChange = (name, value) => {
-  setFormData({ ...formData, [name]: value });
-};
+        // Cargar especialidades
+        const especialidadesData = await obtenerEspecialidad();
+        setEspecialidades(especialidadesData);
 
-// Cargar alumnos según curso
-const cargarAlumnos = async () => {
-  try {
-    const alumnosData = await obtenerAlumnoFinal(formData.id_curso);
-    if (alumnosData) {
-      console.log('Alumnos cargados:', alumnosData);
-      setAlumnos(alumnosData);
-      setAlumnosSeleccionados([]); // resetear selección
+        const estadoGeneral = await obtenerEstadoGeneral();
+        setEstadoGeneral(estadoGeneral);
+      } catch (error) {
+        mostrarMensaje("Error", "No se pudieron cargar los datos.");
+      }
+    };
+    cargarListaDesplegable();
+  }, []);
+
+  const validarCampos = (...campos) =>
+    campos.every((campo) => formData[campo]?.length > 0);
+
+  const habilitarConsultar = () => validarCampos("detalle");
+  const habilitarBotones = () =>
+    validarCampos("detalle", "id_especialidad", "id_estado_general", "id_materia");
+
+  // Manejar cambios en el formulario
+  const handleChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleRegistrar = async () => {
+    if (!formData.detalle) {
+      mostrarMensaje("Error", "Por favor ingrese el nombre del curso");
+      return;
     }
-  } catch (error) {
-    console.error('Error al cargar alumnos:', error);
-    Alert.alert('Error', 'No se pudieron cargar los alumnos');
-    setAlumnos([]);
-    setAlumnosSeleccionados([]);
-  }
-};
-
-// Seleccionar/Deseleccionar alumno
-const toggleSeleccionAlumno = (dni_alumno) => {
-  setAlumnosSeleccionados((prevSeleccionados) => {
-    if (prevSeleccionados.includes(dni_alumno)) {
-      return prevSeleccionados.filter((dni) => dni !== dni_alumno);
-    } else {
-      return [...prevSeleccionados, dni_alumno];
-    }
-  });
-};
-
-const validarCurso = () => {
-  return(
-    formData.id_curso
-  )
-}
-const validarAlumnos = () => {
-  return(
-    alumnos.length > 0
-  )
-}
-
-
-
-// Registrar
-const handleRegistrar = async () => {
-  try {
-    let alumnosData;
-    
-    // Si no hay alumnos seleccionados, pasar todos los alumnos
-    if (alumnosSeleccionados.length === 0) {
-      alumnosData = alumnos.map((alumno) => ({
-        dni_alumno: alumno.dni_alumno,
-        id_curso: parseInt(formData.id_curso)
-      }));
-      console.log('Pasando todos los alumnos:', alumnosData.length);
-    } else {
-      // Si hay alumnos seleccionados, pasar solo los seleccionados
-      alumnosData = alumnos
-        .filter((alumno) => alumnosSeleccionados.includes(alumno.dni_alumno))
-        .map((alumno) => ({
-          dni_alumno: alumno.dni_alumno,
-          id_curso: parseInt(formData.id_curso)
-        }));
-      console.log('Pasando alumnos seleccionados:', alumnosData.length);
-    }
-
-    if (alumnosData.length === 0) {
-      mostrarMensaje('Aviso', 'No hay alumnos para pasar de curso');
+    if (materiasSeleccionadas.length === 0) {
+      mostrarMensaje("Error", "Por favor seleccione al menos una materia");
       return;
     }
 
-    console.log('Datos a enviar:', alumnosData);
-    const respuesta = await registrarCursoNuevo(alumnosData);
-    console.log('Alumnos asignados:', respuesta);
+    const cursoData = {
+      detalle: formData.detalle,
+      id_especialidad: parseInt(formData.id_especialidad),
+      id_materia: materiasSeleccionadas.map(Number),
+      id_estado_general: formData.id_estado_general,
+    };
 
-    if((parseInt(formData.id_curso) === 11 || parseInt(formData.id_curso) === 12)) {
-      mostrarMensaje('¡Éxito!', 'Alumno/os egresado/os');
-    } else {
-      mostrarMensaje('¡Éxito!', 'Curso nuevo registrado');
+    try {
+      const respuesta = await registrarCursoPorMateria(cursoData);
+      if (respuesta && respuesta.message === "El curso ya está registrado") {
+        mostrarMensaje("Error", "Ya existe un curso con ese nombre");
+        return;
+      }
+
+      limpiarInterfaz();
+      mostrarMensaje("Éxito", "Curso registrado exitosamente");
+    } catch (error) {
+      mostrarMensaje("Error", "No se pudo registrar el curso");
     }
-    
-    setAlumnos([]);
-    setAlumnosSeleccionados([]);
-    setFormData({ dni_alumno: '', id_curso: '' });
+  };
 
-  } catch (error) {
-    console.error('Error completo:', error);
-    mostrarMensaje('¡Error!', 'Error al asignar el curso nuevo');
-  }
-};
+  const limpiarInterfaz = () => {
+    setFormData({
+      detalle: "",
+      id_especialidad: "",
+      id_materia: [],
+      id_estado_general: "",
+    });
+    setMateriasSeleccionadas([]);
+  };
 
-// Render
-return (
-  <View style={styles.container}>
-    <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
-      <View style={isDesktop ? styles.scrollContainerDesktop : styles.scrollContainerMobile}>
-        <View style={styles.card}>
-          
-          <View style={styles.filaFiltros}>
-            <View style={styles.filtrosHorizontales}>
-              <ListasDesplegables
-                formData={formData}
-                handleChange={handleChange}
-                curso={curso}
-                showLabel={false}
-                styles={styles}
-              />
-            </View>
-          </View>
+  const handleConsultar = async () => {
+    if (!formData.detalle) {
+      mostrarMensaje("Error", "Por favor ingrese el nombre del curso a consultar");
+      return;
+    }
+    try {
+      const data = await consultarCurso(formData.detalle);
 
-          <View style={styles.botonesFiltros}>
+      if (data.curso) {
+        const curso = data.curso;
+
+        setFormData({
+          ...formData,
+          detalle: curso.curso,
+          id_estado_general: curso.id_estado_general,
+          id_especialidad: curso.id_especialidad,
+          id_materia: curso.id_materia,
+          id_curso: curso.id_curso,
+        });
+
+        setMateriasSeleccionadas(curso.id_materia || []);
+        mostrarMensaje("Éxito", "Curso encontrado");
+      } else {
+        mostrarMensaje("Error", "Curso no encontrado");
+      }
+    } catch (error) {
+      mostrarMensaje("Error", "No se pudo consultar el curso");
+    }
+  };
+
+  const handleDeshabilitar = async () => {
+    try {
+      const respuesta = await deshabilitarCurso(formData.id_curso);
+      mostrarMensaje("Éxito", "Curso deshabilitado exitosamente");
+      limpiarInterfaz();
+    } catch (error) {
+      mostrarMensaje("Error", "No se pudo deshabilitar el curso");
+    }
+  };
+
+  const handleModificar = async () => {
+    try {
+      const cursoData = {
+        detalle: formData.detalle,
+        id_especialidad: parseInt(formData.id_especialidad),
+        id_materia: materiasSeleccionadas.map(Number),
+      };
+      const respuesta = await modificarCurso(formData.id_curso, cursoData);
+      if (respuesta) {
+        mostrarMensaje("Exito", "El curso se modifico correctamente");
+        limpiarInterfaz();
+      }
+    } catch (error) {
+      mostrarMensaje("Error", "Error al modificar el curso");
+    }
+  };
+
+  return (
+    <View style={styles.padre}>
+      <Image source={bg} style={styles.bg} />
+      <View style={styles.formulario}>
+        <Text style={styles.titulo}>Registrar Curso</Text>
+        <View style={styles.fila}>
+          {/* Columna izquierda: datos del curso */}
+          <View style={styles.columna}>
+            <Text style={styles.label}>Nombre del curso</Text>
+            <TextInput
+              placeholder="0° Año - División"
+              placeholderTextColor="#888"
+              style={styles.input}
+              value={formData.detalle}
+              onChangeText={(text) => handleChange("detalle", text)}
+            />
             <TouchableOpacity
-              style={[styles.botonPrimario, !validarCurso() && styles.botonDeshabilitado]}
-              onPress={cargarAlumnos}
-              disabled={!validarCurso()}
+              onPress={handleConsultar}
+              style={[
+                styles.botonConsultar,
+                !habilitarConsultar() && styles.botonDeshabilitado,
+              ]}
+              disabled={!habilitarConsultar()}
             >
               <Text style={styles.textoBoton}>Consultar</Text>
             </TouchableOpacity>
+
+            <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              especialidad={especialidad}
+              estado_general={estado_general}
+              showLabel={true}
+              styles={styles}
+            />
+
+            <Text style={styles.label}>Materias asignables:</Text>
+            <MultiSelect
+              items={materias}
+              uniqueKey="id"
+              onSelectedItemsChange={(selectedItems) => {
+                setMateriasSeleccionadas(selectedItems);
+                handleChange("id_materia", selectedItems);
+              }}
+              selectedItems={materiasSeleccionadas}
+              selectText="Seleccione las materias"
+              searchInputPlaceholderText="Buscar materias..."
+              displayKey="name"
+              searchInputStyle={{ color: "#000" }}
+              submitButtonColor="#6c7ae0"
+              submitButtonText="Aceptar"
+              styleDropdownMenuSubsection={styles.multiSelect}
+            />
           </View>
-
-          <Text style={styles.tituloLista}>Alumnos</Text>
-          <Text style={styles.textoInformativo}>
-            Selecciona alumnos específicos o deja sin seleccionar para pasar todos
-          </Text>
-
-      
-          <View style={styles.listaAlumnosContainer}>
-            <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.scrollViewContent}>
-              {alumnos.map((item) => (
-                <TouchableOpacity
-                  key={item.dni_alumno}
-                  onPress={() => toggleSeleccionAlumno(item.dni_alumno)}
-                  style={[
-                    styles.row,
-                    alumnosSeleccionados.includes(item.dni_alumno) && styles.rowSeleccionado
-                  ]}
-                >
-                  <Text style={styles.cellNombre}>{item.nombrecompleto}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+          {/* Columna derecha: acciones */}
+          <View style={styles.columna}>
+            <TouchableOpacity
+              style={[
+                styles.botonAlta,
+                !habilitarBotones() && styles.botonDeshabilitado,
+              ]}
+              onPress={handleRegistrar}
+              disabled={!habilitarBotones()}
+            >
+              <Text style={styles.textoBoton}>Registrar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.botonBaja,
+                !habilitarBotones() && styles.botonDeshabilitado,
+              ]}
+              onPress={handleDeshabilitar}
+              disabled={!habilitarBotones()}
+            >
+              <Text style={styles.textoBoton}>Deshabilitar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.botonModificar,
+                !habilitarBotones() && styles.botonDeshabilitado,
+              ]}
+              onPress={handleModificar}
+              disabled={!habilitarBotones()}
+            >
+              <Text style={styles.textoBoton}>Modificar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.botonLimpiar,
+                !habilitarBotones() && styles.botonDeshabilitado,
+              ]}
+              onPress={limpiarInterfaz}
+              disabled={!habilitarBotones()}
+            >
+              <Text style={styles.textoBoton}>Limpiar</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={[styles.botonConfirmar, !validarAlumnos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarAlumnos()}>
-            <Text style={styles.textoBotonGrande}>Confirmar</Text>
-          </TouchableOpacity>
         </View>
       </View>
-
       <CustomAlert
         isVisible={alertVisible}
-        onClose={() => setAlertVisible(false)}
+        onClose={() => {
+          setAlertVisible(false);
+          setOnConfirm(null);
+        }}
         title={alertTitle}
         message={alertMessage}
+        showConfirm={!!onConfirm}
+        onConfirm={onConfirm}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
       />
-    </ImageBackground>
-  </View>
-);
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-  flex: 1,
-  backgroundColor: '#f5f7fa',
-  alignItems: 'center',
-  justifyContent: 'center', 
-  position: 'relative',
-},
-  botonDeshabilitado: {
-    opacity: 0.5,
-        backgroundColor: '#cccccc',
-        borderColor: '#999999',
+  padre: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f6f8fa",
   },
   bg: {
-    width: '100%',
-    height: '100%',
-    zIndex: -1,
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
-   scrollViewDesktop: {
-    width: '100%',
-    flex: 1,
-
-  },
-  rowSeleccionado: {
-  backgroundColor: '#cdeed6', // verde claro para indicar selección
-},
-  scrollViewMobile: {
-    width: '100%',
-    flex: 1,
-  },
-  scrollContainerDesktop: {
-    width: '100%',
-    alignItems: 'center'
-  },
-  scrollContainerMobile: {
-    width: '100%',
-    alignItems: 'center',
-    paddingBottom: 80,
-  },
-  card: {
-  backgroundColor: '#fff',
-  borderRadius: 18,
-  padding: 32,
-  width: '97%',
-  maxWidth: 600,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.10,
-  shadowRadius: 12,
-  elevation: 6,
-  alignItems: 'center',
-  marginTop: 20,  
-  borderWidth: 1,
-  borderColor: '#e1e8ed',
-},
-  filaFiltros: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    width: '100%',
-    marginBottom: 18,
-    gap: 18,
-  },
-  filtrosHorizontales: {
-    flex: 3,
-    marginRight: 12,
-  },
-  botonesFiltros: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-  },
-  botonPrimario: {
-    backgroundColor: '#f0f7ff',
-    borderColor: '#746BC8',
-    borderWidth: 1,
-    paddingVertical: 7,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: '#b6f7b6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 4,
-    height: 40,
-    justifyContent: 'center',
-    marginBottom: 20,
-    minWidth: 110,
-  },
-  tituloLista: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2a3d6c',
-    marginBottom: 10,
-    alignSelf: 'center',
-    letterSpacing: 0.7,
-    textTransform: 'uppercase',
-  },
-  textoInformativo: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 15,
-    fontStyle: 'italic',
-  },
-  listaAlumnosContainer: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 14,
-    width: '100%',
-    maxHeight: 350,
+  formulario: {
+    width: "100%",
+    maxWidth: 900,
+    alignSelf: "center",
+    marginTop: 32,
     marginBottom: 24,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    padding: 30,
+    backgroundColor: "#fff",
+    borderRadius: 14,
     elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
-  row: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
+  titulo: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#2a3d6c",
+    marginBottom: 18,
+    textAlign: "center",
+    letterSpacing: 0.2,
   },
-  cellNombre: {
-    flex: 1,
-    textAlign: 'center',
+  fila: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 24,
+  },
+  columna: {
+    width: "48%",
+    minWidth: 260,
+  },
+  label: {
     fontSize: 15,
-    color: '#374151',
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    marginBottom: 6,
+    fontWeight: "500",
+    color: "#2a3d6c",
   },
-  botonConfirmar: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#4caf50',
+  input: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    padding: 10,
+    borderRadius: 7,
+    marginBottom: 13,
+    backgroundColor: "#f3f4f6",
+    height: 44,
+    fontSize: 15,
+  },
+  botonAlta: {
+    backgroundColor: "#e8f5e9",
+    borderColor: "#4caf50",
     borderWidth: 1,
     paddingVertical: 10,
-    paddingHorizontal: 28,
-    borderRadius: 8,
-    marginTop: 10,
-    alignSelf: 'center',
-    elevation: 3,
-    shadowColor: '#CED9EF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 4,
-    minWidth: 140,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonBaja: {
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonModificar: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#746BC8",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonLimpiar: {
+    backgroundColor: "#f5f5f5",
+    borderColor: "#9e9e9e",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  botonConsultar: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#2196F3",
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: "center",
+    marginBottom: 10,
+    width: "50%",
+  },
+  botonDeshabilitado: {
+    opacity: 0.5,
+    backgroundColor: "#cccccc",
+    borderColor: "#999999",
   },
   textoBoton: {
-    color: '#2c3e50',
+    color: "#2c3e50",
     fontSize: 15,
-    fontWeight: '600',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    lineHeight: 40,
+    fontWeight: "600",
+    textAlign: "center",
   },
-  textoBotonGrande: {
-    color: '#2c3e50',
-    fontSize: 18,    // ...existing code...
-      filaFiltros: {
-        flexDirection: 'row',
-        alignItems: 'center', // Cambia 'flex-end' por 'center' para alinear verticalmente
-        width: '100%',
-        marginBottom: 18,
-        gap: 18,
-      },
-      filtrosHorizontales: {
-        flex: 3,
-        marginRight: 0, // Quita el margen derecho para que no se separe tanto
-      },
-      botonesFiltros: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'flex-start', // Cambia a 'flex-start' para que quede pegado al desplegable
-        gap: 10,
-        alignItems: 'center', // Asegura alineación vertical
-      },
-      botonPrimario: {
-        backgroundColor: '#f0f7ff',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 0, // Ajusta para que el alto sea igual al desplegable
-        paddingHorizontal: 18,
-        borderRadius: 8,
-        elevation: 2,
-        shadowColor: '#b6f7b6',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.10,
-        shadowRadius: 4,
-        height: 40, // Igual que el desplegable
-        justifyContent: 'center',
-        marginLeft: 0, // Quita el margen izquierdo
-        minWidth: 110,
-      },
-    // ...existing code...
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: 1,
-  },
-  scrollViewContent: {
-    paddingBottom: 10,
+  multiSelect: {
+    marginBottom: 10,
+    marginTop:10, 
   },
 });

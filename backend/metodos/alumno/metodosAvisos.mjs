@@ -49,6 +49,7 @@ export const obtenerAvisosCurso = async (req, res) => {
     }
 };
 
+
 export const obtenerUltimaVisitaAvisos = async (req, res) => {
     const { dni_usuario } = req.params;
     try {

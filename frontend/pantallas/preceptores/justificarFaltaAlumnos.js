@@ -115,7 +115,7 @@ export default function JustificarFaltaAlumnos() {
     };
 
     // Actualizar selección
-    const actualizarSeleccionadoAlumno = (tipo, valor, dni_alumno, fecha) => {
+    const actualizarAlumnoSeleccionado = (tipo, valor, dni_alumno, fecha) => {
         const key = `${dni_alumno}_${fecha}`;
         if (tipo === 'estadoFalta') {
             setEstadoFaltaPorAlumno(prev => ({
@@ -137,12 +137,12 @@ export default function JustificarFaltaAlumnos() {
             id_certificado !== undefined &&
             id_certificado !== null
         ) {
-            enviarJustificacionFalta(id_estado_falta_alumno, id_certificado, dni_alumno, fecha);
+            registrarJustificacion(id_estado_falta_alumno, id_certificado, dni_alumno, fecha);
         }
     };
 
     // Actualizar en base de datos
-    const enviarJustificacionFalta = async (id_estado_falta_alumno, id_certificado, dni_alumno, fecha) => {
+    const registrarJustificacion = async (id_estado_falta_alumno, id_certificado, dni_alumno, fecha) => {
         const datosForm = {
             id_estado_falta_alumno,
             dni_alumno,
@@ -218,7 +218,7 @@ export default function JustificarFaltaAlumnos() {
                                                         : undefined
                                                 }
                                                 onValueChange={(itemValue) => {
-                                                    actualizarSeleccionadoAlumno(
+                                                    actualizarAlumnoSeleccionado(
                                                         "estadoFalta",
                                                         itemValue,
                                                         alumno.dni_alumno,

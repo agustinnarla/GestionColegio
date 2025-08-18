@@ -7,7 +7,7 @@ const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practi
   const [expandido, setExpandido] = useState(false);
 
   //🟢 Funcion para expandir
-  const toggleExpandir = () => {
+  const expandirMateria = () => {
     setExpandido(!expandido);
   };
 
@@ -20,7 +20,7 @@ const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practi
   //🟢 Vista 
   return (
     <View style={styles.cardMateria}>
-      <TouchableOpacity onPress={toggleExpandir} style={styles.materiaHeader} activeOpacity={0.8}>
+      <TouchableOpacity onPress={expandirMateria} style={styles.materiaHeader} activeOpacity={0.8}>
         <Text style={styles.materiaNombre}>{nombre}</Text>
         <Text style={styles.expandirIcon}>{expandido ? '▲' : '▼'}</Text>
       </TouchableOpacity>

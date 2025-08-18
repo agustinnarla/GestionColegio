@@ -112,7 +112,7 @@ export default function LibroAula({ route }) {
     }, [dni_profesional, formData.id_curso, formData.id_materia]);
 
 
-    const validarDatos = () => {
+    const validarCampos = () => {
         return  formData.id_materia &&
         formData.id_caracteristica_unidad &&
         formData.id_curso &&
@@ -141,7 +141,7 @@ export default function LibroAula({ route }) {
                 dni_profesional: dni_usuario,
             };
 
-            if (!validarDatos()) {
+            if (!validarCampos()) {
                 mostrarMensaje('Error', 'Por favor complete todos los campos correctamente');
                 return;
             }
@@ -197,14 +197,14 @@ export default function LibroAula({ route }) {
                             <ListasDesplegables 
                                 formData={formData} 
                                 handleChange={handleChange} 
-                                cursos={cursoPorProfesor}
+                                materias_curso_profesor={materiaPorCursoYProfesor}
                                 showLabel={true}
                                 styles={styles}
                             />
                             <ListasDesplegables 
                                 formData={formData} 
                                 handleChange={handleChange} 
-                                materias_curso_profesor={materiaPorCursoYProfesor}
+                                cursos={cursoPorProfesor}
                                 showLabel={true}
                                 styles={styles}
                             />
@@ -252,11 +252,11 @@ export default function LibroAula({ route }) {
                             numberOfLines={4}
                         />
                         <View style={styles.contenidoBoton}>
-                            <TouchableOpacity style={[styles.botonRegistrar, !validarDatos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarDatos()}>
+                            <TouchableOpacity style={[styles.botonRegistrar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}>
                                 <Text style={styles.textoBoton} >Registrar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
-                                <Text style={styles.textoBoton} >Cancelar</Text>
+                                <Text style={styles.textoBoton} >Limpiar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     },
     card: {
         width: '90%',
-        maxWidth: 400,
+        maxWidth: 600,
         backgroundColor: '#fff',
         padding: 20,
         borderRadius: 10,

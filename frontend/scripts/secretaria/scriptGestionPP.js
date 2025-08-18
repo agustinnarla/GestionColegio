@@ -4,7 +4,7 @@ const api_urlProfesionalDeshabilitar = 'http://localhost:5000/profesional/deshab
 const api_urlProfesionalModificar = 'http://localhost:5000/profesional/modificar'
 
 //🟢
-export const obtenerProfesional = async (dni) => {
+export const consultarProfesional = async (dni) => {
     try{
         const respuesta = await fetch(`${api_urlProfesional}/${dni}`)
         if (respuesta.ok) {
@@ -29,16 +29,16 @@ export const registrarProfesional = async (profesionalData) => {
             body: JSON.stringify(profesionalData)
         })
         const data = await respuesta.json()
-        if (respuesta.ok) {
-            return data
-        } else {
-            throw new Error(data.error)
+        if (!respuesta.ok) {
+            throw new Error(data?.message || data?.error || 'Error desconocido');
         }
-
+        return data;    
     }catch(error){
         console.log(error)
+        throw error; // Re-lanzar el error para que se maneje en el componente
     }
 }
+
 //🟢
 export const deshabilitarProfesional = async (dni_alumno) => {
     try{

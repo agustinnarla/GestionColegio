@@ -3,6 +3,8 @@ import * as XLSX from 'xlsx';
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { Buffer } from 'buffer';
+
 //Rutas que utilizamos
 const api_url = 'http://localhost:5000'
 const api_urlAsistencia = `${ API_BASE_URL }/alumno/asistencia`
@@ -102,16 +104,15 @@ export const obtenerAlumnosAusentes = async (idcurso, fecha) => {
     }
 };
 
-
-export const exportarExcelConDatos = async (nuevosDatos, nombreArchivo = 'asistencia.xlsx') => {
+export const exportarExcelConDatos = async (nuevosDatos, nombreArchivo = 'asistencia.xlsx', nombreHoja = 'Curso') => {
   try {
     const fileName = nombreArchivo;
 
     if (Platform.OS === 'web') {
-      // 👉 Exportación para web
+      // 👉 Web: leer no es posible, solo crear o sobrescribir
       const worksheet = XLSX.utils.json_to_sheet(nuevosDatos);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia');
+      XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
 
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
@@ -125,7 +126,7 @@ export const exportarExcelConDatos = async (nuevosDatos, nombreArchivo = 'asiste
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } else {
-      // 👉 Exportación para Android/iOS
+      // 👉 Android/iOS: leer y modificar archivo existente
       const pathArchivo = FileSystem.documentDirectory + fileName;
       let workbook;
       let worksheet;
@@ -138,15 +139,21 @@ export const exportarExcelConDatos = async (nuevosDatos, nombreArchivo = 'asiste
         const buffer = Buffer.from(contenidoBase64, 'base64');
         workbook = XLSX.read(buffer, { type: 'buffer' });
 
-        worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const datosExistentes = XLSX.utils.sheet_to_json(worksheet);
-        const nuevosCombinados = [...datosExistentes, ...nuevosDatos];
-        const nuevoSheet = XLSX.utils.json_to_sheet(nuevosCombinados);
-        workbook.Sheets[workbook.SheetNames[0]] = nuevoSheet;
+        // Si la hoja existe, agregá los datos; si no, creala
+        if (workbook.SheetNames.includes(nombreHoja)) {
+          worksheet = workbook.Sheets[nombreHoja];
+          const datosExistentes = XLSX.utils.sheet_to_json(worksheet);
+          const nuevosCombinados = [...datosExistentes, ...nuevosDatos];
+          const nuevoSheet = XLSX.utils.json_to_sheet(nuevosCombinados);
+          workbook.Sheets[nombreHoja] = nuevoSheet;
+        } else {
+          worksheet = XLSX.utils.json_to_sheet(nuevosDatos);
+          XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
+        }
       } else {
         worksheet = XLSX.utils.json_to_sheet(nuevosDatos);
         workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia');
+        XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
       }
 
       const excelBase64 = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });

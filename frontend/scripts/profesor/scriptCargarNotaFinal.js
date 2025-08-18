@@ -4,7 +4,7 @@ const api_urlModificarEstado = `${API_BASE_URL}/profesor/nota_final/estado_evalu
 
 
 
-// 🟢
+// 🟢 Registrar Nota 
 export const agregarNota = async ({ id_curso, id_materia, dni_profesional, dni_alumno, nota_final }) => {
     try {
         // Validación antes de enviar

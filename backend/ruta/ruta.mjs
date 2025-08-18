@@ -8,7 +8,7 @@ import {
     obtenerAlumnoNombreApellido, obtenerLegajoAlumno, modificarAdjuntoLegajo 
 } from '../metodos/secretaria/metodosGestionAlumno.mjs'
 
-import { crearAviso, obtenerMotivos} from '../metodos/secretaria/metodosCrearAvisos.mjs'
+import { registrarAviso, obtenerMotivos} from '../metodos/secretaria/metodosCrearAvisos.mjs'
 import { obtenerSexo } from '../metodos/listasDesplegables/metodosSexo.mjs'
 import { obtenerCurso, obtenerCursoFiltrado, obtenerCursoConAlumnos} from '../metodos/listasDesplegables/metodosCurso.mjs'
 import { registrarCursoPorMateria, consultarCurso, registrarCurso, deshabilitarCurso,modificarCurso } from '../metodos/administrador/metodosRegistrarCurso.mjs'
@@ -17,7 +17,7 @@ import { obtenerLocalidad } from '../metodos/listasDesplegables/metodosLocalidad
 import { registrarObservacion } from '../metodos/preceptor/metodosObservacion.mjs'
 import { registrarAmonestacion, obtenerCantidadAmonestaciones, obtenerProfesionales } from '../metodos/preceptor/metodosAmonestacion.mjs'
 import { 
-    modificarAsistencia, registrarAsistencia, validarFechaAsistencia, 
+    modificarAsistenciaAlumnos, registrarAsistenciaAlumnos, validarFechaAsistencia, 
     obtenerModificacionAlumnosAusentes, obtenerFaltasSuperadas 
 } from '../metodos/preceptor/metodosAsistenciaAlumnos.mjs'
 import { obtenerNotas, registrarNota } from '../metodos/secretaria/metodosCargarNotas.mjs'
@@ -41,12 +41,12 @@ import { obtenerUsuario, restablecerContrasena, obtenerUsuarioAlumno } from '../
 import { obtenerAvisosGenerales, obtenerAvisosCurso, actualizarUltimaVisitaAvisos, obtenerUltimaVisitaAvisos } from '../metodos/alumno/metodosAvisos.mjs'
 import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula, obtenerMateriaPorCursoYProfesor,obtenerNumeroDeClase } from '../metodos/profesores/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/profesores/metodosAsignarEvaluacion.mjs'
-import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, modificarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/profesores/metodosCargarNotasFinal.mjs'
+import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, actualizarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/profesores/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, deshabilitarHorario,obtenerHorasProfesor, obtenerHorarioCurso, obtenerHorarioProfesional } from '../metodos/secretaria/metodosAsignarHoras.mjs'
 import { marcarAusentes, obtenerProfesionalesAsistencia, registrarEntradaProfesional, registrarSalidaProfesional } from '../metodos/secretaria/metodosAsistenciaProfesores.mjs'
-import { registrarProfesional, deshabilitarProfesional, obtenerProfesional, modificarProfesional } from '../metodos/secretaria/metodosGestionProfesionales.mjs'
-import { obtenerEstadosFaltaProfesionales, obtenerFaltasProfesionales, registrarJustificacionProfesionales} from '../metodos/secretaria/metodosJustificarFaltaProfesionales.mjs'
-import { obtenerEvaluacionesCargadas, obtenerEvaluacionesPorAlumno } from '../metodos/navegacion/metodosCalendario.mjs'
+import { registrarProfesional, deshabilitarProfesional, consultarProfesional, modificarProfesional } from '../metodos/secretaria/metodosGestionProfesionales.mjs'
+import { obtenerEstadosFaltaProfesionales, obtenerProfesionalesAusentes, registrarJustificacionProfesionales} from '../metodos/secretaria/metodosJustificarFaltaProfesionales.mjs'
+import { obtenerEvaluacionesProfesor, obtenerEvaluacionesAlumno } from '../metodos/navegacion/metodosCalendario.mjs'
 
 
 const storage = multer.memoryStorage()
@@ -137,8 +137,8 @@ ruta.post('/alumno/amonestacion/alta', registrarAmonestacion) // 🟢
 ruta.get('/alumno/amonestacion/cantidad/:dni_alumno', obtenerCantidadAmonestaciones) // 🟢
 
 // == ASISTENCIA 
-ruta.post('/alumno/asistencia/alta', registrarAsistencia)  // 🟢
-ruta.put('/alumno/asistencia/modificar/:id_asistencia', modificarAsistencia) // 🟢
+ruta.post('/alumno/asistencia/alta', registrarAsistenciaAlumnos)  // 🟢
+ruta.put('/alumno/asistencia/modificar/:id_asistencia', modificarAsistenciaAlumnos) // 🟢
 ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha', validarFechaAsistencia) // 🟢 
 ruta.get('/alumno/asistencia/curso/:id_curso/fecha/:fecha/ausentes', obtenerModificacionAlumnosAusentes) // 🟢
 ruta.get('/alumno/asistencia/ausenciaSuperadas', obtenerFaltasSuperadas) // 🟢
@@ -206,7 +206,7 @@ ruta.get('/tarea/consultar/:detalle',  consultarTarea)
 ruta.put('/tarea/modificar/:detalle',  modificarTarea)
 
 // == AVISOS
-ruta.post('/secretaria/aviso/alta',  crearAviso)
+ruta.post('/secretaria/aviso/alta',  registrarAviso)
 ruta.get('/alumno/avisos/general', obtenerAvisosGenerales) // 🟢
 ruta.get('/alumno/avisos/curso/:dni_alumno', obtenerAvisosCurso) // 🟢
 ruta.post('/alumno/avisos/ultima_visita/actualizar', actualizarUltimaVisitaAvisos) 
@@ -222,7 +222,7 @@ ruta.post('/profesor/asignar_evaluacion/alta', registrarEvaluacion) // 🟢
 
 // == NOTA FINAL
 ruta.post('/profesor/nota_final/alta', registrarNotaFinal); // 🟢 
-ruta.put('/profesor/nota_final/estado_evaluativo', modificarEstadoEvaluativo); // 🟢 
+ruta.put('/profesor/nota_final/estado_evaluativo', actualizarEstadoEvaluativo); // 🟢 
 
 // == ASIGNAR HORAS
 ruta.post('/secretaria/profesional/horas/alta', asignacionDeHoras) // 🟢
@@ -236,13 +236,13 @@ ruta.post('/secretaria/profesional/asistencia/entrada', registrarEntradaProfesio
 ruta.put('/secretaria/profesional/asistencia/salida', registrarSalidaProfesional) // 🟢
 
 // == PROFESIONALES
-ruta.get('/profesional/:dni_profesional', obtenerProfesional) // 🟢
+ruta.get('/profesional/:dni_profesional', consultarProfesional) // 🟢
 ruta.post('/profesional/alta', registrarProfesional) // 🟢
 ruta.put('/profesional/modificar/:dni_profesional', modificarProfesional) // 🟢 
 ruta.put('/profesional/deshabilitar/:dni_profesional', deshabilitarProfesional) // 🟢 
 
 // == JUSTIFICAR FALTA PROFESIONALES
-ruta.get('/justificar/profesional/faltas/:fecha_desde/:fecha_hasta', obtenerFaltasProfesionales); // 🟢 
+ruta.get('/justificar/profesional/faltas/:fecha_desde/:fecha_hasta', obtenerProfesionalesAusentes); // 🟢 
 ruta.post('/justificar/profesional/alta', registrarJustificacionProfesionales);  // 🟢 
 
 
@@ -255,8 +255,8 @@ ruta.put('/curso/modificar/:id_curso', modificarCurso) // 🟢
 
 
 // == CALENDARIO
-ruta.get('/alumno/evaluaciones/:dni_alumno', obtenerEvaluacionesPorAlumno)
-ruta.get('/profesional/evaluaciones/registradas/:dni_profesional', obtenerEvaluacionesCargadas)
+ruta.get('/alumno/evaluaciones/:dni_alumno', obtenerEvaluacionesAlumno)
+ruta.get('/profesional/evaluaciones/registradas/:dni_profesional', obtenerEvaluacionesProfesor)
 
 
 // == LOGIN 

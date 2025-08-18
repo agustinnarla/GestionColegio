@@ -322,6 +322,14 @@ export default function CargarTareas() {
         }
     }
 
+    const validarCampos = () => {
+        return (
+            tareasDisponibles.length > 0 && 
+            selectedRoles.length > 0
+        );
+    };
+
+    
 
 
     //🟢 Limpiar interfaz
@@ -380,10 +388,10 @@ export default function CargarTareas() {
                     </View>
                     {/* Columna derecha: Acciones */}
                     <View style={styles.columna}>
-                        <TouchableOpacity style={styles.botonAlta} onPress={handleRegistrarCombinacion}>
+                        <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrarCombinacion} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>Registrar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonBaja} onPress={handleDeshabilitar}>
+                        <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}>
                             <Text style={styles.textoBoton}>Deshabilitar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.botonModificar} onPress={() => setModalModificarVisible(true)}>
@@ -516,6 +524,11 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 6,
+    },
+     botonDeshabilitado: {
+        opacity: 0.5,
+        backgroundColor: '#cccccc',
+        borderColor: '#999999',
     },
     titulo: {
         fontSize: 22,

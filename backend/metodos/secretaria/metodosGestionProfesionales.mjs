@@ -8,19 +8,23 @@ export const registrarProfesional = async (req, res) => {
     try{
         const existente = await pool.query("SELECT 1 FROM profesional WHERE dni_profesional = $1", [dni_profesional]);
         if (existente.rowCount > 0) {
-            return res.status(409).json({ message: 'El profesional ya está registrado' });
+            return res.status(409).json({ 
+                message: 'El profesional ya está registrado.',
+                code: 'DNI_INVALIDO'
+            });
         }
         
         const edad = calcularEdad(fecha_nacimiento);
         if (edad <= 21) {
             return res.status(400).json({
-                message: 'El profesional debe tener más de 11 años.'
+                message: 'El profesional debe tener más de 21 años.',
+                code: 'EDAD_INVALIDA'
             });
         }
         
         const respuesta = await pool.query("INSERT INTO profesional (dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio)" + 
             " VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *",
-            [dni_profesional, nombre, apellido, email, edad, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio]
+            [dni_profesional, nombre, apellido, email, fecha_nacimiento, cuit, id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, telefono_alternativo, id_estado_general, edificio]
         )
 
         const contrasenaHaseada = await encriptarContrasena(dni_profesional.toString());
@@ -34,6 +38,9 @@ export const registrarProfesional = async (req, res) => {
         console.log("Todo ok")
     }catch(error){
         console.log(error)
+        if (error.status) {
+            return res.status(error.status).json({message: error.error});
+        }
         res.status(500).json({message: 'Error al habilitar el profesor preceptor'})
     }
 }
@@ -57,14 +64,17 @@ export const deshabilitarProfesional = async (req, res) => {
     }
 }
 
-
-export const obtenerProfesional = async (req, res) => {
+export const consultarProfesional = async (req, res) => {
     const { dni_profesional } = req.params
     try{
         if (!dni_profesional || isNaN(dni_profesional)) {
             return res.status(400).json({ message: 'DNI no valido, verifique' });
         }
-        const respuesta = await pool.query("SELECT * FROM profesional WHERE dni_profesional = $1", [dni_profesional])
+        const respuesta = await pool.query(`SELECT dni_profesional, nombre, apellido, 
+            email, TO_CHAR(fecha_nacimiento, 'DD/MM/YYYY') as fecha_nacimiento, cuit, 
+            id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, 
+            telefono_alternativo, id_estado_general, edificio 
+            FROM profesional WHERE dni_profesional = $1`, [dni_profesional])
         if(respuesta.rowCount === 0){
             return res.status(404).json({message: 'No se encontró el profesor preceptor'})
         }
@@ -120,9 +130,9 @@ export const modificarProfesional = async (req, res) => {
     }
 };
 
-const calcularEdad = (fechaNacimiento) => {
+const calcularEdad = (fecha_nacimiento) => {
     const hoy = new Date();
-    const nacimiento = new Date(fechaNacimiento);
+    const nacimiento = new Date(fecha_nacimiento);
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
     const m = hoy.getMonth() - nacimiento.getMonth();
     if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {

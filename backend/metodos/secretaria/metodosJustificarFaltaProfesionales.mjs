@@ -12,7 +12,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
   }
 
   //obtenerProfesionalesAusentes
-  export async function obtenerFaltasProfesionales(req, res) {
+  export async function obtenerProfesionalesAusentes(req, res) {
     const { fecha_desde, fecha_hasta } = req.params;
 
     try {

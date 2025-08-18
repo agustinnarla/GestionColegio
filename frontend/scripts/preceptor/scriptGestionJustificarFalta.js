@@ -73,6 +73,7 @@ export const actualizarJustificarFalta = async (formData) => {
         console.error('Error al insertar la justificación de falta:', error);
     }
 };
+
 export const obtenerAlumnosConFaltasSuperadas = async () => {
     try {
         const url = `${api_urlAlumnoAsistencia}/ausenciaSuperadas`; // Ajusta la URL según tu backend

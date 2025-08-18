@@ -17,6 +17,7 @@ export default function Login(props) {
     const [alertMessage, setAlertMessage] = useState('');
     const [intentosFallidos, setIntentosFallidos] = useState(0);
     const [bloqueado, setBloqueado] = useState(false);
+    const [mostrarContrasena, setMostrarContrasena] = useState(false);
 
     //🟢 Mensajes
     const mostrarMensaje = (titulo, mensaje) => {
@@ -120,8 +121,8 @@ export default function Login(props) {
                         <FontAwesome5 name="lock" size={15} color="black" style={styles.icon} />
                         <TextInput
                             placeholder="Contraseña"
-                            secureTextEntry={true}
                             style={styles.textInput}
+                             secureTextEntry={!mostrarContrasena}
                             onChangeText={(text) => setContrasena(text)}
                             value={contrasena}
                             autoComplete="off"
@@ -130,7 +131,18 @@ export default function Login(props) {
                             spellCheck={false}
                             textContentType="none"
                         />
+                        <TouchableOpacity
+                            style={styles.iconoOjo}
+                            onPress={() => setMostrarContrasena(!mostrarContrasena)}
+                        >
+                            <FontAwesome5 
+                                name={mostrarContrasena ? "eye-slash" : "eye"} 
+                                size={16} 
+                                color="#6366f1" 
+                            />
+                        </TouchableOpacity>
                     </View>
+
                     <TouchableOpacity onPress={handleOlvideMiContrasena}>
                         <Text style={styles.textoOlvide}>Olvidé mi contraseña</Text>
                     </TouchableOpacity>
@@ -169,6 +181,11 @@ const styles = StyleSheet.create({
         height: '100%',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+     iconoOjo: {
+        padding: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     logo: {
         marginTop: 10,

@@ -1,7 +1,7 @@
 import {pool} from '../../dataBase/coneccion.mjs'
 
 // Esta es la función del backend que maneja la inserción en la base de datos.
-export const registrarAsistencia = async (req, res) => {
+export const registrarAsistenciaAlumnos = async (req, res) => {
     const { dni_alumno, fecha, id_curso, id_estado_asistencia } = req.body;
     console.log('Datos recibidos en backend:', req.body); // Verifica que los datos llegan correctamente
 
@@ -37,7 +37,7 @@ export const registrarAsistencia = async (req, res) => {
 
 
 //Modificar
-export const modificarAsistencia = async (req, res) => {
+export const modificarAsistenciaAlumnos = async (req, res) => {
     const { id_curso, dni_alumno, id_estado_asistencia, fecha } = req.body;
     try {
         const respuesta = await pool.query(

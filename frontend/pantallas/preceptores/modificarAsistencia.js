@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { obtenerAlumnosAusentes, obtenerCursoFrontend, registrarAsistenciaFrontend, exportarExcelConDatos } from '../../scripts/preceptor/scriptGestionAsistencia.js';
 import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
+import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import bg from '../../assets/bg1.jpg';
 import { FontAwesome5 } from '@expo/vector-icons';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -11,10 +12,10 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 export default function ModificarAsistencia() {
     const navegacion = useNavigation();
     const route = useRoute();
-    const { id_curso } = route.params;
+    const { id_curso, detalle_curso } = route.params;
 
     //🟢 Estado y lista de alumnos 
-    const [students, setStudents] = useState([]);
+    const [estudiantes, setEstudiantes] = useState([]);
     const [mensajeConfirmacion, setMensajeConfirmacion] = useState('');
 
 
@@ -23,8 +24,8 @@ export default function ModificarAsistencia() {
 
     //🟢 Cambios en el switch
     const toggleSwitch = (id) => {
-        setStudents((prevEstudiante) =>
-            prevEstudiante.map((estudiante) =>
+        setEstudiantes((prevEstudiantes) =>
+            prevEstudiantes.map((estudiante) =>
                 estudiante.id === id ? { ...estudiante, presente: !estudiante.presente } : estudiante
             )
         );
@@ -64,12 +65,12 @@ export default function ModificarAsistencia() {
                         const estado = alumno.id_estado_asistencia === 2 ? false : true;
                         return { id: alumno.dni_alumno, nombre: alumno.nombreapellido, presente: estado };
                     });
-                    setStudents(estudiantesActualizados);
+                    setEstudiantes(estudiantesActualizados);
                 } else {
-                    setStudents([]);
+                    setEstudiantes([]);
                 }
             } catch (error) {
-                setStudents([]);
+                setEstudiantes([]);
             }
         };
         cargarAlumnosAusentes();
@@ -78,7 +79,7 @@ export default function ModificarAsistencia() {
     //🟢 Registramos 
     const handleRegistrar = async () => {
         try {
-            for (const estudiante of students) {
+            for (const estudiante of estudiantes) {
                 const alumnosData = await obtenerAlumnoFiltrado(estudiante.id);
                 if (alumnosData) {
                     const id_estado_asistencia = estudiante.presente ? 3 : 2;
@@ -98,22 +99,29 @@ export default function ModificarAsistencia() {
         }
     };
 
-    const exportarModificacionExcel = () => {
-    const data = students.map(a => ({
+    const exportarModificacionExcel = (estudiantes) => {
+    const data = estudiantes.map(a => ({
         Fecha: obtenerFechaActual(),
-        DNI: a.id,
-        Alumno: a.nombre,
-        Estado: a.presente ? 'Modificado a Presente' : 'Sigue Ausente'
+        DNI: a.dni_alumno,
+        Alumno: a.nombrecompleto || `${a.nombre || ''} ${a.apellido || ''}`,
+        Estado: a.presente ? 'Media Falta' : 'Ausente'
     }));
 
-    exportarExcelConDatos(data);
-    };
+    // Limpia el nombre de la hoja para evitar caracteres raros
+    const nombreHoja = detalle_curso
+        ? detalle_curso.replace(/\s+/g, '_').replace(/[^\w]/g, '')
+        : 'curso';
+
+    exportarExcelConDatos(data, 'asistencia.xlsx', nombreHoja);
+};
+
 
     return (
         <View style={styles.padre}>
             <Image source={bg} style={styles.bg} />
             <View style={styles.wrapper}>
                 <View style={styles.card}>
+                    
                     <View style={styles.busqueda}>
                         <FontAwesome5 name="search" size={15} color="#bbb" style={styles.icon} />
                         <TextInput placeholder='Buscar alumno...' style={styles.textBusqueda} />
@@ -123,12 +131,12 @@ export default function ModificarAsistencia() {
                         <Text style={styles.headerPresente}>MF</Text>
                     </View>
                     <ScrollView style={styles.listaEstudiantes}>
-                        {students.map((estudiante) => (
-                            <View key={estudiante.id} style={styles.filaEstudiantes}>
+                        {estudiantes.map((estudiante) => (
+                            <View key={estudiante.dni_alumno} style={styles.filaEstudiantes}>
                                 <Text style={styles.estudiante}>{estudiante.nombre}</Text>
                                 <Switch
                                     value={estudiante.presente}
-                                    onValueChange={() => toggleSwitch(estudiante.id)}
+                                    onValueChange={() => toggleSwitch(estudiante.dni_alumno)}
                                     thumbColor={estudiante.presente ? "#4caf50" : "#bbb"}
                                     trackColor={{ false: "#e5e7eb", true: "#bbf7d0" }}
                                     style={styles.switch}
@@ -145,8 +153,7 @@ export default function ModificarAsistencia() {
                         </TouchableOpacity>
                          <TouchableOpacity
                             style={styles.boton}
-                            
-                            onPress={() => exportarModificacionExcel(students)}
+                            onPress={() => exportarModificacionExcel(estudiantes)}
                         >
                             <Text style={styles.botonTexto}>📄</Text>
                         </TouchableOpacity>

@@ -115,7 +115,7 @@ export default function GestionarAsistencia(){
     }, [formData.id_curso]);
 
     //🟢 Cambiar Estado de Asistencia 
-    const toggleSwitch = (dni) => {
+    const cambiarAsistencia = (dni) => {
         setEstudiantes((prevEstudiantes) =>
             prevEstudiantes.map((estudiante) => {
                 if (estudiante.dni_alumno === dni) {
@@ -270,7 +270,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
             Estado: a.presente ? 'Presente' : 'Ausente'
         }));
 
-        exportarExcelConDatos(data);
+        exportarExcelConDatos(data, 'asistencia.xlsx',  `${cursoSeleccionado ? cursoSeleccionado.detalle : 'curso'}`) ;
     };
 
     return (
@@ -279,7 +279,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
             <View style={styles.wrapper}>
 
                 <View style={styles.card}>
-                   <Picker
+                <Picker
                         selectedValue={formData.id_curso}
                         onValueChange={(value) => setFormData({ ...formData, id_curso: value })}
                         style={[
@@ -316,7 +316,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                             <Text style={styles.estudiante}>{estudiante.nombrecompleto}</Text>
                             <Switch
                                 value={estudiante.presente}
-                                onValueChange={() => toggleSwitch(estudiante.dni_alumno)}
+                                onValueChange={() => cambiarAsistencia(estudiante.dni_alumno)}
                                 thumbColor={estudiante.presente ? "#4caf50" : "#bbb"}
                                 trackColor={{ false: "#e5e7eb", true: "#bbf7d0" }}
                                 style={styles.switch}
@@ -325,7 +325,7 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                     ))}
                 </ScrollView>
                 <View style={styles.contenedorBotones}>
-                    <TouchableOpacity style={[styles.boton, styles.modificar, !botonModificarActivado && styles.botonDeshabilitado]} disabled={!botonModificarActivado} onPress={() => navegacion.navigate('Modificar Asistencia', { id_curso: formData.id_curso })}>
+                    <TouchableOpacity style={[styles.boton, styles.modificar, !botonModificarActivado && styles.botonDeshabilitado]} disabled={!botonModificarActivado} onPress={() => navegacion.navigate('Modificar Asistencia', { id_curso: formData.id_curso, detalle_curso : cursoSeleccionado ? cursoSeleccionado.detalle : '' })}>
                         <Text style={styles.botonTexto}>Modificar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.boton, styles.enviar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado} onPress={handleRegistrar}>

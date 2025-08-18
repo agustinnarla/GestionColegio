@@ -65,12 +65,6 @@ export default function GestionarAmonestaciones() {
                     <Text style={styles.textoBoton}>Limpiar</Text>
                 </TouchableOpacity>
             </View>
-            {enviando && (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#007bff" />
-                    <Text style={styles.loadingText}>Enviando amonetación al email...</Text>
-                </View>
-            )}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -98,11 +92,12 @@ export default function GestionarAmonestaciones() {
             <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
             {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
             <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
-            />
+        isVisible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
+        showSpinner={enviando}
+                />
             </ImageBackground>
         </View>
     );

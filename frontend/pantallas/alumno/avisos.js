@@ -91,7 +91,7 @@ export default function Avisos({ route }) {
     });
 
     //🟢 Obtención de la fecha actual
-    const fechaActual = (fechaStr) => {
+    const obtenerFechaActual = (fechaStr) => {
         if (!fechaStr) return false;
         const fecha = new Date(fechaStr);
         if (isNaN(fecha.getTime())) return false;
@@ -136,7 +136,7 @@ export default function Avisos({ route }) {
                                 <View style={styles.encabezadoTarjeta}>
                                     <Text style={styles.fecha}>{formatearFechaYHora(aviso.fecha_aviso)}</Text>
                                     <Text style={styles.curso}>{aviso.curso || 'General'}</Text>
-                                    {fechaActual(aviso.fecha) && (
+                                    {obtenerFechaActual(aviso.fecha) && (
                                         <View style={styles.badgeNuevo}>
                                             <Text style={styles.badgeTexto}>Hoy</Text>
                                         </View>

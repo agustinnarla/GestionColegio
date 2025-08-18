@@ -290,19 +290,19 @@ const handleChange = (name, value) => {
             />
 
             <Text style={styles.label}>Fecha</Text>
-                         <TextInput
-               style={[styles.input, !fechaValida && styles.inputError]}
-               placeholder="AAAA-MM-DD"
-               value={fechaTexto}
-               onChangeText={validarFecha}
-               keyboardType="numeric"
-               maxLength={10}
-             />
-             {!fechaValida && fechaTexto && (
-               <Text style={styles.errorText}>
-                 Formato inválido. Use YYYY-MM-DD (ej: 2024-12-25)
-               </Text>
-             )}
+                        <TextInput
+              style={[styles.input, !fechaValida && styles.inputError]}
+              placeholder="AAAA-MM-DD"
+              value={fechaTexto}
+              onChangeText={validarFecha}
+              keyboardType="numeric"
+              maxLength={10}
+            />
+            {!fechaValida && fechaTexto && (
+              <Text style={styles.errorText}>
+                Formato inválido. Use YYYY-MM-DD (ej: 2024-12-25)
+              </Text>
+            )}
             
             <ListasDesplegables
                 formData={formData}
@@ -370,18 +370,6 @@ const handleChange = (name, value) => {
 }
 
 const styles = StyleSheet.create({
-  padre: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: '#f5f7fa',
-    position: 'relative',
-  },
-  botonDeshabilitado: {
-    opacity: 0.5,
-        backgroundColor: '#cccccc',
-        borderColor: '#999999',
-  },
   container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
@@ -393,201 +381,98 @@ const styles = StyleSheet.create({
     height: '100%',
     zIndex: -1,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+  },
   formulario: {
     width: '100%',
-    maxWidth: '95%',
+    maxWidth: 650,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 28,
-    marginTop: 10, 
+    borderRadius: 14,
+    padding: 20,
     marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
+    color: '#2a3d6c',
   },
   input: {
-    marginTop: 10,
     backgroundColor: '#f9f9f9',
     borderColor: '#b6c6e0',
-    borderWidth: 1.5,
+    borderWidth: 1.3,
     borderRadius: 8,
     padding: 12,
+    marginBottom: 14,
+    fontSize: 15,
+    color: '#2a3d6c',
+  },
+  textArea: {
+    height: 110,
+    minHeight: 110,
+  },
+  inputError: {
+    borderColor: '#e53935',
+  },
+  errorText: {
+    color: '#e53935',
+    fontSize: 12,
     marginBottom: 10,
-    fontSize: 16,
+  },
+  dropdown: {
+    backgroundColor: '#f9f9f9',
+    borderColor: '#b6c6e0',
+    borderWidth: 1.3,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 14,
+  },
+  dropdownText: {
+    fontSize: 15,
     color: '#2a3d6c',
   },
   botonesContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 15,
     marginTop: 10,
+    gap: 10,
   },
   boton: {
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#CED9EF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 4,
     borderWidth: 1,
+    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   botonAgregar: {
     backgroundColor: '#e8f5e9',
-        borderColor: '#4caf50',
-        borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-        elevation: 2,
-        shadowColor: '#CED9EF',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.10,
-        shadowRadius: 4,
-        minWidth: 120,
-        alignItems: 'center',
-        marginRight: 8,
+    borderColor: '#4caf50',
   },
   botonLimpiar: {
     backgroundColor: '#ffebee',
     borderColor: '#f44336',
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: '#f44336',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 4,
-    minWidth: 120,
-    alignItems: 'center',
-    marginLeft: 8,
+  },
+  botonDeshabilitado: {
+    opacity: 0.6,
+    backgroundColor: '#cccccc',
+    borderColor: '#999999',
   },
   botonTexto: {
     color: '#2a3d6c',
     fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 0.5,
-  },
-  dropdown: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#b6c6e0',
-    borderWidth: 1.5,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: '#2a3d6c',
-  },
-  inputError: {
-    borderColor: 'red',
-    borderWidth: 1.5,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginBottom: 10,
-    marginLeft: 2,
-  },
-  scrollAvisos: {
-    width: '95%',
-    maxWidth: 600,
-    alignSelf: 'center',
-  },
-  listaAvisosContainer: {
-    width: '95%',
-    maxWidth: 600,
-    alignSelf: 'center',
-    marginTop: 20,
-    marginBottom: 30,
-  },
-  tituloAvisos: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2a3d6c',
-    marginBottom: 10,
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  textoSinAvisos: {
     fontSize: 15,
-    color: '#888',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  tarjeta: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 18,
-    borderColor: '#e1e8ed',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  textoAviso: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#2a3d6c',
-  },
-  textoMotivo: {
-    fontSize: 14,
-    marginBottom: 2,
-    color: '#374151',
-  },
-  textoDH: {
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 10,
-    color: '#777',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#2a3d6c',
-  },
-  textArea: {
-    height: 120,
-    minHeight: 120,
-  },
-  pickerContainer: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#b6c6e0',
-    borderWidth: 1.5,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-  },
-  picker: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#b6c6e0',
-    borderWidth: 1.5,
-    borderRadius: 8,
-    padding: 10,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingBottom: 20,
-  },
-
-  flexRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
   },
 });

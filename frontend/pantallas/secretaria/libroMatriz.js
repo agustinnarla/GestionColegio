@@ -10,7 +10,7 @@ const isWeb = Platform.OS === 'web';
 
 export default function LibroMatriz() {
 
-     useEffect(() => {
+    useEffect(() => {
             if (isWeb) {
             document.body.style.overflow = 'auto'; // Activar scroll en web
           } else {

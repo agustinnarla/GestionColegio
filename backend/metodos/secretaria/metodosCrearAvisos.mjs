@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 
 
 // CrearAviso
-export const crearAviso = async (req, res) => {
+export const registrarAviso = async (req, res) => {
     let { informacion, id_motivo, fecha_aviso, profesores = [], cursos = [], general, id_estado_general } = req.body;
    
 

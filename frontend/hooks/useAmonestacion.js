@@ -128,12 +128,20 @@ export default function useAmonestacion() {
                 motivo: formData.motivo
             }; 
             setEnviando(true);
-            // Hacer lo del spiner 
 
+            mostrarMensaje('Enviando','Enviando la amonestación al email...')
             const respuesta = await registrarAmonestacion(alumnoData);
-            mostrarMensaje('¡Éxito!', 'La amonestación se registró correctamente');
+           
+
+            setTimeout(() => {
+        setAlertVisible(false);
+        setTimeout(() => {
+           mostrarMensaje('Éxito', 'La amonestación se registró correctamente');
+            limpiarInterfaz();
             setEnviando(false);
             setModalVisible(true);
+        }, 300); 
+      }, 500);
         } catch (error) {
             mostrarMensaje('Error', 'No se pudo registrar la amonestación');
         }

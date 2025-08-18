@@ -14,6 +14,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+//🟢 Lista desplegable 
 export const obtenerTipoDeEvaluacion = async  (req, res) => {
     try{
         const respuesta = await pool.query('SELECT id_tipo_de_evaluacion,detalle FROM tipo_de_evaluacion')
@@ -24,6 +25,7 @@ export const obtenerTipoDeEvaluacion = async  (req, res) => {
     }
 }
 
+//🟢 No más de 3 evaluaciones por día  
 const contarEvaluacionesPorCursoYFecha = async (id_curso, fecha) => {
     const resultado = await pool.query(
         'SELECT COUNT(*) FROM evaluacion WHERE id_curso = $1 AND fecha = $2',
@@ -32,6 +34,7 @@ const contarEvaluacionesPorCursoYFecha = async (id_curso, fecha) => {
     return parseInt(resultado.rows[0].count); 
 };
 
+//🟢 Registro
 export const registrarEvaluacion = async (req, res) => {
   const { id_materia, id_tipo_de_evaluacion, fecha, tema_abarcado, id_curso, dni_profesional } = req.body;
 
@@ -93,6 +96,7 @@ export const registrarEvaluacion = async (req, res) => {
   }
 };
 
+//🟢 Fecha dia/mes/año menor a 2 días
 const validarFecha = (fecha) => {
   // Fecha esperada: dd/mm/yyyy
   const [dia, mes, año] = fecha.split('/').map(Number);
@@ -121,6 +125,7 @@ const validarFecha = (fecha) => {
   }
 };
 
+//🟢 Email
 const enviarEmailEvaluacion = async (dni_alumno, email_personal, ) => {
     try {
         // Configurar el email

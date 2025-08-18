@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, Alert, ImageBackground } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, ImageBackground } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { obtenerSexo, obtenerEstadoGeneral, obtenerLocalidad,obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
-import { obtenerProfesional, registrarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
+import { consultarProfesional, registrarProfesional, deshabilitarProfesional, modificarProfesional } from '../../scripts/secretaria/scriptGestionPP.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 
 export default function GestionarProfesional() {
- const [viveEnDepto, setViveEnDepto] = useState(false);
+  const [viveEnDepto, setViveEnDepto] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
@@ -69,6 +69,7 @@ export default function GestionarProfesional() {
     return `${prefijo}-${dniStr}-${digitoVerificador}`;
   };
 
+  
   const validarCampos = () => {
     return (
       formData.dni_profesional &&
@@ -90,7 +91,11 @@ export default function GestionarProfesional() {
     );
   };
 
-  const validarDni = () => formData.dni_profesional;
+  const validarDni = () => {
+      const dni = formData.dni_profesional;
+      return dni && /^\d{8}$/.test(dni); 
+   
+  } 
 
   useEffect(() => {
     const cargarListaDesplegable = async () => {
@@ -111,62 +116,67 @@ export default function GestionarProfesional() {
     cargarListaDesplegable();
   }, []);
 
-const validarFechaNacimiento = (fecha) => {
-    const fechaIngresada = new Date(fecha);
-    const fechaActual = new Date();
+  const validarFechaNacimiento = (fecha) => {
+      const fechaIngresada = new Date(fecha);
+      const fechaActual = new Date();
 
-    if (isNaN(fechaIngresada.getTime())) {
-        Alert.alert('Error', 'La fecha de nacimiento no es válida.');
-        console.log('Fecha de nacimiento no válida:', fecha);
-        return false;
-    }
+      if (isNaN(fechaIngresada.getTime())) {
+          mostrarMensaje('Error', 'La fecha de nacimiento no es válida.');
+          console.log('Fecha de nacimiento no válida:', fecha);
+          return false;
+      }
 
-    if (fechaIngresada > fechaActual) {
-        Alert.alert('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
-        console.log('Fecha futura:', fecha);
-        return false;
-    }
+      if (fechaIngresada > fechaActual) {
+          mostrarMensaje('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
+          console.log('Fecha futura:', fecha);
+          return false;
+      }
 
-    // Calcular la edad
-    const edad = fechaActual.getFullYear() - fechaIngresada.getFullYear();
-    const mesActual = fechaActual.getMonth();
-    const mesNacimiento = fechaIngresada.getMonth();
+      // Calcular la edad
+      let edad = fechaActual.getFullYear() - fechaIngresada.getFullYear();
+      const mesActual = fechaActual.getMonth();
+      const mesNacimiento = fechaIngresada.getMonth();
 
-   
-    if (
-        mesActual < mesNacimiento ||
-        (mesActual === mesNacimiento && fechaActual.getDate() < fechaIngresada.getDate())
-    ) {
-        edad--;
-    }
+    
+      if (
+          mesActual < mesNacimiento ||
+          (mesActual === mesNacimiento && fechaActual.getDate() < fechaIngresada.getDate())
+      ) {
+          edad--;
+      }
 
-    if (edad <= 21) {
-        Alert.alert('Error', 'El profesional debe tener más de 21 años.');
-        console.log('Edad menor o igual a 21:', edad);
-        return false;
-    }
+      if (edad <= 21) {
+          mostrarMensaje('Error', 'El profesional debe tener más de 21 años.');
+          console.log('Edad menor o igual a 21:', edad);
+          return false;
+      }
 
-    return true;
-};
+      return true;
+  };
 
 const handleChange = (name, value) => {
-let updatedForm = { ...formData, [name]: value };
+    let updatedForm = { ...formData, [name]: value };
 
-// Calcular CUIT automáticamente si están presentes DNI y sexo
-if (
-    (name === 'dni_profesional' || name === 'id_sexo') &&
-    updatedForm.dni_profesional &&
-    updatedForm.id_sexo
-) {
-    const cuitCalculado = calcularCuit(updatedForm.dni_profesional, updatedForm.id_sexo);
-    updatedForm.cuit = cuitCalculado;
-}
 
-setFormData(updatedForm);
+    if (
+        (name === 'dni_profesional' || name === 'id_sexo') &&
+        updatedForm.dni_profesional &&
+        updatedForm.id_sexo
+    ) {
+        const cuitCalculado = calcularCuit(updatedForm.dni_profesional, updatedForm.id_sexo);
+        updatedForm.cuit = cuitCalculado;
+    }
+
+    setFormData(updatedForm);
 };
 
 const handleRegistrar = async () => {
 try {
+    // Validar fecha de nacimiento antes de enviar
+    if (!validarFechaNacimiento(formData.fecha_nacimiento)) {
+        return;
+    }
+
     const profesionalData = {
     ...formData,
     dni_profesional: parseInt(formData.dni_profesional),
@@ -183,13 +193,14 @@ try {
     limpiarInterfaz();
     }
 } catch (error) {
-    mostrarMensaje('Error', 'Error al registrar el profesional');
+    console.error('Error al registrar:', error);
+    mostrarMensaje('Error', error.message || 'Error al registrar el profesional');
 }
 };
 
   const handleConsultar = async () => {
     try {
-      const profesional = await obtenerProfesional(formData.dni_profesional);
+      const profesional = await consultarProfesional(formData.dni_profesional);
       if (profesional) {
         setFormData({ ...formData, ...profesional });
       } else {
@@ -267,7 +278,13 @@ try {
               placeholder="DNI"
               value={formData.dni_profesional}
               onChangeText={(value) => handleChange('dni_profesional', value)}
+              maxLength={8}
             />
+            {formData.dni_profesional && formData.dni_profesional.length < 8 && (
+              <Text style={{ color: 'red', marginBottom: 10 }}>
+                El DNI debe contener 8 números
+              </Text>
+            )}
             <TouchableOpacity
               style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]}
               onPress={handleConsultar}
@@ -277,11 +294,11 @@ try {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.fila}>
+          <View style={styles.fila} >
             {/* Primera columna */}
             <View style={styles.columna}>
               <Text style={styles.label}>Nombre:</Text>
-              <TextInput style={styles.input} placeholder="Nombre" value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
+              <TextInput  style={styles.input} placeholder="Nombre" value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
               <Text style={styles.label}>Apellido:</Text>
               <TextInput style={styles.input} placeholder="Apellido" value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
 
@@ -289,7 +306,7 @@ try {
               <TextInput style={[styles.input, { backgroundColor: '#e0e0e0' }]} value={formData.cuit} editable={false} />
 
               <Text style={styles.label}>Correo:</Text>
-              <TextInput style={styles.input} placeholder="Correo" value={formData.email} onChangeText={(value) => handleChange('email', value)} />
+              <TextInput  style={styles.input} placeholder="Correo" value={formData.email} onChangeText={(value) => handleChange('email', value)} />
 
               <ListasDesplegables formData={formData} handleChange={handleChange} roles={rol} sexo={sexo} styles={styles} />
             </View>
@@ -298,9 +315,9 @@ try {
             <View style={styles.columna}>
               <ListasDesplegables formData={formData} handleChange={handleChange} estado_general={estado_general} localidad={localidad} styles={styles} showLabel={true} />
               <Text style={styles.label}>Fecha de Nacimiento:</Text>
-              <TextInput style={styles.input} placeholder="DD/MM/AAAA" value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
+              <TextInput  style={styles.input} placeholder="AAAA-MM-DD" value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
               <Text style={styles.label}>Teléfono Personal:</Text>
-              <TextInput style={styles.input} placeholder="Teléfono Personal" value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
+              <TextInput  style={styles.input} placeholder="Teléfono Personal" value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
               <Text style={styles.label}>Teléfono Alternativo:</Text>
               <TextInput style={styles.input} placeholder="Teléfono Alternativo" value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
             </View>
@@ -322,7 +339,7 @@ try {
                   </View>
                   <View style={{ flex: 1, marginLeft: 8 }}>
                     <Text style={styles.label}>Departamento:</Text>
-                    <TextInput style={styles.input} placeholder="Departamento" value={formData.departamento} onChangeText={(value) => handleChange('departamento', value)} />
+                    <TextInput  style={styles.input} placeholder="Departamento" value={formData.departamento} onChangeText={(value) => handleChange('departamento', value)} />
                   </View>
                 </View>
               )}

@@ -136,7 +136,7 @@ export const registrarNotaFinal = async (req, res) => {
 };
 
 
-export const modificarEstadoEvaluativo = async (req, res) => {
+export const actualizarEstadoEvaluativo = async (req, res) => {
     const { dni_alumno, id_materia } = req.body;
 
     try {

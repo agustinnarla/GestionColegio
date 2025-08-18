@@ -8,12 +8,6 @@ dotenv.config()
 
 const app = express()
 
-// Configuración de CORS más específica
-// app.use(cors({
-//     origin: ['http://192.168.0.22:19006', 'http://192.168.0.22:8081'],
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-// }));
 
 app.use(cors({
     origin: ['http://localhost:19006', 'http://localhost:8081'],
@@ -46,6 +40,7 @@ app.use((req, res, next) => {
     next();
 });
 
+
 app.use('/', ruta)
 
 const port = process.env.PUERTO || 5000 
@@ -63,7 +58,7 @@ export const authMiddleware = (req, res, next) => {
 };
 
 app.listen(port,() => {
-    console.log(`El servidor se alojo en http://192.168.0.21:${port}`)
+    console.log(`El servidor se alojo en http://192.168.0.13:${port}`)
 })
 
 

@@ -82,7 +82,7 @@ const cargarAlumnos = async () => {
 };
 
 // Seleccionar/Deseleccionar alumno
-const toggleSeleccionAlumno = (dni_alumno) => {
+const seleccionarAlumno = (dni_alumno) => {
   setAlumnosSeleccionados((prevSeleccionados) => {
     if (prevSeleccionados.includes(dni_alumno)) {
       return prevSeleccionados.filter((dni) => dni !== dni_alumno);
@@ -193,13 +193,13 @@ return (
               {alumnos.map((item) => (
                 <TouchableOpacity
                   key={item.dni_alumno}
-                  onPress={() => toggleSeleccionAlumno(item.dni_alumno)}
+                  onPress={() => seleccionarAlumno(item.dni_alumno)}
                   style={[
                     styles.row,
                     alumnosSeleccionados.includes(item.dni_alumno) && styles.rowSeleccionado
                   ]}
                 >
-                  <Text style={styles.cellNombre}>{item.nombrecompleto}</Text>
+                  <Text style={styles.cellNombre}>{item.nombrecompleto}    ---------    {item.dni_alumno}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
