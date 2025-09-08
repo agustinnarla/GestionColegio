@@ -214,6 +214,7 @@ export default function RegistrarUsuario() {
                             <TextInput
                                 style={[styles.input, styles.inputDNI]}
                                 placeholder='Ingrese DNI'
+                                maxLength={8}
                                 placeholderTextColor="#888"
                                 keyboardType='numeric'
                                 onChangeText={(text) => handleChange('dni_usuario', text)}
@@ -322,7 +323,7 @@ export default function RegistrarUsuario() {
                             </View>
                             <TouchableOpacity 
                                 style={styles.botonAgregarRol}
-                                onPress={() => navegacion.navigate('Registrar Rol')} 
+                                onPress={() => navegacion.navigate('Gestionar Rol')} 
                             >
                                 <Text style={styles.textoBotonAgregarRol}>+</Text>
                             </TouchableOpacity>

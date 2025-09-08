@@ -17,11 +17,11 @@ export const crearAvisos = async (formData) => {
         // Preparar el cuerpo de la solicitud
         const requestBody = {
             informacion: formData.informacion,
-            id_motivo: idMotivo, // Asegurar que es número
-            fecha_aviso: formData.fecha_aviso, // Ya viene formateada desde agregarAviso
-            id_estado_general: formData.id_estado_general, // Asegurar que es número
-            profesores: formData.profesores || [], // Cambiado a "profesores" (coherente con backend)
-            cursos: formData.cursos || [] // Cambiado a "cursos" (coherente con backend)
+            id_motivo: idMotivo, 
+            fecha_aviso: formData.fecha_aviso, 
+            id_estado_general: formData.id_estado_general, 
+            profesores: formData.profesores || [],
+            cursos: formData.cursos || [] 
         };
 
         console.log('Enviando datos al servidor:', requestBody);
@@ -45,7 +45,7 @@ export const crearAvisos = async (formData) => {
 
     } catch (error) {
         console.error("Error al crear el aviso:", error);
-        throw error; // Reenviar el error original
+        throw error; 
     }
 };
 

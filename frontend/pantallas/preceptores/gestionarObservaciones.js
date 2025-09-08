@@ -1,16 +1,18 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import { Picker } from '@react-native-picker/picker';
 import bg from '../../assets/bg1.jpg';
 import { obtenerCurso, obtenerAlumnoCurso, obtenerProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js'
-import { registrarObservacion,mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
+import { registrarObservacion, mostrarMensaje, imprimirArchivo } from '../../scripts/preceptor/scriptGestionarObservacion.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
 import { ImageBackground } from 'react-native-web';
 
+const { width } = Dimensions.get('window');
+
 export default function GestionarObservaciones() {
-    
+
     //🟢 Formulario
     const [formData, setFormData] = useState({
         dni_alumno: '',
@@ -20,7 +22,11 @@ export default function GestionarObservaciones() {
         id_curso: ''
     });
 
-    
+    const [fechaValida, setFechaValida] = useState(true);
+    const [fechaTexto, setFechaTexto] = useState(formData.fecha || '');
+
+
+
     //🟢 Modal
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -35,6 +41,20 @@ export default function GestionarObservaciones() {
         setAlertTitle(titulo);
         setAlertMessage(mensaje);
         setAlertVisible(true);
+    };
+
+
+    //🟢 Manejar cambios de estado en el formulario
+    const handleChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
+
+
+    //🟢 Validamos fecha 
+    const validarFecha = (text) => {
+        const regex = /^\d{4}\/\d{2}\/\d{2}$/;
+        return regex.test(text);
     };
 
     //🟢 Estados y Listas desplegables
@@ -72,14 +92,12 @@ export default function GestionarObservaciones() {
         try {
             if (!validarCampos()) {
                 if (!validarFecha(formData.fecha)) {
-                    mostrarMensaje('Error', 'La fecha ingresada no es válida. Use el formato DD/MM/AAAA.');
+                    mostrarMensaje('Formato inválido','Use AAAA/MM/DD (ej: 2024/12/25)');
                 } else {
                     mostrarMensaje('Error', 'Por favor complete todos los campos correctamente.');
                 }
                 return;
             }
-            
-            
 
             const alumnoData = {
                 dni_alumno: parseInt(formData.dni_alumno),
@@ -87,25 +105,25 @@ export default function GestionarObservaciones() {
                 fecha: formatearFecha(formData.fecha),
                 motivo: formData.motivo
             };
-            
+
             setEnviando(true);
             mostrarMensaje('Enviando', 'La observación se está enviando al email...');
             //console.log('Datos de la observación', alumnoData);
             const respuesta = await registrarObservacion(alumnoData);
-                 setTimeout(() => {
-        setAlertVisible(false);
-        setTimeout(() => {
-            mostrarMensaje('Éxito', 'La observación se registró correctamente');
-            limpiarInterfaz();
-            setEnviando(false);
-            setModalVisible(true);
-        }, 300); 
-      }, 500);   
-           
-           
+            setTimeout(() => {
+                setAlertVisible(false);
+                setTimeout(() => {
+                    mostrarMensaje('Éxito', 'La observación se registró correctamente');
+
+                    setEnviando(false);
+                    setModalVisible(true);
+                }, 300);
+            }, 500);
+
+
         } catch (error) {
             //console.error('Error al registrar la observación:', error.message);
-            mostrarMensaje('Error', 'No se pudo registrar la observación');
+            mostrarMensaje('Error', 'Error al registrar la observación');
         }
     };
 
@@ -117,7 +135,7 @@ export default function GestionarObservaciones() {
 
             const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
             mostrarMensaje('Éxito', `PDF generado correctamente`);
-            
+
             if (Platform.OS === 'web') {
                 window.open(rutaPDF);
             }
@@ -125,49 +143,15 @@ export default function GestionarObservaciones() {
             limpiarInterfaz();
         } catch (error) {
             console.error('Error al imprimir:', error);
-            mostrarMensaje('Error', 'No se pudo generar el PDF');
+            mostrarMensaje('Error', 'Error al generar el PDF');
         }
     };
 
-    //🟢 Validamos fecha 
-    const validarFecha = (fecha) => {
-        // Verificar formato DD-MM-AAAA
-        const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-        if (!regex.test(fecha)) {
-            return false;
-        }
-    
-        // Dividir la fecha en día, mes y año
-        const [dia, mes, año] = fecha.split('/').map(Number);
-    
-        // Crear un objeto de fecha y verificar si es válida
-        const fechaValida = new Date(año, mes - 1, dia);
-        if (
-            fechaValida.getFullYear() !== año ||
-            fechaValida.getMonth() !== mes - 1 ||
-            fechaValida.getDate() !== dia
-        ) {
-            return false;
-        }
-    
-        // Verificar que el año sea mayor a 2024
-        if (año <= 2024) {
-            return false;
-        }
-    
-        // Verificar que la fecha esté dentro del rango del 21 de febrero al 21 de diciembre
-        const inicioRango = new Date(año, 1, 21); // 21 de febrero
-        const finRango = new Date(año, 11, 21); // 21 de diciembre
-        if (fechaValida < inicioRango || fechaValida > finRango) {
-            return false;
-        }
-    
-        return true;
-    };
+
 
     //🟢 Formatear fecha 
     const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('/');
+        const [año, mes, dia] = fecha.split('/');
         return `${año}/${mes}/${dia}`;
     };
 
@@ -181,13 +165,13 @@ export default function GestionarObservaciones() {
                 const cursosData = await obtenerCurso();
                 const profesionalData = await obtenerProfesionales();
                 if (formData.id_curso) {
-                try {
-                    const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
-                    setAlumnos(alumnosData);
-                } catch (error) {
-                    console.error('Error al cargar alumnos:', error);
+                    try {
+                        const alumnosData = await obtenerAlumnoCurso(formData.id_curso);
+                        setAlumnos(alumnosData);
+                    } catch (error) {
+                        console.error('Error al cargar alumnos:', error);
+                    }
                 }
-            }
                 setCursos(cursosData);
                 setProfesional(profesionalData);
             } catch (error) {
@@ -197,20 +181,16 @@ export default function GestionarObservaciones() {
         cargarListaDesplegable();
     }, [formData.id_curso]);
 
-    
 
-    //🟢 Manejar cambios de estado en el formulario
-    const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
+
 
 
     const Content = (
         <View style={styles.contenido}>
-            <ListasDesplegables 
-                formData={formData} 
-                handleChange={handleChange} 
-                curso={cursos} 
+            <ListasDesplegables
+                formData={formData}
+                handleChange={handleChange}
+                curso={cursos}
                 alumnos={alumnos}
                 profesionales={profesional}
                 styles={styles}
@@ -218,19 +198,28 @@ export default function GestionarObservaciones() {
 
 
             <Text style={styles.label}>Fecha:</Text>
-            <TextInput 
-                style={styles.input} 
-                placeholder="DD/MM/AAAA" 
-                keyboardType="number-pad" 
-                value={formData.fecha}  
-                onChangeText={(value) => handleChange('fecha', value)}
+            <TextInput
+                style={styles.input}
+                placeholder="AAAA/MM/DD"
+                keyboardType="number-pad"
+                value={formData.fecha}
+                onChangeText={(value) => {
+                    setFechaTexto(value);
+                    setFechaValida(validarFecha(value));
+                    handleChange('fecha', value);
+                }}
             />
+            {!fechaValida && fechaTexto !== '' && (
+                <Text style={{ color: 'red', marginBottom: 8 }}>
+                    Formato inválido. Use AAAA/MM/DD (ej: 2024/12/25)
+                </Text>
+            )}
 
             <Text style={styles.label}>Motivo:</Text>
-            <TextInput 
-                style={styles.input} 
-                placeholder="Motivo de las observaciones" 
-                value={formData.motivo}  
+            <TextInput
+                style={styles.input}
+                placeholder="Motivo de las observaciones"
+                value={formData.motivo}
                 onChangeText={(value) => handleChange('motivo', value)}
             />
             <View style={styles.botonesContainer}>
@@ -260,20 +249,20 @@ export default function GestionarObservaciones() {
                 </View>
             </Modal>
         </View>
-        
+
     );
 
     return (
         <View style={styles.padre}>
             <ScrollContainer />
             <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
-            {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
-            <CustomAlert
-        isVisible={alertVisible}
-        onClose={() => setAlertVisible(false)}
-        title={alertTitle}
-        message={alertMessage}
-        showSpinner={enviando}
+                {Platform.OS === 'web' ? Content : <ScrollView contentContainerStyle={styles.scroll}>{Content}</ScrollView>}
+                <CustomAlert
+                    isVisible={alertVisible}
+                    onClose={() => setAlertVisible(false)}
+                    title={alertTitle}
+                    message={alertMessage}
+                    showSpinner={enviando}
                 />
             </ImageBackground>
         </View>
@@ -303,15 +292,15 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
     },
-    scroll:{
-        flexGrow: 1,  
+    scroll: {
+        flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 20,
-        
+
     },
     contenido: {
-        marginTop:20,
+        marginTop: 20,
         width: '100%',
         maxWidth: 700,
         backgroundColor: '#fff',
@@ -330,7 +319,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
         color: '#2a3d6c',
-        
+
     },
     input: {
         width: '100%',
@@ -400,10 +389,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         letterSpacing: 0.5,
     },
-    botonImprimir:{
+    botonImprimir: {
         flex: 1,
         backgroundColor: '#CED9EF',
-        paddingVertical: 12, 
+        paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 5,
         borderColor: '#0500FF',
@@ -417,7 +406,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#cccccc',
         borderColor: '#999999',
     },
-    
+
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -425,47 +414,53 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        width: '80%',
+        width: '90%',
+        maxWidth: 400,
         backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
+        borderRadius: 14,
+        padding: 28,
         alignItems: 'center',
     },
     titulo: {
-        fontSize: 20,
+        fontSize: width > 400 ? 20 : 16,
         fontWeight: 'bold',
         marginBottom: 20,
         color: '#2a3d6c',
+        textAlign: 'center',
     },
     botonesModal: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '50%',
+        width: '100%',
+        gap: 10,
+        marginTop: 10,
     },
     botonImprimirModal: {
-        backgroundColor: '#CED9EF',
-        borderColor: '#0500FF',
+        backgroundColor: '#e0e7ff',
+        borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 5,
+        paddingVertical: width > 400 ? 12 : 8,
+        paddingHorizontal: width > 400 ? 24 : 12,
+        borderRadius: 8,
         flex: 1,
-        marginRight: 10,
+        alignItems: 'center',
+        marginRight: 8,
     },
     botonCancelarModal: {
-        backgroundColor: '#F3B9B9',
-        borderColor: '#FF0000',
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 5,
+        paddingVertical: width > 400 ? 12 : 8,
+        paddingHorizontal: width > 400 ? 24 : 12,
+        borderRadius: 8,
         flex: 1,
+        alignItems: 'center',
+        marginLeft: 8,
     },
     textoBotonModal: {
-        color: 'black',
-        fontSize: 16,
+        color: '#2a3d6c',
+        fontSize: width > 400 ? 16 : 14,
         fontWeight: 'bold',
         textAlign: 'center',
-        color: '#2a3d6c'
     }
 });

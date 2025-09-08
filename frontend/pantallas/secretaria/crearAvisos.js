@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity, Alert, Button } from 'react-native';
+import { StyleSheet, View, Image, TextInput, Text, ScrollView, TouchableOpacity, Alert, Button,ImageBackground } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import { obtenerMotivos, obtenerCurso, obtenerProfesores, obtenerEstadoGeneral} from '../../scripts/listasDesplegables/listaDesplegable.js'
@@ -8,6 +8,7 @@ import { obtenerAvisos, crearAvisos} from '../../scripts/secretaria/scriptCargar
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 export default function Avisos() {
   const [informacion, setInformacion] = useState('');
@@ -56,7 +57,7 @@ export default function Avisos() {
     const day = currentDate.getDate().toString().padStart(2, '0');
     const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
     const year = currentDate.getFullYear();
-    setFechaTexto(`${day}/${month}/${year}`);
+    setFechaTexto(`${year}/${month}/${day}`);
   };
 
   const showDatepicker = () => {
@@ -65,42 +66,27 @@ export default function Avisos() {
 
   const validarFecha = (text) => {
     setFechaTexto(text);
-    
-    // Si está vacío, no mostrar error
+
     if (!text.trim()) {
       setFechaValida(true);
       return;
     }
-    
-    // Expresión regular para validar YYYY-MM-DD
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    const formatoValido = regex.test(text);
-    
-    if (!formatoValido) {
+
+    const regex = /^\d{4}\/\d{2}\/\d{2}$/;
+    if (!regex.test(text)) {
       setFechaValida(false);
       return;
     }
-    
-    // Verificar que la fecha sea real
-    const fecha = new Date(text);
-    const esFechaReal = fecha instanceof Date && !isNaN(fecha) && fecha.getFullYear() > 1900;
-    
-    // Verificar que los valores de mes y día sean válidos
-    const [year, month, day] = text.split('-').map(Number);
-    const mesValido = month >= 1 && month <= 12;
-    const diaValido = day >= 1 && day <= 31;
-    
-    // Verificación adicional para días específicos por mes
-    const diasPorMes = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    const esBisiesto = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-    if (month === 2 && esBisiesto) {
-      diasPorMes[2] = 29;
-    }
-    const diaCorrecto = day <= diasPorMes[month];
-    
-    setFechaValida(esFechaReal && mesValido && diaValido && diaCorrecto);
-  };
 
+    const [year, month, day] = text.split('/').map(Number);
+    const diasPorMes = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (month < 1 || month > 12 || day < 1 || day > diasPorMes[month - 1]) {
+      setFechaValida(false);
+      return;
+    }
+
+    setFechaValida(true);
+  };
  
   const cargarEstadoGeneral = async () => {
         try {
@@ -108,7 +94,7 @@ export default function Avisos() {
             const estadoData = await obtenerEstadoGeneral();
             setEstadoGeneral(estadoData);
         } catch (error) {
-            Alert.alert('Error', error.message);
+          mostrarMensaje('Error', error.message);
         }
     };
   
@@ -149,7 +135,7 @@ export default function Avisos() {
       console.log("Datos crudos de cursos:", response); 
       
       // Accedemos al array de cursos dentro del objeto
-const listaCursos = Array.isArray(response) ? response : (response.cursos || []);
+      const listaCursos = Array.isArray(response) ? response : (response.cursos || []);
 
       if (listaCursos.length > 0) {
         const cursosFormateados = listaCursos.map(curso => ({
@@ -164,7 +150,7 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
       }
     } catch (error) {
       console.error("Error al cargar cursos:", error);
-      Alert.alert("Error", "No se pudieron cargar los cursos");
+      mostrarMensaje("Error", "No se pudieron cargar los cursos");
     }
   };
 
@@ -179,18 +165,18 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
     }
   };
 
+
   const agregarAviso = async () => {
     if (informacion && fechaTexto) {
       try {
-        // Convierte la fecha del input a YYYY-MM-DD
-        let fechaISO = fechaTexto;
-        if (fechaTexto.includes('/')) {
-          // Si el usuario escribe DD/MM/YYYY, conviértelo
-          const partes = fechaTexto.split('/');
-          if (partes.length === 3) {
-            fechaISO = `${partes[2]}-${partes[1]}-${partes[0]}`;
-          }
-        }
+        // Convierte la fecha del input a AAAA/MM/DD
+        
+        let fechaISO = fechaTexto; // AAAA/MM/DD
+        const [year, month, day] = fechaTexto.split('/').map(Number);
+        const ahora = new Date();
+        const hora = ahora.toISOString().slice(11, 19); // HH:MM:SS
+        fechaISO = `${year}/${month.toString().padStart(2,'0')}/${day.toString().padStart(2,'0')}T${hora}Z`;
+  
         setEnviado(true)
         mostrarMensaje('Enviando', 'Enviando aviso al email...');
         
@@ -268,14 +254,16 @@ const listaCursos = Array.isArray(response) ? response : (response.cursos || [])
     }, 50);
   };
   
-const handleChange = (name, value) => {
-            setFormData({ ...formData, [name]: value });
-        };
+  const handleChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+  };
 
 
   return (
     <View style={styles.container}>
-      <Image source={bg} style={styles.bg} />
+      <ScrollContainer/>
+          <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+      
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.flexRow}>
           {/* Formulario */}
@@ -292,7 +280,7 @@ const handleChange = (name, value) => {
             <Text style={styles.label}>Fecha</Text>
                         <TextInput
               style={[styles.input, !fechaValida && styles.inputError]}
-              placeholder="AAAA-MM-DD"
+              placeholder="AAAA/MM/DD"
               value={fechaTexto}
               onChangeText={validarFecha}
               keyboardType="numeric"
@@ -300,7 +288,7 @@ const handleChange = (name, value) => {
             />
             {!fechaValida && fechaTexto && (
               <Text style={styles.errorText}>
-                Formato inválido. Use YYYY-MM-DD (ej: 2024-12-25)
+                Formato inválido. Use AAAA/MM/DD (ej: 2024/12/25)
               </Text>
             )}
             
@@ -358,6 +346,7 @@ const handleChange = (name, value) => {
       </View>
 
       </ScrollView>
+      </ImageBackground>
             <CustomAlert
             isVisible={alertVisible}
             onClose={() => setAlertVisible(false)}
@@ -390,7 +379,6 @@ const styles = StyleSheet.create({
   },
   formulario: {
     width: '100%',
-    maxWidth: 650,
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 20,

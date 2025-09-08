@@ -9,7 +9,7 @@ import { registrarRolTarea, registrarTareaRol} from '../../scripts/admin/scriptT
 import { Picker } from '@react-native-picker/picker';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
-export default function CargarTareas() {
+export default function GestionarTareas() {
     //🟢 Estados del formulario y listas desplegables
     const [rolesDisponibles, setRolesDisponibles] = useState([]); // Lista de roles disponibles
     const [selectedRoles, setSelectedRoles] = useState([]); // Roles seleccionados
@@ -213,7 +213,8 @@ export default function CargarTareas() {
             return;
         }
         try {
-            const respuesta = await deshabilitarTarea(selectedTarea); // selectedTarea es el id_tarea
+            const respuesta = await deshabilitarTarea(selectedTarea); 
+            
             if (respuesta) {
                 mostrarMensaje('Exito','Tarea deshabilitada exitosamente.');
                 setTareasDisponibles((prev) => 
@@ -253,7 +254,7 @@ export default function CargarTareas() {
                 }
             } catch (error) {
                 console.error('Error al registrar la tarea:', error);
-                mostrarMensaje('Error', 'Error al registrar la tarea')
+                mostrarMensaje('Error', response.mensaje);
             }
         }
     };
@@ -514,7 +515,7 @@ const styles = StyleSheet.create({
         width: '100%',
         maxWidth: 900,
         alignSelf: 'center',
-        marginTop: 32,
+        marginTop: 26,
         marginBottom: 24,
         padding: 30,
         backgroundColor: '#fff',

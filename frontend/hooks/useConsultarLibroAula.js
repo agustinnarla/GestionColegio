@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {  obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCursoYProfesor } from '../scripts/listasDesplegables/listaDesplegable.js'
+import {  obtenerProfesores, obtenerCursoPorMateria, obtenerMateriaPorProfesor } from '../scripts/listasDesplegables/listaDesplegable.js'
 import { obtenerLibroAula } from '../scripts/profesor/scriptLibroAula.js';
 
 
@@ -44,15 +44,15 @@ export default function useConsultarLibroAula(){
                 const profesoresData = await obtenerProfesores();
                 setProfesores(profesoresData);
 
-                if (formData.dni_profesional) {
-                    const cursoData = await obtenerCursoPorProfesor(formData.dni_profesional);
+                if (formData.id_materia) {
+                    const cursoData = await obtenerCursoPorMateria(formData.id_materia);
                     setCurso(cursoData);
                 } else {
                     setCurso([]);
                 }
 
-                if (formData.id_curso,formData.dni_profesional) {
-                    const materiaData = await obtenerMateriaPorCursoYProfesor(formData.id_curso,formData.dni_profesional);
+                if (formData.dni_profesional) {
+                    const materiaData = await obtenerMateriaPorProfesor(formData.dni_profesional);
                     setMateria(materiaData);
                 } else {
                     setMateria([]);
@@ -63,7 +63,7 @@ export default function useConsultarLibroAula(){
             }
         };
         cargarListaDesplegable();
-    }, [formData.dni_profesional, formData.id_curso]);
+    }, [formData.dni_profesional, formData.id_materia]);
     
 
     //🟢 Consultamos el libro de aula
@@ -72,7 +72,7 @@ export default function useConsultarLibroAula(){
             const respuesta = await obtenerLibroAula(formData.dni_profesional, formData.id_curso, formData.id_materia);
             const libroAula = respuesta.libro_aula || [];
             if(!libroAula.length){
-                mostrarMensaje('Advertencia', 'No hay registros de acuerdo a los filtros proporcionados')
+                mostrarMensaje('Advertencia', 'No existen datos para esa búsqueda')
             }
             setDatos(libroAula);
         } catch{

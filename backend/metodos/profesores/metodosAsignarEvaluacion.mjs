@@ -74,8 +74,10 @@ export const registrarEvaluacion = async (req, res) => {
       [id_curso]
     );
 
+    console.log(alumnos.rows);
     // Enviar emails
     for (const alumno of alumnos.rows) {
+      console.log(`Enviando mail a: ${alumno.email_personal}`);
       await enviarEmailEvaluacion(alumno.dni_alumno, alumno.email_personal);
     }
 
@@ -98,12 +100,12 @@ export const registrarEvaluacion = async (req, res) => {
 
 //🟢 Fecha dia/mes/año menor a 2 días
 const validarFecha = (fecha) => {
-  // Fecha esperada: dd/mm/yyyy
-  const [dia, mes, año] = fecha.split('/').map(Number);
-  if (!dia || !mes || !año) {
+  // Fecha esperada: AAAA/MM/DD
+  const [año, mes, dia] = fecha.split('/').map(Number);
+  if (!año || !mes || !dia) {
     throw {
       status: 400,
-      error: 'Formato de fecha inválido. Debe ser DD/MM/AAAA',
+      error: 'Formato de fecha inválido. Debe ser AAAA/MM/DD',
       code: 'FECHA_INVALIDA'
     };
   }
@@ -128,16 +130,17 @@ const validarFecha = (fecha) => {
 //🟢 Email
 const enviarEmailEvaluacion = async (dni_alumno, email_personal, ) => {
     try {
+
+   
         // Configurar el email
         const mailOptions = {
             from: 'arlaagustin1@gmail.com',
             to: [email_personal].filter(Boolean).join(', '),
-            subject: 'Nuevo Evaluación Registrados',
+            subject: 'Nuevo Evaluación Registrada',
             html: `
-                <h2>Nueva Evaluación Registrado</h2>
+                <h2>Nueva Evaluación Registrada</h2>
                 <p><strong>Alumno:</strong> ${dni_alumno}</p>
                 <p>Por favor, revise las evaluaciónes en el calendario.</p>
-                <p>Por favor, revise la amonestación en el sistema.</p>
                 <p>Ante cualquier consulta, no dude en contactarnos.</p>
                 <p><em>Colegio Nuestra Señora del Huerto</em><br>Tel: 12345-21234</p>
             `

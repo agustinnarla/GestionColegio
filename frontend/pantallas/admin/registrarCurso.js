@@ -81,6 +81,7 @@ export default function RegistrarCurso() {
     campos.every((campo) => formData[campo]?.length > 0);
 
   const habilitarConsultar = () => validarCampos("detalle");
+
   const habilitarBotones = () =>
     validarCampos("detalle", "id_especialidad", "id_estado_general", "id_materia");
 
@@ -144,8 +145,8 @@ export default function RegistrarCurso() {
         setFormData({
           ...formData,
           detalle: curso.curso,
-          id_estado_general: curso.id_estado_general,
-          id_especialidad: curso.id_especialidad,
+          id_estado_general: String(curso.id_estado_general),
+          id_especialidad: String(curso.id_especialidad),
           id_materia: curso.id_materia,
           id_curso: curso.id_curso,
         });
@@ -175,6 +176,7 @@ export default function RegistrarCurso() {
       const cursoData = {
         detalle: formData.detalle,
         id_especialidad: parseInt(formData.id_especialidad),
+        id_estado_general: parseInt(formData.id_estado_general),
         id_materia: materiasSeleccionadas.map(Number),
       };
       const respuesta = await modificarCurso(formData.id_curso, cursoData);
@@ -191,7 +193,7 @@ export default function RegistrarCurso() {
     <View style={styles.padre}>
       <Image source={bg} style={styles.bg} />
       <View style={styles.formulario}>
-        <Text style={styles.titulo}>Registrar Curso</Text>
+      
         <View style={styles.fila}>
           {/* Columna izquierda: datos del curso */}
           <View style={styles.columna}>
@@ -276,10 +278,9 @@ export default function RegistrarCurso() {
             <TouchableOpacity
               style={[
                 styles.botonLimpiar,
-                !habilitarBotones() && styles.botonDeshabilitado,
+                
               ]}
               onPress={limpiarInterfaz}
-              disabled={!habilitarBotones()}
             >
               <Text style={styles.textoBoton}>Limpiar</Text>
             </TouchableOpacity>

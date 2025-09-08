@@ -24,7 +24,7 @@ export async function obtenerEstadosFaltaProfesionales(req, res) {
         WHERE ap.fecha BETWEEN $1 AND $2
         AND ap.id_estado_asistencia = 2
         AND (jfp.id_estado_general IS NULL OR jfp.id_estado_general = 0)
-        ORDER BY hora_entrada ASC
+        ORDER BY ap.fecha ASC, p.apellido ASC
       `;
 
       const values = [fecha_desde, fecha_hasta];

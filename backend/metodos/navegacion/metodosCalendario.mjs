@@ -9,7 +9,7 @@ export const obtenerEvaluacionesAlumno = async (req, res) => {
                 m.detalle AS materia_detalle, 
                 e.id_tipo_de_evaluacion,
                 te.detalle, 
-                TO_CHAR(e.fecha, 'DD-MM-YYYY') AS fecha, 
+                TO_CHAR(e.fecha, 'YYYY/MM/DD') AS fecha, 
                 e.tema_abarcado, 
                 c.detalle AS curso_detalle, 
                 e.dni_profesional
@@ -42,7 +42,8 @@ export const obtenerEvaluacionesProfesor= async (req, res) => {
                 e.id_evaluacion, 
                 m.detalle AS materia_detalle, 
                 te.detalle, 
-                TO_CHAR(e.fecha, 'DD-MM-YYYY') AS fecha, 
+                e.id_tipo_de_evaluacion,
+                TO_CHAR(e.fecha, 'YYYY/MM/DD') AS fecha, 
                 e.tema_abarcado, 
                 c.detalle AS curso_detalle
              FROM evaluacion e

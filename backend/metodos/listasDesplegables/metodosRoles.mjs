@@ -41,7 +41,7 @@ export const registrarRol = async (req,res) => {
 }
 
 export const deshabilitarRol = async (req, res) => {
-    const { id_rol } = req.params; // Recibe el id_rol desde el frontend
+    const { id_rol } = req.params; 
     if (!id_rol) {
         return res.status(400).json({ message: 'El id_rol es obligatorio' });
     }
@@ -50,16 +50,17 @@ export const deshabilitarRol = async (req, res) => {
             'UPDATE roles SET id_estado_general = 2 WHERE id_rol = $1',
             [id_rol]
         );
-
+        await pool.query('UPDATE tarea_rol SET id_estado_general = 2 WHERE id_rol = $1', [id_rol]);
+    
         if (respuesta.rowCount > 0) {
-            console.log('Estado del alumno actualizado correctamente');
-            res.status(200).json({ message: 'Estado del alumno actualizado correctamente' });
+            console.log('Estado del rol actualizado correctamente');
+            res.status(200).json({ message: 'Estado del rol actualizado correctamente' });
         } else {
-            res.status(404).json({ message: 'No se encontró un alumno con ese id_rol' });
+            res.status(404).json({ message: 'No se encontró un rol con ese id_rol' });
         }
     } catch (error) {
-        console.error('Error al actualizar el estado del alumno:', error.message);
-        res.status(500).json({ message: 'Error al actualizar el estado del alumno' });
+        console.error('Error al actualizar el estado del rol:', error.message);
+        res.status(500).json({ message: 'Error al actualizar el estado del rol' });
     }
 };
 
@@ -75,16 +76,17 @@ export const habilitarRol = async (req, res) => {
             'UPDATE roles SET id_estado_general = 1 WHERE id_rol = $1',
             [id_rol]
         );
+        await pool.query('UPDATE tarea_rol SET id_estado_general = 1 WHERE id_rol = $1', [id_rol]);
 
         if (respuesta.rowCount > 0) {
-            console.log('Estado del alumno actualizado correctamente');
-            res.status(200).json({ message: 'Estado del alumno actualizado correctamente' });
+            console.log('Estado del rol actualizado correctamente');
+            res.status(200).json({ message: 'Estado del rol actualizado correctamente' });
         } else {
-            res.status(404).json({ message: 'No se encontró un alumno con ese id_rol' });
+            res.status(404).json({ message: 'No se encontró un rol con ese id_rol' });
         }
     } catch (error) {
-        console.error('Error al actualizar el estado del alumno:', error.message);
-        res.status(500).json({ message: 'Error al actualizar el estado del alumno' });
+        console.error('Error al actualizar el estado del rol:', error.message);
+        res.status(500).json({ message: 'Error al actualizar el estado del rol' });
     }
 };
 

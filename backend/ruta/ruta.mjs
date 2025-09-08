@@ -39,7 +39,7 @@ import { enviarNuevaContrasena, ingresarUsuario, obtenerTareasPorRol} from '../m
 import { obtenerEspecialidad } from '../metodos/listasDesplegables/metodosEspecialidad.mjs'
 import { obtenerUsuario, restablecerContrasena, obtenerUsuarioAlumno } from '../metodos/navegacion/metodosPerfil.mjs'
 import { obtenerAvisosGenerales, obtenerAvisosCurso, actualizarUltimaVisitaAvisos, obtenerUltimaVisitaAvisos } from '../metodos/alumno/metodosAvisos.mjs'
-import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula, obtenerMateriaPorCursoYProfesor,obtenerNumeroDeClase } from '../metodos/profesores/metodosLibroAula.mjs'
+import { obtenerMateriaPorProfesor, obtenerCaracteristicasUnidad, obtenerCursoPorMateria, registrarLibroAula, obtenerLibroAula,obtenerNumeroDeClase } from '../metodos/profesores/metodosLibroAula.mjs'
 import { obtenerTipoDeEvaluacion, registrarEvaluacion } from '../metodos/profesores/metodosAsignarEvaluacion.mjs'
 import { obtenerCursosPorProfesor, obtenerMateriasPorProfesor, registrarNotaFinal, actualizarEstadoEvaluativo, obtenerAlumnosNoRegulares} from '../metodos/profesores/metodosCargarNotasFinal.mjs'
 import { asignacionDeHoras, obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCurso, deshabilitarHorario,obtenerHorasProfesor, obtenerHorarioCurso, obtenerHorarioProfesional } from '../metodos/secretaria/metodosAsignarHoras.mjs'
@@ -84,7 +84,7 @@ ruta.get('/listaDesplegable/curso/materia/:id_materia', obtenerCursoPorMateria) 
 ruta.get('/listaDesplegable/tipo_de_evaluacion', obtenerTipoDeEvaluacion) // 🟢
 ruta.get('/listaDesplegable/profesor/curso/:dni_profesional', obtenerCursosPorProfesor) // 🟢
 ruta.get('/listaDesplegable/profesor/curso/materia/:dni_profesional', obtenerMateriasPorProfesor) // 🔵
-ruta.get('/listaDesplegable/profesor/curso/alumnos/:dni_profesional', obtenerAlumnosNoRegulares) // 🟢
+ruta.get('/listaDesplegable/profesor/curso/alumnos/final/:id_curso/:id_materia', obtenerAlumnosNoRegulares) // 🟢
 ruta.get('/listaDesplegable/profesores', obtenerProfesores) // 🟢
 ruta.get('/listaDesplegable/curso/profesor/:dni_profesional', obtenerCursoPorProfesor) // 🟢
 ruta.get('/listaDesplegable/materia/curso/:id_curso', obtenerMateriaPorCurso) // 🟢
@@ -92,7 +92,7 @@ ruta.get('/listaDesplegable/alumnos/curso/:id_curso', obtenerAlumnoCurso) // �
 ruta.get('/listaDesplegable/profesionales', obtenerProfesionales) // 🟢 
 ruta.get('/listaDesplegable/profesionales/asistencia', obtenerProfesionalesAsistencia) // 🟢
 ruta.get('/listaDesplegable/justificar/profesional/estadoFalta', obtenerEstadosFaltaProfesionales) // 🟢 
-ruta.get('/listaDesplegable/materia/curso/profesor/:id_curso/:dni_profesional', obtenerMateriaPorCursoYProfesor)// 🟢 
+//ruta.get('/listaDesplegable/materia/curso/profesor/:id_curso/:dni_profesional', obtenerMateriaPorCursoYProfesor)// 🟢 
 ruta.get('/listaDesplegable/cursos/cantidad', obtenerCursoConAlumnos)
 
 
@@ -229,7 +229,9 @@ ruta.post('/secretaria/profesional/horas/alta', asignacionDeHoras) // 🟢
 ruta.get('/secretaria/profesional/horario/:dni_profesional/:id_curso/:id_materia', obtenerHorasProfesor) // 🟢
 ruta.get('/secretaria/profesional/horario/:dni_profesional', obtenerHorarioProfesional) // 🟢
 ruta.get('/secretaria/curso/horario/:id_curso', obtenerHorarioCurso) // 🟢
+ruta.put('/secretaria/profesional/horario/deshabilitar', deshabilitarHorario) // 🟢
 ruta.put('/secretaria/profesional/horario/ausente', marcarAusentes) // 🟢
+
 
 // == ASISTENCIA PROFESIONAL
 ruta.post('/secretaria/profesional/asistencia/entrada', registrarEntradaProfesional) // 🟢
@@ -250,7 +252,7 @@ ruta.post('/justificar/profesional/alta', registrarJustificacionProfesionales); 
 ruta.post('/curso/materia/alta', registrarCursoPorMateria)  // 🟢 
 ruta.post('/curso/alta', registrarCurso) // 🟢
 ruta.get('/curso/:detalle', consultarCurso) // 🟢
-ruta.put('/curso/deshabilitar/:detalle', deshabilitarCurso) // 🟢
+ruta.put('/curso/deshabilitar/:id_curso', deshabilitarCurso) // 🟢
 ruta.put('/curso/modificar/:id_curso', modificarCurso) // 🟢
 
 

@@ -8,12 +8,9 @@ export default function ScrollContainer({ desktopMinWidth = 768 }) {
     const isDesktop = width >= desktopMinWidth;
 
     if (isWeb) {
-      document.body.style.overflow = 'auto';
-    } else {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = isDesktop ? 'auto' : 'hidden';
     }
 
-    // Limpieza al desmontar
     return () => {
       if (isWeb) document.body.style.overflow = '';
     };

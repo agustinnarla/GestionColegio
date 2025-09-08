@@ -8,7 +8,7 @@ import { registrarRol, deshabilitarRol, habilitarRol, modificarRol} from '../../
 import { registrarTareaRol ,registrarRolTarea } from '../../scripts/admin/scriptTareasRol.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
-export default function RegistrarRol() {
+export default function GestionarRol() {
     const [selectedItems, setSelectedItems] = useState([]);
     const [tareas, setTareas] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -338,6 +338,9 @@ export default function RegistrarRol() {
                                     submitButtonColor="#6c7ae0"
                                     submitButtonText="Seleccionar"
                                     styleDropdownMenu={styles.dropdown}
+                                    styleMainWrapper={{ maxHeight: 200 }}
+                                    styleListContainer={{ maxHeight: 200, overflowY: 'auto', zIndex: 9999 }}
+
                                 />
                         </View>
                     </View>
@@ -476,9 +479,13 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
+  dropdown: {
+    maxHeight: 100, 
+     zIndex: 9999,
+},
   formulario: {
     width: "100%",
-    maxWidth: 900,
+    maxWidth: 1100,
     alignSelf: "center",
     marginTop: 32,
     marginBottom: 24,

@@ -71,7 +71,7 @@ export const consultarProfesional = async (req, res) => {
             return res.status(400).json({ message: 'DNI no valido, verifique' });
         }
         const respuesta = await pool.query(`SELECT dni_profesional, nombre, apellido, 
-            email, TO_CHAR(fecha_nacimiento, 'DD/MM/YYYY') as fecha_nacimiento, cuit, 
+            email, TO_CHAR(fecha_nacimiento, 'YYYY/MM/DD') as fecha_nacimiento, cuit, 
             id_rol, id_sexo, domicilio, departamento, piso, id_localidad, telefono_personal, 
             telefono_alternativo, id_estado_general, edificio 
             FROM profesional WHERE dni_profesional = $1`, [dni_profesional])

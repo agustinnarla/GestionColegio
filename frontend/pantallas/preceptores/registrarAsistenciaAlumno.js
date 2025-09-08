@@ -3,7 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import React, { useState,useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { registrarAsistenciaFrontend, obtenerCursoFrontend, validarFechaAsistencia, exportarExcelConDatos  } from '../../scripts/preceptor/scriptGestionAsistencia.js';
-import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno';
+import { obtenerAlumnoFiltrado } from '../../scripts/secretaria/scriptGestionAlumno.js';
 import { obtenerCurso, obtenerAlumnoCurso} from '../../scripts/listasDesplegables/listaDesplegable.js';
 import bg from '../../assets/bg1.jpg'
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -12,7 +12,7 @@ import * as XLSX from 'xlsx';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-export default function GestionarAsistencia(){
+export default function RegistrarAsistenciaAlumno(){
     const navegacion = useNavigation();
 
     //🟢 Formulario
@@ -216,7 +216,8 @@ export default function GestionarAsistencia(){
             }
             limpiarInterfaz();
         } catch (error) {
-            // nada
+            mostrarMensaje('Error',`Error al registrar la asistencia`)
+
         }
     };
 
@@ -227,6 +228,12 @@ export default function GestionarAsistencia(){
         const mes = String(fecha.getMonth() + 1).padStart(2, '0');
         const dia = String(fecha.getDate()).padStart(2, '0');
         return `${anio}-${mes}-${dia}`;
+    }
+
+    const validarCampos = () => {
+        return(
+            estudiantes.length > 0 
+        )
     }
 
     const PickerField = React.memo(({ label, selectedValue, onValueChange, items }) => {
@@ -328,13 +335,13 @@ const tieneAsistencia = cursoSeleccionado?.tieneAsistencia;
                     <TouchableOpacity style={[styles.boton, styles.modificar, !botonModificarActivado && styles.botonDeshabilitado]} disabled={!botonModificarActivado} onPress={() => navegacion.navigate('Modificar Asistencia', { id_curso: formData.id_curso, detalle_curso : cursoSeleccionado ? cursoSeleccionado.detalle : '' })}>
                         <Text style={styles.botonTexto}>Modificar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.boton, styles.enviar, !botonActivado && styles.botonDeshabilitado]} disabled={!botonActivado} onPress={handleRegistrar}>
+                    <TouchableOpacity style={[styles.boton, styles.enviar, !validarCampos() && styles.botonDeshabilitado]} disabled={!validarCampos()} onPress={handleRegistrar}>
                         <Text style={styles.botonTexto}>Enviar</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.boton, styles.exportar, !botonActivado && styles.botonDeshabilitado]}
-                        disabled={!botonActivado}
+                        style={[styles.boton, styles.exportar, !botonModificarActivado && styles.botonDeshabilitado]}
+                        disabled={!botonModificarActivado}
                         onPress={() => exportarAsistenciaExcel(estudiantes)}
                     >
                         <Text style={styles.botonTexto}>📄</Text>

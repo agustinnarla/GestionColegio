@@ -39,9 +39,9 @@ export default function useAmonestacion() {
 
     //🟢 Validación de fecha 
     const validarFecha = (fecha) => {
-        const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+        const regex = /^\d{4}\/\d{2}\/\d{2}$/;
         if (!regex.test(fecha)) return false;
-        const [dia, mes, año] = fecha.split('/').map(Number);
+        const [año, mes, dia] = fecha.split('/').map(Number);
         const fechaValida = new Date(año, mes - 1, dia);
         if (
             fechaValida.getFullYear() !== año ||
@@ -57,7 +57,7 @@ export default function useAmonestacion() {
 
     //🟢 Formatear fecha 
     const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('/');
+        const [año, mes, dia] = fecha.split('/');
         return `${año}/${mes}/${dia}`;
     };
 
@@ -131,13 +131,12 @@ export default function useAmonestacion() {
 
             mostrarMensaje('Enviando','Enviando la amonestación al email...')
             const respuesta = await registrarAmonestacion(alumnoData);
-           
-
+         
             setTimeout(() => {
         setAlertVisible(false);
         setTimeout(() => {
            mostrarMensaje('Éxito', 'La amonestación se registró correctamente');
-            limpiarInterfaz();
+          
             setEnviando(false);
             setModalVisible(true);
         }, 300); 
@@ -147,7 +146,7 @@ export default function useAmonestacion() {
         }
     };
 
-    //🟢 Limpiar interrfaz
+    //🟢 Limpiar interfaz
     const limpiarInterfaz = () => {
         setFormData({
             dni_alumno: '',
@@ -164,19 +163,21 @@ export default function useAmonestacion() {
 
     //🟢 Imprimir
     const handleImprimir = async () => {
-        try {
-            const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
-            const profesionalSeleccionado = profesionales.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
-            const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
-            mostrarMensaje('Éxito', `PDF generado correctamente`);
-            if (Platform.OS === 'web') window.open(rutaPDF);
-            limpiarInterfaz();
-            setModalVisible(false);
-        } catch (error) {
-            console.error('Error al imprimir:', error);
-            mostrarMensaje('Error', 'No se pudo generar el PDF');
-        }
-    };
+    try {
+        const alumnoSeleccionado = alumnos.find(a => parseInt(a.dni_alumno) === parseInt(formData.dni_alumno));
+        const profesionalSeleccionado = profesionales.find(p => parseInt(p.dni_profesional) === parseInt(formData.dni_profesional));
+
+
+        const rutaPDF = await imprimirArchivo(formData, alumnoSeleccionado, profesionalSeleccionado);
+        mostrarMensaje('Éxito', `PDF generado correctamente`);
+        if (Platform.OS === 'web') window.open(rutaPDF);
+        limpiarInterfaz();
+        setModalVisible(false);
+    } catch (error) {
+        console.error('Error al imprimir:', error);
+        mostrarMensaje('Error', 'No se pudo generar el PDF');
+    }
+};
 
     //🟢 Cambio de estados en una lista desplegable 
     const handleChange = (name, value) => {

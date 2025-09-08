@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ImageBackground,TextInput, FlatList, Platform, Dimensions } from 'react-native';
 import { ScrollView } from 'react-native-web';
 import bg from '../../assets/bg1.jpg';
-import { obtenerProfesores, obtenerCursoPorProfesor, obtenerMateriaPorCursoYProfesor} from '../../scripts/listasDesplegables/listaDesplegable.js'
-import {  obtenerHorasProfesor, asignacionDeHoras, obtenerHorariosProfesional, obtenerHorariosCurso } from '../../scripts/secretaria/scriptAsignacionHoras.js';
+import { obtenerProfesores, obtenerCursoPorMateria, obtenerMateriaPorProfesor} from '../../scripts/listasDesplegables/listaDesplegable.js'
+import {  obtenerHorasProfesor, deshabilitarHorario,asignacionDeHoras, obtenerHorariosProfesional, obtenerHorariosCurso } from '../../scripts/secretaria/scriptAsignacionHoras.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import CustomAlert from '../../componente/CustomAlerts.js';
 
@@ -23,6 +23,7 @@ export default function AsignacionHoras() {
     }
     }, []);
 
+    const [horariosOriginales, setHorariosOriginales] = useState({});
     const [materia, setMateria] = useState([]);
     const [profesores, setProfesores] = useState([]);
     const [curso, setCurso] = useState([]);
@@ -31,6 +32,32 @@ export default function AsignacionHoras() {
     const [horariosAsignados, setHorariosAsignados] = useState({});
     const [horariosOcupados, setHorariosOcupados] = useState({});
     const [tipoConsulta, setTipoConsulta] = useState('asignar'); // 'asignar', 'profesor', 'curso'
+
+    const materiasGlobales = ['Fisica','Biologia','Quimica','Programación']
+    const materiasArtisticas = ['Musica','Danza','Arte','Teatro']
+
+    // Función para determinar el límite de horas por materia
+    const obtenerLimiteMateria = (nombreMateria) => {
+        if (materiasGlobales.includes(nombreMateria)) {
+            return { limite: 4, tipo: 'global' };
+        } else if (materiasArtisticas.includes(nombreMateria)) {
+            return { limite: 3, tipo: 'artística' };
+        } else {
+            return { limite: 4, tipo: 'general' };
+        }
+    };
+
+    // Función para calcular horas de un rango horario
+    const calcularHoras = (rango) => {
+        const [inicio, fin] = rango.split(' - ');
+        const [horaIni, minIni] = inicio.split(':').map(Number);
+        const [horaFin, minFin] = fin.split(':').map(Number);
+        const inicioDecimal = horaIni + minIni / 60;
+        const finDecimal = horaFin + minFin / 60;
+        return finDecimal - inicioDecimal;
+    };
+
+    
 
     const diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
     const rangosHorarios = [
@@ -59,9 +86,9 @@ export default function AsignacionHoras() {
     const validarCampos = (...campos) => 
       campos.every(campo => formData[campo]?.length > 0);
 
-  const habilitarListaCurso = () => validarCampos('id_curso');
-  const habilitarListaProfesores = () => validarCampos('dni_profesional');
-  const habilitarConsultar = () => validarCampos('dni_profesional', 'id_curso', 'id_materia');
+    const habilitarListaCurso = () => validarCampos('id_curso');
+    const habilitarListaProfesores = () => validarCampos('dni_profesional');
+    const habilitarConsultar = () => validarCampos('dni_profesional', 'id_curso', 'id_materia');
 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
@@ -114,6 +141,7 @@ export default function AsignacionHoras() {
                     nuevosHorarios[hora.dia_semana].push(rango);
                 });
                 setHorariosAsignados(nuevosHorarios);
+                setHorariosOriginales(nuevosHorarios);
             } else {
                 console.log('Debe seleccionar un profesor y un curso');
             }
@@ -121,9 +149,9 @@ export default function AsignacionHoras() {
             //console.error('Error en obtenerHorasProfesor:', error);
             mostrarMensaje('Error', 'No hay horas asignadas al profesional');
         }
-    };
+  };
 
-    const handleConsultarProfesional = async () => {
+  const handleConsultarProfesional = async () => {
       try {
         if (formData.dni_profesional ) {
             setTipoConsulta('profesor');
@@ -148,9 +176,9 @@ export default function AsignacionHoras() {
         console.error('Error en obtenerHorasProfesor:', error);
         mostrarMensaje('Error', 'No hay horas asignadas al profesional');
     }
-    }
+  }
 
-    const handleConsultarCurso = async () => {
+  const handleConsultarCurso = async () => {
       try {
         if (formData.id_curso ) {
             setTipoConsulta('curso');
@@ -175,9 +203,9 @@ export default function AsignacionHoras() {
         //console.error('Error en obtenerHorasCurso:', error);
         mostrarMensaje('Error', 'No hay horas asignadas al profesional');
     }
-    }
+  }
 
-    const alternarHorario = (dia, rango) => {
+  const alternarHorario = (dia, rango) => {
         setHorariosAsignados((prev) => {
             const horariosDia = prev[dia] || [];
             let nuevosHorariosDia;
@@ -211,25 +239,100 @@ export default function AsignacionHoras() {
                 [dia]: nuevosHorariosDia,
             };
         });
-    };
+  };
 
     
-    const handleAsignarHora = async () => {
+   const handleAsignarHora = async () => {
     try {
-        if (asignaciones.length === 0) {
-            console.log('No hay asignaciones para enviar');
-            return;
+        // Validar límites de horas por materia
+        if (formData.id_materia && asignaciones.length > 0) {
+            // Obtener nombre de la materia seleccionada
+            const materiaSeleccionada = materia.find(m => m.id_materia == formData.id_materia);
+            if (materiaSeleccionada) {
+                const nombreMateria = materiaSeleccionada.detalle;
+                
+                // Determinar límite y tipo de materia directamente
+                let limite, tipo;
+                if (materiasGlobales.includes(nombreMateria)) {
+                    limite = 4;
+                    tipo = 'global';
+                } else if (materiasArtisticas.includes(nombreMateria)) {
+                    limite = 3;
+                    tipo = 'artística';
+                } 
+
+                // Calcular horas actuales asignadas (desde horariosOriginales)
+                let horasActuales = 0;
+                Object.keys(horariosOriginales).forEach(dia => {
+                    if (horariosOriginales[dia]) {
+                        horariosOriginales[dia].forEach(rango => {
+                            horasActuales += calcularHoras(rango);
+                        });
+                    }
+                });
+
+                // Calcular horas de las nuevas asignaciones
+                let horasNuevas = 0;
+                asignaciones.forEach(asignacion => {
+                    const rango = `${asignacion.hora_inicio} - ${asignacion.hora_final}`;
+                    horasNuevas += calcularHoras(rango);
+                });
+
+                const totalHoras = horasActuales + horasNuevas;
+
+                if (totalHoras > limite) {
+                    mostrarMensaje('Error de Límite', 
+                        `La materia "${nombreMateria}" (${tipo}) tiene un límite de ${limite} horas semanales. ` +
+                        `Actualmente tiene ${horasActuales} horas asignadas. ` +
+                        `Con las nuevas asignaciones tendría ${totalHoras} horas.`
+                    );
+                    return; // No continuar si excede el límite
+                }
+            }
         }
-        //console.log('Datos de la asignación de horas', asignaciones);
-        const respuesta = await asignacionDeHoras(asignaciones); 
-        //console.log('Respuesta del servidor:', respuesta);
-        mostrarMensaje('Éxito', 'Se registro el horario exitosamente');
-        limpiarInterfaz()
+        
+        //  Asignar nuevas horas 
+        if (asignaciones.length > 0) {
+            const response = await asignacionDeHoras(asignaciones);
+        }
+
+        //  Deshabilitar horarios deseleccionados
+        for (const dia of diasSemana) {
+            const originales = horariosOriginales[dia] || [];
+            const actuales = horariosAsignados[dia] || [];
+            originales.forEach((rango) => {
+                if (!actuales.includes(rango)) {
+                    const [hora_inicio, hora_final] = rango.split(' - ');
+                    // Llamada a la API para deshabilitar
+                    deshabilitarHorario({
+                        id_materia: formData.id_materia,
+                        id_curso: formData.id_curso,
+                        dni_profesional: formData.dni_profesional,
+                        dia_semana: dia,
+                        hora_inicio,
+                        hora_final,
+                    });
+                }
+            });
+        }
+
+        mostrarMensaje('Éxito', 'Se registraron los cambios de horario exitosamente');
+        limpiarInterfaz();
     } catch (error) {
-        //console.error('Error al asignar la hora:', error);
-        mostrarMensaje('¡Error!', 'Error al asignar el horario');
+        console.error('Error completo:', error);
+        
+        // Verificar si el error tiene información específica del backend
+        let mensajeError = 'Error al asignar/deshabilitar el horario';
+        
+        if (error.response && error.response.data && error.response.data.error) {
+            mensajeError = error.response.data.error;
+        } else if (error.message) {
+            mensajeError = error.message;
+        }
+        
+        mostrarMensaje('¡Error!', mensajeError);
     }
-};
+  };
     
 
   useEffect(() => {
@@ -239,17 +342,17 @@ export default function AsignacionHoras() {
             setProfesores(profesoresData);
 
             if (formData.dni_profesional) {
-                const cursoData = await obtenerCursoPorProfesor(formData.dni_profesional);
-                setCurso(cursoData);
-            } else {
-                setCurso([]);
-            }
-
-            if (formData.id_curso,formData.dni_profesional) {
-                const materiaData = await obtenerMateriaPorCursoYProfesor(formData.id_curso,formData.dni_profesional);
+                const materiaData = await obtenerMateriaPorProfesor(formData.dni_profesional);
                 setMateria(materiaData);
             } else {
                 setMateria([]);
+            }
+
+             if (formData.id_materia) {
+                const cursoData = await obtenerCursoPorMateria(formData.id_materia);
+                setCurso(cursoData);
+            } else {
+                setCurso([]);
             }
 
         } catch{
@@ -257,12 +360,12 @@ export default function AsignacionHoras() {
         }
     };
     cargarListaDesplegable();
-  }, [formData.dni_profesional, formData.id_curso]);
+  }, [formData.dni_profesional, formData.id_materia]);
 
 
-    const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
+  const handleChange = (name, value) => {
+      setFormData({ ...formData, [name]: value });
+  };
 
 
 
@@ -284,19 +387,17 @@ return (
             <ListasDesplegables
                 formData={formData}
                 handleChange={handleChange}
-                curso={curso}
+                materias={materia}
+                showLabel={true}
                 styles={styles}
             />
             <ListasDesplegables
                 formData={formData}
                 handleChange={handleChange}
-                materias={materia}
-                showLabel={true}
+                curso={curso}
                 styles={styles}
             />
-            
-              </View>
-            
+            </View>
             </View>
               <View style={styles.botonesFiltrosAbajo}>
                 <>
@@ -348,7 +449,7 @@ return (
               ))}
             </View>
           </View>
-          <TouchableOpacity onPress={handleAsignarHora} style={styles.botonConfirmar} > 
+          <TouchableOpacity onPress={handleAsignarHora} style={[styles.botonConfirmar, !habilitarConsultar() && styles.botonDeshabilitado]} disabled={!habilitarConsultar()} > 
             <Text style={styles.textoBotonGrande}>Asignar Horas</Text>
           </TouchableOpacity>
         </View>

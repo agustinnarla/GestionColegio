@@ -4,12 +4,12 @@ import {pool} from '../../dataBase/coneccion.mjs'
 export const obtenerAlumnoFinal = async (req, res) => {
     const { id_curso } = req.params;
     try {
-        // Traer alumnos del curso y contar cuántas materias tienen promedio < 6 (finales)
+        // Traer alumnos del curso y contar cuántas materias tienen promedio < 3 (finales)
         const respuesta = await pool.query(
             `SELECT 
                 a.dni_alumno, 
                 CONCAT(a.nombre, ' ', a.apellido) AS nombrecompleto,
-                COUNT(CASE WHEN am.promedio < 6 THEN 1 END) AS finales,
+                COUNT(CASE WHEN am.promedio < 3 THEN 1 END) AS finales,
                 AVG(am.promedio) AS promedio
             FROM alumno a
             INNER JOIN alumno_curso ac ON a.dni_alumno = ac.dni_alumno

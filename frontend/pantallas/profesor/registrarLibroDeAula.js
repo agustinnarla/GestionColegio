@@ -2,14 +2,15 @@ import { StyleSheet, View, Image, ScrollView, TextInput, Text, TouchableOpacity,
 import { Picker } from '@react-native-picker/picker';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
-import { obtenerCaracteristicasUnidad, obtenerCursoPorProfesor, obtenerCursosPorProfesor, obtenerMateriaPorCursoYProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js';
+import { obtenerCaracteristicasUnidad, obtenerCursoPorMateria, obtenerMateriaPorProfesor } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { registrarLibroAula, obtenerNumeroDeClase } from '../../scripts/profesor/scriptLibroAula.js';
 import CustomAlert from '../../componente/CustomAlerts.js';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 
 
-export default function LibroAula({ route }) {
+export default function RegistrarLibroDeAula({ route }) {
 
     //🟢 Formulario
     const [formData, setFormData] = useState({
@@ -36,10 +37,10 @@ export default function LibroAula({ route }) {
     };
 
     //🟢 Estado listas desplegables 
-    const [materiaPorCursoYProfesor, setMateriasPorCursoProfesor] = useState([]);
+    const [materiaPorProfesor, setMateriasPorProfesor] = useState([]);
     const [caracteristica_unidad, setCaracteristica] = useState('');
     const [loading, setLoading] = useState(true);
-    const [cursoPorProfesor, setCursoPorProfesor] = useState([]);
+    const [cursoPorMateria, setCursoPorMateria] = useState([]);
     const [numero_clase, setNumeroClase] = useState(0);
 
     //🟢 Capturamos Parametros 
@@ -57,25 +58,25 @@ export default function LibroAula({ route }) {
 
     //🟢 Obtenemos curso por profesor
     useEffect(() => {
-            const cargarCursoPorProfesor = async () => {
+            const cargarCursoPorMateria = async () => {
                 
                     try {
-                        const cursoData = await obtenerCursoPorProfesor(dni_profesional);
-                        setCursoPorProfesor(cursoData);
+                        const cursoData = await obtenerCursoPorMateria(formData.id_materia);
+                        setCursoPorMateria(cursoData);
                     } catch (error) {
                         console.error('Error al cargar alumnos:', error);
                     }
                 
             };
-            cargarCursoPorProfesor();
-        }, [dni_profesional]);
+            cargarCursoPorMateria();
+        }, [formData.id_materia]);
 
     //🟢 Obtenemos materias por profesor 
     useEffect(() => {
-        const cargarMateriasPorCursoYProfesor = async () => {
+        const cargarMateriasPorProfesor = async () => {
             try {
-                const data = await obtenerMateriaPorCursoYProfesor(formData.id_curso, dni_profesional);
-                setMateriasPorCursoProfesor(data);
+                const data = await obtenerMateriaPorProfesor( dni_profesional);
+                setMateriasPorProfesor(data);
             } catch (error) {
                 console.error('Error al cargar las materias:', error);
             } finally {
@@ -83,8 +84,8 @@ export default function LibroAula({ route }) {
             }
         };
 
-        cargarMateriasPorCursoYProfesor();
-    }, [formData.id_curso, dni_profesional]);
+        cargarMateriasPorProfesor();
+    }, [ dni_profesional]);
 
     useEffect(() => {
         const cargarCaracteristicas = async () => {
@@ -123,7 +124,7 @@ export default function LibroAula({ route }) {
 
     
     const formatearFecha = (fecha) => {
-        const [dia, mes, año] = fecha.split('/');
+        const [año, mes, dia] = fecha.split('/');
         return `${año}/${mes}/${dia}`;
     };
 
@@ -190,6 +191,7 @@ export default function LibroAula({ route }) {
 
     return (
         <View style={styles.padre}>
+            <ScrollContainer />
             <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.card}>
@@ -197,14 +199,14 @@ export default function LibroAula({ route }) {
                             <ListasDesplegables 
                                 formData={formData} 
                                 handleChange={handleChange} 
-                                materias_curso_profesor={materiaPorCursoYProfesor}
+                                materias={materiaPorProfesor}
                                 showLabel={true}
                                 styles={styles}
                             />
                             <ListasDesplegables 
                                 formData={formData} 
                                 handleChange={handleChange} 
-                                cursos={cursoPorProfesor}
+                                cursos={cursoPorMateria}
                                 showLabel={true}
                                 styles={styles}
                             />
@@ -219,7 +221,7 @@ export default function LibroAula({ route }) {
 
                         <Text style={styles.label}>Fecha:</Text>
                         <TextInput style={styles.input} 
-                            placeholder='DD/MM/AAAA' 
+                            placeholder='AAAA/MM/DD' 
                             value={formData.fecha}
                             onChangeText={(value) => handleChange('fecha', value)}
                         />

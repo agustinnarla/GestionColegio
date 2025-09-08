@@ -20,6 +20,11 @@ export const agregarTarea = async (req, res) => {
         return res.status(400).json({ error: 'El campo "detalle" es requerido' });
     }
     try {
+
+        const existe = await pool.query('SELECT * FROM tarea WHERE detalle = $1', [detalle]);
+        if (existe.rows.length > 0) {
+            return res.status(409).json({ message: 'La tarea ya está registrada' });
+        }
         // Insertar la nueva tarea en la base de datos
         const result = await pool.query(
             'INSERT INTO tarea (detalle, id_estado_general, ruta) VALUES ($1, $2, $3) RETURNING id_tarea',
@@ -44,6 +49,7 @@ export const deshabilitarTarea = async (req, res) => {
     try {
         // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
         await pool.query('UPDATE tarea SET id_estado_general = 2 WHERE id_tarea = $1', [id_tarea]);
+        await pool.query('UPDATE tarea_rol SET id_estado_general = 2 WHERE id_tarea = $1', [id_tarea]);
 
         res.status(200).json({ mensaje: 'Tarea deshabilitada exitosamente' });
     } catch (error) {
@@ -60,11 +66,12 @@ export const habilitarTarea = async (req, res) => {
     try {
         // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
         await pool.query('UPDATE tarea SET id_estado_general = 1 WHERE id_tarea = $1', [id_tarea]);
+        await pool.query('UPDATE tarea_rol SET id_estado_general = 1 WHERE id_tarea = $1', [id_tarea]);
 
-        res.status(200).json({ mensaje: 'Tarea deshabilitada exitosamente' });
+        res.status(200).json({ mensaje: 'Tarea habilitada exitosamente' });
     } catch (error) {
-        console.error('Error al deshabilitar la Tarea:', error);
-        res.status(500).json({ error: 'Error al deshabilitar la tarea' });
+        console.error('Error al habilitar la Tarea:', error);
+        res.status(500).json({ error: 'Error al habilitar la tarea' });
     }
 };
 

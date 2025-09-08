@@ -4,7 +4,7 @@ import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import { agregarNota, modificarEstadoEvaluativo } from '../../scripts/profesor/scriptCargarNotaFinal';
-import { obtenerCursoPorProfesor, obtenerMateriasPorProfesor, obtenerAlumnosNoRegulares, obtenerMateriaPorCursoYProfesor } from '../../scripts/listasDesplegables/listaDesplegable';
+import { obtenerCursoPorMateria, obtenerAlumnosNoRegulares,  obtenerMateriaPorProfesor } from '../../scripts/listasDesplegables/listaDesplegable';
 import CustomAlert from '../../componente/CustomAlerts';
 
 export default function CargarNotasFinal({route}) {
@@ -14,31 +14,26 @@ export default function CargarNotasFinal({route}) {
     const [cursos, setCursos] = useState([]);
     const [cursosSeleccionados, setCursosSeleccionados] = useState([]); // Estado para los cursos seleccionados
     const [cursoSeleccionado, setCursoSeleccionado] = useState(null); // Estado para un curso único seleccionado
-    const [materias_curso_profesor, setMaterias] = useState([]);
+    const [materias, setMaterias] = useState([]);
     const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
     const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]); // Debe contener los ID de las materias seleccionadas    const [modalVisible, setModalVisible] = useState(false);
     const [notasAEnviar, setNotasAEnviar] = useState([]);
     const [selectKey, setSelectKey] = useState(0);
 
-    const consultarAlumnos = () => {
-        console.log("Consultando datos con filtros:");
-        console.log("Cursos seleccionados:", cursosSeleccionados);
-        console.log("Materias seleccionadas:", materiasSeleccionadas);
-        cargarAlumnosFiltrados(); // Llama al método que aplica el filtro
-    };
+   
 
-        //🟢 Estado del Mensaje
-        const [alertVisible, setAlertVisible] = useState(false);
-        const [alertTitle, setAlertTitle] = useState('');
-        const [alertMessage, setAlertMessage] = useState('');
-        const [enviando, setEnviando] = useState(false);
-    
-        //🟢 Mensaje 
-        const mostrarMensaje = (titulo, mensaje) => {
-            setAlertTitle(titulo);
-            setAlertMessage(mensaje);
-            setAlertVisible(true);
-        };
+    //🟢 Estado del Mensaje
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [enviando, setEnviando] = useState(false);
+
+    //🟢 Mensaje 
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
 
     const { dni_usuario } = route.params;
 
@@ -49,11 +44,94 @@ export default function CargarNotasFinal({route}) {
 
     console.log('DNI Usuario:', dni_usuario);
 
-    const cargarAlumnosFiltrados = async () => {
-        try {
-            const respuesta = await obtenerAlumnosNoRegulares(dni_usuario);
-            const todosLosAlumnos = respuesta.alumnos || []; // Accede a la propiedad "alumnos" o usa un array vacío si no está definido
     
+
+    const reiniciarFiltro = () => {
+    setCursosSeleccionados([]);
+    setMateriasSeleccionadas([]);
+    setDatos([]);
+    setNotas({});
+    setNotasAEnviar([]);
+    setModalVisible(false);
+    setSelectKey(prev => prev + 1); 
+    };
+
+    const dni_profesional = dni_usuario
+    
+    
+
+
+// 🟢 Cargar materias al cambiar cursoSeleccionado
+    useEffect(() => {
+        const cargarMateriasPorProfesor = async () => {
+        
+            try {
+                const data = await obtenerMateriaPorProfesor(dni_profesional);
+                console.log("MATERIAS RECIBIDAS:", data);
+
+                if (Array.isArray(data)) { 
+                    const materiasFormateadas = data.map(m => ({
+                        key: m.id_materia.toString(),
+                        value: m.detalle
+                    }));
+                    setMaterias(materiasFormateadas);
+                } else {
+                    console.error("La respuesta no es un array:", data);
+                    setMaterias([]);
+                }
+
+            } catch (error) {
+                console.error("Error al cargar materias:", error);
+            }
+        };
+
+        cargarMateriasPorProfesor();
+
+    }, [dni_profesional]);
+    
+    // 🟢 Cargar cursos una sola vez
+   useEffect(() => {
+    const cargarCursosPorMateria = async () => {
+        try {
+            const data = await obtenerCursoPorMateria(materiasSeleccionadas);
+            console.log("CURSOS RECIBIDOS:", data);
+
+            const cursosArray = Array.isArray(data) ? data : data.cursos || [];
+            setCursos(cursosArray);
+        } catch (error) {
+            console.error("Error al cargar cursos del profesor:", error);
+            setCursos([]);
+        }
+    };
+
+    if (materiasSeleccionadas.length > 0) {
+        cargarCursosPorMateria();
+    } else {
+        setCursos([]);
+    }
+}, [materiasSeleccionadas]);
+
+console.log("Cursos seleccionados:", cursosSeleccionados);
+console.log("Materias seleccionadas:", materiasSeleccionadas);
+   const validarListas = () => {
+    return cursosSeleccionados.length > 0 && materiasSeleccionadas.length > 0;
+    };
+
+const cargarAlumnosFiltrados = async () => {
+        try {
+            // Validar que los arrays no estén vacíos y que los valores sean válidos
+            const materiaId = materiasSeleccionadas[0];
+            const cursoId = cursosSeleccionados[0];
+            
+            if (!materiaId || !cursoId) {
+                console.error("IDs inválidos:", { materiaId, cursoId });
+                mostrarMensaje("Error", "Debe seleccionar una materia y un curso válidos");
+                return;
+            }
+            
+            const respuesta = await obtenerAlumnosNoRegulares(cursoId, materiaId);
+            const todosLosAlumnos = respuesta.alumnos || []; // Accede a la propiedad "alumnos" o usa un array vacío si no está definido
+            console.log("Respuesta de obtenerAlumnosNoRegulares:", respuesta);
             console.log("Todos los alumnos:", todosLosAlumnos); // Verifica el formato aquí
     
             if (!Array.isArray(todosLosAlumnos)) {
@@ -85,76 +163,15 @@ export default function CargarNotasFinal({route}) {
             console.log("Datos filtrados:", datosFiltrados); // Verifica los datos filtrados
         } catch (error) {
             console.error("Error al cargar alumnos filtrados:", error);
-            Alert.alert("Error", "No se pudieron cargar los datos filtrados");
+            mostrarMensaje("Error", "No se pudieron cargar los datos filtrados");
         }
     };
 
-    const reiniciarFiltro = () => {
-    setCursosSeleccionados([]);
-    setMateriasSeleccionadas([]);
-    setDatos([]);
-    setNotas({});
-    setNotasAEnviar([]);
-    setModalVisible(false);
-    setSelectKey(prev => prev + 1); 
-    };
-
-    const dni_profesional = dni_usuario
-    
-    // 🟢 Cargar cursos una sola vez
-    useEffect(() => {
-    const cargarCursosPorProfesor = async () => {
-        try {
-            const data = await obtenerCursoPorProfesor(dni_profesional);
-            console.log("CURSOS RECIBIDOS:", data);
-            setCursos(data); // Asegurate que `data` sea un array
-        } catch (error) {
-            console.error("Error al cargar cursos del profesor:", error);
-        }
-    };
-
-    if (dni_profesional && cursos.length === 0) {
-        cargarCursosPorProfesor();
-    }
-    }, [dni_profesional]);
-
-
-// 🟢 Cargar materias al cambiar cursoSeleccionado
-    useEffect(() => {
-        const cargarMateriasPorCursoYProfesor = async () => {
-            if (!cursosSeleccionados || !dni_profesional) {
-                console.warn("Faltan datos: cursos o dni_profesional");
-                return;
-            }
-
-            try {
-                const data = await obtenerMateriaPorCursoYProfesor(cursosSeleccionados, dni_profesional);
-                console.log("MATERIAS RECIBIDAS:", data);
-
-                if (Array.isArray(data)) { 
-                    const materiasFormateadas = data.map(m => ({
-                        key: m.id_materia.toString(),
-                        value: m.detalle
-                    }));
-                    setMaterias(materiasFormateadas);
-                } else {
-                    console.warn("La respuesta no es un array:", data);
-                    setMaterias([]);
-                }
-
-            } catch (error) {
-                console.error("Error al cargar materias:", error);
-            }
-        };
-
-        if (cursosSeleccionados.length > 0) {
-            cargarMateriasPorCursoYProfesor();
-        }
-    }, [cursosSeleccionados, dni_profesional]);
-    
-
-   const validarListas = () => {
-    return cursosSeleccionados.length > 0 && materiasSeleccionadas.length > 0;
+     const consultarAlumnos = () => {
+        console.log("Consultando datos con filtros:");
+        console.log("Cursos seleccionados:", cursosSeleccionados);
+        console.log("Materias seleccionadas:", materiasSeleccionadas);
+        cargarAlumnosFiltrados(); // Llama al método que aplica el filtro
     };
 
     const handleNotaChange = (idAlumno, idMateria, valorNota) => {
@@ -191,7 +208,7 @@ export default function CargarNotasFinal({route}) {
         console.log("Notas modificadas para enviar:", notasParaEnviar);
     
         if (notasParaEnviar.length === 0) {
-            Alert.alert("Aviso", "No hay notas modificadas para enviar.");
+            mostrarMensaje("Aviso", "No hay notas modificadas para enviar.");
             return;
         }
     
@@ -200,7 +217,7 @@ export default function CargarNotasFinal({route}) {
         });
     
         if (algunaNotaInvalida) {
-            Alert.alert("Error", "Verifica que todas las notas estén entre 1 y 10.");
+            mostrarMensaje("Error", "Verifica que todas las notas estén entre 1 y 10.");
             return;
         }
     
@@ -255,14 +272,15 @@ export default function CargarNotasFinal({route}) {
                 if (errores.length > 0) {
                     mensaje += `\n\nErrores (${errores.length}):\n${errores.join('\n')}`;
                 }
-                mostrarMensaje('Exito', 'Notas registradas exitosamente')
+                mostrarMensaje('Exito', 'Se registró la nota final correctamente')
             } else {
-                mostrarMensaje("Error", "No se pudo enviar ninguna nota");
+                mostrarMensaje("Error", "Al registrar la nota final");
             }
     
             setModalVisible(false);
             // Recargar datos
             cargarAlumnosFiltrados();
+            reiniciarFiltro();
         } catch (error) {
             console.error("Error en confirmarEnvio:", error);
             mostrarMensaje("Error", "Ocurrió un problema al enviar las notas");
@@ -306,7 +324,7 @@ export default function CargarNotasFinal({route}) {
                         key={selectKey} 
                             setSelected={setMateriasSeleccionadas}
                             selected={materiasSeleccionadas}
-                            data={materias_curso_profesor}
+                            data={materias}
                             save="key"
                             label="Materias"
                             placeholder="Seleccionar materias"
@@ -315,30 +333,26 @@ export default function CargarNotasFinal({route}) {
                         />
                     </View>
                     <MultipleSelectList
-                    key={selectKey} 
-                        setSelected={(val) => {
-                            console.log("Cursos seleccionados:", val);
-                            setCursosSeleccionados(val);
-                            setMateriasSeleccionadas([]); 
-                        }}
-                        selected={cursosSeleccionados} 
-                        data={cursos.map(curso => ({
-                            key: curso.id_curso?.toString() || '',
-                            value: curso.detalle || 'Sin detalle'
-                        }))}
-                        save="key"
-                        label="Cursos"
-                        placeholder="Seleccionar cursos"
-                        boxStyles={styles.dropdown}
-                        dropdownTextStyles={styles.dropdownText}
-                    />
+    key={selectKey}
+    setSelected={setCursosSeleccionados}
+    selected={cursosSeleccionados}
+    data={cursos.map(curso => ({
+        key: curso.id_curso?.toString() || '',
+        value: curso.detalle || 'Sin detalle'
+    }))}
+    save="key"
+    label="Cursos"
+    placeholder="Seleccionar cursos"
+    boxStyles={styles.dropdown}
+    dropdownTextStyles={styles.dropdownText}
+/>
                     </View>
                     <View style={styles.botonesContainer}>
                         <TouchableOpacity style={[styles.botonConsultar, !validarListas() && styles.botonDeshabilitado]} onPress={consultarAlumnos} disabled={!validarListas()}>
                             <Text style={styles.textoBoton}>Consultar</Text>
                         </TouchableOpacity>
                         
-                        <TouchableOpacity style={[styles.botonReiniciar, !validarListas() && styles.botonDeshabilitado]} onPress={reiniciarFiltro} disabled={!validarListas()}>
+                        <TouchableOpacity style={[styles.botonReiniciar]} onPress={reiniciarFiltro} >
                             <Text style={styles.textoBoton}>Reiniciar Filtros</Text>
                         </TouchableOpacity>
                     </View>
@@ -397,6 +411,13 @@ export default function CargarNotasFinal({route}) {
                 </View>
             </Modal>
             </ImageBackground>
+            <CustomAlert
+            isVisible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={alertTitle}
+            message={alertMessage}
+            showSpinner={enviando}
+        />
         </View>
     );
 }

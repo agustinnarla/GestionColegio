@@ -149,6 +149,7 @@ export const deshabilitarMateria = async (req, res) => {
     try {
         // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
         await pool.query('UPDATE materia SET id_estado_general = 2 WHERE id_materia = $1', [id_materia]);
+        await pool.query('UPDATE materia_profesor SET id_estado_general = 2 WHERE id_materia = $1', [id_materia]);
         
         res.status(200).json({ mensaje: 'Materia deshabilitada exitosamente' });
     } catch (error) {
@@ -166,6 +167,7 @@ export const registrarMateria = async (req, res) => {
 
         const existente = await pool.query("SELECT 1 FROM materia WHERE detalle = $1", [detalle]);
         if (existente.rowCount > 0) {
+            console.log('La materia ya está registrada');
             return res.status(409).json({ message: 'La materia ya está registrada' });
         }
 
@@ -188,6 +190,7 @@ export const habilitarMateria = async (req, res) => {
     try {
         // Actualizar el estado de la materia a deshabilitada (id_estado_general = 2)
         await pool.query('UPDATE materia SET id_estado_general = 1 WHERE id_materia = $1', [id_materia]);
+        await pool.query('UPDATE materia_profesor SET id_estado_general = 1 WHERE id_materia = $1', [id_materia]);
 
         res.status(200).json({ mensaje: 'Materia habilitada exitosamente' });
     } catch (error) {

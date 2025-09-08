@@ -47,7 +47,11 @@ export const obtenerMateriasPorProfesor = async (req, res) => {
 
 // Obtener Alumnos no regulares 
 export const obtenerAlumnosNoRegulares = async (req, res) => {
-    const { dni_profesional } = req.params;
+    let { id_curso, id_materia } = req.params;
+
+    // Si no vienen, setear a null
+    id_curso = id_curso && id_curso !== 'undefined' ? Number(id_curso) : null;
+    id_materia = id_materia && id_materia !== 'undefined' ? Number(id_materia) : null;
 
     try {
         const respuesta = await pool.query(`
@@ -55,22 +59,21 @@ export const obtenerAlumnosNoRegulares = async (req, res) => {
                 a.nombre,
                 a.apellido,
                 am.dni_alumno,
-                am.id_materia, -- Incluye el ID de la materia
-                ac.id_curso, -- Incluye el ID del curso
+                am.id_materia,
+                ac.id_curso,
                 m.detalle AS detalle_materia,
                 c.detalle AS detalle_curso
             FROM 
                 alumno_materia am
             JOIN alumno a ON am.dni_alumno = a.dni_alumno
             JOIN materia m ON am.id_materia = m.id_materia
-            JOIN materia_profesor pm ON am.id_materia = pm.id_materia
             LEFT JOIN alumno_curso ac ON am.dni_alumno = ac.dni_alumno
             LEFT JOIN curso c ON ac.id_curso = c.id_curso
-            LEFT JOIN profesor_curso pc ON ac.id_curso = pc.id_curso AND pc.dni_profesional = pm.dni_profesional
             WHERE 
-                pm.dni_profesional = $1
+                ($1::int IS NULL OR am.id_curso = $1)
+                AND ($2::int IS NULL OR am.id_materia = $2)
                 AND am.id_estado_evaluativo = 2
-        `, [dni_profesional]);
+        `, [id_curso, id_materia]);
 
         res.status(200).json({ alumnos: respuesta.rows });
     } catch (error) {

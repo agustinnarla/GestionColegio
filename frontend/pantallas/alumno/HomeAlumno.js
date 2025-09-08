@@ -122,12 +122,6 @@ export default function HomeAlumno({ dni_usuario }) {
                 )}
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.cajaBoton}
-              onPress={() => Linking.openURL('https://classroom.google.com/')}
-            >
-              <Text style={styles.textoBoton}>Classroom</Text>
-            </TouchableOpacity>
           </View>
         </ImageBackground>
       </View>

@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Dimensions, Platform } from 'react-native';
 import bg from '../../assets/bg1.jpg'; 
 import { obtenerMateriasPorDni } from '../../scripts/alumno/scripMaterias'; // Importar la función
+
+const { width } = Dimensions.get('window');
+
+const isWeb = Platform.OS === 'web';
 
 const Materia = ({ nombre, profesor, dia_semana, notas, promedio, trabajo_practico, aulico }) => {
   const [expandido, setExpandido] = useState(false);
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    padding: 20,
+    padding: isWeb && width > 900 ? 40 : 16,
   },
   titulo: {
     fontSize: 26,
@@ -166,8 +170,8 @@ const styles = StyleSheet.create({
     color: '#2a3d6c', 
   }, 
   cardMateria: {
-    width:'100%',
-    alignSelf:'center',
+    width: isWeb && width > 900 ? '50%' : '96%',
+    alignSelf: 'center',
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 18,
@@ -294,7 +298,7 @@ const styles = StyleSheet.create({
     fontWeight: '500'
   },
   promedioDestacado: {  
-    width: '60%',
+    width: '90%',
     backgroundColor: '#eef7ffff',
     borderRadius: 12,
     paddingVertical: 10,

@@ -1,7 +1,7 @@
 
 import {pool} from "../../dataBase/coneccion.mjs"
 
-//Ver si es usuario --> Error de usuario
+
 export const obtenerMateriaPorProfesor = async (req, res) => {
     const { dni_profesional } = req.params;
     try {
@@ -38,28 +38,13 @@ export const obtenerCursoPorMateria = async (req,res) => {
         const respuesta = await pool.query(`SELECT c.id_curso, c.detalle FROM materia_curso AS mc   
             INNER JOIN curso c ON c.id_curso = mc.id_curso 
             WHERE id_materia = $1`, [id_materia])
-        res.status(200).json(respuesta.rows)
+        res.status(200).json({cursos: respuesta.rows})
         if(respuesta.rowCount === 0){
             return res.status(404).json({error: "No se encontraron cursos para la materia especificada"})
         }
     }catch(error){
         console.log(error)
         res.status(500).json({error: "Error al obtener el curso por materia"})
-    }
-}
-
-export const obtenerMateriaPorCursoYProfesor = async (req, res) => {
-    const {id_curso, dni_profesional} = req.params
-    try{
-            const respuesta = await pool.query(`SELECT m.id_materia, m.detalle 
-                FROM materia_profesor AS mp   
-                INNER JOIN materia m ON m.id_materia = mp.id_materia 
-                INNER JOIN materia_curso mc ON mc.id_materia = m.id_materia
-                WHERE mc.id_curso = $1 AND mp.dni_profesional = $2`, [id_curso, dni_profesional])
-        res.status(200).json({ materias_curso_profesor: respuesta.rows})
-    }catch(error){
-        console.log(error)
-        res.status(500).json({error: "Error al obtener el curso por materia y profesor"})
     }
 }
 

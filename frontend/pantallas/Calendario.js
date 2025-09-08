@@ -5,119 +5,84 @@ import bg from '../assets/bg1.jpg'
 import { obtenerEvaluaciones, obtenerEvaluacionesProfesor } from '../scripts/navegacion/scriptCalendario.js';
 import CustomAlert from '../componente/CustomAlerts.js';
 
-//Ver la importacion de google calendar -- Probar como funciona 
+
 export default function Calendario({route}) {
-  //🟢 Estados y Formulario
-  const [selectedDate, setSelectedDate] = useState('');
-  const [evaluaciones, setEvaluaciones] = useState([]);
-  const [markedDates, setMarkedDates] = useState({});
-  const [eventosDia, setEventosDia] = useState([]);
-  const { width } = useWindowDimensions();
 
-  //🟢 Mensajes
-  const [alertVisible, setAlertVisible] = useState(false);
-  const [alertTitle, setAlertTitle] = useState('');
-  const [alertMessage, setAlertMessage] = useState('');
+//🟢 Estados y Formulario
+const [selectedDate, setSelectedDate] = useState('');
+const [evaluaciones, setEvaluaciones] = useState([]);
+const [markedDates, setMarkedDates] = useState({});
+const [eventosDia, setEventosDia] = useState([]);
+const { width } = useWindowDimensions();
+
+//🟢 Mensajes
+const [alertVisible, setAlertVisible] = useState(false);
+const [alertTitle, setAlertTitle] = useState('');
+const [alertMessage, setAlertMessage] = useState('');
   
-  const mostrarMensaje = (titulo, mensaje) => {
-    setAlertTitle(titulo);
-    setAlertMessage(mensaje);
-    setAlertVisible(true);
-  };
+const mostrarMensaje = (titulo, mensaje) => {
+  setAlertTitle(titulo);
+  setAlertMessage(mensaje);
+  setAlertVisible(true);
+};
 
   
 
-  // Responsive styles
-  const isSmallScreen = width < 1300;
+// Responsive styles
+const isSmallScreen = width < 1300;
 
-  //🟢 Captura de Parametros 
-  const { dni_usuario } = route.params;
-  const { id_rol } = route.params;
+//🟢 Captura de Parametros 
+const { dni_usuario, id_rol } = route.params;
 
-
-  //🟢 Obtener Evaluaciones 
-  useEffect(() => {
+//🟢 Obtener Evaluaciones 
+useEffect(() => {
   const cargarEvaluaciones = async () => {
     try {
+      let data;
+
       if (id_rol === 4) {
-        const dni_alumno = dni_usuario;
-        console.log('DNI del alumno:', dni_alumno);
-        const data = await obtenerEvaluaciones(dni_alumno);
-        if (data?.evaluaciones) {
-          setEvaluaciones(data.evaluaciones);
-          const fechasMarcadas = {};
-          data.evaluaciones.forEach(e => {
-            const [d, m, a] = e.fecha.split('-');
-            const fecha = `${a}-${m}-${d}`;
-            if(e.id_tipo_de_evaluacion == 1){
-              fechasMarcadas[fecha] = {
-              marked: true,
-              dotColor: '#FF6347',
-              selectedColor: '#FF6347',
-              };  
-            }else if(e.id_tipo_de_evaluacion == 2){
-              fechasMarcadas[fecha] = {
-                marked: true,
-                dotColor: '#5947ffff',
-                selectedColor: '#4753ffff',
-              }; 
-            }else if(e.id_tipo_de_evaluacion == 3){
-              fechasMarcadas[fecha] = {
-                marked: true,
-                dotColor: '#ff47d1ff',
-                selectedColor: '#f947ffff',
-              }; 
-            }else if(e.id_tipo_de_evaluacion == 4){
-              fechasMarcadas[fecha] = {
-                marked: true,
-                dotColor: '#63cfddff',
-                selectedColor: '#47d4ffff',
-              }; 
-            }
-            
-          });
-          setMarkedDates(fechasMarcadas);
-        }
+        // Alumno
+        data = await obtenerEvaluaciones(dni_usuario);
       } else if (id_rol === 2) {
-        const dni_profesional = dni_usuario;
-        console.log('DNI del profesional:', dni_profesional);
-        const data = await obtenerEvaluacionesProfesor(dni_profesional);
-        if (data?.evaluaciones) {
-          setEvaluaciones(data.evaluaciones);
-          const fechasMarcadas = {};
-          data.evaluaciones.forEach(e => {
-            const [d, m, a] = e.fecha.split('-');
-            const fecha = `${a}-${m}-${d}`;
-            if(e.id_tipo_de_evaluacion == 1){
-              fechasMarcadas[fecha] = {
-              marked: true,
-              dotColor: '#FF6347',
-              selectedColor: '#FF6347',
-              };  
-            }else if(e.id_tipo_de_evaluacion == 2){
-              fechasMarcadas[fecha] = {
-                marked: true,
-                dotColor: '#5947ffff',
-                selectedColor: '#4753ffff',
-              }; 
-            }else if(e.id_tipo_de_evaluacion == 3){
-              fechasMarcadas[fecha] = {
-                marked: true,
-                dotColor: '#ff47d1ff',
-                selectedColor: '#f947ffff',
-              }; 
-            }else if(e.id_tipo_de_evaluacion == 4){
-              fechasMarcadas[fecha] = {
-                marked: true,
-                dotColor: '#63cfddff',
-                selectedColor: '#47d4ffff',
-              }; 
-            }
-          });
-          setMarkedDates(fechasMarcadas);
-        }
+        // Profesor
+        data = await obtenerEvaluacionesProfesor(dni_usuario);
       } else {
         console.log('Rol no reconocido:', id_rol);
+        return;
+      }
+
+      if (data?.evaluaciones) {
+        setEvaluaciones(data.evaluaciones);
+
+        // Construir fechas marcadas
+        const fechasMarcadas = {};
+        data.evaluaciones.forEach(e => {
+          const fecha = e.fecha.replace(/\//g, "-"); // YYYY/MM/DD -> YYYY-MM-DD
+
+          let colores = {};
+          switch (e.id_tipo_de_evaluacion) {
+            case 1:
+              colores = { dotColor: '#FF6347', selectedColor: '#FF6347' };
+              break;
+            case 2:
+              colores = { dotColor: '#5947ff', selectedColor: '#4753ff' };
+              break;
+            case 3:
+              colores = { dotColor: '#ff47d1', selectedColor: '#f947ff' };
+              break;
+            case 4:
+              colores = { dotColor: '#63cfdd', selectedColor: '#47d4ff' };
+              break;
+          }
+
+          fechasMarcadas[fecha] = {
+            ...(fechasMarcadas[fecha] || {}), // conservar si ya había otra marca
+            marked: true,
+            ...colores
+          };
+        });
+
+        setMarkedDates(fechasMarcadas);
       }
     } catch (error) {
       console.error('Error al cargar evaluaciones:', error);
@@ -125,91 +90,89 @@ export default function Calendario({route}) {
   };
 
   cargarEvaluaciones();
-}, [dni_usuario]);
+}, [dni_usuario, id_rol]);
 
-  
-  //🟢 Cuando se selecciona un día
-  const seleccionarDia = (dia) => {
-    console.log('Día seleccionado:', dia);
-    setSelectedDate(dia.dateString);
-    
-    // Filtrar evaluaciones para el día seleccionado
-    const eventosDelDia = evaluaciones.filter(evaluacion => {
-      // Convertir formato de fecha de DD-MM-YYYY a YYYY-MM-DD directamente
-      const [diaEvaluacion, mesEvaluacion, anioEvaluacion] = evaluacion.fecha.split('-');
-      const fechaFormateadaEvaluacion = `${anioEvaluacion}-${mesEvaluacion}-${diaEvaluacion}`;
-      return fechaFormateadaEvaluacion === dia.dateString;
-    });
-    console.log('Eventos del día:', eventosDelDia);
-    setEventosDia(eventosDelDia);
-  };
+//🟢 Cuando se selecciona un día
+const seleccionarDia = (dia) => {
+  console.log('Día seleccionado:', dia);
+  setSelectedDate(dia.dateString);
 
-  //🟢 Vistas 
-  return (
-    <View style={[styles.padre, isSmallScreen && styles.padreSmall]}>
-      <Image source={bg} style={styles.bg} />
-      <View style={[styles.calendarioContainer, isSmallScreen && styles.calendarioContainerSmall]}>
-        <Calendar
-          onDayPress={seleccionarDia}
-          markedDates={{
-            ...markedDates,
-            [selectedDate]: {
-              selected: true,
-              marked: true,
-              selectedColor: '#DADADA',
-            },
-          }}
-          theme={{
-            todayTextColor: '#2A3D6C',
-            arrowColor: '#2A3D6C',
-            textDayFontSize: isSmallScreen ? 12 : 14,
-            textMonthFontSize: isSmallScreen ? 14 : 16,
-            textDayHeaderFontSize: isSmallScreen ? 10 : 12,
-          }}
-          style={[styles.calendario, isSmallScreen && styles.calendarioSmall]}
-        />
-      </View>
+ 
+  const eventosDelDia = evaluaciones.filter(e => {
+    const fecha = e.fecha.replace(/\//g, "-");
+    return fecha === dia.dateString;
+  });
 
-      {selectedDate && (
-        <View style={[styles.eventosContainer, isSmallScreen && styles.eventosContainerSmall]}>
-          <Text style={styles.fechaSeleccionada}>
-            {(() => {
-            const [year, month, day] = selectedDate.split('-');
-            return new Intl.DateTimeFormat('es-ES', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              timeZone: 'UTC'
-            }).format(new Date(`${year}-${month}-${day}T00:00:00Z`));
-            })()}
-          </Text>
-          
-          {eventosDia.length > 0 ? (
-            <ScrollView style={styles.eventosLista}>
-              {eventosDia.map((evento, index) => (
-              <View key={index} style={styles.eventoItem}>
-                <Text style={styles.eventoMateria}>{evento.detalle}</Text>
-                <Text style={styles.eventoMateria}>{evento.materia_detalle}</Text>
-                <Text style={styles.eventoDetalle}>Tema abarcados: {evento.tema_abarcado}</Text>
-                <Text style={styles.eventoDetalle}>{id_rol === 2 ? evento.curso_detalle : ""}</Text>
-              </View>
-            ))}
-            </ScrollView>
-          ) : (
-            <Text style={styles.sinEventos}>No hay evaluaciones programadas para este día</Text>
-          )}
-        </View>
-      )}
+  console.log('Eventos del día:', eventosDelDia);
+  setEventosDia(eventosDelDia);
+};
 
-      <CustomAlert
-        isVisible={alertVisible}
-        onClose={() => setAlertVisible(false)}
-        title={alertTitle}
-        message={alertMessage}
+//🟢 Vistas 
+return (
+  <View style={[styles.padre, isSmallScreen && styles.padreSmall]}>
+    <Image source={bg} style={styles.bg} />
+    <View style={[styles.calendarioContainer, isSmallScreen && styles.calendarioContainerSmall]}>
+      <Calendar
+        onDayPress={seleccionarDia}
+        markedDates={{
+          ...markedDates,
+          [selectedDate]: {
+            selected: true,
+            marked: true,
+            selectedColor: '#DADADA',
+          },
+        }}
+        theme={{
+          todayTextColor: '#2A3D6C',
+          arrowColor: '#2A3D6C',
+          textDayFontSize: isSmallScreen ? 12 : 14,
+          textMonthFontSize: isSmallScreen ? 14 : 16,
+          textDayHeaderFontSize: isSmallScreen ? 10 : 12,
+        }}
+        style={[styles.calendario, isSmallScreen && styles.calendarioSmall]}
       />
     </View>
-  );
+
+    {selectedDate && (
+      <View style={[styles.eventosContainer, isSmallScreen && styles.eventosContainerSmall]}>
+        <Text style={styles.fechaSeleccionada}>
+          {(() => {
+          const [year, month, day] = selectedDate.split('-');
+          return new Intl.DateTimeFormat('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            timeZone: 'UTC'
+          }).format(new Date(`${year}-${month}-${day}T00:00:00Z`));
+          })()}
+        </Text>
+        
+        {eventosDia.length > 0 ? (
+          <ScrollView style={styles.eventosLista}>
+            {eventosDia.map((evento, index) => (
+            <View key={index} style={styles.eventoItem}>
+              <Text style={styles.eventoMateria}>{evento.detalle}</Text>
+              <Text style={styles.eventoMateria}>{evento.materia_detalle}</Text>
+              <Text style={styles.eventoDetalle}>Tema abarcados: {evento.tema_abarcado}</Text>
+              <Text style={styles.eventoDetalle}>{id_rol === 2 ? evento.curso_detalle : ""}</Text>
+            </View>
+          ))}
+          </ScrollView>
+        ) : (
+          <Text style={styles.sinEventos}>No hay evaluaciones programadas para este día</Text>
+        )}
+      </View>
+    )}
+
+    <CustomAlert
+      isVisible={alertVisible}
+      onClose={() => setAlertVisible(false)}
+      title={alertTitle}
+      message={alertMessage}
+    />
+  </View>
+);
 }
 
 const styles = StyleSheet.create({

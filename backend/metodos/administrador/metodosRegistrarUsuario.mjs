@@ -4,6 +4,11 @@ import { encriptarContrasena } from '../navegacion/metodosLogin.mjs';
 export const registrarUsuario = async (req, res) => {
     const { dni_usuario, contrasena, email, id_rol, id_estado_general } = req.body;
     try {
+        const existe = await pool.query('SELECT * FROM usuario WHERE dni_usuario = $1', [dni_usuario]);
+        if (existe.rows.length > 0) {
+            return res.status(400).json({ message: 'El DNI ya existe' });
+        }
+        
         if (!contrasena) {
             return res.status(400).json({ message: 'La contraseña es obligatoria' });
         }
@@ -40,15 +45,19 @@ export const consultarUsuario = async (req, res) => {
 
 export const modificarUsuario = async (req, res) => {
     const { dni_usuario } = req.params;
-    const campos = [
-        "dni_usuario", "id_rol", "id_estado_general", "email", "contrasena"
-    ];
+
+    // Solo intentar encriptar si se envió la contraseña
+    if (req.body.contrasena !== undefined) {
+        req.body.contrasena = await encriptarContrasena(req.body.contrasena);
+    }
+
+    const campos = ["dni_usuario", "id_rol", "id_estado_general", "email", "contrasena"];
     const valores = [];
     const sets = [];
 
-    campos.forEach((campo, idx) => {
+    campos.forEach((campo) => {
         if (req.body[campo] !== undefined) {
-            sets.push(`${campo} = $${sets.length + 1}`);
+            sets.push(`${campo} = $${valores.length + 1}`);
             valores.push(req.body[campo]);
         }
     });
@@ -58,7 +67,6 @@ export const modificarUsuario = async (req, res) => {
     }
 
     valores.push(dni_usuario);
-
     const query = `UPDATE usuario SET ${sets.join(', ')} WHERE dni_usuario = $${valores.length} RETURNING *`;
 
     try {
@@ -66,7 +74,6 @@ export const modificarUsuario = async (req, res) => {
         if (respuesta.rowCount === 0) {
             return res.status(404).json({ message: 'No se encontró el usuario' });
         }
-
         res.status(200).json({ message: 'Usuario modificado correctamente', data: respuesta.rows[0] });
     } catch (error) {
         console.error('Error al modificar el usuario:', error);

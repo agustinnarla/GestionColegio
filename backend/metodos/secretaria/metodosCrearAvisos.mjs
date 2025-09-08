@@ -37,24 +37,24 @@ export const registrarAviso = async (req, res) => {
 
     try {
         // Validar y formatear la fecha
-        // Validar formato YYYY-MM-DD con regex simple
-            if (!/^\d{4}-\d{2}-\d{2}(T|\s)?\d{0,2}:?\d{0,2}:?\d{0,2}(\.\d+)?(Z|([+-]\d{2}:?\d{2}))?$/.test(fecha_aviso)) {
+        // Validar formato AAAA/MM/DD con regex simple
+            if (!/^\d{4}\/\d{2}\/\d{2}(T|\s)?\d{0,2}:?\d{0,2}:?\d{0,2}(\.\d+)?(Z|([+-]\d{2}:?\d{2}))?$/.test(fecha_aviso)) {
             return res.status(400).json({ 
-                error: 'El formato de fecha es inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:MM:SSZ' 
+                error: 'El formato de fecha es inválido. Use AAAA/MM/DD o AAAA/MM/DDTHH:MM:SSZ' 
     });
 }
      // Si la fecha NO tiene hora, usa la hora actual en UTC
     let fechaValida = fecha_aviso;
-    // Si solo viene YYYY-MM-DD, agrega la hora actual en UTC
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha_aviso)) {
+    // Si solo viene YYYY/MM/DD, agrega la hora actual en UTC
+    if (/^\d{4}\/\d{2}\/\d{2}$/.test(fecha_aviso)) {
         const ahoraUTC = new Date().toISOString().slice(11, 19); // HH:MM:SS
         fechaValida = `${fecha_aviso}T${ahoraUTC}Z`;
     }
 
     // Validar formato final
-    if (!/^\d{4}-\d{2}-\d{2}(T|\s)?\d{2}:\d{2}:\d{2}(\.\d+)?(Z|([+-]\d{2}:?\d{2}))?$/.test(fechaValida)) {
+    if (!/^\d{4}\/\d{2}\/\d{2}(T|\s)?\d{2}:\d{2}:\d{2}(\.\d+)?(Z|([+-]\d{2}:?\d{2}))?$/.test(fechaValida)) {
         return res.status(400).json({ 
-            error: 'El formato de fecha es inválido. Use YYYY-MM-DDTHH:MM:SSZ' 
+            error: 'El formato de fecha es inválido. Use AAAA/MM/DDTHH:MM:SSZ' 
         });
     }
 
@@ -65,12 +65,12 @@ export const registrarAviso = async (req, res) => {
 
             // 1. Insertar el aviso principal
             const avisoResult = await client.query(
-                `INSERT INTO avisos 
-                 (informacion, id_motivo, fecha_aviso, general, id_estado_general, fecha_registro) 
-                 VALUES ($1, $2, $3, $4, $5, NOW()) 
-                 RETURNING id_aviso`,
-                [informacion, id_motivo, fecha_aviso, general, id_estado_general]
-            );
+    `INSERT INTO avisos 
+     (informacion, id_motivo, fecha_aviso, general, id_estado_general, fecha_registro) 
+     VALUES ($1, $2, $3, $4, $5, NOW()) 
+     RETURNING id_aviso`,
+    [informacion, id_motivo, fechaValida, general, id_estado_general] // <-- usá fechaValida
+);
 
             const idAviso = avisoResult.rows[0].id_aviso;
 

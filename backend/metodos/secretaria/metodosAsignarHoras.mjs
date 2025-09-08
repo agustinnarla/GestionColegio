@@ -16,22 +16,19 @@ export const asignacionDeHoras = async (req, res) => {
             // Verificar si el horario ya está ocupado
             const horariosOcupados = await verificarHorario(id_curso, dia_semana, hora_inicio, hora_final);
             if (horariosOcupados.length > 0) {
-                resultados.push({ 
-                    asignacion, 
-                    success: false, 
-                    message: 'El horario ya está ocupado para este curso.' 
+                console.log("Error horas ocupadas")
+                return res.status(400).json({ 
+                    error: 'El horario ya está ocupado para este curso.' 
                 });
-                continue;
             }
+
             const horasTotales = await obtenerhorasTotales(dni_profesional);
             console.log(horasTotales)
             if (horasTotales > 30) {
-                resultados.push({ 
-                    asignacion, 
-                    success: false, 
-                    message: 'El profesor ya tiene 30 horas asignadas.' 
+                console.log("Error horas totales")
+                return res.status(400).json({ 
+                    error: 'El profesor ya tiene 30 horas asignadas.' 
                 });
-                continue;
             }
 
             // Insertar el nuevo horario
@@ -68,6 +65,8 @@ export const verificarHorario = async (id_curso, dia_semana, hora_inicio, hora_f
     return resultado.rows;
 };
 
+
+
 export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional) => {
 
     const query = `
@@ -81,18 +80,29 @@ export const insertarHorario = async (id_materia, id_curso, dia_semana, hora_ini
 };
 
 // Función para deshabilitar horarios
-export const deshabilitarHorario = async (id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional) => {
+export const deshabilitarHorario = async (req, res) => {
+    const { id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional } = req.body;
 
-    const query = `
-        UPDATE horario 
-        SET id_estado_general = 2 
-        WHERE id_materia = $1 AND id_curso = $2 AND dia_semana = $3
-        AND hora_inicio = $4 AND hora_final = $5 AND dni_profesional = $6
-        RETURNING *
-    `;
-    const valores = [id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional];
-    await pool.query(query, valores);
+    try {
+        const query = `
+            UPDATE horario 
+            SET id_estado_general = 2 
+            WHERE id_materia = $1 AND id_curso = $2 AND dia_semana = $3
+            AND hora_inicio = $4 AND hora_final = $5 AND dni_profesional = $6
+            RETURNING *
+        `;
+        const valores = [id_materia, id_curso, dia_semana, hora_inicio, hora_final, dni_profesional];
+        const resultado = await pool.query(query, valores);
 
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({ message: 'Horario no encontrado' });
+        }
+
+        res.json({ message: 'Horario deshabilitado exitosamente', horario: resultado.rows[0] });
+    } catch (error) {
+        console.error('Error al deshabilitar horario:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
 };
 
 // Función para habilitar horarios

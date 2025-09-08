@@ -8,7 +8,7 @@ import Login from './frontend/pantallas/Login.js';
 import { BottomTab } from './frontend/componente/TabNavigation';
 
 //Preceptores
-import GestionarAsistencia from './frontend/pantallas/preceptores/gestionarAsistencia';
+import RegistrarAsistenciaAlumno from './frontend/pantallas/preceptores/registrarAsistenciaAlumno.js';
 import GestionarAmonestaciones from './frontend/pantallas/preceptores/gestionarAmonestaciones';
 import JustificarFaltaAlumnos from './frontend/pantallas/preceptores/justificarFaltaAlumnos.js';
 import GestionarObservaciones from './frontend/pantallas/preceptores/gestionarObservaciones'
@@ -16,7 +16,7 @@ import ConsultarLibro from './frontend/pantallas/preceptores/consultarLibroAula'
 import ModificarAsistencia from './frontend/pantallas/preceptores/modificarAsistencia';
 
 //Profesores
-import LibroAula from './frontend/pantallas/profesor/libroDeAula';
+import RegistrarLibroDeAula from './frontend/pantallas/profesor/registrarLibroDeAula.js';
 import AsignarEvaluaciones from './frontend/pantallas/profesor/asignarEvaluaciones';
 import CargarNotasFinal from './frontend/pantallas/profesor/cargarNotaFinal';
 
@@ -27,20 +27,20 @@ import Avisos from './frontend/pantallas/alumno/avisos';
 //Secretario
 import AsignacionHoras from './frontend/pantallas/secretaria/asignacionDeHoras';
 import PasajeDeCurso from './frontend/pantallas/secretaria/pasarDeCurso';
-import AsistenciaP_P from './frontend/pantallas/secretaria/asistenciaP-P';
-import CargarNotas from './frontend/pantallas/secretaria/cargarNotas';
+import RegistrarAsistenciaProfesional from './frontend/pantallas/secretaria/registrarAsistenciaProfesional.js';
+import RegistrarNotas from './frontend/pantallas/secretaria/registrarNotas.js';
 import GestionarAlumno from './frontend/pantallas/secretaria/gestionarAlumno';
 import GestionarP_P from './frontend/pantallas/secretaria/gestionarP-P';
-import JustificarFaltaP_P from './frontend/pantallas/secretaria/justificarFaltaP_P';
+import JustificarFaltaProfesionales from './frontend/pantallas/secretaria/justificarFaltaP_P';
 import LibroMatriz from './frontend/pantallas/secretaria/libroMatriz'
 import CrearAvisos from './frontend/pantallas/secretaria/crearAvisos';
 
 //Admin
-import CargarTareas from './frontend/pantallas/admin/cargarTareas';
+import GestionarTareas from './frontend/pantallas/admin/gestionarTareas';
 import GestionarMaterias from './frontend/pantallas/admin/gestionarMaterias';
 import RegistrarCurso from './frontend/pantallas/admin/registrarCurso';
 import RegistrarUsuario from './frontend/pantallas/admin/registrarUsuario';
-import RegistrarRol from './frontend/pantallas/admin/registrarRol';
+import GestionarRol from './frontend/pantallas/admin/gestionarRol.js';
 
 const Stack = createStackNavigator();
 
@@ -92,10 +92,10 @@ function MyStack() {
           />
           {/* Preceptor */}
           <Stack.Screen
-          name="Gestionar Asistencia"
-          component={GestionarAsistencia}
+          name="Registrar Asistencia Alumno"
+          component={RegistrarAsistenciaAlumno}
           options={{
-            title: "Gestionar Asistencia",
+            title: "Registrar Asistencia Alumno",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -195,10 +195,10 @@ function MyStack() {
         />
         {/* Profes */}
         <Stack.Screen
-          name="Libro De Aula"
-          component={LibroAula}
-          options={{
-            title: "Libro de Aula",
+          name="Registrar Libro De Aula"
+          component={RegistrarLibroDeAula}
+          options={{  
+            title: "Registrar Libro de Aula",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -333,10 +333,10 @@ function MyStack() {
           }}
         />
         <Stack.Screen
-          name="Asistencia Profesor/Preceptor"
-          component={AsistenciaP_P}
+          name="Registrar Asistencia Profesional"
+          component={RegistrarAsistenciaProfesional}
           options={{
-            title: "Asistencia Profesor/Preceptor",
+            title: "Registrar Asistencia Profesional",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -350,10 +350,10 @@ function MyStack() {
           }}
         />
         <Stack.Screen
-          name="Cargar Notas"
-          component={CargarNotas}
+          name="Registrar Notas"
+          component={RegistrarNotas}
           options={{
-            title: "Cargar Notas",
+            title: "Registrar Notas",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -384,10 +384,10 @@ function MyStack() {
           }}
         />
         <Stack.Screen
-          name="Gestionar Profesor/Preceptor"
+          name="Gestionar Profesional"
           component={GestionarP_P}
           options={{
-            title: "Gestionar Profesor/Preceptor",
+            title: "Gestionar Profesional",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -401,10 +401,10 @@ function MyStack() {
           }}
         />
         <Stack.Screen
-          name="Justificar Falta Profesor/Preceptor"
-          component={JustificarFaltaP_P}
+          name="Justificar Falta Profesionales"
+          component={JustificarFaltaProfesionales}
           options={{
-            title: "Justificar Falta Profesor/Preceptor",
+            title: "Justificar Falta Profesionales",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -436,10 +436,10 @@ function MyStack() {
         />
         {/* Admin */}
         <Stack.Screen
-          name="Cargar Tareas"
-          component={CargarTareas}
+          name="Gestionar Tareas"
+          component={GestionarTareas}
           options={{
-            title: "Cargar Tareas",
+            title: "Gestionar Tareas",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (
@@ -504,10 +504,10 @@ function MyStack() {
           }}
         />
         <Stack.Screen
-          name="Registrar Rol"
-          component={RegistrarRol}
+          name="Gestionar Rol"
+          component={GestionarRol}
           options={{
-            title: "Registrar Rol",
+            title: "Gestionar Rol",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerBackground: () => (

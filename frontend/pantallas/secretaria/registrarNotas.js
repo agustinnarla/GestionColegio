@@ -16,7 +16,7 @@ const { width } = Dimensions.get('window');
 const isDesktop = width >= 768;
 const isWeb = Platform.OS === 'web';
 
-export default function CargarNotas() {
+export default function RegistrarNotas() {
     
   useEffect(() => {
           if (isWeb) {
@@ -52,8 +52,6 @@ export default function CargarNotas() {
     const habilitarBotones = () => validarCampos('id_curso','id_materia');
  
  
-
-    
 
     const validarLista = () => {
       return(

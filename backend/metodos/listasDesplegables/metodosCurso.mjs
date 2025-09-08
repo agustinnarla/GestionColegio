@@ -3,7 +3,7 @@ import {pool} from '../../dataBase/coneccion.mjs'
 
 export const obtenerCurso = async (req,res) => {
     try{
-        const respuesta = await pool.query("SELECT id_curso,detalle FROM curso")
+        const respuesta = await pool.query("SELECT id_curso,detalle FROM curso ORDER BY id_curso ASC")
         res.json({curso: respuesta.rows})
     }
     catch{
@@ -17,7 +17,7 @@ export const obtenerCursoFiltrado = async (req, res) => {
     const { id_curso } = req.params; // Cambiar de req.body a req.params
     try {
         const respuesta = await pool.query(
-            "SELECT id_curso, detalle FROM curso WHERE id_curso = $1",
+            "SELECT id_curso, detalle FROM curso WHERE id_curso = $1 ORDER BY id_curso ASC",
             [id_curso]
         );
         if (respuesta.rows.length > 0) {
@@ -46,7 +46,8 @@ export const obtenerCursoConAlumnos = async (req, res) => {
             GROUP BY 
             c.id_curso, c.detalle
             HAVING 
-            COUNT(ac.dni_alumno) <= 25;`)
+            COUNT(ac.dni_alumno) <= 25 
+            ORDER BY c.id_curso ASC;`)
             res.status(200).json({curso_cantidad: respuesta.rows})
     }catch(error){
         console.log(error)

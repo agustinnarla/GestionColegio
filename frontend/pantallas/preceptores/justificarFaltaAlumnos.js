@@ -5,6 +5,7 @@ import { CertificadoSelector, EstadoFaltaAlumnosSelector } from '../../component
 import { obtenerCertificado, obtenerEstadoFalta } from '../../scripts/listasDesplegables/listaDesplegable';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
+import CustomAlert from '../../componente/CustomAlerts';
 
 //🟢 Formateo de fecha 
 const formatearFecha = (fechaISO) => {
@@ -13,7 +14,7 @@ const formatearFecha = (fechaISO) => {
     const dia = fecha.getDate().toString().padStart(2, '0');
     const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const año = fecha.getFullYear();
-    return `${dia}/${mes}/${año}`;
+    return `${año}/${mes}/${dia}`;
 };
 
 export default function JustificarFaltaAlumnos() {
@@ -46,14 +47,14 @@ export default function JustificarFaltaAlumnos() {
 
     // Validar y convertir fechas
     const validarYConvertirFechas = (fechaDesde, fechaHasta) => {
-        // Validar formato DD/MM/AAAA
-        const formatoValido = /^\d{2}\/\d{2}\/\d{4}$/;
+        // Validar formato AAAA/MM/DD
+        const formatoValido = /^\d{4}\/\d{2}\/\d{2}$/;
         if (!formatoValido.test(fechaDesde) || !formatoValido.test(fechaHasta)) {
-            return { valido: false, mensaje: "Las fechas deben estar en formato DD/MM/AAAA." };
+            return { valido: false, mensaje: "Las fechas deben estar en formato AAAA/MM/DD." };
         }
         // Validar existencia real de la fecha
         const esFechaValida = (fecha) => {
-            const [dia, mes, año] = fecha.split('/').map(Number);
+            const [año, mes, dia] = fecha.split('/').map(Number);
             const date = new Date(año, mes - 1, dia);
             return (
                 date.getFullYear() === año &&
@@ -65,7 +66,7 @@ export default function JustificarFaltaAlumnos() {
             return { valido: false, mensaje: "Alguna de las fechas ingresadas no existe." };
         }
         const convertirFormatoFecha = (fecha) => {
-            const [dia, mes, año] = fecha.split('/');
+            const [año, mes, dia] = fecha.split('/');
             return `${año}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
         };
         const fechaDesdeConvertida = convertirFormatoFecha(fechaDesde);
@@ -86,12 +87,12 @@ export default function JustificarFaltaAlumnos() {
     const handleConsultar = async () => {
         const resultado = validarYConvertirFechas(fechaDesde, fechaHasta);
         if (!resultado.valido) {
-            setMensajeError(resultado.mensaje); // Mensaje en pantalla
+            
             if (Platform.OS === 'web') 
             {
-                window.alert("Fechas incorrectas: " + resultado.mensaje);
+                mostrarMensaje("Fechas invalida","La fecha desde debe ser menor a la fecha hasta");  
             } else {
-                Alert.alert("Fechas incorrectas", resultado.mensaje);
+               mostrarMensaje("Fechas invalida","La fecha desde debe ser menor a la fecha hasta");  
             }
             return;
         }
@@ -159,12 +160,24 @@ export default function JustificarFaltaAlumnos() {
         }
     };
 
+    //🟢 Estado y Mensajes 
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    //🟢 Mensaje 
+    const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+    };
+
     const validarCampos = () => {
-        return(
-            fechaDesde >= 10 &&
-            fechaHasta >= 10
-        )
-    }
+    return (
+        fechaDesde.length === 10 &&
+        fechaHasta.length === 10
+    );
+};
 
     return (
         <View style={styles.padre}>
@@ -174,7 +187,7 @@ export default function JustificarFaltaAlumnos() {
                         <View style={styles.filaInputs}>
                             <Text style={styles.label}>Fecha desde:</Text>
                             <TextInput
-                                placeholder="DD/MM/AAAA"
+                                placeholder="AAAA/MM/DD"
                                 style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
                                 value={fechaDesde}
                                 onChangeText={setFechaDesde}
@@ -183,7 +196,7 @@ export default function JustificarFaltaAlumnos() {
                         <View style={styles.filaInputs}>
                             <Text style={styles.label}>Fecha hasta:</Text>
                             <TextInput
-                                placeholder="DD/MM/AAAA"
+                                placeholder="AAAA/MM/DD"
                                 style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
                                 value={fechaHasta}
                                 onChangeText={setFechaHasta}
@@ -243,7 +256,7 @@ export default function JustificarFaltaAlumnos() {
                                                         : undefined
                                                 }
                                                 onValueChange={(itemValue) => {
-                                                    actualizarSeleccionadoAlumno(
+                                                    actualizarAlumnoSeleccionado(
                                                         "certificado",
                                                         itemValue,
                                                         alumno.dni_alumno,
@@ -276,6 +289,12 @@ export default function JustificarFaltaAlumnos() {
                     </ScrollView>
                 </View>
             </ImageBackground>
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => setAlertVisible(false)}
+                title={alertTitle}
+                message={alertMessage}
+            />
         </View>
     );
 }

@@ -136,6 +136,13 @@ export const registrarAlumno = async (req, res) => {
             [nuevoDni, id_curso]
         );
 
+        const contrasenaHaseada = await encriptarContrasena(dni_alumno.toString());
+
+        await pool.query(
+            'INSERT INTO usuario (dni_usuario, contrasena, email, id_rol, id_estado_general) VALUES ($1, $2, $3, $4, $5)',
+            [dni_alumno, contrasenaHaseada, email_personal, 4, id_estado_general]
+        );
+
     
 
         res.status(210).json(respuesta.rows[0]);
@@ -202,7 +209,7 @@ export const modificarAlumno = async (req, res) => {
             id_localidad, id_estado_general, telefono_personal, telefono_madre, telefono_padre, email_personal, email_familiar, id_curso, edificio } = req.body; 
         const valores = [];
         const columnas = [];
-        // Crear un objeto con los campos que se pueden actualizar
+        
         const camposActualizables = {
             nombre,
             apellido,
@@ -269,35 +276,50 @@ export const modificarAlumno = async (req, res) => {
 
 export const modificarAdjuntoLegajo = async (req, res) => {
     try {
-        const { dni_alumno, fecha_subida } = req.body;
-
-        // Verificar si los archivos están presentes
-        const dni_foto = req.files.dni_foto ? req.files.dni_foto[0].buffer : null;
-        const ficha_medica = req.files.ficha_medica ? req.files.ficha_medica[0].buffer : null;
-        const partida_nacimiento = req.files.partida_nacimiento ? req.files.partida_nacimiento[0].buffer : null;
-
-        if (!dni_alumno || !fecha_subida) {
-            return res.status(400).json({ error: 'Faltan datos obligatorios (dni_alumno, fecha_subida).' });
-        }
-
-        // Realizar la consulta para insertar los datos
-        const respuesta = await pool.query(
-            `UPDATE alumno_legajo
-            SET dni_foto = $1, ficha_medica = $2, partida_nacimiento = $3, fecha_subida = $4
-            WHERE dni_alumno = $5
-            RETURNING *`,
-            [dni_foto, ficha_medica, partida_nacimiento, fecha_subida, dni_alumno]
-        );
-        
-
-        // Responder con los datos del nuevo registro
-        res.status(201).json(respuesta.rows[0]);
-        console.log('Legajo cambiado correctamente:', respuesta.rows[0]);
+      const { dni_alumno, fecha_subida } = req.body;
+  
+      if (!dni_alumno || !fecha_subida) {
+        return res.status(400).json({ error: 'Faltan datos obligatorios (dni_alumno, fecha_subida).' });
+      }
+  
+      // Obtener los archivos solo si vienen
+      const dni_foto = req.files?.dni_foto?.[0]?.buffer;
+      const ficha_medica = req.files?.ficha_medica?.[0]?.buffer;
+      const partida_nacimiento = req.files?.partida_nacimiento?.[0]?.buffer;
+  
+      // Primero obtener los valores actuales de la DB
+      const legajoExistente = await pool.query(
+        'SELECT dni_foto, ficha_medica, partida_nacimiento FROM alumno_legajo WHERE dni_alumno = $1',
+        [dni_alumno]
+      );
+  
+      if (legajoExistente.rowCount === 0) {
+        return res.status(404).json({ error: 'Legajo no encontrado' });
+      }
+  
+      const legajo = legajoExistente.rows[0];
+  
+      // Si no se envía un archivo nuevo, mantener el existente
+      const dniFotoFinal = dni_foto || legajo.dni_foto;
+      const fichaMedicaFinal = ficha_medica || legajo.ficha_medica;
+      const partidaNacimientoFinal = partida_nacimiento || legajo.partida_nacimiento;
+  
+      const respuesta = await pool.query(
+        `UPDATE alumno_legajo
+         SET dni_foto = $1, ficha_medica = $2, partida_nacimiento = $3, fecha_subida = $4
+         WHERE dni_alumno = $5
+         RETURNING *`,
+        [dniFotoFinal, fichaMedicaFinal, partidaNacimientoFinal, fecha_subida, dni_alumno]
+      );
+  
+      res.status(200).json(respuesta.rows[0]);
+      console.log('Legajo actualizado correctamente:', respuesta.rows[0]);
+  
     } catch (err) {
-        console.error('Error al registrar legajo:', err.message);
-        res.status(500).json({ error: 'Error al agregar el legajo del alumno.' });
+      console.error('Error al actualizar legajo:', err.message);
+      res.status(500).json({ error: 'Error al actualizar el legajo del alumno.' });
     }
-};
+  };
 
 export const obtenerAlumnoNombreApellido = async (req,res) => {
     try{

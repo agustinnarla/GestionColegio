@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert, Platform, Dimensions  } from 'react-native';
 import { obtenerProfesionalesAsistencia} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { registrarEntradaProfesores, registrarSalidaProfesores } from '../../scripts/secretaria/scriptAsistenciaProfesor.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ImageBackground } from 'react-native-web';
 import bg from '../../assets/bg1.jpg';
 import CustomAlert from '../../componente/CustomAlerts.js';
@@ -11,13 +12,14 @@ const isDesktop = width >= 768;
 const isWeb = Platform.OS === 'web';
 
 
-export default function RegistroAsistencia() {
+export default function RegistrarAsistenciaProfesional() {
   const [profesores, setProfesores] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [seleccionados, setSeleccionados] = useState([]);
   const [entrada, setEntrada] = useState(false);
 
 
+  
    useEffect(() => {
         if (isWeb) {
         document.body.style.overflow = 'auto'; // Activar scroll en web
@@ -25,6 +27,8 @@ export default function RegistroAsistencia() {
         document.body.style.overflow = 'hidden'; // Desactivarlo en otras plataformas
       }
       }, []);
+
+    
 
   const [formData, setFormData] = useState({
   hora_entrada: '',
@@ -54,19 +58,29 @@ export default function RegistroAsistencia() {
     }
   });
 };
-  // Cargar los profesores al montar el componente
-  useEffect(() => {
-    const cargarProfesionales = async () => {
-      try {
-        const data = await obtenerProfesionalesAsistencia();
-        setProfesores(data.profesor); 
-      } catch (error) {
-        console.log('Error al cargar los profesores:', error);
-        Alert.alert('Error', 'No se pudieron cargar los profesores');
-      }
-    };
-    cargarProfesionales();
-  }, []);
+  // Cargar los profesores 
+ useEffect(() => {
+  const cargarProfesionales = async () => {
+    try {
+      const data = await obtenerProfesionalesAsistencia();
+      let listaProfesores = data.profesor || [];
+
+      // Recuperar entradas guardadas
+      const entradasGuardadas = JSON.parse(await AsyncStorage.getItem('entradas')) || [];
+      listaProfesores = listaProfesores.map((prof) => ({
+        ...prof,
+        tieneEntrada: entradasGuardadas.includes(prof.dni_profesional),
+      }));
+
+      setProfesores(listaProfesores);
+    } catch (error) {
+      console.log('Error al cargar los profesores:', error);
+      Alert.alert('Error', 'No se pudieron cargar los profesores');
+    }
+  };
+
+  cargarProfesionales();
+}, []);
 
 
   // Manejar cambios en los campos del formulario
@@ -75,7 +89,7 @@ export default function RegistroAsistencia() {
     setFormData({ ...formData, [name]: value });
 };
 
- const handleRegistrar = async () => {
+const handleRegistrar = async () => {
   try {
     if (seleccionados.length === 0) {
       mostrarMensaje('Aviso', 'No seleccionaste ningún profesional');
@@ -94,34 +108,27 @@ export default function RegistroAsistencia() {
       ? await registrarEntradaProfesores(data)
       : await registrarSalidaProfesores(data);
 
-    mostrarMensaje('Exito', `Se registró la ${entrada ? 'entrada' : 'salida'} de los profesionales`);
-
-    // Si es salida, recargar la lista completa desde el backend
-    if (!entrada) {
-      try {
-        const data = await obtenerProfesionalesAsistencia();
-        setProfesores(data.profesor);
-      } catch (error) {
-        console.log('Error al recargar los profesores:', error);
-      }
-    } else {
-      // Si es entrada, actualizar el estado local
+    // Actualizar estado local y AsyncStorage si es entrada
+    if (entrada) {
       setProfesores((prev) =>
         prev.map((prof) =>
           seleccionados.includes(prof.dni_profesional)
-            ? {
-                ...prof,
-                tieneEntrada: true,
-                tieneSalida: prof.tieneSalida,
-              }
+            ? { ...prof, tieneEntrada: true }
             : prof
         )
       );
+
+      // Guardar en AsyncStorage
+      const guardadasRaw = await AsyncStorage.getItem('entradas');
+      const guardadas = guardadasRaw ? JSON.parse(guardadasRaw) : [];
+      const nuevas = Array.from(new Set([...guardadas, ...seleccionados]));
+      await AsyncStorage.setItem('entradas', JSON.stringify(nuevas));
     }
 
+    mostrarMensaje('Exito', `Se registró la ${entrada ? 'entrada' : 'salida'} de los profesionales`);
     setSeleccionados([]);
     setFormData({ hora_entrada: '', hora_salida: '' });
-    
+
   } catch (error) {
     console.error(error);
     mostrarMensaje('Error', 'Error al registrar asistencia');
@@ -129,7 +136,7 @@ export default function RegistroAsistencia() {
 };
 
 
-  // Filtrar los profesores según la búsqueda
+ 
 
 
 return (

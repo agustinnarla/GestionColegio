@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal, ActivityIndicator, Dimensions } from 'react-native';
 import React, { useState, useEffect, useMemo } from "react";
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
@@ -6,6 +6,8 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx'
 import useAmonestacion from '../../hooks/useAmonestacion.js';
 import { ImageBackground } from 'react-native-web';
+
+const { width } = Dimensions.get('window');
 
 export default function GestionarAmonestaciones() {
     
@@ -17,6 +19,16 @@ export default function GestionarAmonestaciones() {
         handleRegistrar, limpiarInterfaz, handleImprimir, handleChange, enviando, setEnviando
     } = useAmonestacion();
     
+    const [fechaValida, setFechaValida] = useState(true);
+    const [fechaTexto, setFechaTexto] = useState(formData.fecha || '');
+
+    const validarFecha = (text) => {
+        setFechaTexto(text);
+        const regex = /^\d{4}\/\d{2}\/\d{2}$/;
+        setFechaValida(regex.test(text));
+        handleChange('fecha', text);
+    };
+
     const Content = (
         
         <View style={styles.contenido}>
@@ -32,11 +44,16 @@ export default function GestionarAmonestaciones() {
             <Text style={styles.label}>Fecha:</Text>
             <TextInput 
                 style={styles.input} 
-                placeholder="DD/MM/AAAA" 
+                placeholder="AAAA/MM/DD" 
                 keyboardType="number-pad" 
-                value={formData.fecha}  
-                onChangeText={(value) => handleChange('fecha', value)}
+                value={fechaTexto}
+                onChangeText={validarFecha}
             />
+            {!fechaValida && fechaTexto !== '' && (
+                <Text style={{ color: 'red', marginBottom: 8 }}>
+                    Formato inválido. Use AAAA/MM/DD (ej: 2024/12/25)
+                </Text>
+            )}
 
             <Text style={styles.label}>Cantidad:</Text>
             <TextInput 
@@ -58,7 +75,7 @@ export default function GestionarAmonestaciones() {
             />
 
             <View style={styles.botonesContainer}>
-                <TouchableOpacity style={[styles.botonRegistrar, !validarFomulario && styles.botonDeshabilitado]} onPress={handleRegistrar}>
+                <TouchableOpacity style={[styles.botonRegistrar, !validarFomulario && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarFomulario}>
                     <Text style={styles.textoBoton}>Registrar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.botonCancelar} onPress={limpiarInterfaz}>
@@ -121,10 +138,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     contenido: {
-        width: '90%',
-        maxWidth: 650,
+        width: width > 700 ? 650 : '96%',
         backgroundColor: '#fff',
-        padding: 26,
+        padding: width > 700 ? 26 : 12,
         borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -137,7 +153,7 @@ const styles = StyleSheet.create({
         marginBottom: 26,
     },
     label: {
-        fontSize: 16,
+        fontSize: width > 400 ? 16 : 14,
         fontWeight: 'bold',
         marginBottom: 6,
         color: '#2a3d6c',
@@ -145,17 +161,17 @@ const styles = StyleSheet.create({
     },
     input: {
         width: '100%',
-        padding: 12,
+        padding: width > 400 ? 12 : 8,
         borderWidth: 1.5,
         borderColor: '#b6c6e0',
         borderRadius: 8,
         marginBottom: 18,
         backgroundColor: '#f9f9f9',
-        fontSize: 16,
+        fontSize: width > 400 ? 16 : 14,
         color: '#2a3d6c',
     },
     botonesContainer: {
-        flexDirection: 'row',
+        flexDirection: width > 500 ? 'row' : 'column',
         justifyContent: 'center',
         gap: 18,
         marginTop: 18,
@@ -166,37 +182,39 @@ const styles = StyleSheet.create({
         backgroundColor: '#e8f5e9',
         borderColor: '#4caf50',
         borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingVertical: width > 400 ? 12 : 8,
+        paddingHorizontal: width > 400 ? 24 : 12,
         borderRadius: 8,
         elevation: 2,
         shadowColor: '#CED9EF',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.10,
         shadowRadius: 4,
-        minWidth: 120,
+        minWidth: width > 400 ? 120 : 80,
         alignItems: 'center',
-        marginRight: 8,
+        marginRight: width > 500 ? 8 : 0,
+        marginBottom: width > 500 ? 0 : 10,
     },
     botonCancelar: {
         backgroundColor: '#ffebee',
         borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingVertical: width > 400 ? 12 : 8,
+        paddingHorizontal: width > 400 ? 24 : 12,
         borderRadius: 8,
         elevation: 2,
         shadowColor: '#f44336',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.10,
         shadowRadius: 4,
-        minWidth: 120,
+        minWidth: width > 400 ? 120 : 80,
         alignItems: 'center',
-        marginLeft: 8,
+        marginLeft: width > 500 ? 8 : 0,
+        marginBottom: width > 500 ? 0 : 10,
     },
     textoBoton: {
         color: '#2a3d6c',
-        fontSize: 16,
+        fontSize: width > 400 ? 16 : 14,
         fontWeight: 'bold',
         textAlign: 'center',
         letterSpacing: 0.5,
@@ -221,7 +239,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titulo: {
-        fontSize: 20,
+        fontSize: width > 400 ? 20 : 16,
         fontWeight: 'bold',
         marginBottom: 20,
         color: '#2a3d6c',
@@ -238,8 +256,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#e0e7ff',
         borderColor: '#746BC8',
         borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingVertical: width > 400 ? 12 : 8,
+        paddingHorizontal: width > 400 ? 24 : 12,
         borderRadius: 8,
         flex: 1,
         alignItems: 'center',
@@ -249,8 +267,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffebee',
         borderColor: '#f44336',
         borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingVertical: width > 400 ? 12 : 8,
+        paddingHorizontal: width > 400 ? 24 : 12,
         borderRadius: 8,
         flex: 1,
         alignItems: 'center',
@@ -258,7 +276,7 @@ const styles = StyleSheet.create({
     },
     textoBotonModal: {
         color: '#2a3d6c',
-        fontSize: 16,
+        fontSize: width > 400 ? 16 : 14,
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -269,7 +287,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 10,
-        fontSize: 16,
+        fontSize: width > 400 ? 16 : 14,
         color: '#333',
     },
 });

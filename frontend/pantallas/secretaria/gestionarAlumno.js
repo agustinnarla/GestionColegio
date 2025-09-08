@@ -1,5 +1,5 @@
-import React, { useState,useEffect } from 'react';
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox,Alert,Linking, } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, CheckBox, ImageBackground, Alert, Pressable, Linking } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { obtenerLocalidad, obtenerCursoConAlumnos, obtenerSexo, obtenerEstadoGeneral } from '../../scripts/listasDesplegables/listaDesplegable.js'
 import { agregarAlumno ,obtenerAlumnoFiltrado,deshabilitarAlumno,modificarAlumno,agregarLegajo, modificarLegajo, obtenerDniPdf, obtenerFichaMedicaPdf, obtenerPartidaNacimientoPdf } from '../../scripts/secretaria/scriptGestionAlumno.js';
@@ -7,7 +7,7 @@ import CustomAlert from '../../componente/CustomAlerts.js';
 import * as DocumentPicker from 'expo-document-picker';
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
-import { ImageBackground } from 'react-native-web';
+
 
 export default function GestionarAlumno() {
 
@@ -37,6 +37,7 @@ export default function GestionarAlumno() {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [cuilEditable, setCuilEditable] = useState(false);
 
     const mostrarMensaje = (titulo, mensaje) => {
         setAlertTitle(titulo);
@@ -101,19 +102,24 @@ export default function GestionarAlumno() {
 
 
     const handleChange = (name, value) => {
-            let updatedForm = { ...formData, [name]: value };
-
-            // Calcular CUIT automáticamente si están presentes DNI y sexo
-            if (
+        let updatedForm = { ...formData, [name]: value };
+    
+        // Solo auto-calcular CUIL si no está en modo edición manual
+        if (
             (name === 'dni_alumno' || name === 'id_sexo') &&
             updatedForm.dni_alumno &&
-            updatedForm.id_sexo
-            ) {
+            updatedForm.id_sexo &&
+            !cuilEditable
+        ) {
             const cuilCalculado = calcularCuil(updatedForm.dni_alumno, updatedForm.id_sexo);
             updatedForm.cuil = cuilCalculado;
-            }
+        }
+    
+        setFormData(updatedForm);
+    };
 
-    setFormData(updatedForm);
+    const handleDobleClickCuil = () => {
+        setCuilEditable(true);
     };
 
 
@@ -124,6 +130,7 @@ export default function GestionarAlumno() {
             const legajoFichaMedica = await obtenerFichaMedicaPdf(formData.dni_alumno) || null
             const legajoPartidaNacimiento = await obtenerPartidaNacimientoPdf(formData.dni_alumno) || null
             console.log('Alumno consultado:', alumno);
+            console.log('Legajos obtenidos:', { legajoDNI, legajoFichaMedica, legajoPartidaNacimiento });
             
             if (alumno) {
                 setFormData({
@@ -148,11 +155,24 @@ export default function GestionarAlumno() {
                     piso: alumno.piso || '',
                     edificio: alumno.edificio ?? false,
                 });
-                setDocumentos({
-                    dni_foto: legajoDNI,
-                    ficha_medica: legajoFichaMedica,
-                    partida_nacimiento: legajoPartidaNacimiento,
-                });
+
+                // Convertir blobs a URLs para mostrar en la interfaz
+                const documentosUrls = {};
+                
+                if (legajoDNI && legajoDNI instanceof Blob && legajoDNI.size > 0) {
+                    documentosUrls.dni_foto = URL.createObjectURL(legajoDNI);
+                }
+                
+                if (legajoFichaMedica && legajoFichaMedica instanceof Blob && legajoFichaMedica.size > 0) {
+                    documentosUrls.ficha_medica = URL.createObjectURL(legajoFichaMedica);
+                }
+                
+                if (legajoPartidaNacimiento && legajoPartidaNacimiento instanceof Blob && legajoPartidaNacimiento.size > 0) {
+                    documentosUrls.partida_nacimiento = URL.createObjectURL(legajoPartidaNacimiento);
+                }
+
+                setDocumentos(documentosUrls);
+                console.log('Documentos URLs creadas:', documentosUrls);
             } else {
                 mostrarMensaje('Advertencia','Alumno no encontrado o DNI erróneo')
             }
@@ -162,7 +182,7 @@ export default function GestionarAlumno() {
         }
     }
 
-    //Modificar
+    
     const handleAgregar = async () => {
 
     
@@ -279,83 +299,62 @@ export default function GestionarAlumno() {
     };
 
     const handleModificar = async () => {
-        try {
-
-            console.log('DNI a modificar:', formData.dni_alumno);
-
-            if (!formData.dni_alumno) {
-                
-                mostrarMensaje('Error', 'Por favor, consulta primero al alumno.');
-                return;
-            }
-            
-            
-            
-            // Validar la fecha de nacimiento directamente desde formData
-            const fechaNacimiento = formData.fecha_nacimiento;
-            if (!validarFechaNacimiento(new Date(fechaNacimiento))) {
-                // Si la fecha no es válida, detener el flujo y mostrar un mensaje de error
-                Alert.alert('Error', 'La fecha de nacimiento no es válida.');
-                return;
-            }
-
-            // Formatear la fecha de nacimiento correctamente (YYYY-MM-DD)
-            const fechaNacimientoFormateada = new Date(fechaNacimiento).toISOString().split('T')[0];
-            console.log('Fecha de Nacimiento a modificar:', fechaNacimientoFormateada);
-
-            // Asignar la fecha formateada directamente a formData
-            formData.fecha_nacimiento = fechaNacimientoFormateada;
-
-            //agrego roma
-            const formDataLegajo = new FormData();
-            formDataLegajo.append('dni_alumno', formData.dni_alumno);
-            formDataLegajo.append('fecha_subida', new Date().toISOString());
-
-
-
-                // Verificar si el DNI es nuevo o tiene un valor tipo "data:"
-                if (documentos.dni_foto && typeof documentos.dni_foto === 'string' && documentos.dni_foto.startsWith("data:")) {
-                    const response = await fetch(documentos.dni_foto);
-                    const blob = await response.blob();
-                    formDataLegajo.append('dni_foto', blob, 'dni.jpg');
-                    console.log('Nuevo DNI cargado:', documentos.dni_foto);
-                }
-                else {
-                    formDataLegajo.append('dni_foto', documentos.dni_foto, 'dni.jpg')
-                }
-    
-                // Verificar si la Ficha Médica es nueva o tiene un valor tipo "data:"
-                if (documentos.ficha_medica && typeof documentos.ficha_medica === 'string' && documentos.ficha_medica.startsWith("data:")) {
-                    const response = await fetch(documentos.ficha_medica);
-                    const blob = await response.blob();
-                    formDataLegajo.append('ficha_medica', blob, 'ficha_medica.jpg');
-                    console.log('Nueva Ficha Médica cargada:', documentos.ficha_medica);
-                }
-                else {
-                    formDataLegajo.append('ficha_medica', documentos.ficha_medica, 'ficha_medica.jpg')
-                }
-    
-                // Verificar si la Partida de Nacimiento es nueva o tiene un valor tipo "data:"
-                if (documentos.partida_nacimiento && typeof documentos.partida_nacimiento === 'string' && documentos.partida_nacimiento.startsWith("data:")) {
-                    const response = await fetch(documentos.partida_nacimiento);
-                    const blob = await response.blob();
-                    formDataLegajo.append('partida_nacimiento', blob, 'partida_nacimiento.jpg');
-                }
-                else {
-                    formDataLegajo.append('partida_nacimiento', documentos.partida_nacimiento, 'partida_nacimiento.jpg')
-                }
-                
-            const respuesta = await modificarAlumno(formData.dni_alumno, formData);
-            const respuesta2 = await modificarLegajo(formData.dni_alumno, formDataLegajo);
-            console.log('Alumno modificado:', respuesta);
-            mostrarMensaje('Exito', 'Alumno modificado correctamente')
-            limpiarInterfaz()
-            console.log(formData)
-        } catch (error) {
-            console.log('Error al modificar un alumno:', error.message);
-            Alert.alert('Error', error.message);
+      try {
+        if (!formData.dni_alumno) {
+          mostrarMensaje('Error', 'Por favor, consulta primero al alumno.');
+          return;
         }
-    }
+    
+        // Validar fecha de nacimiento
+        const fechaNacimiento = new Date(formData.fecha_nacimiento);
+        if (!validarFechaNacimiento(fechaNacimiento)) {
+          Alert.alert('Error', 'La fecha de nacimiento no es válida.');
+          return;
+        }
+    
+        formData.fecha_nacimiento = fechaNacimiento.toISOString().split('T')[0];
+    
+        // Preparar FormData para legajo
+        const formDataLegajo = new FormData();
+        formDataLegajo.append('dni_alumno', formData.dni_alumno);
+        formDataLegajo.append('fecha_subida', new Date().toISOString());
+    
+        // Función para agregar archivos de manera genérica
+        const agregarArchivo = async (campo, nombreArchivo) => {
+          const archivo = documentos[campo];
+          if (!archivo) return;
+    
+          // En web, ya es File
+          if (archivo instanceof File) {
+            formDataLegajo.append(campo, archivo);
+            return;
+          }
+    
+          // Si es URI de React Native (data: o local)
+          if (typeof archivo === 'string' && (archivo.startsWith('data:') || archivo.startsWith('file:'))) {
+            const response = await fetch(archivo);
+            const blob = await response.blob();
+            formDataLegajo.append(campo, blob, nombreArchivo);
+          }
+        };
+    
+        await agregarArchivo('dni_foto', 'dni.jpg');
+        await agregarArchivo('ficha_medica', 'ficha_medica.pdf');
+        await agregarArchivo('partida_nacimiento', 'partida_nacimiento.pdf');
+    
+        // Llamadas a backend
+        const respuestaAlumno = await modificarAlumno(formData.dni_alumno, formData);
+        const respuestaLegajo = await modificarLegajo(formData.dni_alumno, formDataLegajo);
+    
+        mostrarMensaje('Exito', 'Alumno modificado correctamente');
+        limpiarInterfaz();
+        console.log('Alumno modificado:', respuestaAlumno, respuestaLegajo);
+    
+      } catch (error) {
+        console.log('Error al modificar un alumno:', error.message);
+        Alert.alert('Error', error.message);
+      }
+    };
 
     const handleDeshabilitar = async () => {
         try {
@@ -379,6 +378,12 @@ export default function GestionarAlumno() {
     }
     
     const limpiarInterfaz = async() => {
+        // Limpiar URLs creadas para evitar memory leaks
+        Object.values(documentos).forEach(url => {
+            if (url && typeof url === 'string' && url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        });
         
         setFormData({
             dni_alumno: '',
@@ -410,25 +415,32 @@ export default function GestionarAlumno() {
     const calcularCuil = (dni, sexoId) => {
     let prefijo = sexoId === '1' || sexoId === 1 ? '20' : '27';
     let dniStr = dni.toString().padStart(8, '0');
-    let cuilBase = prefijo + dniStr;
+    
+    // Función auxiliar para calcular con un prefijo específico
+    const calcularConPrefijo = (prefijoActual) => {
+      let cuilBase = prefijoActual + dniStr;
+      const multiplicadores = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+      let suma = 0;
 
-    const multiplicadores = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-    let suma = 0;
+      for (let i = 0; i < multiplicadores.length; i++) {
+        suma += parseInt(cuilBase[i]) * multiplicadores[i];
+      }
 
-    for (let i = 0; i < multiplicadores.length; i++) {
-      suma += parseInt(cuilBase[i]) * multiplicadores[i];
-    }
+      let resto = suma % 11;
+      let digitoVerificador = 11 - resto;
 
-    let resto = suma % 11;
-    let digitoVerificador = 11 - resto;
+      if (digitoVerificador === 11) {
+        digitoVerificador = 0;
+      } else if (digitoVerificador === 10) {
+        // Cambiar prefijo y recalcular
+        const nuevoPrefijo = prefijoActual === '20' ? '23' : '24';
+        return calcularConPrefijo(nuevoPrefijo);
+      }
 
-    if (digitoVerificador === 11) digitoVerificador = 0;
-    else if (digitoVerificador === 10) {
-      prefijo = prefijo === '20' ? '23' : '24';
-      return calcularCuil(dni, sexoId); 
-    }
+      return `${prefijoActual}-${dniStr}-${digitoVerificador}`;
+    };
 
-    return `${prefijo}-${dniStr}-${digitoVerificador}`;
+    return calcularConPrefijo(prefijo);
   };
 
     const [documentos, setDocumentos] = useState({
@@ -480,7 +492,7 @@ export default function GestionarAlumno() {
             let blob;
             // Si el argumento es un Blob directamente
             if (dni_alumno instanceof Blob) {
-                console.log("hola dni instanceof blob")
+                
                 blob = dni_alumno;
             } 
             // Si el argumento es una URI, se realiza un fetch para convertirlo en un Blob
@@ -511,13 +523,13 @@ export default function GestionarAlumno() {
     const fechaActual = new Date();
 
     if (isNaN(fechaIngresada.getTime())) {
-        Alert.alert('Error', 'La fecha de nacimiento no es válida.');
+        mostrarMensaje('Error', 'La fecha de nacimiento no es válida.');
         console.log('Fecha de nacimiento no válida:', fecha);
         return false;
     }
 
     if (fechaIngresada > fechaActual) {
-        Alert.alert('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
+        mostrarMensaje('Error', 'La fecha de nacimiento no puede ser mayor a la fecha actual.');
         console.log('Fecha futura:', fecha);
         return false;
     }
@@ -535,8 +547,8 @@ export default function GestionarAlumno() {
         edad--;
     }
 
-    if (edad <= 11) {
-        Alert.alert('Error', 'El alumno debe tener más de 11 años.');
+    if (edad <= 10) {
+        mostrarMensaje('Error', 'El alumno debe tener más de 11 años.');
         console.log('Edad menor o igual a 11:', edad);
         return false;
     }
@@ -550,221 +562,244 @@ export default function GestionarAlumno() {
     
 
     return (
-        <View style={styles.padre}>
-            <ScrollContainer/>
-            <ImageBackground source={bg} style={styles.bg}>
-            <View style={styles.formulario}>
-                <View style={styles.dniContainer}>
-                    <Text style={styles.label}>DNI:</Text>
-                    <TextInput style={styles.inputDni} placeholder='DNI' value={formData.dni_alumno} onChangeText={(value) => handleChange('dni_alumno', value)}/>
-                    <TouchableOpacity style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]} onPress={handleConsultar} disabled={!validarDni()}>
-                        <Text style={styles.consultarText}>Consultar</Text>
-                    </TouchableOpacity>
-                </View>
+  <View style={styles.padre}>
+    <ScrollContainer />
 
-                <View style={styles.fila}>
-                    {/* Primera columna */}
-                    <View style={styles.columna}>
-                        <Text style={styles.label}>Nombre:</Text>
-                        <TextInput style={styles.input} placeholder='Nombre' value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
-                        
-                        <Text style={styles.label}>Apellido:</Text>
-                        <TextInput style={styles.input} placeholder='Apellido' value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
-                        
-                        <Text style={styles.label}>CUIL (autogenerado):</Text>
-                            <TextInput style={[styles.input, { backgroundColor: '#e0e0e0' }]} value={formData.cuil} editable={false} />
-                        
-                        
-                        <Text style={styles.label}>Email:</Text>
-                        <TextInput style={styles.input} placeholder='Email Personal' value={formData.email_personal} onChangeText={(value) => handleChange('email_personal', value)} />
-                        
-                        <Text style={styles.label}>Email Familiar:</Text>
-                        <TextInput style={styles.input} placeholder='Email Familiar' value={formData.email_familiar} onChangeText={(value) => handleChange('email_familiar', value)} />
-                        
-                        <ListasDesplegables
-                            formData={formData}
-                            handleChange={handleChange}
-                            sexo={sexo}
-                            showLabel={true}
-                            curso_cantidad={curso_cantidad}
-                            styles={styles}
-                        />
-                    </View>
+    <ImageBackground source={bg} style={styles.bg}>
+      <View style={styles.formulario}>
 
-                    {/* Segunda columna */}
-                    <View style={styles.columna}>
-                        
-                        <ListasDesplegables
-                            formData={formData}
-                            handleChange={handleChange}
-                            estado_general={estado_general}
-                            localidad={localidad}
-                            showLabel={true}
-                            styles={styles}
-                        />
-
-                        <Text style={styles.label}>Fecha de Nacimiento:</Text>
-                        <TextInput style={styles.input} placeholder='DD/MM/AAAA' value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
-                        
-                        <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Madre/Tutor' value={formData.telefono_madre} onChangeText={(value) => handleChange('telefono_madre', value)} />
-
-                        <Text style={styles.label}>Teléfono Padre/Tutor:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Padre/Tutor' value={formData.telefono_padre} onChangeText={(value) => handleChange('telefono_padre', value)} />
-                        
-                        <Text style={styles.label}>Teléfono Personal:</Text>
-                        <TextInput style={styles.input} placeholder='Teléfono Personal' value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
-
-                        
-                        
-                    </View>
-
-                    
-                    {/* Tercera columna */}
-                    <View style={styles.columna}>
-                        
-                        <Text style={styles.label}>Domicilio:</Text>
-                        <TextInput style={styles.input} placeholder='Domicilio' value={formData.domicilio} onChangeText={(value) => handleChange('domicilio', value)} />
-                        
-                        <View style={styles.checkboxContainer}>
-                            <Text style={styles.label}>¿Vives en un departamento?</Text>
-                            <CheckBox
-                                value={formData.edificio}
-                                onValueChange={() => handleChange('edificio', !formData.edificio)}
-                                style={styles.check}
-                            />
-                        </View>
-
-                        {formData.edificio && (
-                            <>
-                                <Text style={styles.label}>Piso:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder='Piso'
-                                    value={formData.piso}
-                                    onChangeText={(value) => handleChange('piso', value)}
-                                />
-                                <Text style={styles.label}>Departamento:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder='Departamento'
-                                    value={formData.departamento}
-                                    onChangeText={(value) => handleChange('departamento', value)}
-                                />
-                            </>
-                            
-                        )}
-                        <Text style={styles.label}>Legajo:</Text>
-                            <View>
-                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('dni_foto')}>
-                                        <Text style={styles.textoBoton}>Ingrese Foto DNI</Text>
-                                    </TouchableOpacity>
-                                    {/* Verifica si documentos.dni está presente y tiene un Blob con tamaño mayor a 0 */}
-                                    {documentos.dni_foto && 
-                                        (documentos.dni_foto instanceof Blob && documentos.dni_foto.size > 0 || 
-                                        (typeof documentos.dni_foto === 'string' && documentos.dni_foto.length > 0)) && (
-                                            <TouchableOpacity
-                                                style={styles.botonVer}
-                                                onPress={async () => {
-                                                    try {
-                                                        console.log('documentos.dni_foto:', documentos.dni_foto);  // Verifica lo que contiene documentos.dni_foto
-
-                                                        if (documentos.dni_foto instanceof Blob && documentos.dni_foto.size > 0) {
-                                                            abrirPDF(documentos.dni_foto);  // Si es un Blob válido con contenido
-                                                        } else if (typeof documentos.dni_foto === 'string' && documentos.dni_foto.length > 0) {
-                                                            abrirPDF(documentos.dni_foto);  // Si es una URI válida, la pasamos a abrirPDF
-                                                        } else {
-                                                            console.log('El archivo no tiene un formato válido');
-                                                        }
-                                                    } catch (error) {
-                                                        console.log('Error al abrir el PDF:', error);
-                                                    }
-                                                }}
-                                            >
-                                                <Text style={styles.textoBoton}>Ver DNI</Text>
-                                            </TouchableOpacity>
-                                    )}
-                            </View>
-                                <View>
-                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('ficha_medica')}>
-                                        <Text style={styles.textoBoton}>Ingrese Ficha Medica</Text>
-                                    </TouchableOpacity>
-                                    {documentos.ficha_medica && 
-                                        ((documentos.ficha_medica instanceof Blob && documentos.ficha_medica.size > 0) || 
-                                        (typeof documentos.ficha_medica === 'string' && documentos.ficha_medica.length > 0)) && (
-                                            <TouchableOpacity
-                                                style={styles.botonVer}
-                                                onPress={async () => {
-                                                    try {
-                                                        console.log('documentos.ficha_medica:', documentos.ficha_medica);  // Verifica lo que contiene documentos.ficha_medica
-
-                                                        if (documentos.ficha_medica instanceof Blob && documentos.ficha_medica.size > 0) {
-                                                            abrirPDF(documentos.ficha_medica);  // Si es un Blob válido con contenido
-                                                        } else if (typeof documentos.ficha_medica === 'string' && documentos.ficha_medica.length > 0) {
-                                                            abrirPDF(documentos.ficha_medica);  // Si es una URI válida, la pasamos a abrirPDF
-                                                        } else {
-                                                            console.log('El archivo no tiene un formato válido');
-                                                        }
-                                                    } catch (error) {
-                                                        console.log('Error al abrir el PDF:', error);
-                                                    }
-                                                }}
-                                            >
-                                                <Text style={styles.textoBoton}>Ver Ficha Medica</Text>
-                                            </TouchableOpacity>
-                                    )}
-                                </View>
-                                <View>
-                                    <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo('partida_nacimiento')}>
-                                        <Text style={styles.textoBoton}>Ingrese Partida de Nacimiento</Text>
-                                    </TouchableOpacity>
-                                    {documentos.partida_nacimiento && 
-                                        ((documentos.partida_nacimiento instanceof Blob && documentos.partida_nacimiento.size > 0) || 
-                                        (typeof documentos.partida_nacimiento === 'string' && documentos.partida_nacimiento.length > 0)) && (
-                                            <TouchableOpacity
-                                                style={styles.botonVer}
-                                                onPress={async () => {
-                                                    try {
-                                                        console.log('documentos.partida_nacimiento:', documentos.partida_nacimiento);  // Verifica lo que contiene documentos.fichaMedica
-
-                                                        if (documentos.partida_nacimiento instanceof Blob && documentos.partida_nacimiento.size > 0) {
-                                                            abrirPDF(documentos.partida_nacimiento);  // Si es un Blob válido con contenido
-                                                        } else if (typeof documentos.partida_nacimiento === 'string' && documentos.partida_nacimiento.length > 0) {
-                                                            abrirPDF(documentos.partida_nacimiento);  // Si es una URI válida, la pasamos a abrirPDF
-                                                        } else {
-                                                            console.log('El archivo no tiene un formato válido');
-                                                        }
-                                                    } catch (error) {
-                                                        console.log('Error al abrir el PDF:', error);
-                                                    }
-                                                }}
-                                            >
-                                                <Text style={styles.textoBoton}>Ver Partida Nacimiento</Text>
-                                            </TouchableOpacity>
-                                    )}
-                            </View>
-                        
-                    </View>
-                    
-                    
-                </View>
-            </View>
-
-            <View style={styles.contenidoBotones}>
-                <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleAgregar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
-            </View>
-            <CustomAlert
-            isVisible={alertVisible}
-            onClose={() => setAlertVisible(false)}
-            title={alertTitle}
-            message={alertMessage}
+        {/* DNI */}
+        <View style={styles.dniContainer}>
+          <Text style={styles.label}>DNI:</Text>
+          
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputDni}
+              placeholder="Ingrese DNI (8 dígitos)"
+              value={formData.dni_alumno}
+              onChangeText={(value) => handleChange('dni_alumno', value)}
+              maxLength={8}
+              keyboardType="numeric"
             />
-            </ImageBackground>
+            {formData.dni_alumno && formData.dni_alumno.length < 8 && (
+              <Text style={styles.errorText}>El DNI debe contener 8 números</Text>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]}
+            onPress={handleConsultar}
+            disabled={!validarDni()}
+          >
+            <Text style={styles.consultarText}>Consultar</Text>
+          </TouchableOpacity>
         </View>
-    );
+        {/* Contenedor de columnas */}
+        <View style={styles.fila}>
+
+          {/* Columna 1 */}
+          <View style={styles.columna}>
+            <Text style={styles.label}>Nombre:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre"
+              value={formData.nombre}
+              onChangeText={(value) => handleChange('nombre', value)}
+            />
+
+            <Text style={styles.label}>Apellido:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Apellido"
+              value={formData.apellido}
+              onChangeText={(value) => handleChange('apellido', value)}
+            />
+
+            <Text style={styles.label}>CUIL {cuilEditable ? '(editable)' : '(autogenerado - doble click para editar)'}:</Text>
+            {cuilEditable ? (
+              <TextInput 
+                style={[styles.input]} 
+                value={formData.cuil} 
+                onChangeText={(v) => handleChange('cuil', v)}
+                onBlur={() => setCuilEditable(false)}
+                placeholder="XX-XXXXXXXX-X"
+                autoFocus
+              />
+            ) : (
+              <Pressable 
+                onPress={({ nativeEvent }) => {
+                  if (nativeEvent.detail === 2) { // Doble click
+                    handleDobleClickCuil();
+                  }
+                }}
+                style={[styles.input, styles.inputDisabled, styles.cuilPressable]}
+              >
+                <Text style={styles.cuilText}>{formData.cuil || 'XX-XXXXXXXX-X'}</Text>
+              </Pressable>
+            )}
+
+            <Text style={styles.label}>Email:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email Personal"
+              value={formData.email_personal}
+              onChangeText={(value) => handleChange('email_personal', value)}
+            />
+
+            <Text style={styles.label}>Email Familiar:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email Familiar"
+              value={formData.email_familiar}
+              onChangeText={(value) => handleChange('email_familiar', value)}
+            />
+
+            <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              sexo={sexo}
+              showLabel={true}
+              curso_cantidad={curso_cantidad}
+              styles={styles}
+            />
+          </View>
+
+          {/* Columna 2 */}
+          <View style={styles.columna}>
+            <ListasDesplegables
+              formData={formData}
+              handleChange={handleChange}
+              estado_general={estado_general}
+              localidad={localidad}
+              showLabel={true}
+              styles={styles}
+            />
+
+            <Text style={styles.label}>Fecha de Nacimiento:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="AAAA/MM/DD"
+              value={formData.fecha_nacimiento}
+              onChangeText={(value) => handleChange('fecha_nacimiento', value)}
+            />
+
+            <Text style={styles.label}>Teléfono Madre/Tutor:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Teléfono Madre/Tutor"
+              value={formData.telefono_madre}
+              onChangeText={(value) => handleChange('telefono_madre', value)}
+            />
+
+            <Text style={styles.label}>Teléfono Padre/Tutor:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Teléfono Padre/Tutor"
+              value={formData.telefono_padre}
+              onChangeText={(value) => handleChange('telefono_padre', value)}
+            />
+
+            <Text style={styles.label}>Teléfono Personal:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Teléfono Personal"
+              value={formData.telefono_personal}
+              onChangeText={(value) => handleChange('telefono_personal', value)}
+            />
+          </View>
+
+          {/* Columna 3 */}
+          <View style={styles.columna}>
+            <Text style={styles.label}>Domicilio:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Domicilio"
+              value={formData.domicilio}
+              onChangeText={(value) => handleChange('domicilio', value)}
+            />
+
+            <View style={styles.checkboxContainer}>
+              <Text style={styles.label}>¿Vives en un departamento?</Text>
+              <CheckBox
+                value={formData.edificio}
+                onValueChange={() => handleChange('edificio', !formData.edificio)}
+                style={styles.check}
+              />
+            </View>
+
+            {formData.edificio && (
+              <>
+                <Text style={styles.label}>Piso:</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Piso"
+                  value={formData.piso}
+                  onChangeText={(value) => handleChange('piso', value)}
+                />
+
+                <Text style={styles.label}>Departamento:</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Departamento"
+                  value={formData.departamento}
+                  onChangeText={(value) => handleChange('departamento', value)}
+                />
+              </>
+            )}
+
+            <Text style={styles.label}>Legajo:</Text>
+
+            {/* Botones de carga y ver documentos */}
+            <View>
+              {['dni_foto', 'ficha_medica', 'partida_nacimiento'].map((tipo) => (
+                <View key={tipo}>
+                  <TouchableOpacity style={styles.boton} onPress={() => seleccionarArchivo(tipo)}>
+                    <Text style={styles.textoBoton}>Ingrese {tipo.replace('_', ' ').toUpperCase()}</Text>
+                  </TouchableOpacity>
+
+                  {documentos[tipo] &&
+                    ((documentos[tipo] instanceof Blob && documentos[tipo].size > 0) ||
+                      (typeof documentos[tipo] === 'string' && documentos[tipo].length > 0)) && (
+                      <TouchableOpacity
+                        style={styles.botonVer}
+                        onPress={() => abrirPDF(documentos[tipo])}
+                      >
+                        <Text style={styles.textoBoton}>Ver {tipo.replace('_', ' ').toUpperCase()}</Text>
+                      </TouchableOpacity>
+                    )}
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Botones inferiores */}
+      <View style={styles.contenidoBotones}>
+        <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleAgregar} disabled={!validarCampos()}>
+          <Text style={styles.textoBoton}>Alta</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}>
+          <Text style={styles.textoBoton}>Baja</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}>
+          <Text style={styles.textoBoton}>Modificar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}>
+          <Text style={styles.textoBoton}>Limpiar</Text>
+        </TouchableOpacity>
+      </View>
+
+      <CustomAlert
+        isVisible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
+      />
+    </ImageBackground>
+  </View>
+);
+
 }
 
 const styles = StyleSheet.create({
@@ -797,18 +832,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    marginBottom: 20,
+    shadowOffset: { width: 0, height: 1 }, // Changed from 2 to 1
+    shadowOpacity: 0.05, // Changed from 0.1 to 0.05
+    shadowRadius: 3, // Changed from 5 to 3
+    marginBottom: 15, // Changed from 20 to 15
   },
-
+  errorText: { color: 'red', marginTop: 4, fontSize: 12 },
   // Sección DNI - Ajustada según la imagen
   dniContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    alignItems: 'flex-start',
+    marginBottom: 15,
     width: '100%',
+  },
+  inputContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    marginHorizontal: 10,
   },
   label: {
     fontSize: 16,
@@ -863,6 +903,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#fff',
     height: 40,
+  },
+  inputDisabled: { backgroundColor: '#e0e0e0' },
+  
+  // CUIL editable
+  cuilPressable: { 
+    justifyContent: 'center', 
+    marginBottom: 15,
+    cursor: 'pointer'
+  },
+  cuilText: { 
+    fontSize: 15, 
+    color: '#2c3e50',
+    userSelect: 'none'
   },
   
   // Checkbox

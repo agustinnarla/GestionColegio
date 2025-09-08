@@ -5,15 +5,28 @@ import bg from '../../assets/bg1.jpg';
 import { obtenerFaltasPP, registrarJustificacionPP } from '../../scripts/secretaria/scriptJustificarFaltaPP.js';
 import { obtenerCertificado, obtenerEstadosFaltaProfesionales } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import { ImageBackground } from 'react-native-web';
+import CustomAlert from '../../componente/CustomAlerts.js';
 import ScrollContainer from '../../componente/ScrollContainer.jsx';
 
 
-export default function JustificarFaltaP_P() {
+export default function JustificarFaltaProfesionales() {
     
     const [formData, setFormData] = useState({
         id_certificado: '',
         id_estado_falta_profesionales: ''
     })
+
+      const [alertVisible, setAlertVisible] = useState(false);
+      const [alertTitle, setAlertTitle] = useState('');
+      const [alertMessage, setAlertMessage] = useState('');
+    
+      const mostrarMensaje = (titulo, mensaje) => {
+        setAlertTitle(titulo);
+        setAlertMessage(mensaje);
+        setAlertVisible(true);
+      };
+    
+
 
     const [estado_falta_profesional, setEstadosFalta] = useState([]);
     const [certificados, setCertificados] = useState([]);
@@ -69,8 +82,9 @@ export default function JustificarFaltaP_P() {
             const certificadoInicial = {};
             
             faltasData.forEach(falta => {
-                estadoInicial[falta.dni_profesional] = falta.id_estado_falta_profesionales || undefined;
-                certificadoInicial[falta.dni_profesional] = falta.id_certificado || undefined;
+                const key = `${falta.dni_profesional}_${falta.fecha}`;
+                estadoInicial[key] = falta.id_estado_falta_profesionales || undefined;
+                certificadoInicial[key] = falta.id_certificado || undefined;
             });
             
             setEstadoFaltaPorProfesor(estadoInicial);
@@ -93,18 +107,18 @@ export default function JustificarFaltaP_P() {
         const dia = fecha.getDate().toString().padStart(2, '0');
         const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
         const año = fecha.getFullYear();
-        return `${dia}/${mes}/${año}`;
+        return `${año}/${mes}/${dia}`;
     };
 
     const validarYConvertirFechas = (fechaDesde, fechaHasta) => {
-        // Validar formato DD/MM/AAAA
-        const formatoValido = /^\d{2}\/\d{2}\/\d{4}$/;
+        // Validar formato AAAA/MM/DD
+        const formatoValido = /^\d{4}\/\d{2}\/\d{2}$/;
         if (!formatoValido.test(fechaDesde) || !formatoValido.test(fechaHasta)) {
-            return { valido: false, mensaje: "Las fechas deben estar en formato DD/MM/AAAA." };
+            return { valido: false, mensaje: "Las fechas deben estar en formato AAAA/MM/DD." };
         }
         // Validar existencia real de la fecha
         const esFechaValida = (fecha) => {
-            const [dia, mes, año] = fecha.split('/').map(Number);
+            const [año, mes, dia] = fecha.split('/').map(Number);
             const date = new Date(año, mes - 1, dia);
             return (
                 date.getFullYear() === año &&
@@ -116,7 +130,7 @@ export default function JustificarFaltaP_P() {
             return { valido: false, mensaje: "Alguna de las fechas ingresadas no existe." };
         }
         const convertirFormatoFecha = (fecha) => {
-            const [dia, mes, año] = fecha.split('/');
+            const [año, mes, dia] = fecha.split('/');
             return `${año}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
         };
         const fechaDesdeConvertida = convertirFormatoFecha(fechaDesde);
@@ -136,12 +150,11 @@ export default function JustificarFaltaP_P() {
     const handleConsultar = async () => {
         const resultado = validarYConvertirFechas(fechaDesde, fechaHasta);
         if (!resultado.valido) {
-            setMensajeError(resultado.mensaje); 
-            if (Platform.OS === 'web') 
-            {
-                window.alert("Fechas incorrectas: " + resultado.mensaje);
+           
+            if (Platform.OS === 'web') {
+                mostrarMensaje("Fechas incorrectas: " ,"La fecha desde no puede ser mayor a la fecha hasta");
             } else {
-                Alert.alert("Fechas incorrectas", resultado.mensaje);
+                mostrarMensaje("Fechas incorrectas", "La fecha desde no puede ser mayor a la fecha hasta");
             }
             return;
         }
@@ -151,7 +164,7 @@ export default function JustificarFaltaP_P() {
             await cargarFaltas(resultado.fechas.desde, resultado.fechas.hasta);
         } catch (error) {
             console.error('Error al cargar faltas:', error);
-            setMensajeError('Error al cargar las faltas');
+            mostrarMensaje('Error','al cargar las faltas');
         } finally {
             setCargando(false);
         }
@@ -159,16 +172,17 @@ export default function JustificarFaltaP_P() {
 
     // Cambiar a profesional
     const actualizarProfesionalSeleccionado = (tipo, valor, dni_profesional, fecha) => {
+        const key = `${dni_profesional}_${fecha}`;
         // Actualizar el estado local
         if (tipo === 'estadoFalta') {
             setEstadoFaltaPorProfesor(prev => ({
                 ...prev,
-                [dni_profesional]: valor
+                [key]: valor
             }));
         } else if (tipo === 'certificado') {
             setCertificadoPorProfesor(prev => ({
                 ...prev,
-                [dni_profesional]: valor
+                [key]: valor
             }));
         }
 
@@ -178,20 +192,23 @@ export default function JustificarFaltaP_P() {
             fecha,
             id_estado_falta_profesionales: tipo === 'estadoFalta' 
                 ? (valor !== undefined && valor !== null ? parseInt(valor, 10) : undefined)
-                : (estadoFaltaPorProfesor[dni_profesional] !== undefined && estadoFaltaPorProfesor[dni_profesional] !== null 
-                    ? parseInt(estadoFaltaPorProfesor[dni_profesional], 10) 
+                : (estadoFaltaPorProfesor[key] !== undefined && estadoFaltaPorProfesor[key] !== null 
+                    ? parseInt(estadoFaltaPorProfesor[key], 10) 
                     : undefined),
             id_certificado: tipo === 'certificado'
                 ? (valor !== undefined && valor !== null ? parseInt(valor, 10) : undefined)
-                : (certificadoPorProfesor[dni_profesional] !== undefined && certificadoPorProfesor[dni_profesional] !== null 
-                    ? parseInt(certificadoPorProfesor[dni_profesional], 10) 
+                : (certificadoPorProfesor[key] !== undefined && certificadoPorProfesor[key] !== null 
+                    ? parseInt(certificadoPorProfesor[key], 10) 
                     : undefined)
         };
 
         console.log('Datos a enviar:', datosParaEnviar);
 
-        // Solo enviar si tenemos al menos el estado de falta
-        if (datosParaEnviar.id_estado_falta_profesionales !== undefined && !isNaN(datosParaEnviar.id_estado_falta_profesionales)) {
+        // Solo enviar si tenemos AMBOS campos completos
+        if (datosParaEnviar.id_estado_falta_profesionales !== undefined && 
+            !isNaN(datosParaEnviar.id_estado_falta_profesionales) &&
+            datosParaEnviar.id_certificado !== undefined && 
+            !isNaN(datosParaEnviar.id_certificado)) {
             handleRegistrarJustificacion(datosParaEnviar);
         }
     };
@@ -222,13 +239,13 @@ export default function JustificarFaltaP_P() {
             console.log('Respuesta del servidor:', resultado);
             
             if (resultado.justificado === "No se realizaron cambios") {
-                Alert.alert('Información', 'No se realizaron cambios en la justificación');
+                mostrarMensaje('Información', 'No se realizaron cambios en la justificación');
             } else {
-                Alert.alert('Éxito', 'Justificación registrada correctamente');
-            }
+                mostrarMensaje('Éxito', 'Justificación registrada correctamente');
+            } 
         } catch (error) {
             console.error('Error al registrar justificación:', error);
-            Alert.alert('Error', error.response?.data?.error || 'No se pudo registrar la justificación');
+            mostrarMensaje('Error', error.response?.data?.error || 'No se pudo registrar la justificación');
         }
     };
 
@@ -245,7 +262,7 @@ export default function JustificarFaltaP_P() {
                     <View style={styles.filaInputs}>
                         <Text style={styles.label}>Fecha desde:</Text>
                         <TextInput 
-                            placeholder='DD/MM/YYYY' 
+                            placeholder='AAAA/MM/DD' 
                             style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
                             value={fechaDesde}
                             onChangeText={setFechaDesde}
@@ -254,7 +271,7 @@ export default function JustificarFaltaP_P() {
                     <View style={styles.filaInputs}>
                         <Text style={styles.label}>Fecha hasta:</Text>
                         <TextInput 
-                            placeholder='DD/MM/YYYY' 
+                            placeholder='AAAA/MM/DD' 
                             style={Platform.OS === 'web' ? styles.inputPequeño : styles.input}
                             value={fechaHasta}
                             onChangeText={setFechaHasta}
@@ -275,15 +292,17 @@ export default function JustificarFaltaP_P() {
                         </View>
                         
                         {faltas.length > 0 ? (
-                            faltas.map((falta, index) => (
+                            faltas.map((falta, index) => {
+                                const key = `${falta.dni_profesional}_${falta.fecha}`;
+                                return (
                                 <View key={index} style={styles.fila}>
                                     <Text style={styles.celda}>{falta.dni_profesional}</Text>
                                     <Text style={styles.celda}>{formatearFecha(falta.fecha)}</Text>
                                     <Picker
                                         style={styles.celda}
                                         selectedValue={
-                                            estadoFaltaPorProfesor[falta.dni_profesional] !== undefined
-                                                ? estadoFaltaPorProfesor[falta.dni_profesional]
+                                            estadoFaltaPorProfesor[key] !== undefined
+                                                ? estadoFaltaPorProfesor[key]
                                                 : undefined
                                         }
                                         onValueChange={(itemValue) => {
@@ -310,8 +329,8 @@ export default function JustificarFaltaP_P() {
                                     <Picker
                                         style={styles.celda}
                                         selectedValue={
-                                            certificadoPorProfesor[falta.dni_profesional] !== undefined
-                                                ? certificadoPorProfesor[falta.dni_profesional]
+                                            certificadoPorProfesor[key] !== undefined
+                                                ? certificadoPorProfesor[key]
                                                 : undefined
                                         }
                                         onValueChange={(itemValue) => {
@@ -336,7 +355,8 @@ export default function JustificarFaltaP_P() {
                                         ))}
                                     </Picker>
                                 </View>
-                            ))
+                                );
+                            })
                         ) : (
                             <View style={styles.fila}>
                                 <Text style={styles.celda}>No hay datos disponibles</Text>
@@ -348,6 +368,7 @@ export default function JustificarFaltaP_P() {
                     </View>
                 </ScrollView>
             </View>
+             <CustomAlert isVisible={alertVisible} onClose={() => setAlertVisible(false)} title={alertTitle} message={alertMessage} />
             </ImageBackground>
         </View>
     );

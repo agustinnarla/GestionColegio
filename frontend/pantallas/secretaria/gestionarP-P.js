@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, ImageBackground } from 'react-native';
+import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, Picker, CheckBox, ImageBackground, Pressable } from 'react-native';
 import bg from '../../assets/bg1.jpg';
 import { obtenerSexo, obtenerEstadoGeneral, obtenerLocalidad,obtenerRoles} from '../../scripts/listasDesplegables/listaDesplegable.js'
 import ListasDesplegables from '../../componente/ListasDesplegables.jsx';
@@ -13,6 +13,7 @@ export default function GestionarProfesional() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
+  const [cuitEditable, setCuitEditable] = useState(false);
 
   const mostrarMensaje = (titulo, mensaje) => {
     setAlertTitle(titulo);
@@ -157,11 +158,12 @@ export default function GestionarProfesional() {
 const handleChange = (name, value) => {
     let updatedForm = { ...formData, [name]: value };
 
-
+    // Solo auto-calcular CUIT si no está en modo edición manual
     if (
         (name === 'dni_profesional' || name === 'id_sexo') &&
         updatedForm.dni_profesional &&
-        updatedForm.id_sexo
+        updatedForm.id_sexo &&
+        !cuitEditable
     ) {
         const cuitCalculado = calcularCuit(updatedForm.dni_profesional, updatedForm.id_sexo);
         updatedForm.cuit = cuitCalculado;
@@ -169,6 +171,12 @@ const handleChange = (name, value) => {
 
     setFormData(updatedForm);
 };
+
+const handleDobleClickCuit = () => {
+    setCuitEditable(true);
+};
+
+
 
 const handleRegistrar = async () => {
 try {
@@ -267,282 +275,205 @@ try {
   };
 
   return (
-    <View style={styles.padre}>
-      <ScrollContainer />
-      <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
-        <View style={styles.formulario}>
-          <View style={styles.dniContainer}>
-            <Text style={styles.label}>DNI:</Text>
-            <TextInput
-              style={styles.inputDni}
-              placeholder="DNI"
-              value={formData.dni_profesional}
-              onChangeText={(value) => handleChange('dni_profesional', value)}
-              maxLength={8}
-            />
-            {formData.dni_profesional && formData.dni_profesional.length < 8 && (
-              <Text style={{ color: 'red', marginBottom: 10 }}>
-                El DNI debe contener 8 números
-              </Text>
+  <View style={styles.padre}>
+    <ScrollContainer />
+    <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+      
+      {/* Formulario */}
+      <View style={styles.formulario}>
+
+        {/* Sección DNI */}
+      <View style={styles.dniContainer}>
+  <Text style={styles.label}>DNI:</Text>
+  
+  <View style={{ flex: 1, flexDirection: 'column' }}>
+    <TextInput
+      style={styles.inputDni}
+      placeholder="DNI"
+      value={formData.dni_profesional}
+      onChangeText={(value) => handleChange('dni_profesional', value)}
+      maxLength={8}
+    />
+    {formData.dni_profesional && formData.dni_profesional.length < 8 && (
+      <Text style={styles.errorText}>El DNI debe contener 8 números</Text>
+    )}
+  </View>
+
+  <TouchableOpacity
+    style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]}
+    onPress={handleConsultar}
+    disabled={!validarDni()}
+  >
+    <Text style={styles.consultarText}>Consultar</Text>
+  </TouchableOpacity>
+</View>
+
+        {/* Contenedor columnas */}
+        <View style={styles.fila}>
+
+          {/* Columna 1 */}
+          <View style={styles.columna}>
+            <Text style={styles.label}>Nombre:</Text>
+            <TextInput style={styles.input} placeholder="Nombre" value={formData.nombre} onChangeText={(v) => handleChange('nombre', v)} />
+
+            <Text style={styles.label}>Apellido:</Text>
+            <TextInput style={styles.input} placeholder="Apellido" value={formData.apellido} onChangeText={(v) => handleChange('apellido', v)} />
+
+            <Text style={styles.label}>CUIT {cuitEditable ? '(editable)' : '(autogenerado - doble click para editar)'}:</Text>
+            {cuitEditable ? (
+              <TextInput 
+                style={[styles.input]} 
+                value={formData.cuit} 
+                onChangeText={(v) => handleChange('cuit', v)}
+                onBlur={() => setCuitEditable(false)}
+                placeholder="XX-XXXXXXXX-X"
+                autoFocus
+              />
+            ) : (
+              <Pressable 
+                onPress={({ nativeEvent }) => {
+                  if (nativeEvent.detail === 2) { // Doble click
+                    handleDobleClickCuit();
+                  }
+                }}
+                style={[styles.input, styles.inputDisabled, styles.cuitPressable]}
+              >
+                <Text style={styles.cuitText}>{formData.cuit || 'XX-XXXXXXXX-X'}</Text>
+              </Pressable>
             )}
-            <TouchableOpacity
-              style={[styles.consultarButton, !validarDni() && styles.botonDeshabilitado]}
-              onPress={handleConsultar}
-              disabled={!validarDni()}
-            >
-              <Text style={styles.consultarText}>Consultar</Text>
-            </TouchableOpacity>
+
+            <Text style={styles.label}>Email:</Text>
+            <TextInput style={styles.input} placeholder="Email" value={formData.email} onChangeText={(v) => handleChange('email', v)} />
+
+            <ListasDesplegables formData={formData} handleChange={handleChange} roles={rol} sexo={sexo} styles={styles} />
           </View>
 
-          <View style={styles.fila} >
-            {/* Primera columna */}
-            <View style={styles.columna}>
-              <Text style={styles.label}>Nombre:</Text>
-              <TextInput  style={styles.input} placeholder="Nombre" value={formData.nombre} onChangeText={(value) => handleChange('nombre', value)} />
-              <Text style={styles.label}>Apellido:</Text>
-              <TextInput style={styles.input} placeholder="Apellido" value={formData.apellido} onChangeText={(value) => handleChange('apellido', value)} />
+          {/* Columna 2 */}
+          <View style={styles.columna}>
+            <ListasDesplegables formData={formData} handleChange={handleChange} estado_general={estado_general} localidad={localidad} styles={styles} showLabel={true} />
 
-              <Text style={styles.label}>CUIT (autogenerado):</Text>
-              <TextInput style={[styles.input, { backgroundColor: '#e0e0e0' }]} value={formData.cuit} editable={false} />
+            <Text style={styles.label}>Fecha de Nacimiento:</Text>
+            <TextInput style={styles.input} placeholder="AAAA/MM/DD" value={formData.fecha_nacimiento} onChangeText={(v) => handleChange('fecha_nacimiento', v)} />
 
-              <Text style={styles.label}>Correo:</Text>
-              <TextInput  style={styles.input} placeholder="Correo" value={formData.email} onChangeText={(value) => handleChange('email', value)} />
+            <Text style={styles.label}>Teléfono Personal:</Text>
+            <TextInput style={styles.input} placeholder="Teléfono Personal" value={formData.telefono_personal} onChangeText={(v) => handleChange('telefono_personal', v)} />
 
-              <ListasDesplegables formData={formData} handleChange={handleChange} roles={rol} sexo={sexo} styles={styles} />
+            <Text style={styles.label}>Teléfono Alternativo:</Text>
+            <TextInput style={styles.input} placeholder="Teléfono Alternativo" value={formData.telefono_alternativo} onChangeText={(v) => handleChange('telefono_alternativo', v)} />
+          </View>
+
+          {/* Columna 3 */}
+          <View style={styles.columna}>
+            <Text style={styles.label}>Domicilio:</Text>
+            <TextInput style={styles.input} placeholder="Domicilio" value={formData.domicilio} onChangeText={(v) => handleChange('domicilio', v)} />
+
+            <View style={styles.checkboxContainer}>
+              <Text style={styles.label}>¿Vive en un departamento?</Text>
+              <CheckBox value={formData.edificio} onValueChange={() => handleChange('edificio', !formData.edificio)} style={styles.check} />
             </View>
 
-            {/* Segunda columna */}
-            <View style={styles.columna}>
-              <ListasDesplegables formData={formData} handleChange={handleChange} estado_general={estado_general} localidad={localidad} styles={styles} showLabel={true} />
-              <Text style={styles.label}>Fecha de Nacimiento:</Text>
-              <TextInput  style={styles.input} placeholder="AAAA-MM-DD" value={formData.fecha_nacimiento} onChangeText={(value) => handleChange('fecha_nacimiento', value)} />
-              <Text style={styles.label}>Teléfono Personal:</Text>
-              <TextInput  style={styles.input} placeholder="Teléfono Personal" value={formData.telefono_personal} onChangeText={(value) => handleChange('telefono_personal', value)} />
-              <Text style={styles.label}>Teléfono Alternativo:</Text>
-              <TextInput style={styles.input} placeholder="Teléfono Alternativo" value={formData.telefono_alternativo} onChangeText={(value) => handleChange('telefono_alternativo', value)} />
-            </View>
-
-            {/* Tercera columna */}
-            <View style={styles.columna}>
-              <Text style={styles.label}>Domicilio:</Text>
-              <TextInput style={styles.input} placeholder="Domicilio" value={formData.domicilio} onChangeText={(value) => handleChange('domicilio', value)} />
-              <View style={styles.checkboxContainer}>
-                <Text style={styles.label}>¿Vive en un departamento?</Text>
-                <CheckBox value={formData.edificio} onValueChange={() => handleChange('edificio', !formData.edificio)} style={styles.check} />
-              </View>
-
-              {formData.edificio && (
-                <View style={styles.filaPisoDepto}>
-                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <Text style={styles.label}>Piso:</Text>
-                    <TextInput style={styles.input} placeholder="Piso" value={formData.piso} onChangeText={(value) => handleChange('piso', value)} />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 8 }}>
-                    <Text style={styles.label}>Departamento:</Text>
-                    <TextInput  style={styles.input} placeholder="Departamento" value={formData.departamento} onChangeText={(value) => handleChange('departamento', value)} />
-                  </View>
+            {formData.edificio && (
+              <View style={styles.filaPisoDepto}>
+                <View style={styles.columnaPisoDepto}>
+                  <Text style={styles.label}>Piso:</Text>
+                  <TextInput style={styles.input} placeholder="Piso" value={formData.piso} onChangeText={(v) => handleChange('piso', v)} />
                 </View>
-              )}
-            </View>
+                <View style={styles.columnaPisoDepto}>
+                  <Text style={styles.label}>Departamento:</Text>
+                  <TextInput style={styles.input} placeholder="Departamento" value={formData.departamento} onChangeText={(v) => handleChange('departamento', v)} />
+                </View>
+              </View>
+            )}
           </View>
-        </View>
 
-        <View style={styles.contenidoBotones}>
-          <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Alta</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Baja</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}><Text style={styles.textoBoton}>Modificar</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}><Text style={styles.textoBoton}>Limpiar</Text></TouchableOpacity>
         </View>
-      </ImageBackground>
+      </View>
 
-      <CustomAlert isVisible={alertVisible} onClose={() => setAlertVisible(false)} title={alertTitle} message={alertMessage} />
-    </View>
-  );
+      {/* Botones de acción */}
+      <View style={styles.contenidoBotones}>
+        <TouchableOpacity style={[styles.botonAlta, !validarCampos() && styles.botonDeshabilitado]} onPress={handleRegistrar} disabled={!validarCampos()}>
+          <Text style={styles.textoBoton}>Alta</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.botonBaja, !validarCampos() && styles.botonDeshabilitado]} onPress={handleDeshabilitar} disabled={!validarCampos()}>
+          <Text style={styles.textoBoton}>Baja</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.botonModificar, !validarCampos() && styles.botonDeshabilitado]} onPress={handleModificar} disabled={!validarCampos()}>
+          <Text style={styles.textoBoton}>Modificar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarInterfaz}>
+          <Text style={styles.textoBoton}>Limpiar</Text>
+        </TouchableOpacity>
+      </View>
+
+    </ImageBackground>
+
+    <CustomAlert isVisible={alertVisible} onClose={() => setAlertVisible(false)} title={alertTitle} message={alertMessage} />
+  </View>
+);
+
 }
 
 const styles = StyleSheet.create({
-    padre: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-    },
-    bg: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    botonDeshabilitado: {
-        opacity: 0.5,
-        backgroundColor: '#cccccc',
-        borderColor: '#999999',
-    },
-    formulario: {
-        marginTop: 8,
-        alignSelf: 'center',
-        width: '100%',
-        maxWidth: 1200,
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-    },
-    dniContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
-        width: '100%',
-    },
-    label: {
-        fontSize: 15,
-        marginBottom: 8,
-        fontWeight: '600',
-        color: '#2c3e50',
-        width: 80,
-    },
-    inputDni: {
-        flex: 1,
-        height: 38,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        padding: 8,
-        borderRadius: 5,
-        backgroundColor: '#f9f9f9',
-        marginRight: 10,
-        fontSize: 15,
-        marginLeft: 10,
-    },
-    consultarButton: {
-        backgroundColor: '#f0f7ff',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 0,
-        paddingHorizontal: 14,
-        borderRadius: 5,
-        height: 38,
-        justifyContent: 'center',
-        marginLeft: 10,
-    },
-    consultarText: {
-        color: '#746BC8',
-        fontSize: 14,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
-    botonDeshabilitado: {
-        opacity: 0.5,
-        backgroundColor: '#cccccc',
-        borderColor: '#999999',
-    },
-    fila: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 0,
-    },
-    columna: {
-        flex: 1,
-        paddingHorizontal: 10,
-        maxWidth: '33.33%',
-    },
-    label: {
-        fontSize: 15,
-        marginBottom: 8,
-        fontWeight: '600',
-        color: '#2c3e50',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 8,
-        borderRadius: 5,
-        marginBottom: 13,
-        backgroundColor: '#f9f9f9',
-        height: 38,
-        fontSize: 15,
-    },
-    filaPisoDepto: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 0,
-        marginBottom: 5,
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 13,
-    },
-    check: {
-        marginLeft: 10,
-    },
-    contenidoBotones: {
-        flexDirection: 'row',
-        alignSelf: 'center',
-        justifyContent: 'center',
-        marginTop: 18,
-        width: '80%',
-        gap: 8,
-    },
-    botonAlta: {
-        backgroundColor: '#e8f5e9',
-        borderColor: '#4caf50',
-        borderWidth: 1,
-        paddingVertical: 7,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-        flex: 1,
-        maxWidth: 200,
-        height: 40,
-        justifyContent: 'center',
-        marginRight: 6,
-    },
-    botonBaja: {
-        backgroundColor: '#ffebee',
-        borderColor: '#f44336',
-        borderWidth: 1,
-        paddingVertical: 7,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-        flex: 1,
-        maxWidth: 200,
-        height: 40,
-        justifyContent: 'center',
-        marginLeft: 6,
-        marginRight: 6,
-    },
-    botonModificar: {
-        backgroundColor: '#e3f2fd',
-        borderColor: '#746BC8',
-        borderWidth: 1,
-        paddingVertical: 7,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-        flex: 1,
-        maxWidth: 200,
-        height: 40,
-        justifyContent: 'center',
-        marginRight: 6,
-    },
-    botonLimpiar: {
-        backgroundColor: '#f5f5f5',
-        borderColor: '#9e9e9e',
-        borderWidth: 1,
-        paddingVertical: 7,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-        flex: 1,
-        maxWidth: 200,
-        height: 40,
-        justifyContent: 'center',
-    },
-    textoBoton: {
-        color: '#2c3e50',
-        fontSize: 13,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
+  // Contenedor principal
+  padre: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' },
+  bg: { position: 'absolute', width: '100%', height: '100%' },
+
+  // Formulario
+  formulario: {
+    marginTop: 8,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 1200,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+
+  // Sección DNI
+  dniContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, width: '100%' },
+  inputDni: { flex: 1, height: 38, borderWidth: 1, borderColor: '#ddd', padding: 8, borderRadius: 5, backgroundColor: '#f9f9f9', marginHorizontal: 10, fontSize: 15 },
+  consultarButton: { backgroundColor: '#f0f7ff', borderColor: '#746BC8', borderWidth: 1, paddingHorizontal: 14, borderRadius: 5, height: 38, justifyContent: 'center' },
+  consultarText: { color: '#746BC8', fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  botonDeshabilitado: { opacity: 0.5, backgroundColor: '#cccccc', borderColor: '#999999' },
+ errorText: { color: 'red', marginTop: 4, fontSize: 12 },
+
+  // Columnas
+  fila: { flexDirection: 'row', justifyContent: 'space-between', gap: 0 },
+  columna: { flex: 1, paddingHorizontal: 10, maxWidth: '33.33%' },
+  filaPisoDepto: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  columnaPisoDepto: { flex: 1, marginHorizontal: 4 },
+
+  // Inputs y labels
+  label: { fontSize: 15, marginBottom: 8, fontWeight: '600', color: '#2c3e50' },
+  input: { borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 5, marginBottom: 13, backgroundColor: '#f9f9f9', height: 38, fontSize: 15 },
+  inputDisabled: { backgroundColor: '#e0e0e0' },
+  
+  // CUIT editable
+  cuitPressable: { 
+    justifyContent: 'center', 
+    marginBottom: 13,
+    cursor: 'pointer'
+  },
+  cuitText: { 
+    fontSize: 15, 
+    color: '#2c3e50',
+    userSelect: 'none'
+  },
+
+  // Checkbox
+  checkboxContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 13 },
+  check: { marginLeft: 10 },
+
+  // Botones
+  contenidoBotones: { flexDirection: 'row', justifyContent: 'center', alignSelf: 'center', marginTop: 18, width: '80%', gap: 8 },
+  botonAlta: { backgroundColor: '#e8f5e9', borderColor: '#4caf50', borderWidth: 1, paddingVertical: 7, borderRadius: 5, flex: 1, maxWidth: 200, height: 40, justifyContent: 'center' },
+  botonBaja: { backgroundColor: '#ffebee', borderColor: '#f44336', borderWidth: 1, paddingVertical: 7, borderRadius: 5, flex: 1, maxWidth: 200, height: 40, justifyContent: 'center' },
+  botonModificar: { backgroundColor: '#e3f2fd', borderColor: '#746BC8', borderWidth: 1, paddingVertical: 7, borderRadius: 5, flex: 1, maxWidth: 200, height: 40, justifyContent: 'center' },
+  botonLimpiar: { backgroundColor: '#f5f5f5', borderColor: '#9e9e9e', borderWidth: 1, paddingVertical: 7, borderRadius: 5, flex: 1, maxWidth: 200, height: 40, justifyContent: 'center' },
+  textoBoton: { color: '#2c3e50', fontSize: 13, fontWeight: '600', textAlign: 'center' },
 });

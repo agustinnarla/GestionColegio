@@ -15,16 +15,16 @@ import { Picker } from "@react-native-picker/picker";
 import React, { useState, useEffect } from "react";
 import bg from "../../assets/bg1.jpg";
 import {
-  obtenerCursoPorProfesor,
-  obtenerMateriaPorCursoYProfesor,
+  obtenerCursoPorMateria,
+  obtenerMateriaPorProfesor,
   obtenerTipoDeEvaluacion,
 } from "../../scripts/listasDesplegables/listaDesplegable";
 import { registrarEvaluacion } from "../../scripts/profesor/scriptAsignarEvaluacion";
 import ListasDesplegables from "../../componente/ListasDesplegables";
 import CustomAlert from "../../componente/CustomAlerts.js";
-//import ScrollContainer from '../../componente/ScrollContainer.jsx'
+import ScrollContainer from '../../componente/ScrollContainer.jsx'
 
-export default function LibroAula({ route }) {
+export default function AsignarEvaluaciones({ route }) {
   //🟢 Formulario
   const [formData, setFormData] = useState({
     id_materia: "",
@@ -48,10 +48,10 @@ export default function LibroAula({ route }) {
   };
 
   //🟢 Estado listas desplegables
-  const [materiaPorCursoYProfesor, setMateriasPorCursoProfesor] = useState([]);
+  const [materiaPorProfesor, setMateriaPorProfesor] = useState([]);
   const [tipo_de_evaluacion, setTipoEvaluacion] = useState("");
   const [loading, setLoading] = useState(true);
-  const [cursoPorProfesor, setCursoPorProfesor] = useState([]);
+  const [cursoPorMateria, setCursoPorMateria] = useState([]);
 
   //🟢 Capturamos Parametro
   const { dni_usuario } = route.params;
@@ -66,29 +66,29 @@ export default function LibroAula({ route }) {
 
   //🟢 Cargamos lista desplegable curso
   useEffect(() => {
-    const cargarCursosPorProfesor = async () => {
-      if (dni_profesional) {
+    const cargarCursosPorMateria = async () => {
+      if (formData.id_materia) {
         try {
-          const cursoData = await obtenerCursoPorProfesor(dni_profesional);
+          const cursoData = await obtenerCursoPorMateria(formData.id_materia);
           console.log("cursos" + cursoData);
-          setCursoPorProfesor(cursoData);
+          setCursoPorMateria(cursoData);
         } catch (error) {
           console.error("Error al cargar cursos:", error);
         }
       }
     };
-    cargarCursosPorProfesor();
-  }, [dni_profesional]);
+    cargarCursosPorMateria();
+  }, [formData.id_materia]);
 
   //🟢 Cargamos lista desplegable materia
   useEffect(() => {
-    const cargarMateriasPorCursoYProfesor = async () => {
+    const cargarMateriasPorProfesor = async () => {
       try {
-        const data = await obtenerMateriaPorCursoYProfesor(
-          formData.id_curso,
+        const data = await obtenerMateriaPorProfesor(
+          
           dni_profesional
         );
-        setMateriasPorCursoProfesor(data);
+        setMateriaPorProfesor(data);
       } catch (error) {
         console.error("Error al cargar las materias:", error);
       } finally {
@@ -96,8 +96,8 @@ export default function LibroAula({ route }) {
       }
     };
 
-    cargarMateriasPorCursoYProfesor();
-  }, [formData.id_curso, dni_profesional]);
+    cargarMateriasPorProfesor();
+  }, [dni_profesional]);
 
   //🟢 Cargamos lista desplegable tipo de evaluación
   useEffect(() => {
@@ -114,9 +114,20 @@ export default function LibroAula({ route }) {
 
   //🟢 Formateamos fecha
   const validarFormatoFecha = (fecha) => {
-    // Regex para dd/mm/yyyy, días 01-31, meses 01-12, años 4 dígitos
-    const regex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-    return regex.test(fecha);
+    const regex = /^\d{4}\/\d{2}\/\d{2}$/;
+        if (!regex.test(fecha)) return false;
+        const [año, mes, dia] = fecha.split('/').map(Number);
+        const fechaValida = new Date(año, mes - 1, dia);
+        if (
+            fechaValida.getFullYear() !== año ||
+            fechaValida.getMonth() !== mes - 1 ||
+            fechaValida.getDate() !== dia
+        ) return false;
+        if (año <= 2024) return false;
+        const inicioRango = new Date(año, 1, 21);
+        const finRango = new Date(año, 11, 21);
+        if (fechaValida < inicioRango || fechaValida > finRango) return false;
+        return true;
   };
 
   if (loading) {
@@ -140,7 +151,7 @@ export default function LibroAula({ route }) {
       if (!validarFormatoFecha(formData.fecha)) {
         mostrarMensaje(
           "Error",
-          "Ingrese una fecha válida con formato DD/MM/AAAA"
+          "Ingrese una fecha válida con formato AAAA/MM/DD"
         );
         return;
       }
@@ -163,7 +174,7 @@ export default function LibroAula({ route }) {
       }
 
       setEnviando(true);
-      console.log("Datos del libro de aula", asignarEvaluacionData);
+      console.log("Datos de la evaluación", asignarEvaluacionData);
       mostrarMensaje("Enviando", "Enviando aviso de la evaluación al email...");
 
       const respuesta = await registrarEvaluacion(asignarEvaluacionData);
@@ -226,20 +237,21 @@ export default function LibroAula({ route }) {
   //🟢 Vista
   return (
     <View style={styles.padre}>
-      <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+       <ScrollContainer />
+       <ImageBackground source={bg} style={styles.bg} resizeMode="cover"> 
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.card}>
             <ListasDesplegables
               formData={formData}
               handleChange={handleChange}
-              materias_curso_profesor={materiaPorCursoYProfesor}
+              materias={materiaPorProfesor}
               showLabel={true}
               styles={styles}
             />
             <ListasDesplegables
               formData={formData}
               handleChange={handleChange}
-              cursos={cursoPorProfesor}
+              cursos={cursoPorMateria}
               showLabel={true}
               styles={styles}
             />
@@ -254,7 +266,7 @@ export default function LibroAula({ route }) {
             <Text style={styles.label}>Fecha:</Text>
             <TextInput
               style={styles.input}
-              placeholder="DD/MM/AAAA"
+              placeholder="AAAA/MM/DD"
               onChangeText={(value) => handleChange("fecha", value)}
               value={formData.fecha}
             />

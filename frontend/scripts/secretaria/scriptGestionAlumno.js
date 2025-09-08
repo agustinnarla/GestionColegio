@@ -4,7 +4,7 @@ const api_url = `${API_BASE_URL}`
 const api_urlLegajos = `${API_BASE_URL}/alumno/legajo`
 const api_urlAlta = `${API_BASE_URL}/alumno/alta`
 const api_urlEliminar = `${API_BASE_URL}/alumno/deshabilitar`
-const api_urlModificar = `${API_BASE_URL}alumno/modificar`
+const api_urlModificar = `${API_BASE_URL}/alumno/modificar`
 const api_urlModificarLegajo = `${API_BASE_URL}/alumnosLegajo/modificar`
 
 
@@ -32,16 +32,18 @@ export const obtenerAlumnoFiltrado = async (dni_alumno) => {
 export const obtenerDniPdf = async (dni_alumno) => {
     try {
         const respuesta = await fetch(`${api_urlLegajos}/${dni_alumno}/1`);
-        const data = await respuesta.blob(); // Si es un archivo PDF
+        
         if (respuesta.ok) {
-            return data; // Devuelve el contenido del archivo
+            const data = await respuesta.blob();
+            console.log('DNI PDF obtenido, tamaño:', data.size);
+            return data.size > 0 ? data : null;
         } else {
-            return null
-            throw new Error("Error al obtener el PDF del DNI");
+            console.log('No se encontró DNI PDF para el alumno:', dni_alumno);
+            return null;
         }
     } catch (error) {
-        console.log(error);
-        throw new Error("Error al obtener el PDF del DNI");
+        console.log('Error al obtener DNI PDF:', error);
+        return null;
     }
 };
 // 🔴
@@ -49,16 +51,18 @@ export const obtenerDniPdf = async (dni_alumno) => {
 export const obtenerFichaMedicaPdf = async (dni_alumno) => {
     try {
         const respuesta = await fetch(`${api_urlLegajos}/${dni_alumno}/2`);
-        const data = await respuesta.blob();
+        
         if (respuesta.ok) {
-            return data;
+            const data = await respuesta.blob();
+            console.log('Ficha médica PDF obtenida, tamaño:', data.size);
+            return data.size > 0 ? data : null;
         } else {
-            return null
-            throw new Error("Error al obtener el PDF de la ficha médica");
+            console.log('No se encontró ficha médica PDF para el alumno:', dni_alumno);
+            return null;
         }
     } catch (error) {
-        console.log(error);
-        throw new Error("Error al obtener el PDF de la ficha médica");
+        console.log('Error al obtener ficha médica PDF:', error);
+        return null;
     }
 };
 // 🔴
@@ -66,21 +70,25 @@ export const obtenerFichaMedicaPdf = async (dni_alumno) => {
 export const obtenerPartidaNacimientoPdf = async (dni_alumno) => {
     try {
         const respuesta = await fetch(`${api_urlLegajos}/${dni_alumno}/3`);
-        const data = await respuesta.blob();
+        
         if (respuesta.ok) {
-            return data;
+            const data = await respuesta.blob();
+            console.log('Partida de nacimiento PDF obtenida, tamaño:', data.size);
+            return data.size > 0 ? data : null;
         } else {
-            return null
-            throw new Error("Error al obtener el PDF de la partida de nacimiento");
+            console.log('No se encontró partida de nacimiento PDF para el alumno:', dni_alumno);
+            return null;
         }
     } catch (error) {
-        console.log(error);
-        throw new Error("Error al obtener el PDF de la partida de nacimiento");
+        console.log('Error al obtener partida de nacimiento PDF:', error);
+        return null;
     }
 };
 // 🟢
 export const agregarAlumno = async (formData) => {
     try {
+        console.log('Datos enviados al servidor:', formData);
+        console.log('URL de destino:', api_urlAlta);
         
         const respuesta = await fetch(api_urlAlta, {
             method: 'POST',
@@ -90,13 +98,29 @@ export const agregarAlumno = async (formData) => {
             body: JSON.stringify(formData),
         });
 
-        const data = await respuesta.json();
+        console.log('Status de respuesta:', respuesta.status);
+        console.log('Status text:', respuesta.statusText);
+
+        // Verificar si la respuesta tiene contenido antes de parsear JSON
+        const contentType = respuesta.headers.get('content-type');
+        let data = {};
+        
+        if (contentType && contentType.includes('application/json')) {
+            const text = await respuesta.text();
+            console.log('Respuesta del servidor (texto):', text);
+            if (text.trim()) {
+                data = JSON.parse(text);
+            }
+        } else {
+            console.log('Respuesta no es JSON, content-type:', contentType);
+        }
 
         if (respuesta.ok) {
-            console.log("Se agrego el alumno")
+            console.log("Se agregó el alumno correctamente");
             return data;  
         } else {
-            throw new Error(data.error || 'Error desconocido al agregar el alumno');
+            console.error('Error del servidor:', data);
+            throw new Error(data.error || data.message || `Error del servidor: ${respuesta.status} ${respuesta.statusText}`);
         }
     } catch (error) {
         console.error('Error en agregarAlumno:', error.message); 
@@ -184,14 +208,31 @@ export const modificarLegajo = async (dni_alumno, formData) => {
             body: formData,  // El FormData con los archivos
         });
 
-        const data = await respuesta.json();
-
         if (!respuesta.ok) {
-            console.error('Error en la respuesta del servidor:', data.error);
-            throw new Error(data.error || 'Error desconocido al modificar el legajo');
+            // Intentar obtener el mensaje de error si existe
+            let errorMessage = 'Error desconocido al modificar el legajo';
+            try {
+                const errorData = await respuesta.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+                // Si no se puede parsear como JSON, usar el status text
+                errorMessage = respuesta.statusText || errorMessage;
+            }
+            throw new Error(errorMessage);
         }
 
-        console.log("Se modificó el legajo", data);
+        // Verificar si la respuesta tiene contenido antes de intentar parsear JSON
+        const contentType = respuesta.headers.get('content-type');
+        let data = {};
+        
+        if (contentType && contentType.includes('application/json')) {
+            const text = await respuesta.text();
+            if (text.trim()) {
+                data = JSON.parse(text);
+            }
+        }
+
+        console.log("Se modificó el legajo correctamente");
         return data;
 
     } catch (error) {

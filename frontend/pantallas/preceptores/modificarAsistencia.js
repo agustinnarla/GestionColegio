@@ -91,6 +91,7 @@ export default function ModificarAsistencia() {
                     };
                     await registrarAsistenciaFrontend(asistenciaData);
                     mostrarMensaje('Exito', 'Se modificó la asistencia correctamente');
+                    
 
                 }
             }
@@ -110,9 +111,10 @@ export default function ModificarAsistencia() {
     // Limpia el nombre de la hoja para evitar caracteres raros
     const nombreHoja = detalle_curso
         ? detalle_curso.replace(/\s+/g, '_').replace(/[^\w]/g, '')
-        : 'curso';
+        : 'curso';  
 
     exportarExcelConDatos(data, 'asistencia.xlsx', nombreHoja);
+    setEstudiantes([])
 };
 
 
@@ -136,7 +138,7 @@ export default function ModificarAsistencia() {
                                 <Text style={styles.estudiante}>{estudiante.nombre}</Text>
                                 <Switch
                                     value={estudiante.presente}
-                                    onValueChange={() => toggleSwitch(estudiante.dni_alumno)}
+                                    onValueChange={() => toggleSwitch(estudiante.id)}
                                     thumbColor={estudiante.presente ? "#4caf50" : "#bbb"}
                                     trackColor={{ false: "#e5e7eb", true: "#bbf7d0" }}
                                     style={styles.switch}
@@ -151,8 +153,8 @@ export default function ModificarAsistencia() {
                         <TouchableOpacity style={[styles.boton, styles.enviar]} onPress={handleRegistrar}>
                             <Text style={styles.botonTexto}>Enviar</Text>
                         </TouchableOpacity>
-                         <TouchableOpacity
-                            style={styles.boton}
+                        <TouchableOpacity
+                            style={[styles.boton, styles.exportar]}
                             onPress={() => exportarModificacionExcel(estudiantes)}
                         >
                             <Text style={styles.botonTexto}>📄</Text>
@@ -189,7 +191,12 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         zIndex: -1,
+    },exportar:{
+        backgroundColor: '#f0f7ff',
+    borderColor: '#746BC8',
+        borderWidth: 1,
     },
+    
     wrapper: {
         width: '100%',
         maxWidth: 420,

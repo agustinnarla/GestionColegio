@@ -1,10 +1,10 @@
-import { StyleSheet, View, Image, TextInput, Text, ScrollView, Alert, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Image, TextInput, Text, ScrollView, Alert, useWindowDimensions, ImageBackground } from 'react-native';
 import { obtenerCurso } from '../../scripts/listasDesplegables/listaDesplegable.js';
 import React, { useState, useEffect } from "react";
 import bg from '../../assets/bg1.jpg';
 import ListasDesplegables from '../../componente/ListasDesplegables';
 import { obtenerAvisosGenerales, obtenerAvisosCurso } from '../../scripts/alumno/scriptAvisos';
-
+import ScrollContainer from '../../componente/ScrollContainer.jsx';
 export default function Avisos({ route }) {
     //🟢 Formulario
     const [formData, setFormData] = useState({
@@ -24,7 +24,7 @@ export default function Avisos({ route }) {
         const horas = fecha.getHours().toString().padStart(2, '0');
         const minutos = fecha.getMinutes().toString().padStart(2, '0');
 
-        return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+        return `${anio}/${mes}/${dia} ${horas}:${minutos}`;
     };
 
     //🟢 Estados 
@@ -42,32 +42,41 @@ export default function Avisos({ route }) {
 
     //🟢 Obtener Avisos 
     useEffect(() => {
-
     const cargarAvisos = async () => {
-        try {
-            const dni_alumno = dni_usuario
-            const cursoData = await obtenerCurso();
-            const avisoDatos = await obtenerAvisosGenerales();
-            const avisoCursoData = await obtenerAvisosCurso(dni_alumno);
-            // Combina los avisos generales y los avisos por curso
-            if (!Array.isArray(avisoDatos) || !Array.isArray(avisoCursoData)) {
-                throw new Error('Error al obtener los datos de avisos');
-            }
-            // Combina los avisos generales y los avisos por curso
-            if (avisoCursoData.length > 0) {
-                avisoDatos.push(...avisoCursoData);
-            }
-            
-            const todosLosAvisos = [
-                ...(Array.isArray(avisoDatos) ? avisoDatos : []),
-            ];
+  try {
+    const dni_alumno = dni_usuario;
+    const cursoData = await obtenerCurso();
+    const avisoDatos = await obtenerAvisosGenerales();
+    const avisoCursoData = await obtenerAvisosCurso(dni_alumno);
 
-            setDatos(todosLosAvisos); // Establece los avisos combinados
-            setCursos(Array.isArray(cursoData) ? cursoData : []);
-        } catch (error) {
-            Alert.alert('Error', error.message);
-        }
-    };
+    if (!Array.isArray(avisoDatos) || !Array.isArray(avisoCursoData)) {
+      throw new Error("Error al obtener los datos de avisos");
+    }
+
+    // Combinar
+    if (avisoCursoData.length > 0) {
+      avisoDatos.push(...avisoCursoData);
+    }
+
+    const todosLosAvisos = [
+      ...(Array.isArray(avisoDatos) ? avisoDatos : []),
+    ];
+
+   
+    const hoy = new Date();
+    const avisosFiltrados = todosLosAvisos.filter((aviso) => {
+      if (!aviso.fecha_aviso) return false;
+      const fechaAviso = new Date(aviso.fecha_aviso);
+      return !isNaN(fechaAviso.getTime()) && fechaAviso >= hoy;
+    });
+
+    setDatos(avisosFiltrados);
+    setCursos(Array.isArray(cursoData) ? cursoData : []);
+  } catch (error) {
+    Alert.alert("Error", error.message);
+  }
+};
+
 
         cargarAvisos();
     }, []);
@@ -78,16 +87,21 @@ export default function Avisos({ route }) {
     };
 
     //🟢 Filtra los avisos por curso y fecha
+   const filtroNormalizado = fechaFiltro?.replace(/\//g, "-"); // 2025/06 -> 2025-06
+
     const filtrarAvisos = datos.filter((aviso) => {
-    // Si el aviso es general, no tiene id_curso (o es null/undefined)
-        const coincideCurso =
-            !formData.id_curso ||
-            (aviso.id_curso && aviso.id_curso.toString() === formData.id_curso.toString());
+    const idCursoAviso = aviso.id_curso ?? null;
+    const idCursoFiltro = formData.id_curso ?? null;
 
-        const coincideFecha =
-            !fechaFiltro || (aviso.fecha_registro && aviso.fecha_registro.includes(fechaFiltro));
+    const coincideCurso =
+        !idCursoFiltro || idCursoAviso?.toString() === idCursoFiltro.toString();
 
-        return coincideCurso && coincideFecha;
+    const coincideFecha =
+        !filtroNormalizado ||
+        (aviso.fecha_aviso &&
+        aviso.fecha_aviso.includes(filtroNormalizado)); // "2025-06" sí matchea con "2025-06-30T21:51:00.000Z"
+
+    return coincideCurso && coincideFecha;
     });
 
     //🟢 Obtención de la fecha actual
@@ -106,7 +120,8 @@ export default function Avisos({ route }) {
     //🟢 Vista 
     return (
         <View style={styles.padre}>
-            <Image source={bg} style={styles.bg} />
+           
+            <ImageBackground source={bg} style={styles.bg} resizeMode="cover"> 
 
             <View style={styles.contenedor}>
                
@@ -123,12 +138,13 @@ export default function Avisos({ route }) {
                     </View>
                     <TextInput
                         style={[styles.filtroInput, isMobile && styles.filtroInputMobile]}
-                        placeholder="Buscar por fecha (DD/MM/AAAA)"
+                        placeholder="Buscar por fecha (AAAA/MM/DD)"
                         value={fechaFiltro}
                         onChangeText={(text) => setFechaFiltro(text)}
                     />
                 </View>
 
+                
                 <ScrollView style={styles.scrollAvisos}>
                     {filtrarAvisos.length > 0 ? (
                         filtrarAvisos.map((aviso, index) => (
@@ -162,6 +178,7 @@ export default function Avisos({ route }) {
                     )}
                 </ScrollView>
             </View>
+                </ImageBackground>
         </View>
     );
 }

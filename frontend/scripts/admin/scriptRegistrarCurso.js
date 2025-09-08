@@ -10,10 +10,10 @@ const api_urlCursoModificar = `${API_BASE_URL}/curso/modificar`;
 // 🟢
 export const registrarCursoPorMateria = async (formData) => {
     try {
-        const respuesta = await fetch(`${API_URL}/curso/registrar-con-materias`, {
+        const respuesta = await fetch(`${API_BASE_URL}/curso/materia/alta`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cursoData)
+        body: JSON.stringify(formData)
         });
         const data = await respuesta.json();
         if (!respuesta.ok) {

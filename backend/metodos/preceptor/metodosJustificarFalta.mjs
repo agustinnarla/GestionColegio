@@ -23,69 +23,67 @@ export const obtenerAlumnosAusentes = async (req, res) => {
 
 export const registrarJustificacion = async (req, res) => {
     const { id_estado_falta_alumno, dni_alumno, id_certificado, fecha } = req.body;
+  
     try {
-        // Primero verificamos si ya existe una entrada con el mismo dnialumno y fecha
-        const existe = await pool.query(
-            "SELECT * FROM justificar_falta_alumno WHERE dni_alumno = $1 AND fecha = $2", 
-            [dni_alumno, fecha]
-        );
-
-        if (existe.rows.length > 0) {
-            // Si existe, obtenemos los datos actuales y los almacenamos en variables
-            const registroExistente = existe.rows[0];
-            let estadofaltaActual = registroExistente.id_estado_falta_alumno;
-            let certificadoActual = registroExistente.id_certificado;
-
-            // Verificamos si id_estado_falta ha cambiado
-            if (id_estado_falta_alumno !== estadofaltaActual && id_estado_falta_alumno != null) {
-                estadofaltaActual = id_estado_falta_alumno;
-            }
-
-            // Verificamos si idcertificado ha cambiado
-            if (id_certificado !== certificadoActual && id_certificado != null) {
-                certificadoActual = id_certificado;
-            }
-
-            // Si no se realizaron cambios, devolvemos un mensaje sin actualizar
-            if (estadofaltaActual === registroExistente.id_estado_falta_alumno && certificadoActual === registroExistente.id_certificado) {
-                console.log("No se realizaron cambios");
-                return res.status(200).json({ justificado: "No se realizaron cambios" });
-            }
-
-            console.log("Este es el estado falta actual " + estadofaltaActual)
-            console.log("Este es el estado certificado actual " + certificadoActual)
-
-            // Construimos la consulta de actualización con los valores modificados
-            const query = `
-                UPDATE justificar_falta_alumno
-                SET id_estado_falta_alumno = $1, id_certificado = $2, id_estado_general = 1
-                WHERE dni_alumno = $3 AND fecha = $4
-            `;
-
-            // Ejecutamos el UPDATE con los valores nuevos
-            const respuesta = await pool.query(query, [
-                estadofaltaActual, 
-                certificadoActual, 
-                dni_alumno, 
-                fecha
-            ]);
-
-            console.log("Registro actualizado");
-            res.status(200).json({ justificado: respuesta.rows });
-        } else {
-            // Si no existe, insertamos un nuevo registro
-            const respuesta = await pool.query(
-                "INSERT INTO justificar_falta_alumno (id_estado_falta_alumno, dni_alumno, id_certificado, fecha, id_estado_general) VALUES ($1, $2, $3, $4,1)", 
-                [id_estado_falta_alumno, dni_alumno, id_certificado, fecha]
-            );
-            console.log("Nuevo registro insertado");
-            res.status(200).json({ justificado: respuesta.rows });
+      // Primero verificamos si ya existe un registro con el mismo dni y fecha
+      const existe = await pool.query(
+        "SELECT * FROM justificar_falta_alumno WHERE dni_alumno = $1 AND fecha = $2", 
+        [dni_alumno, fecha]
+      );
+  
+      if (existe.rows.length > 0) {
+        // Si existe, obtenemos los datos actuales
+        const registroExistente = existe.rows[0];
+        let estadofaltaActual = registroExistente.id_estado_falta_alumno;
+        let certificadoActual = registroExistente.id_certificado;
+  
+        if (id_estado_falta_alumno !== estadofaltaActual && id_estado_falta_alumno != null) {
+          estadofaltaActual = id_estado_falta_alumno;
         }
+  
+        if (id_certificado !== certificadoActual && id_certificado != null) {
+          certificadoActual = id_certificado;
+        }
+  
+        if (
+          estadofaltaActual === registroExistente.id_estado_falta_alumno &&
+          certificadoActual === registroExistente.id_certificado
+        ) {
+          console.log("No se realizaron cambios");
+          return res.status(200).json({ justificado: "No se realizaron cambios" });
+        }
+  
+        const query = `
+          UPDATE justificar_falta_alumno
+          SET id_estado_falta_alumno = $1, id_certificado = $2, id_estado_general = 1
+          WHERE dni_alumno = $3 AND fecha = $4
+        `;
+        await pool.query(query, [
+          estadofaltaActual,
+          certificadoActual,
+          dni_alumno,
+          fecha
+        ]);
+  
+        console.log("Registro actualizado");
+        res.status(200).json({ justificado: "Registro actualizado correctamente" });
+  
+      } else {
+        // Si no existe, insertamos un nuevo registro
+        await pool.query(
+          "INSERT INTO justificar_falta_alumno (id_estado_falta_alumno, dni_alumno, id_certificado, fecha, id_estado_general) VALUES ($1,$2,$3,$4,1)", 
+          [id_estado_falta_alumno, dni_alumno, id_certificado, fecha]
+        );
+  
+        console.log("Nuevo registro insertado");
+        res.status(200).json({ justificado: "Nuevo registro insertado correctamente" });
+      }
+  
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: "Hubo un error al procesar la solicitud." });
+      console.log(error);
+      res.status(500).json({ error: "Hubo un error al procesar la solicitud." });
     }
-};
+  };
 
 
 export const obtenerEstadosFalta = async (req,res) => {
@@ -102,24 +100,33 @@ export const obtenerEstadosFalta = async (req,res) => {
 
 export const obtenerJustificarFalta = async (req, res) => {
     try {
-        const { fechadesde, fechahasta } = req.params; 
-
-        if (!fechadesde || !fechahasta) {
-            return res.status(400).json({ error: "Debe proporcionar fechadesde y fechahasta" });
-        }
-
-        const respuesta = await pool.query(
-            "SELECT * FROM justificar_falta_alumno WHERE fecha BETWEEN $1 AND $2 ",
-            [fechadesde, fechahasta]
-        );
-
-        console.log("Datos obtenidos:", respuesta.rows);
-        res.status(200).json({ estadofalta: respuesta.rows });
+      const { fechadesde, fechahasta } = req.params;
+  
+      if (!fechadesde || !fechahasta) {
+        return res.status(400).json({ error: "Debe proporcionar fechadesde y fechahasta" });
+      }
+  
+      const respuesta = await pool.query(
+        `SELECT jfa.*, efa.detalle AS estado_detalle
+         FROM justificar_falta_alumno jfa
+         JOIN estado_falta_alumnos efa
+           ON jfa.id_estado_falta_alumno = efa.id_estado_falta_alumno
+         WHERE fecha BETWEEN $1 AND $2`,
+        [fechadesde, fechahasta]
+      );
+  
+      // Calculamos si suma falta al vuelo
+      const datosConFaltas = respuesta.rows.map(r => ({
+        ...r,
+        sumaFalta: r.estado_detalle === "Ausente No Justificado" || r.estado_detalle === "Ausente Justificado"
+      }));
+  
+      res.status(200).json({ estadofalta: datosConFaltas });
     } catch (error) {
-        console.error("Error al obtener los datos:", error);
-        res.status(500).json({ error: "Error al obtener los datos de estadofalta" });
+      console.error("Error al obtener los datos:", error);
+      res.status(500).json({ error: "Error al obtener los datos de estadofalta" });
     }
-};
+  };
 
 
 export const actualizarEstadoAlumno = async (req, res) => {

@@ -58,7 +58,7 @@ export const authMiddleware = (req, res, next) => {
 };
 
 app.listen(port,() => {
-    console.log(`El servidor se alojo en http://192.168.0.13:${port}`)
+    console.log(`El servidor se alojo en http://192.168.0.14:${port}`)
 })
 
 
